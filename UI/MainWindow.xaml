@@ -206,6 +206,79 @@
                                            HorizontalAlignment="Center" FontSize="11"/>
                             </Grid>
 
+                            <!-- ===== 장비 서브옵션 ===== -->
+                            <TextBlock Text="장비 서브옵션" Style="{StaticResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="45"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Row 0 -->
+                                <ComboBox x:Name="cboSub1" Grid.Row="0" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv1" Grid.Row="0" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub2" Grid.Row="0" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv2" Grid.Row="0" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub3" Grid.Row="0" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv3" Grid.Row="0" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub4" Grid.Row="0" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv4" Grid.Row="0" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+
+                                <!-- Row 1 -->
+                                <ComboBox x:Name="cboSub5" Grid.Row="1" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv5" Grid.Row="1" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub6" Grid.Row="1" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv6" Grid.Row="1" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub7" Grid.Row="1" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv7" Grid.Row="1" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub8" Grid.Row="1" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv8" Grid.Row="1" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+
+                                <!-- Row 2 -->
+                                <ComboBox x:Name="cboSub9" Grid.Row="2" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv9" Grid.Row="2" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub10" Grid.Row="2" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv10" Grid.Row="2" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub11" Grid.Row="2" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv11" Grid.Row="2" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub12" Grid.Row="2" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv12" Grid.Row="2" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+
+                                <!-- Row 3 -->
+                                <ComboBox x:Name="cboSub13" Grid.Row="3" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv13" Grid.Row="3" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub14" Grid.Row="3" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv14" Grid.Row="3" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub15" Grid.Row="3" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv15" Grid.Row="3" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSub16" Grid.Row="3" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
+                                <ComboBox x:Name="cboSubLv16" Grid.Row="3" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                            </Grid>
+
+                            <!-- ===== 장신구 ===== -->
+                            <TextBlock Text="장신구" Style="{StaticResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
+
+                            <ComboBox x:Name="cboAccessory" Style="{StaticResource ComboStyle}" Margin="0,0,0,8"
+                                      SelectionChanged="CboAccessory_SelectionChanged">
+                                <ComboBoxItem Content="없음" IsSelected="True"/>
+                                <ComboBoxItem Content="4성"/>
+                                <ComboBoxItem Content="5성"/>
+                                <ComboBoxItem Content="6성"/>
+                            </ComboBox>
+
                             <!-- ===== 진형 ===== -->
                             <TextBlock Text="진형" Style="{StaticResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
 
@@ -392,7 +465,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- 펫 옵션 (4개) -->
+                            <!-- 펫 옵션 (3개) -->
                             <TextBlock Text="펫 옵션" Style="{StaticResource LabelText}" Margin="0,5,0,5"/>
 
                             <!-- 옵션 1 -->
@@ -445,24 +518,6 @@
                                     <ComboBoxItem Content="생명력%"/>
                                 </ComboBox>
                                 <TextBox x:Name="txtPetOpt3" Grid.Column="1" Text="0" 
-                                         Style="{StaticResource InputBox}" Margin="5,0,0,0"
-                                         TextChanged="PetOption_Changed"/>
-                            </Grid>
-
-                            <!-- 옵션 4 -->
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="70"/>
-                                </Grid.ColumnDefinitions>
-                                <ComboBox x:Name="cboPetOpt4" Style="{StaticResource ComboStyle}"
-                                          SelectionChanged="PetOption_Changed">
-                                    <ComboBoxItem Content="없음" IsSelected="True"/>
-                                    <ComboBoxItem Content="공격력%"/>
-                                    <ComboBoxItem Content="방어력%"/>
-                                    <ComboBoxItem Content="생명력%"/>
-                                </ComboBox>
-                                <TextBox x:Name="txtPetOpt4" Grid.Column="1" Text="0" 
                                          Style="{StaticResource InputBox}" Margin="5,0,0,0"
                                          TextChanged="PetOption_Changed"/>
                             </Grid>

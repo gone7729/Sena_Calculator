@@ -18,11 +18,6 @@ C:\Users\rhkde\Desktop\김광동\개인\Sena_Calculator\Sena_Calculator\obj\Debu
 C:\Users\rhkde\Desktop\김광동\개인\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\Sena_Calculator.genruntimeconfig.cache
 C:\Users\rhkde\Desktop\김광동\개인\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\ref\세나리_데미지계산기.dll
 C:\Users\rhkde\Desktop\김광동\개인\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\Sena_Calculator.sourcelink.json
-C:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.exe
-C:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.dll
-c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.deps.json
-c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.runtimeconfig.json
-c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.pdb
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\UI\MainWindow.baml
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\UI\MainWindow.g.cs
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\App.g.cs
@@ -33,6 +28,11 @@ c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\Sena_Calculator.AssemblyInfo.cs
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\Sena_Calculator.csproj.CoreCompileInputs.cache
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\Sena_Calculator.sourcelink.json
+c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.exe
+c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.deps.json
+c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.runtimeconfig.json
+c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.dll
+c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\bin\Debug\net8.0-windows\세나리_데미지계산기.pdb
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\세나리_데미지계산기.dll
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\refint\세나리_데미지계산기.dll
 c:\Users\rhkde\Desktop\sene_cal\Sena_Calculator\Sena_Calculator\obj\Debug\net8.0-windows\세나리_데미지계산기.pdb

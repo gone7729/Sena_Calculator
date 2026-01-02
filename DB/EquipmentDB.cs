@@ -55,28 +55,28 @@ namespace GameDamageCalculator.Database
             public static readonly Dictionary<string, BaseStatSet[]> SubStatTiers = 
                 new Dictionary<string, BaseStatSet[]>
             {
-                { "공격력%", new BaseStatSet[] {
+                { "공%", new BaseStatSet[] {
                     new BaseStatSet { Atk_Rate = 0.05 },
                     new BaseStatSet { Atk_Rate = 0.10 },
                     new BaseStatSet { Atk_Rate = 0.15 },
                     new BaseStatSet { Atk_Rate = 0.20 },
                     new BaseStatSet { Atk_Rate = 0.25 }
                 }},
-                { "공격력", new BaseStatSet[] {
+                { "공", new BaseStatSet[] {
                     new BaseStatSet { Atk = 50 },
                     new BaseStatSet { Atk = 100 },
                     new BaseStatSet { Atk = 150 },
                     new BaseStatSet { Atk = 200 },
                     new BaseStatSet { Atk = 250 }
                 }},
-                { "치명타확률%", new BaseStatSet[] {
+                { "치확%", new BaseStatSet[] {
                     new BaseStatSet { Cri = 0.04 },
                     new BaseStatSet { Cri = 0.08 },
                     new BaseStatSet { Cri = 0.12 },
                     new BaseStatSet { Cri = 0.16 },
                     new BaseStatSet { Cri = 0.20 }
                 }},
-                { "치명타피해%", new BaseStatSet[] {
+                { "치피%", new BaseStatSet[] {
                     new BaseStatSet { Cri_Dmg = 0.06 },
                     new BaseStatSet { Cri_Dmg = 0.12 },
                     new BaseStatSet { Cri_Dmg = 0.18 },
@@ -90,56 +90,56 @@ namespace GameDamageCalculator.Database
                     new BaseStatSet { Spd = 16 },
                     new BaseStatSet { Spd = 20 }
                 }},
-                { "약점공격확률%", new BaseStatSet[] {
+                { "약공%", new BaseStatSet[] {
                     new BaseStatSet { Wek = 0.05 },
                     new BaseStatSet { Wek = 0.10 },
                     new BaseStatSet { Wek = 0.15 },
                     new BaseStatSet { Wek = 0.20 },
                     new BaseStatSet { Wek = 0.25 }
                 }},
-                { "생명력%", new BaseStatSet[] {
+                { "피통%", new BaseStatSet[] {
                     new BaseStatSet { Hp_Rate = 0.05 },
                     new BaseStatSet { Hp_Rate = 0.10 },
                     new BaseStatSet { Hp_Rate = 0.15 },
                     new BaseStatSet { Hp_Rate = 0.20 },
                     new BaseStatSet { Hp_Rate = 0.25 }
                 }},
-                { "생명력", new BaseStatSet[] {
+                { "피통", new BaseStatSet[] {
                     new BaseStatSet { Hp = 180 },
                     new BaseStatSet { Hp = 360 },
                     new BaseStatSet { Hp = 540 },
                     new BaseStatSet { Hp = 720 },
                     new BaseStatSet { Hp = 900 }
                 }},
-                { "방어력%", new BaseStatSet[] {
+                { "방어%", new BaseStatSet[] {
                     new BaseStatSet { Def_Rate = 0.05 },
                     new BaseStatSet { Def_Rate = 0.10 },
                     new BaseStatSet { Def_Rate = 0.15 },
                     new BaseStatSet { Def_Rate = 0.20 },
                     new BaseStatSet { Def_Rate = 0.25 }
                 }},
-                { "방어력", new BaseStatSet[] {
+                { "방어", new BaseStatSet[] {
                     new BaseStatSet { Def = 30 },
                     new BaseStatSet { Def = 60 },
                     new BaseStatSet { Def = 90 },
                     new BaseStatSet { Def = 120 },
                     new BaseStatSet { Def = 150 }
                 }},
-                { "막기확률%", new BaseStatSet[] {
+                { "막기%", new BaseStatSet[] {
                     new BaseStatSet { Blk = 0.04 },
                     new BaseStatSet { Blk = 0.08 },
                     new BaseStatSet { Blk = 0.12 },
                     new BaseStatSet { Blk = 0.16 },
                     new BaseStatSet { Blk = 0.20 }
                 }},
-                { "효과적중%", new BaseStatSet[] {
+                { "효적%", new BaseStatSet[] {
                     new BaseStatSet { Eff_Hit = 0.05 },
                     new BaseStatSet { Eff_Hit = 0.10 },
                     new BaseStatSet { Eff_Hit = 0.15 },
                     new BaseStatSet { Eff_Hit = 0.20 },
                     new BaseStatSet { Eff_Hit = 0.25 }
                 }},
-                { "효과저항%", new BaseStatSet[] {
+                { "효저%", new BaseStatSet[] {
                     new BaseStatSet { Eff_Res = 0.05 },
                     new BaseStatSet { Eff_Res = 0.10 },
                     new BaseStatSet { Eff_Res = 0.15 },
@@ -157,23 +157,23 @@ namespace GameDamageCalculator.Database
         {
             { "선봉장", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Atk_Rate = 0.20 } },
-                { 4, new BaseStatSet { Atk_Rate = 0.25, Eff_Hit = 0.20 } }
+                { 4, new BaseStatSet { Atk_Rate = 0.45, Eff_Hit = 0.20 } }
             }},
             { "추적자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Wek = 0.15 } },
-                { 4, new BaseStatSet { Wek = 0.20, Wek_Dmg = 35 } }
+                { 4, new BaseStatSet { Wek = 0.35, Wek_Dmg = 35 } }
             }},
             { "성기사", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Hp_Rate = 0.17 } },
-                { 4, new BaseStatSet { Hp_Rate = 0.23, Heal_Rec = 0.20 } }
+                { 4, new BaseStatSet { Hp_Rate = 0.40, Heal_Rec = 0.20 } }
             }},
             { "수문장", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Blk = 0.15 } },
-                { 4, new BaseStatSet { Blk = 0.15, Blk_Red = 0.10 } }
+                { 4, new BaseStatSet { Blk = 0.30, Blk_Red = 0.10 } }
             }},
             { "수호자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Def_Rate = 0.20 } },
-                { 4, new BaseStatSet { Def_Rate = 0.25, Eff_Res = 0.20 } }
+                { 4, new BaseStatSet { Def_Rate = 0.45, Eff_Res = 0.20 } }
             }},
             { "암살자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Cri = 15 } },
@@ -181,15 +181,15 @@ namespace GameDamageCalculator.Database
             }},
             { "복수자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Dmg_Dealt = 0.15 } },
-                { 4, new BaseStatSet { Dmg_Dealt = 0.15, Dmg_Dealt_Bos = 0.40 } }
+                { 4, new BaseStatSet { Dmg_Dealt = 0.30, Dmg_Dealt_Bos = 0.40 } }
             }},
             { "주술사", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Eff_Hit = 0.17 } },
-                { 4, new BaseStatSet { Eff_Hit = 0.18, Eff_Acc = 0.10 } }
+                { 4, new BaseStatSet { Eff_Hit = 0.35, Eff_Acc = 0.10 } }
             }},
             { "조율자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Eff_Res = 0.17 } },
-                { 4, new BaseStatSet { Eff_Res = 0.18 } }
+                { 4, new BaseStatSet { Eff_Res = 0.35 } }
             }}
         };
     }
