@@ -161,7 +161,7 @@ namespace GameDamageCalculator.Database
             }},
             { "추적자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Wek = 0.15 } },
-                { 4, new BaseStatSet { Wek = 0.20, Wek_Dmg = 0.35 } }
+                { 4, new BaseStatSet { Wek = 0.20, Wek_Dmg = 35 } }
             }},
             { "성기사", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Hp_Rate = 0.17 } },
@@ -176,8 +176,8 @@ namespace GameDamageCalculator.Database
                 { 4, new BaseStatSet { Def_Rate = 0.25, Eff_Res = 0.20 } }
             }},
             { "암살자", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Cri = 0.15 } },
-                { 4, new BaseStatSet { Cri = 0.15, Arm_Pen = 0.15 } }
+                { 2, new BaseStatSet { Cri = 15 } },
+                { 4, new BaseStatSet { Cri = 30, Arm_Pen = 0.15 } }
             }},
             { "복수자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Dmg_Dealt = 0.15 } },

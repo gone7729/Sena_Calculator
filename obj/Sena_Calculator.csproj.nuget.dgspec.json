@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj": {}
+    "c:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj": {}
   },
   "projects": {
-    "C:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj": {
+    "c:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj",
+        "projectUniqueName": "c:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj",
         "projectName": "세나리_데미지계산기",
-        "projectPath": "C:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj",
+        "projectPath": "c:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj",
         "packagesPath": "C:\\Users\\rhkde\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\obj\\",
+        "outputPath": "c:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\rhkde\\AppData\\Roaming\\NuGet\\NuGet.Config"

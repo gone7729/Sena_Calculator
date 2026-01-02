@@ -170,7 +170,8 @@
                                 
                                 <TextBlock Text="초월" Style="{StaticResource LabelText}" Grid.Row="3" VerticalAlignment="Center" Margin="0,8,0,0"/>
                                 <ComboBox x:Name="cboTranscend" Grid.Row="3" Grid.Column="1" Style="{StaticResource ComboStyle}" 
-                                          Width="100" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                                        Width="100" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                        SelectionChanged="CboTranscend_SelectionChanged"/>
                             </Grid>
                             
                             <CheckBox x:Name="chkSkillEnhanced" Content="스킬 강화" 
@@ -203,6 +204,28 @@
                                           SelectionChanged="CboEquipSet_SelectionChanged"/>
                                 <TextBlock Text="2세트" Grid.Column="1" Foreground="#666" VerticalAlignment="Center" 
                                            HorizontalAlignment="Center" FontSize="11"/>
+                            </Grid>
+
+                            <!-- ===== 진형 ===== -->
+                            <TextBlock Text="진형" Style="{StaticResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox x:Name="cboFormation" Style="{StaticResource ComboStyle}"
+                                          SelectionChanged="CboFormation_SelectionChanged"/>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <RadioButton x:Name="rbBack" Content="후방" Foreground="#272727" 
+                                                 GroupName="Position" IsChecked="True" 
+                                                 Checked="Formation_PositionChanged" Margin="0,0,10,0"/>
+                                    <RadioButton x:Name="rbFront" Content="전방" Foreground="#272727" 
+                                                 GroupName="Position"
+                                                 Checked="Formation_PositionChanged"/>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -301,12 +324,49 @@
                                     <TextBox x:Name="txtStatBlk" Text="0" Style="{StaticResource OutputBox}"/>
                                 </StackPanel>
                             </Grid>
+
+                            <!-- 효과 적중 / 효과 저항 -->
+                            <Grid Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                    <TextBlock Text="효과 적중" Style="{StaticResource LabelText}"/>
+                                    <TextBox x:Name="txtStatEffHit" Text="0" Style="{StaticResource OutputBox}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="효과 저항" Style="{StaticResource LabelText}"/>
+                                    <TextBox x:Name="txtStatEffRes" Text="0" Style="{StaticResource OutputBox}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 효과 적중확률 / 받피감 -->
+                            <Grid Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                    <TextBlock Text="효과 적중확률" Style="{StaticResource LabelText}"/>
+                                    <TextBox x:Name="txtStatEffAcc" Text="0" Style="{StaticResource OutputBox}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="받피감" Style="{StaticResource LabelText}"/>
+                                    <TextBox x:Name="txtStatDmgRdc" Text="0" Style="{StaticResource OutputBox}"/>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
                     
+                    
+
                     <!-- 펫 섹션 -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
+
                             <TextBlock Text="펫" Style="{StaticResource SectionTitle}"/>
 
                             <!-- 펫 선택 -->

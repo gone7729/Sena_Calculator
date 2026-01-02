@@ -152,5 +152,20 @@ namespace GameDamageCalculator.Database
                 }
             };
         }
+
+        /// <summary>
+        /// 진형 데이터베이스
+        /// </summary>
+        public static class FormationDb
+        {
+            public static readonly Dictionary<string, FormationBonus> Formations = 
+                new Dictionary<string, FormationBonus>
+            {
+                { "기본 진형", new FormationBonus { Atk_Rate_Back = 0.14, Def_Rate_Front = 0.21 } },
+                { "밸런스 진형", new FormationBonus { Atk_Rate_Back = 0.21, Def_Rate_Front = 0.14 } },
+                { "공격 진형", new FormationBonus { Atk_Rate_Back = 0.105, Def_Rate_Front = 0.42 } },
+                { "보호 진형", new FormationBonus { Atk_Rate_Back = 0.42, Def_Rate_Front = 0.105 } }
+            };
+        }
     }
 }

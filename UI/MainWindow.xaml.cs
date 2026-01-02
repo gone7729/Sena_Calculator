@@ -53,6 +53,14 @@ namespace GameDamageCalculator.UI
             cboEquipSet1.SelectedIndex = 0;
             cboEquipSet2.SelectedIndex = 0;
 
+            // 진형 목록
+            cboFormation.Items.Add("없음");
+            foreach (var formationName in StatTable.FormationDb.Formations.Keys)
+            {
+                cboFormation.Items.Add(formationName);
+            }
+            cboFormation.SelectedIndex = 0;
+
             // 보스 목록 초기화
             UpdateBossList();
 
@@ -182,6 +190,22 @@ namespace GameDamageCalculator.UI
         }
 
         /// <summary>
+        /// 진형 선택 변경
+        /// </summary>
+        private void CboFormation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            RecalculateStats();
+        }
+
+        /// <summary>
+        /// 진형 위치(전방/후방) 변경
+        /// </summary>
+        private void Formation_PositionChanged(object sender, RoutedEventArgs e)
+        {
+            RecalculateStats();
+        }
+
+        /// <summary>
         /// 보스 선택 변경
         /// </summary>
         private void CboBoss_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -247,6 +271,10 @@ namespace GameDamageCalculator.UI
             cboEquipSet2.SelectedIndex = 0;
             cboSetCount1.SelectedIndex = 1;
 
+            // 진형
+            cboFormation.SelectedIndex = 0;
+            rbBack.IsChecked = true;
+
             // 펫
             cboPet.SelectedIndex = 0;
             cboPetStar.SelectedIndex = 2;
@@ -273,8 +301,9 @@ namespace GameDamageCalculator.UI
         #region 스탯 계산 (UI 표시용)
 
         /// <summary>
-        /// 스탯 재계산 (UI 표시용 - 스탯공격력)
+        /// 스탯 재계산 (UI 표시용)
         /// 스탯공격력 = 기초공 × (1 + 장비공% + 초월공%) + 장비깡공 + 잠재능력깡공
+        /// 총공격력 = (스탯공격력 + 펫깡공 + 기초공 × 진형%) × (1 + 버프%)
         /// </summary>
         private void RecalculateStats()
         {
@@ -298,33 +327,23 @@ namespace GameDamageCalculator.UI
                 }
             }
 
-            // 장비공% (세트 효과)
-            double equipAtkRate = 0;
-            double equipDefRate = 0;
-            double equipHpRate = 0;
+            // 세트 효과 전체
+            BaseStatSet setBonus = new BaseStatSet();
 
-            // 세트1 효과
             if (cboEquipSet1.SelectedIndex > 0)
             {
                 string setName = cboEquipSet1.SelectedItem.ToString();
                 int setCount = cboSetCount1.SelectedIndex == 0 ? 2 : 4;
-                var setBonus = GetSetBonus(setName, setCount);
-                equipAtkRate += setBonus.Atk_Rate;
-                equipDefRate += setBonus.Def_Rate;
-                equipHpRate += setBonus.Hp_Rate;
+                setBonus.Add(GetSetBonus(setName, setCount));
             }
 
-            // 세트2 효과
             if (cboSetCount1.SelectedIndex == 0 && cboEquipSet2 != null && cboEquipSet2.SelectedIndex > 0)
             {
                 string setName = cboEquipSet2.SelectedItem.ToString();
-                var setBonus = GetSetBonus(setName, 2);
-                equipAtkRate += setBonus.Atk_Rate;
-                equipDefRate += setBonus.Def_Rate;
-                equipHpRate += setBonus.Hp_Rate;
+                setBonus.Add(GetSetBonus(setName, 2));
             }
 
-            // 초월공% (GetFullBonuses - Atk_Rate)
+            // 초월%
             double transcendAtkRate = 0;
             double transcendDefRate = 0;
             double transcendHpRate = 0;
@@ -341,34 +360,56 @@ namespace GameDamageCalculator.UI
                 }
             }
 
-            // 장비깡공 (CommonWeaponStat)
-            double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk;
+            // 장비깡공 (무기 2개)
+            double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
             double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def;
             double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
 
-            // 잠재능력깡공 (PotentialDb)
+            // 잠재능력깡공
             var potentialStats = GetPotentialStats();
 
             // ========== 스탯 공격력 계산 ==========
-            // 스탯공격력 = 기초공 × (1 + 장비공% + 초월공%) + 장비깡공 + 잠재능력깡공
-            double statAtk = baseAtk * (1 + equipAtkRate + transcendAtkRate) + equipFlatAtk + potentialStats.Atk;
-            double statDef = baseDef * (1 + equipDefRate + transcendDefRate) + equipFlatDef + potentialStats.Def;
-            double statHp = baseHp * (1 + equipHpRate + transcendHpRate) + equipFlatHp + potentialStats.Hp;
+            double statAtk = baseAtk * (1 + setBonus.Atk_Rate + transcendAtkRate) + equipFlatAtk + potentialStats.Atk;
+            double statDef = baseDef * (1 + setBonus.Def_Rate + transcendDefRate) + equipFlatDef + potentialStats.Def;
+            double statHp = baseHp * (1 + setBonus.Hp_Rate + transcendHpRate) + equipFlatHp + potentialStats.Hp;
 
-            // UI에 표시할 스탯 세팅
+            // ========== 펫 관련 ==========
+            double petFlatAtk = GetPetFlatAtk();
+            double petFlatDef = GetPetFlatDef();
+            double petFlatHp = GetPetFlatHp();
+
+            // 진형 보너스
+            double formationAtkRate = GetFormationAtkRate();
+            double formationDefRate = GetFormationDefRate();
+
+            // 버프% (펫 스킬 + 펫 옵션)
+            double buffAtkRate = GetBuffAtkRate();
+            double buffDefRate = GetBuffDefRate();
+            double buffHpRate = GetBuffHpRate();
+
+            // ========== 총 공격력 계산 ==========
+            double totalAtk = (statAtk + petFlatAtk + baseAtk * formationAtkRate) * (1 + buffAtkRate);
+            double totalDef = (statDef + petFlatDef + baseDef * formationDefRate) * (1 + buffDefRate);
+            double totalHp = (statHp + petFlatHp) * (1 + buffHpRate);
+
+            // UI에 표시
             BaseStatSet displayStats = new BaseStatSet
             {
-                Atk = statAtk,
-                Def = statDef,
-                Hp = statHp,
-                Cri = characterStats.Cri,
-                Cri_Dmg = characterStats.Cri_Dmg,
-                Wek = characterStats.Wek,
-                Wek_Dmg = characterStats.Wek_Dmg,
-                Dmg_Dealt = characterStats.Dmg_Dealt,
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos,
-                Arm_Pen = characterStats.Arm_Pen,
-                Blk = characterStats.Blk
+                Atk = totalAtk,
+                Def = totalDef,
+                Hp = totalHp,
+                Cri = characterStats.Cri + setBonus.Cri,
+                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg,
+                Wek = characterStats.Wek + setBonus.Wek,
+                Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg,
+                Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt,
+                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos,
+                Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen,
+                Blk = characterStats.Blk + setBonus.Blk,
+                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit,
+                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res,
+                Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
+                Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc
             };
 
             UpdateStatDisplay(displayStats);
@@ -390,6 +431,10 @@ namespace GameDamageCalculator.UI
             txtStatBossDmg.Text = $"{stats.Dmg_Dealt_Bos * 100:F0}%";
             txtStatArmPen.Text = $"{stats.Arm_Pen * 100:F0}%";
             txtStatBlk.Text = $"{stats.Blk * 100:F0}%";
+            txtStatEffHit.Text = $"{stats.Eff_Hit * 100:F0}%";
+            txtStatEffRes.Text = $"{stats.Eff_Res * 100:F0}%";
+            txtStatEffAcc.Text = $"{stats.Eff_Acc * 100:F0}%";
+            txtStatDmgRdc.Text = $"{stats.Dmg_Rdc * 100:F0}%";
         }
 
         #endregion
@@ -398,27 +443,15 @@ namespace GameDamageCalculator.UI
 
         /// <summary>
         /// 총 공격력 계산 (데미지 계산용)
-        /// 총공격력 = (스탯공격력 + 펫깡공 + 기초공 × 진형%) × (1 + 버프%)
         /// </summary>
         private double CalculateTotalAtk()
         {
-            // 스탯 공격력 (UI에 표시된 값)
             double statAtk = ParseStatValue(txtStatAtk.Text);
-            
-            // 기초공 (버프 계산용)
             double baseAtk = GetBaseAtk();
-            
-            // 펫 깡공 (PetStatTable - Atk)
             double petFlatAtk = GetPetFlatAtk();
-            
-            // 진형 보너스 (Atk_Rate)
             double formationAtkRate = GetFormationAtkRate();
-            
-            // 버프% (펫 스킬 + 펫 옵션 + 파티 버프 등)
             double buffAtkRate = GetBuffAtkRate();
             
-            // ========== 총 공격력 계산 ==========
-            // 총공격력 = (스탯공격력 + 펫깡공 + 기초공 × 진형%) × (1 + 버프%)
             double totalAtk = (statAtk + petFlatAtk + baseAtk * formationAtkRate) * (1 + buffAtkRate);
             
             return totalAtk;
@@ -443,38 +476,60 @@ namespace GameDamageCalculator.UI
 
         #region 펫 관련
 
-        /// <summary>
-        /// 펫 깡공 가져오기 (PetStatTable - Atk)
-        /// </summary>
         private double GetPetFlatAtk()
         {
             if (cboPet == null || cboPetStar == null) return 0;
             if (cboPet.SelectedIndex <= 0) return 0;
 
-            string petName = cboPet.SelectedItem.ToString();
-            var pet = PetDb.GetByName(petName);
+            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
             if (pet != null)
             {
                 int star = cboPetStar.SelectedIndex + 4;
                 return pet.GetBaseStats(star).Atk;
             }
-
             return 0;
         }
 
-        /// <summary>
-        /// 펫 옵션 공격력% 합산
-        /// </summary>
-        private double GetPetOptionAtkRate()
+        private double GetPetFlatDef()
         {
-            double rate = 0;
-            
-            rate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "공격력%");
-            rate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "공격력%");
-            rate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "공격력%");
-            rate += GetSinglePetOptionRate(cboPetOpt4, txtPetOpt4, "공격력%");
-            
-            return rate;
+            if (cboPet == null || cboPetStar == null) return 0;
+            if (cboPet.SelectedIndex <= 0) return 0;
+
+            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            if (pet != null)
+            {
+                int star = cboPetStar.SelectedIndex + 4;
+                return pet.GetBaseStats(star).Def;
+            }
+            return 0;
+        }
+
+        private double GetPetFlatHp()
+        {
+            if (cboPet == null || cboPetStar == null) return 0;
+            if (cboPet.SelectedIndex <= 0) return 0;
+
+            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            if (pet != null)
+            {
+                int star = cboPetStar.SelectedIndex + 4;
+                return pet.GetBaseStats(star).Hp;
+            }
+            return 0;
+        }
+
+        private double GetPetSkillAtkRate()
+        {
+            if (cboPet == null || cboPetStar == null) return 0;
+            if (cboPet.SelectedIndex <= 0) return 0;
+
+            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            if (pet != null)
+            {
+                int star = cboPetStar.SelectedIndex + 4;
+                return pet.GetSkillBonus(star).Atk_Rate;
+            }
+            return 0;
         }
 
         private double GetSinglePetOptionRate(ComboBox cbo, TextBox txt, string targetOption)
@@ -486,7 +541,6 @@ namespace GameDamageCalculator.UI
             {
                 return ParseDouble(txt.Text) / 100;
             }
-            
             return 0;
         }
 
@@ -495,11 +549,40 @@ namespace GameDamageCalculator.UI
         #region 진형 관련
 
         /// <summary>
-        /// 진형 공격력% 가져오기
+        /// 진형 공격력% 가져오기 (후방일 때)
         /// </summary>
         private double GetFormationAtkRate()
         {
-            // TODO: 진형 UI 구현 후 연결
+            if (cboFormation == null || cboFormation.SelectedIndex <= 0) return 0;
+            if (rbFront == null || rbBack == null) return 0;
+            
+            // 전방이면 공격력 보너스 없음
+            if (rbFront.IsChecked == true) return 0;
+            
+            string formationName = cboFormation.SelectedItem.ToString();
+            if (StatTable.FormationDb.Formations.TryGetValue(formationName, out var bonus))
+            {
+                return bonus.Atk_Rate_Back;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// 진형 방어력% 가져오기 (전방일 때)
+        /// </summary>
+        private double GetFormationDefRate()
+        {
+            if (cboFormation == null || cboFormation.SelectedIndex <= 0) return 0;
+            if (rbFront == null || rbBack == null) return 0;
+            
+            // 후방이면 방어력 보너스 없음
+            if (rbBack.IsChecked == true) return 0;
+            
+            string formationName = cboFormation.SelectedItem.ToString();
+            if (StatTable.FormationDb.Formations.TryGetValue(formationName, out var bonus))
+            {
+                return bonus.Def_Rate_Front;
+            }
             return 0;
         }
 
@@ -507,50 +590,41 @@ namespace GameDamageCalculator.UI
 
         #region 버프 관련
 
-        /// <summary>
-        /// 버프 공격력% 가져오기 (펫 스킬 + 펫 옵션 + 파티 버프)
-        /// </summary>
         private double GetBuffAtkRate()
         {
             double buffRate = 0;
-            
-            // 펫 스킬 버프
             buffRate += GetPetSkillAtkRate();
-            
-            // 펫 옵션 버프
-            buffRate += GetPetOptionAtkRate();
-            
-            // TODO: 파티 버프 (델론즈, 에이린 등) 추가
-            
+            buffRate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "공격력%");
+            buffRate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "공격력%");
+            buffRate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "공격력%");
+            buffRate += GetSinglePetOptionRate(cboPetOpt4, txtPetOpt4, "공격력%");
             return buffRate;
         }
 
-        /// <summary>
-        /// 펫 스킬 공격력% 가져오기
-        /// </summary>
-        private double GetPetSkillAtkRate()
+        private double GetBuffDefRate()
         {
-            if (cboPet == null || cboPetStar == null) return 0;
-            if (cboPet.SelectedIndex <= 0) return 0;
+            double rate = 0;
+            rate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "방어력%");
+            rate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "방어력%");
+            rate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "방어력%");
+            rate += GetSinglePetOptionRate(cboPetOpt4, txtPetOpt4, "방어력%");
+            return rate;
+        }
 
-            string petName = cboPet.SelectedItem.ToString();
-            var pet = PetDb.GetByName(petName);
-            if (pet != null)
-            {
-                int star = cboPetStar.SelectedIndex + 4;
-                return pet.GetSkillBonus(star).Atk_Rate;
-            }
-
-            return 0;
+        private double GetBuffHpRate()
+        {
+            double rate = 0;
+            rate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "생명력%");
+            rate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "생명력%");
+            rate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "생명력%");
+            rate += GetSinglePetOptionRate(cboPetOpt4, txtPetOpt4, "생명력%");
+            return rate;
         }
 
         #endregion
 
         #region 보스 관련
 
-        /// <summary>
-        /// 보스 타입에 따라 보스 목록 업데이트
-        /// </summary>
         private void UpdateBossList()
         {
             cboBoss.Items.Clear();
@@ -582,31 +656,20 @@ namespace GameDamageCalculator.UI
 
         #region DB 헬퍼
 
-        /// <summary>
-        /// 세트 효과 가져오기
-        /// </summary>
         private BaseStatSet GetSetBonus(string setName, int setCount)
         {
             BaseStatSet total = new BaseStatSet();
 
             if (EquipmentDb.SetEffects.TryGetValue(setName, out var setData))
             {
-                if (setCount >= 2 && setData.TryGetValue(2, out var bonus2))
+                if (setData.TryGetValue(setCount, out var bonus))
                 {
-                    total.Add(bonus2);
-                }
-                if (setCount >= 4 && setData.TryGetValue(4, out var bonus4))
-                {
-                    total.Add(bonus4);
+                    total.Add(bonus);
                 }
             }
-
             return total;
         }
 
-        /// <summary>
-        /// 잠재능력 스탯 계산 (깡스탯)
-        /// </summary>
         private BaseStatSet GetPotentialStats()
         {
             BaseStatSet stats = new BaseStatSet();
@@ -619,17 +682,11 @@ namespace GameDamageCalculator.UI
             int hpLevel = cboPotentialHp.SelectedIndex;
             
             if (atkLevel > 0)
-            {
-                stats.Atk = PotentialDb.Stats["공격력"][atkLevel - 1];
-            }
+                stats.Atk = StatTable.PotentialDb.Stats["공격력"][atkLevel - 1];
             if (defLevel > 0)
-            {
-                stats.Def = PotentialDb.Stats["방어력"][defLevel - 1];
-            }
+                stats.Def = StatTable.PotentialDb.Stats["방어력"][defLevel - 1];
             if (hpLevel > 0)
-            {
-                stats.Hp = PotentialDb.Stats["생명력"][hpLevel - 1];
-            }
+                stats.Hp = StatTable.PotentialDb.Stats["생명력"][hpLevel - 1];
             
             return stats;
         }

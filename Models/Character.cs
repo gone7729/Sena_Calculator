@@ -64,6 +64,25 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
+        /// 초월 보너스 스탯 계산 (레벨 직접 지정) ← 이거만 추가!
+        /// </summary>
+        public BaseStatSet GetTranscendStats(int level)
+        {
+            BaseStatSet bonus = new BaseStatSet();
+            
+            for (int i = 1; i <= level; i++)
+            {
+                var transcend = TranscendBonuses.FirstOrDefault(t => t.Level == i);
+                if (transcend != null)
+                {
+                    bonus.Add(transcend.BonusStats);
+                }
+            }
+            
+            return bonus;
+        }
+
+        /// <summary>
         /// 최종 기본 스탯 (기본 + 초월)
         /// </summary>
         public BaseStatSet GetFinalBaseStats()
