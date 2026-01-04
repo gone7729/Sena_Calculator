@@ -91,7 +91,7 @@ namespace GameDamageCalculator.Database
             public static readonly Dictionary<string, double[]> Stats = 
                 new Dictionary<string, double[]>
             {
-                { "공격력", new double[] { 100, 220, 340 } },    // 깡공
+                { "공격력", new double[] { 100, 220, 370 } },    // 깡공
                 { "방어력", new double[] { 0, 0, 0 } },          // 값 기입 필요
                 { "생명력", new double[] { 0, 0, 0 } }           // 값 기입 필요
             };

@@ -66,6 +66,8 @@ namespace GameDamageCalculator.UI
             }
             cboFormation.SelectedIndex = 0;
 
+            InitializeMainOptionComboBoxes(); 
+
             // 보스 목록 초기화
             UpdateBossList();
 
@@ -76,6 +78,88 @@ namespace GameDamageCalculator.UI
                 cboPet.Items.Add(pet.Name);
             }
             cboPet.SelectedIndex = 0;
+        }
+
+        private void InitializeMainOptionComboBoxes()
+        {
+            // 무기 메인옵션
+            var weaponOptions = new[] { "공격력%", "치명타확률%", "치명타피해%", "약점공격확률%", "생명력%", "방어력%", "효과적중%" };
+            foreach (var opt in weaponOptions)
+            {
+                cboWeapon1Main.Items.Add(opt);
+                cboWeapon2Main.Items.Add(opt);
+            }
+            cboWeapon1Main.SelectedIndex = 0;
+            cboWeapon2Main.SelectedIndex = 0;
+
+            // 방어구 메인옵션
+            var armorOptions = new[] { "공격력%", "생명력%", "방어력%", "효과저항%", "받는피해감소%", "막기확률%" };
+            foreach (var opt in armorOptions)
+            {
+                cboArmor1Main.Items.Add(opt);
+                cboArmor2Main.Items.Add(opt);
+            }
+            cboArmor1Main.SelectedIndex = 0;
+            cboArmor2Main.SelectedIndex = 0;
+        }
+
+        private BaseStatSet GetMainOptionStats()
+        {
+            BaseStatSet stats = new BaseStatSet();
+
+            // 무기1
+            if (cboWeapon1Main.SelectedItem != null)
+            {
+                double value = ParseDouble(txtWeapon1MainValue.Text) / 100.0;
+                ApplyMainOption(stats, cboWeapon1Main.SelectedItem.ToString(), value);
+            }
+            // 무기2
+            if (cboWeapon2Main.SelectedItem != null)
+            {
+                double value = ParseDouble(txtWeapon2MainValue.Text) / 100.0;
+                ApplyMainOption(stats, cboWeapon2Main.SelectedItem.ToString(), value);
+            }
+            // 방어구1
+            if (cboArmor1Main.SelectedItem != null)
+            {
+                double value = ParseDouble(txtArmor1MainValue.Text) / 100.0;
+                ApplyMainOption(stats, cboArmor1Main.SelectedItem.ToString(), value);
+            }
+            // 방어구2
+            if (cboArmor2Main.SelectedItem != null)
+            {
+                double value = ParseDouble(txtArmor2MainValue.Text) / 100.0;
+                ApplyMainOption(stats, cboArmor2Main.SelectedItem.ToString(), value);
+            }
+
+            return stats;
+        }
+
+        private void ApplyMainOption(BaseStatSet stats, string option, double value)
+        {
+            switch (option)
+            {
+                case "공격력%": stats.Atk_Rate += value; break;
+                case "방어력%": stats.Def_Rate += value; break;
+                case "생명력%": stats.Hp_Rate += value; break;
+                case "치명타확률%": stats.Cri += value * 100; break;
+                case "치명타피해%": stats.Cri_Dmg += value * 100; break;
+                case "약점공격확률%": stats.Wek += value * 100; break;
+                case "효과적중%": stats.Eff_Hit += value * 100; break;
+                case "효과저항%": stats.Eff_Res += value * 100; break;
+                case "받는피해감소%": stats.Dmg_Rdc += value * 100; break;
+                case "막기확률%": stats.Blk += value * 100; break;
+            }
+        }
+
+        private void MainOption_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            RecalculateStats();
+        }
+
+        private void MainOption_ValueChanged(object sender, TextChangedEventArgs e)
+        {
+            RecalculateStats();
         }
 
         private void InitializeSubOptionComboBoxes()
@@ -327,51 +411,46 @@ namespace GameDamageCalculator.UI
         #region 스탯 계산 (UI 표시용)
 
         /// <summary>
-        /// 최종공격력 = (스탯공격력 + 펫깡공 + 기초공 × (1 + 합연산%)) × (1 + 버프%)
-        /// 스탯공격력 = 캐릭터 DB Atk
-        /// 기초공 = 장비깡공 + 잠재능력깡공 + 서브옵션깡공
-        /// 합연산% = 초월% + 진형% + 세트% + 서브옵션% + 장신구% + 펫옵션%
-        /// 버프% = 펫스킬% + 패시브% + 액티브%
+        /// 최종 공격력 = 기본공격력 × (1 + 총 공격력%) + 깡공 합계 × (1 + 버프%)
         /// </summary>
         private void RecalculateStats()
         {
             if (!_isInitialized) return;
-
-            // ========== 스탯공격력 (캐릭터 DB 기초 스탯) ==========
-            double statAtk = 0;
-            double statDef = 0;
-            double statHp = 0;
+        
+            // ========== 기본공격력 (캐릭터 DB 기초 스탯) ==========
+            double baseAtk = 0;
+            double baseDef = 0;
+            double baseHp = 0;
             BaseStatSet characterStats = new BaseStatSet();
-
+        
             if (cboCharacter.SelectedIndex > 0)
             {
                 var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
                 if (character != null)
                 {
                     characterStats = character.GetBaseStats();
-                    statAtk = characterStats.Atk;
-                    statDef = characterStats.Def;
-                    statHp = characterStats.Hp;
+                    baseAtk = characterStats.Atk;
+                    baseDef = characterStats.Def;
+                    baseHp = characterStats.Hp;
                 }
             }
-
-            // ========== 펫깡공 ==========
-            double petFlatAtk = GetPetFlatAtk();
-            double petFlatDef = GetPetFlatDef();
-            double petFlatHp = GetPetFlatHp();
-
-            // ========== 기초공 (장비깡공 + 잠재능력깡공 + 서브옵션깡공) ==========
+        
+            // ========== 깡스탯 합계 (장비 + 잠재능력 + 서브옵션 + 펫) ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
             double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def;
             double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
-
+        
             var potentialStats = GetPotentialStats();
             BaseStatSet subStats = GetSubOptionStats();
-
-            double baseAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk;
-            double baseDef = equipFlatDef + potentialStats.Def + subStats.Def;
-            double baseHp = equipFlatHp + potentialStats.Hp + subStats.Hp;
-
+        
+            double petFlatAtk = GetPetFlatAtk();
+            double petFlatDef = GetPetFlatDef();
+            double petFlatHp = GetPetFlatHp();
+        
+            double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk;
+            double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef;
+            double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp;
+        
             // ========== 합연산% ==========
             // 초월%
             double transcendAtkRate = 0;
@@ -389,12 +468,12 @@ namespace GameDamageCalculator.UI
                     transcendHpRate = transcendStats.Hp_Rate;
                 }
             }
-
+        
             // 진형%
             double formationAtkRate = GetFormationAtkRate();
             double formationDefRate = GetFormationDefRate();
-
-            // 세트% + 서브옵션%
+        
+            // 세트%
             BaseStatSet setBonus = new BaseStatSet();
             if (cboEquipSet1.SelectedIndex > 0)
             {
@@ -407,38 +486,46 @@ namespace GameDamageCalculator.UI
                 string setName = cboEquipSet2.SelectedItem.ToString();
                 setBonus.Add(GetSetBonus(setName, 2));
             }
-
-            double equipAtkRate = setBonus.Atk_Rate + subStats.Atk_Rate;
-            double equipDefRate = setBonus.Def_Rate + subStats.Def_Rate;
-            double equipHpRate = setBonus.Hp_Rate + subStats.Hp_Rate;
-
+        
             // 장신구%
             BaseStatSet accessoryStats = GetAccessoryStats();
-            double accessoryAtkRate = accessoryStats.Atk_Rate;
-            double accessoryDefRate = accessoryStats.Def_Rate;
-            double accessoryHpRate = accessoryStats.Hp_Rate;
 
+            // 메인옵션% ← 여기 추가
+            BaseStatSet mainOptionStats = GetMainOptionStats();
+        
             // 펫옵션%
             double petOptionAtkRate = GetPetOptionAtkRate();
             double petOptionDefRate = GetPetOptionDefRate();
             double petOptionHpRate = GetPetOptionHpRate();
-
+        
             // 합연산% 합계
-            double totalAtkRate = transcendAtkRate + formationAtkRate + equipAtkRate + accessoryAtkRate + petOptionAtkRate;
-            double totalDefRate = transcendDefRate + formationDefRate + equipDefRate + accessoryDefRate + petOptionDefRate;
-            double totalHpRate = transcendHpRate + equipHpRate + accessoryHpRate + petOptionHpRate;
+            double totalAtkRate = transcendAtkRate + formationAtkRate 
+                    + setBonus.Atk_Rate + subStats.Atk_Rate 
+                    + accessoryStats.Atk_Rate + petOptionAtkRate
+                    + mainOptionStats.Atk_Rate;  // ← 추가
 
+            double totalDefRate = transcendDefRate + formationDefRate 
+                    + setBonus.Def_Rate + subStats.Def_Rate 
+                    + accessoryStats.Def_Rate + petOptionDefRate
+                    + mainOptionStats.Def_Rate;  // ← 추가
+
+            double totalHpRate = transcendHpRate 
+                   + setBonus.Hp_Rate + subStats.Hp_Rate 
+                   + accessoryStats.Hp_Rate + petOptionHpRate
+                   + mainOptionStats.Hp_Rate;  // ← 추가
+        
             // ========== 버프% (펫스킬% + 패시브% + 액티브%) ==========
             double buffAtkRate = GetBuffAtkRate();
             double buffDefRate = GetBuffDefRate();
             double buffHpRate = GetBuffHpRate();
-
+        
             // ========== 최종 스탯 계산 ==========
-            double totalAtk = (statAtk + petFlatAtk + baseAtk * (1 + totalAtkRate)) * (1 + buffAtkRate);
-            double totalDef = (statDef + petFlatDef + baseDef * (1 + totalDefRate)) * (1 + buffDefRate);
-            double totalHp = (statHp + petFlatHp + baseHp * (1 + totalHpRate)) * (1 + buffHpRate);
-
-            // UI에 표시
+            // 공식: (기본공격력 × (1 + 총공격력%) + 깡공합계) × (1 + 버프%)
+            double totalAtk = (baseAtk * (1 + totalAtkRate) + flatAtk) * (1 + buffAtkRate);
+            double totalDef = (baseDef * (1 + totalDefRate) + flatDef) * (1 + buffDefRate);
+            double totalHp = (baseHp * (1 + totalHpRate) + flatHp) * (1 + buffHpRate);
+        
+            // ========== UI에 표시 ==========
             BaseStatSet displayStats = new BaseStatSet
             {
                 Atk = totalAtk,
@@ -457,7 +544,7 @@ namespace GameDamageCalculator.UI
                 Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
                 Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc
             };
-
+        
             UpdateStatDisplay(displayStats);
         }
 

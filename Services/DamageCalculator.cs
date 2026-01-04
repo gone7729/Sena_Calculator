@@ -70,7 +70,7 @@ namespace GameDamageCalculator.Services
             
             // 1. 캐릭터 기본 스탯 + 초월 스탯
             input.Character.TranscendLevel = input.TranscendLevel;
-            var baseStats = input.Character.GetFinalBaseStats();
+            var baseStats = input.Character.GetBaseStats();
             
             // 2. 장비 스탯 합산
             var totalStats = baseStats.Clone();

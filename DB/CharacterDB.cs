@@ -73,13 +73,7 @@ namespace GameDamageCalculator.Database
                     new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 0.18 } },
                     new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 0.18 } },
                     new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 0.12 } },
-                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 0.06 }, SpecialEffect = "죽음의 무도 방어력 40% 무시" },
-                    new TranscendBonus { Level = 7, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                    new TranscendBonus { Level = 8, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                    new TranscendBonus { Level = 9, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                    new TranscendBonus { Level = 10, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                    new TranscendBonus { Level = 11, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                    new TranscendBonus { Level = 12, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } }
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 0.06 }, SpecialEffect = "죽음의 무도 방어력 40% 무시" }
                 }
             },
 

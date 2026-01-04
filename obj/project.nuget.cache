@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "1g+pvoN2AxI=",
+  "dgSpecHash": "0xNeyZrxvlY=",
   "success": true,
-  "projectFilePath": "c:\\Users\\rhkde\\Desktop\\sene_cal\\Sena_Calculator\\Sena_Calculator\\Sena_Calculator.csproj",
+  "projectFilePath": "C:\\Users\\rhkde\\Desktop\\sena_calc\\Sena_Calculator\\Sena_Calculator.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rhkde\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
     "C:\\Users\\rhkde\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",

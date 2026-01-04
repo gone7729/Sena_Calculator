@@ -47,50 +47,33 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 초월 보너스 스탯 계산
         /// </summary>
-        public BaseStatSet GetTranscendStats()
-        {
-            BaseStatSet bonus = new BaseStatSet();
-            
-            for (int i = 1; i <= TranscendLevel; i++)
-            {
-                var transcend = TranscendBonuses.FirstOrDefault(t => t.Level == i);
-                if (transcend != null)
-                {
-                    bonus.Add(transcend.BonusStats);
-                }
-            }
-            
-            return bonus;
-        }
-
-        /// <summary>
-        /// 초월 보너스 스탯 계산 (레벨 직접 지정) ← 이거만 추가!
-        /// </summary>
         public BaseStatSet GetTranscendStats(int level)
         {
-            BaseStatSet bonus = new BaseStatSet();
-            
-            for (int i = 1; i <= level; i++)
+            BaseStatSet result = new BaseStatSet();
+        
+            if (level <= 0) return result;
+        
+            // 1~6 캐릭터 고유 초월 (누적 합산)
+            foreach (var bonus in TranscendBonuses)
             {
-                var transcend = TranscendBonuses.FirstOrDefault(t => t.Level == i);
-                if (transcend != null)
+                if (bonus.Level <= level)
                 {
-                    bonus.Add(transcend.BonusStats);
+                    result.Add(bonus.BonusStats);
                 }
             }
-            
-            return bonus;
+        
+            // 7~12 공통 초월 (누적 합산)
+            foreach (var bonus in StatTable.TranscendDb.CommonBonuses)  // ← 여기 수정!
+            {
+                if (bonus.Level <= level)
+                {
+                    result.Add(bonus.BonusStats);
+                }
+            }
+        
+            return result;
         }
-
-        /// <summary>
-        /// 최종 기본 스탯 (기본 + 초월)
-        /// </summary>
-        public BaseStatSet GetFinalBaseStats()
-        {
-            var stats = GetBaseStats();
-            stats.Add(GetTranscendStats());
-            return stats;
-        }
+        
     }
 
     /// <summary>

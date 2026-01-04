@@ -206,6 +206,39 @@
                                            HorizontalAlignment="Center" FontSize="11"/>
                             </Grid>
 
+                            <!-- 장비 메인옵션 -->
+                            <TextBlock Text="무기1 메인" Style="{StaticResource LabelText}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox x:Name="cboWeapon1Main" Style="{StaticResource ComboStyle}" Width="100"
+                                          SelectionChanged="MainOption_Changed"/>
+                                <TextBox x:Name="txtWeapon1MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            </StackPanel>
+                            
+                            <TextBlock Text="무기2 메인" Style="{StaticResource LabelText}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox x:Name="cboWeapon2Main" Style="{StaticResource ComboStyle}" Width="100"
+                                          SelectionChanged="MainOption_Changed"/>
+                                <TextBox x:Name="txtWeapon2MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            </StackPanel>
+                            
+                            <TextBlock Text="방어구1 메인" Style="{StaticResource LabelText}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox x:Name="cboArmor1Main" Style="{StaticResource ComboStyle}" Width="100"
+                                          SelectionChanged="MainOption_Changed"/>
+                                <TextBox x:Name="txtArmor1MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            </StackPanel>
+                            
+                            <TextBlock Text="방어구2 메인" Style="{StaticResource LabelText}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox x:Name="cboArmor2Main" Style="{StaticResource ComboStyle}" Width="100"
+                                          SelectionChanged="MainOption_Changed"/>
+                                <TextBox x:Name="txtArmor2MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            </StackPanel>
+
                             <!-- ===== 장비 서브옵션 ===== -->
                             <TextBlock Text="장비 서브옵션" Style="{StaticResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
 
