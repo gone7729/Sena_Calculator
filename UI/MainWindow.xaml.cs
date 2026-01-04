@@ -7,6 +7,7 @@ using GameDamageCalculator.Models;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Services;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace GameDamageCalculator.UI
 {
@@ -14,6 +15,8 @@ namespace GameDamageCalculator.UI
     {
         private readonly DamageCalculator _calculator;
         private bool _isInitialized = false;
+
+        private DebuffSet _currentDebuffs = new DebuffSet();
         
         public MainWindow()
         {
@@ -67,7 +70,6 @@ namespace GameDamageCalculator.UI
 
             InitializeMainOptionComboBoxes(); 
 
-            InitializeMainOptionComboBoxes();
             InitializeAccessoryComboBoxes();
 
             // 보스 목록 초기화
@@ -377,7 +379,16 @@ namespace GameDamageCalculator.UI
         private void CboBoss_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
-            if (cboBoss.SelectedIndex <= 0) return;
+            if (cboBoss.SelectedIndex <= 0)
+            {
+                txtBossDef.Text = "0";
+                txtBossDefInc.Text = "0";
+                txtBossDmgRdc.Text = "0";
+                txtBoss1TargetRdc.Text = "0";
+                txtBoss3TargetRdc.Text = "0";
+                txtBoss5TargetRdc.Text = "0";
+                return;
+            }
 
             string selected = cboBoss.SelectedItem?.ToString();
             if (string.IsNullOrEmpty(selected)) return;
@@ -396,7 +407,13 @@ namespace GameDamageCalculator.UI
             if (boss != null)
             {
                 txtBossDef.Text = boss.Stats.Def.ToString("N0");
-                txtBossDefInc.Text = $"{boss.DefenseIncrease * 100:F0}";
+                txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                txtBossDmgRdc.Text = "0";
+
+                // 인기별 피해감소 (소수 → 백분율)
+                txtBoss1TargetRdc.Text = (boss.SingleTargetReduction * 100).ToString("F0");
+                txtBoss3TargetRdc.Text = (boss.TripleTargetReduction * 100).ToString("F0");
+                txtBoss5TargetRdc.Text = (boss.MultiTargetReduction * 100).ToString("F0");
             }
         }
 
@@ -404,13 +421,163 @@ namespace GameDamageCalculator.UI
         {
             try
             {
-                double totalAtk = CalculateTotalAtk();
-                txtResult.Text = $"총 공격력: {totalAtk:N0}";
+                // 캐릭터 확인
+                if (cboCharacter.SelectedIndex <= 0)
+                {
+                    txtResult.Text = "캐릭터를 선택해주세요.";
+                    return;
+                }
+
+                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                if (character == null)
+                {
+                    txtResult.Text = "캐릭터 정보를 찾을 수 없습니다.";
+                    return;
+                }
+
+                // 스킬 확인
+                Skill selectedSkill = null;
+                if (cboSkill.SelectedIndex >= 0 && cboSkill.Items.Count > 0)
+                {
+                    string skillName = cboSkill.SelectedItem?.ToString();
+                    selectedSkill = character.Skills.FirstOrDefault(s => s.Name == skillName);
+                }
+
+                if (selectedSkill == null)
+                {
+                    txtResult.Text = "스킬을 선택해주세요.";
+                    return;
+                }
+
+                // DamageInput 생성
+                var input = new DamageCalculator.DamageInput
+                {
+                    // 캐릭터/스킬
+                    Character = character,
+                    Skill = selectedSkill,
+                    IsSkillEnhanced = chkSkillEnhanced.IsChecked == true,
+                    TranscendLevel = cboTranscend.SelectedIndex,
+
+                    // UI에서 계산된 최종 스탯
+                    FinalAtk = ParseStatValue(txtStatAtk.Text),
+                    CritDamage = ParseStatValue(txtStatCriDmg.Text),
+                    DmgDealt = ParseStatValue(txtStatDmgDealt.Text),
+                    DmgDealtBoss = ParseStatValue(txtStatBossDmg.Text),
+                    ArmorPen = ParseStatValue(txtStatArmPen.Text),
+                    WeakpointDmg = ParseStatValue(txtStatWekDmg.Text),
+
+                    // 디버프
+                    DefReduction = _currentDebuffs.Def_Reduction,
+                    DmgTakenIncrease = _currentDebuffs.Dmg_Taken_Increase,
+                    Vulnerability = _currentDebuffs.Vulnerability,
+
+                    // 보스 정보
+                    BossDef = ParseDouble(txtBossDef.Text),
+                    BossDefIncrease = ParseDouble(txtBossDefInc.Text),
+                    BossDmgReduction = ParseDouble(txtBossDmgRdc.Text),
+                    BossTargetReduction = GetSelectedTargetReduction(),
+
+                    // 전투 옵션
+                    IsCritical = chkCritical.IsChecked == true,
+                    IsWeakpoint = chkWeakpoint.IsChecked == true,
+                    IsBlocked = chkBlock.IsChecked == true,
+
+                    // 조건 (TODO: 체크박스 추가 시)
+                    IsSkillConditionMet = false
+                };
+
+                // 계산 및 출력
+                var result = _calculator.Calculate(input);
+                txtResult.Text = result.Details;
             }
             catch (Exception ex)
             {
                 txtResult.Text = $"오류: {ex.Message}";
             }
+        }
+
+        private double GetSelectedTargetReduction()
+        {
+            // 스킬 타겟 수에 따라 인기감소 선택
+            // TODO: 스킬별 타겟 수 확인 후 적용
+            // 현재는 UI에서 직접 선택하거나 0 반환
+            return 0;
+        }
+
+        private Boss GetSelectedBoss()
+        {
+            // 직접 입력이면 임시 보스 생성
+            if (cboBoss.SelectedIndex <= 0)
+            {
+                return new Boss
+                {
+                    Name = "직접 입력",
+                    BossType = BossType.Siege,
+                    Stats = new BaseStatSet { Def = ParseDouble(txtBossDef.Text) },
+                    DefenseIncrease = ParseDouble(txtBossDefInc.Text) / 100
+                };
+            }
+
+            string selected = cboBoss.SelectedItem?.ToString();
+
+            if (rbSiege.IsChecked == true)
+            {
+                return BossDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
+            }
+            else if (rbRaid.IsChecked == true)
+            {
+                return BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+            }
+
+            return new Boss { Name = "Unknown", Stats = new BaseStatSet { Def = 0 } };
+        }
+
+        private BaseStatSet GetTotalEquipmentStats()
+        {
+            BaseStatSet total = new BaseStatSet();
+
+            // 장비 기본 스탯
+            total.Atk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
+            total.Def = EquipmentDb.EquipStatTable.CommonArmorStat.Def;
+            total.Hp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
+
+            // 잠재능력
+            total.Add(GetPotentialStats());
+
+            // 서브옵션
+            total.Add(GetSubOptionStats());
+
+            // 메인옵션
+            total.Add(GetMainOptionStats());
+
+            // 장신구
+            total.Add(GetAccessoryStats());
+
+            // 펫 옵션 (% 스탯)
+            total.Atk_Rate += GetPetOptionAtkRate();
+            total.Def_Rate += GetPetOptionDefRate();
+            total.Hp_Rate += GetPetOptionHpRate();
+
+            return total;
+        }
+
+        private BaseStatSet GetTotalSetBonus()
+        {
+            BaseStatSet setBonus = new BaseStatSet();
+
+            if (cboEquipSet1.SelectedIndex > 0)
+            {
+                string setName = cboEquipSet1.SelectedItem.ToString();
+                int setCount = cboSetCount1.SelectedIndex == 0 ? 2 : 4;
+                setBonus.Add(GetSetBonus(setName, setCount));
+            }
+            if (cboSetCount1.SelectedIndex == 0 && cboEquipSet2.SelectedIndex > 0)
+            {
+                string setName = cboEquipSet2.SelectedItem.ToString();
+                setBonus.Add(GetSetBonus(setName, 2));
+            }
+
+            return setBonus;
         }
 
         private void BtnReset_Click(object sender, RoutedEventArgs e)
@@ -456,11 +623,27 @@ namespace GameDamageCalculator.UI
             txtPetOpt2.Text = "0";
             txtPetOpt3.Text = "0";
 
-            // 보스
-            cboBoss.SelectedIndex = 0;
-            chkCritical.IsChecked = true;
-            chkWeakpoint.IsChecked = false;
-            chkBlock.IsChecked = false;
+            // 보스 스탯 초기화
+            txtBossDef.Text = "0";
+            txtBossDefInc.Text = "0";
+            txtBossDmgRdc.Text = "0";
+            txtBossDefRed.Text = "0";
+            txtBossDmgTaken.Text = "0";
+            txtBossVulnerable.Text = "0";
+            // 보스 인기감소 초기화
+            txtBoss1TargetRdc.Text = "0";
+            txtBoss3TargetRdc.Text = "0";
+            txtBoss5TargetRdc.Text = "0";
+
+            // ===== 버프/디버프 초기화 =====
+            // 디버프 패시브
+            chkDebuffPassiveTaka.IsChecked = false;
+            ResetBuffOptionButton(btnDebuffPassiveTaka, "타카");
+        
+            // TODO: 다른 캐릭터 추가 시
+            // chkBuffPassiveXXX.IsChecked = false;
+            // ResetBuffOptionButton(btnBuffPassiveXXX, "캐릭터명");
+            
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
         }
@@ -566,8 +749,22 @@ namespace GameDamageCalculator.UI
             // ========== 각종 스탯 소스 가져오기 ==========
             var potentialStats = GetPotentialStats();
             BaseStatSet subStats = GetSubOptionStats();
-            BaseStatSet mainOptionStats = GetMainOptionStats();  // ← 먼저 선언!
+            BaseStatSet mainOptionStats = GetMainOptionStats();
             BaseStatSet accessoryStats = GetAccessoryStats();
+
+            // 버프/디버프
+            BaseStatSet passiveBuffs = GetAllPassiveBuffs();
+            BaseStatSet activeBuffs = GetAllActiveBuffs();
+            DebuffSet passiveDebuffs = GetAllPassiveDebuffs();
+            DebuffSet activeDebuffs = GetAllActiveDebuffs();
+
+            BaseStatSet totalBuffs = new BaseStatSet();
+            totalBuffs.Add(passiveBuffs);
+            totalBuffs.Add(activeBuffs);
+
+            _currentDebuffs = new DebuffSet();
+            _currentDebuffs.Add(passiveDebuffs);
+            _currentDebuffs.Add(activeDebuffs);
 
             // ========== 깡스탯 합계 (장비 + 잠재능력 + 서브옵션 + 펫 + 메인옵션) ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
@@ -640,32 +837,31 @@ namespace GameDamageCalculator.UI
                    + mainOptionStats.Hp_Rate;
 
             // ========== 버프% (펫스킬% + 패시브% + 액티브%) ==========
-            double buffAtkRate = GetBuffAtkRate();
-            double buffDefRate = GetBuffDefRate();
-            double buffHpRate = GetBuffHpRate();
+            double buffAtkRate = GetPetSkillAtkRate() + totalBuffs.Atk_Rate;
+            double buffDefRate = totalBuffs.Def_Rate;
+            double buffHpRate = totalBuffs.Hp_Rate;
 
             // ========== 최종 스탯 계산 (정수 → /100.0) ==========
-            // 공식: (기본공격력 × (1 + 총공격력%/100) + 깡공합계) × (1 + 버프%/100)
             double totalAtk = (baseAtk * (1 + totalAtkRate / 100.0) + flatAtk) * (1 + buffAtkRate / 100.0);
             double totalDef = (baseDef * (1 + totalDefRate / 100.0) + flatDef) * (1 + buffDefRate / 100.0);
             double totalHp = (baseHp * (1 + totalHpRate / 100.0) + flatHp) * (1 + buffHpRate / 100.0);
 
-            // ========== UI에 표시 (정수 합산) ==========
+            // ========== UI에 표시 ==========
             BaseStatSet displayStats = new BaseStatSet
             {
                 Atk = totalAtk,
                 Def = totalDef,
                 Hp = totalHp,
-                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri,  // ← 추가
-                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg,  // ← 추가
-                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek,  // ← 추가
+                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri,
+                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg,
+                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek,
                 Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg,
-                Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + GetPassiveBuffDmgDealt(),  // ← 추가
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos,  // ← 추가
+                Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt,
+                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos,
                 Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen,
-                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,  // ← 추가
-                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,  // ← 추가
-                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res,  // ← 추가
+                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,
+                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,
+                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res,
                 Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
                 Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc,
                 Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3,
@@ -673,18 +869,17 @@ namespace GameDamageCalculator.UI
             };
 
             UpdateStatDisplay(displayStats);
+            UpdateBossDebuffDisplay();
 
+            // 디버그 출력
             System.Diagnostics.Debug.WriteLine("========== 디버그 ==========");
             System.Diagnostics.Debug.WriteLine($"기본공격력: {baseAtk}");
             System.Diagnostics.Debug.WriteLine($"깡공합계: {flatAtk}");
-            System.Diagnostics.Debug.WriteLine($"초월%: {transcendAtkRate}");
-            System.Diagnostics.Debug.WriteLine($"메인옵션%: {mainOptionStats.Atk_Rate}");
-            System.Diagnostics.Debug.WriteLine($"서브옵션%: {subStats.Atk_Rate}");
-            System.Diagnostics.Debug.WriteLine($"세트%: {setBonus.Atk_Rate}");
-            System.Diagnostics.Debug.WriteLine($"장신구%: {accessoryStats.Atk_Rate}");
-            System.Diagnostics.Debug.WriteLine($"진형%: {formationAtkRate}");
-            System.Diagnostics.Debug.WriteLine($"펫옵션%: {petOptionAtkRate}");
             System.Diagnostics.Debug.WriteLine($"총 공격력%: {totalAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"버프 공격력%: {buffAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"패시브 버프 피증%: {passiveBuffs.Dmg_Dealt}");
+            System.Diagnostics.Debug.WriteLine($"액티브 버프 피증%: {activeBuffs.Dmg_Dealt}");
+            System.Diagnostics.Debug.WriteLine($"총 디버프 받피증%: {_currentDebuffs.Dmg_Taken_Increase}");
             System.Diagnostics.Debug.WriteLine($"최종 공격력: {totalAtk}");
         }
 
@@ -861,60 +1056,6 @@ namespace GameDamageCalculator.UI
 
         #endregion
 
-        #region 버프 관련
-
-        private double GetBuffAtkRate()
-        {
-            double buffRate = 0;
-            buffRate += GetPetSkillAtkRate();
-            buffRate += GetPassiveBuffAtkRate();
-            return buffRate;
-        }
-
-        private double GetBuffDefRate()
-        {
-            double rate = 0;
-            // TODO: 패시브/액티브 방어 버프
-            return rate;
-        }
-
-        private double GetBuffHpRate()
-        {
-            double rate = 0;
-            // TODO: 패시브/액티브 체력 버프
-            return rate;
-        }
-
-        private double GetPassiveBuffAtkRate()
-        {
-            double rate = 0;
-            // 델론즈 패시브: Dmg_Dealt이므로 여기서는 빈 값
-            return rate;
-        }
-
-        private double GetPassiveBuffDmgDealt()
-        {
-            double rate = 0;
-
-            if (chkPassiveDellons.IsChecked == true)
-            {
-                var dellons = CharacterDb.GetByName("델론즈");
-                if (dellons?.Passive?.StatModifier != null)
-                {
-                    rate += dellons.Passive.StatModifier.Dmg_Dealt;
-                }
-            }
-
-            return rate;
-        }
-
-        private void PassiveBuff_Changed(object sender, RoutedEventArgs e)
-        {
-            RecalculateStats();
-        }
-
-        #endregion
-
         #region 보스 관련
 
         private void UpdateBossList()
@@ -942,6 +1083,13 @@ namespace GameDamageCalculator.UI
             }
 
             cboBoss.SelectedIndex = 0;
+        }
+
+        private void UpdateBossDebuffDisplay()
+        {
+            txtBossDefRed.Text = _currentDebuffs.Def_Reduction.ToString("F0");
+            txtBossDmgTaken.Text = _currentDebuffs.Dmg_Taken_Increase.ToString("F0");
+            txtBossVulnerable.Text = _currentDebuffs.Vulnerability.ToString("F0");
         }
 
         #endregion
@@ -1067,6 +1215,118 @@ namespace GameDamageCalculator.UI
             if (double.TryParse(text, out double result))
                 return result;
             return 0;
+        }
+
+        #endregion
+
+        #region 버프/디버프 옵션 버튼 로직
+
+        // 버튼 상태별 색상: 기본, 스강★, 초월◆, 풀★◆
+        private static readonly Brush[] BuffBgColors = new Brush[]
+        {
+            new SolidColorBrush(Color.FromRgb(58, 58, 58)),   // 0: 기본
+            new SolidColorBrush(Color.FromRgb(180, 150, 50)), // 1: 스강
+            new SolidColorBrush(Color.FromRgb(70, 130, 180)), // 2: 초월
+            new SolidColorBrush(Color.FromRgb(138, 43, 226))  // 3: 풀
+        };
+
+        private static readonly Brush[] BuffFgColors = new Brush[]
+        {
+            new SolidColorBrush(Color.FromRgb(204, 204, 204)), // 0: 기본
+            Brushes.Black,   // 1: 스강
+            Brushes.White,   // 2: 초월
+            Brushes.White    // 3: 풀
+        };
+
+        private static readonly string[] BuffOptionSuffix = { "", " 스강", " 초월", " 풀" };
+
+        private void BuffOption_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                int current = int.Parse(btn.Tag?.ToString() ?? "0");
+                int next = (current + 1) % 4;
+                btn.Tag = next;
+
+                string baseName = btn.Content.ToString()
+                    .Replace(" 풀", "").Replace(" 스강", "").Replace(" 초월", "");
+
+                btn.Background = BuffBgColors[next];
+                btn.Foreground = BuffFgColors[next];
+                btn.Content = baseName + BuffOptionSuffix[next];
+
+                RecalculateStats();
+            }
+        }
+
+        private (bool isEnhanced, int transcendLevel) GetBuffOption(Button btn)
+        {
+            int state = int.Parse(btn.Tag?.ToString() ?? "0");
+            return state switch
+            {
+                0 => (false, 0),
+                1 => (true, 0),
+                2 => (false, 6),
+                3 => (true, 6),
+                _ => (false, 0)
+            };
+        }
+
+        private void ResetBuffOptionButton(Button btn, string baseName)
+        {
+            btn.Tag = 0;
+            btn.Background = BuffBgColors[0];
+            btn.Foreground = BuffFgColors[0];
+            btn.Content = baseName;
+        }
+
+        #endregion
+
+        #region 버프/디버프 합산 메서드
+
+        private BaseStatSet GetAllPassiveBuffs()
+        {
+            BaseStatSet total = new BaseStatSet();
+            // TODO: 버프 패시브 캐릭터 추가 시
+            return total;
+        }
+
+        private BaseStatSet GetAllActiveBuffs()
+        {
+            BaseStatSet total = new BaseStatSet();
+            // TODO: 버프 액티브 캐릭터 추가 시
+            return total;
+        }
+
+        private DebuffSet GetAllPassiveDebuffs()
+        {
+            DebuffSet total = new DebuffSet();
+
+            if (chkDebuffPassiveTaka.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffPassiveTaka);
+                var taka = CharacterDb.GetByName("타카");
+                var debuff = taka?.Passive?.GetDebuffModifier(isEnhanced, transcendLevel);
+                if (debuff != null)
+                {
+                    total.Add(debuff);
+                }
+            }
+
+            return total;
+        }
+
+        private DebuffSet GetAllActiveDebuffs()
+        {
+            DebuffSet total = new DebuffSet();
+            // TODO: 디버프 액티브 캐릭터 추가 시
+            return total;
+        }
+
+        private void PassiveBuff_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            RecalculateStats();
         }
 
         #endregion

@@ -84,52 +84,91 @@ namespace GameDamageCalculator.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-
-        // 스킬 배율 (1.0 = 100%)
-        public double Ratio { get; set; }
-        public double RatioEnhanced { get; set; }   // 강화 시 배율
-
-        // 방어 무시 (%)
-        public double ArmorPen { get; set; }
-        public double ArmorPenEnhanced { get; set; }
-
-        // 추가 치명타 피해 (%)
-        public double BonusCriDmg { get; set; }
-        public double BonusCriDmgEnhanced { get; set; }
-
-        // 조건부 추가 피해 (체력 30% 미만 등)
-        public double ConditionalDmg { get; set; }
-        public double ConditionalDmgEnhanced { get; set; }
-        public string ConditionalDesc { get; set; }     // "체력 30% 미만"
-
-        // 스킬 타입
         public SkillType SkillType { get; set; }
-
-        // 타겟 수 (1=단일, 5=전체 등)
         public int TargetCount { get; set; } = 1;
-
-        /// <summary>
-        /// 강화 여부에 따른 실제 배율 반환
-        /// </summary>
-        public double GetRatio(bool isEnhanced)
+        public int Atk_Count { get; set; } = 1;
+        public string ConditionalDesc { get; set; }
+    
+        // 레벨별 스탯 (0=기본, 1=강화)
+        public Dictionary<int, SkillLevelData> LevelData { get; set; } = new Dictionary<int, SkillLevelData>();
+        
+        // 초월별 추가 효과
+        public Dictionary<int, SkillTranscendBonus> TranscendBonuses { get; set; } = new Dictionary<int, SkillTranscendBonus>();
+    
+        // ===== 헬퍼 메서드 =====
+        public SkillLevelData GetLevelData(bool isEnhanced)
         {
-            return isEnhanced ? RatioEnhanced : Ratio;
+            int key = isEnhanced ? 1 : 0;
+            return LevelData.TryGetValue(key, out var data) ? data : new SkillLevelData();
         }
-
-        public double GetArmorPen(bool isEnhanced)
+    
+        public SkillTranscendBonus GetTranscendBonus(int level)
         {
-            return isEnhanced ? ArmorPenEnhanced : ArmorPen;
+            SkillTranscendBonus result = new SkillTranscendBonus();
+            if (TranscendBonuses == null) return result;
+    
+            // 해당 레벨 이하의 모든 보너스 누적
+            foreach (var kvp in TranscendBonuses.Where(t => t.Key <= level).OrderBy(t => t.Key))
+            {
+                result.ArmorPen += kvp.Value.ArmorPen;
+                result.BonusDmg += kvp.Value.BonusDmg;
+                result.BonusCriDmg += kvp.Value.BonusCriDmg;
+                result.Effect = kvp.Value.Effect;  // 마지막 효과 설명 사용
+            }
+            return result;
         }
+    
+        // 편의 메서드
+        public double GetRatio(bool isEnhanced) 
+            => GetLevelData(isEnhanced).Ratio;
+    
+        public double GetArmorPen(bool isEnhanced, int transcendLevel)
+            => GetLevelData(isEnhanced).ArmorPen + GetTranscendBonus(transcendLevel).ArmorPen;
+    
+        public double GetBonusCriDmg(bool isEnhanced, int transcendLevel)
+            => GetLevelData(isEnhanced).BonusCriDmg + GetTranscendBonus(transcendLevel).BonusCriDmg;
+    
+        public double GetConditionalRatioBonus(bool isEnhanced)
+            => GetLevelData(isEnhanced).ConditionalRatioBonus;
 
-        public double GetBonusCriDmg(bool isEnhanced)
-        {
-            return isEnhanced ? BonusCriDmgEnhanced : BonusCriDmg;
-        }
+        public double GetConditionalExtraDmg(bool isEnhanced)
+            => GetLevelData(isEnhanced).ConditionalExtraDmg;
+    }
+    
+    /// <summary>
+    /// 스킬 레벨별 데이터
+    /// </summary>
+    public class SkillLevelData
+    {
+        public double Ratio { get; set; }               // 기본 스킬 배율
 
-        public double GetConditionalDmg(bool isEnhanced)
-        {
-            return isEnhanced ? ConditionalDmgEnhanced : ConditionalDmg;
-        }
+        // 추가 스케일링 (다른 스탯 기준)
+        public double DefRatio { get; set; }        // 방어력 비례 배율
+        public double HpRatio { get; set; }         // 생명력 비례 배율
+        public double SpdRatio { get; set; }        // 속공 비례 배율
+        public double ArmorPen { get; set; }            // 방어 관통
+        public double BonusCriDmg { get; set; }         // 추가 치피
+
+        // 조건부 효과 (체력 30% 미만 등)
+        public double ConditionalRatioBonus { get; set; }   // 조건 시 배율 증가 (예: +50% → 0.50)
+        public double ConditionalExtraDmg { get; set; }     // 조건 시 추가 피해 (공격력의 X%)
+
+        // 스킬이 부여하는 버프/디버프
+        public BaseStatSet BuffEffect { get; set; }      // 아군에게 버프
+        public DebuffSet DebuffEffect { get; set; }      // 적에게 디버프
+        public int EffectDuration { get; set; }          // 지속 턴
+        public double EffectChance { get; set; } = 100;  // 적용 확률%
+    }
+    
+    /// <summary>
+    /// 스킬 초월 보너스
+    /// </summary>
+    public class SkillTranscendBonus
+    {
+        public double ArmorPen { get; set; }
+        public double BonusDmg { get; set; }
+        public double BonusCriDmg { get; set; }
+        public string Effect { get; set; }
     }
 
     /// <summary>
@@ -150,18 +189,80 @@ namespace GameDamageCalculator.Models
     {
         public string Name { get; set; }
         public string Description { get; set; }
-    
-        // 버프/디버프 대상
-        public PassiveTarget Target { get; set; }  // Self, Ally, Enemy
-    
-        // 스탯 효과 (Target에 따라 버프 또는 디버프)
-        public BaseStatSet StatModifier { get; set; } = new BaseStatSet();
-    
-        // 중첩 수
         public int MaxStacks { get; set; } = 1;
-    
-        // 강화 시 추가 효과
-        public BaseStatSet EnhancedStatModifier { get; set; } = new BaseStatSet();
+        
+        // Target 제거 (데이터 유무로 판단)
+        // public PassiveTarget Target { get; set; }  ← 삭제
+        
+        public Dictionary<int, PassiveLevelData> LevelData { get; set; } = new Dictionary<int, PassiveLevelData>();
+        public Dictionary<int, PassiveTranscendBonus> TranscendBonuses { get; set; } = new Dictionary<int, PassiveTranscendBonus>();
+
+        // ===== 헬퍼 메서드 =====
+        public PassiveLevelData GetLevelData(bool isEnhanced)
+        {
+            int key = isEnhanced ? 1 : 0;
+            return LevelData.TryGetValue(key, out var data) ? data : new PassiveLevelData();  // 없으면 빈 객체!
+        }
+
+        public PassiveTranscendBonus GetTranscendBonus(int transcendLevel)
+        {
+            PassiveTranscendBonus result = new PassiveTranscendBonus();
+            if (TranscendBonuses == null) return result;
+
+            // 해당 레벨 이하의 모든 보너스 누적
+            foreach (var kvp in TranscendBonuses.Where(t => t.Key <= transcendLevel).OrderBy(t => t.Key))
+            {
+                result.BuffModifier.Add(kvp.Value.BuffModifier);
+                result.DebuffModifier.Add(kvp.Value.DebuffModifier);
+                result.Effect = kvp.Value.Effect;
+            }
+            return result;
+        }
+
+        // 편의 메서드 (스킬 레벨 + 초월 합산)
+        public BaseStatSet GetBuffModifier(bool isEnhanced, int transcendLevel)
+        {
+            var result = new BaseStatSet();
+            var levelData = GetLevelData(isEnhanced);
+            var transcendBonus = GetTranscendBonus(transcendLevel);
+
+            if (levelData.BuffModifier != null) result.Add(levelData.BuffModifier);
+            if (transcendBonus.BuffModifier != null) result.Add(transcendBonus.BuffModifier);
+
+            return result;
+        }
+
+        public DebuffSet GetDebuffModifier(bool isEnhanced, int transcendLevel)
+        {
+            var result = new DebuffSet();
+            var levelData = GetLevelData(isEnhanced);
+            var transcendBonus = GetTranscendBonus(transcendLevel);
+
+            if (levelData.DebuffModifier != null) result.Add(levelData.DebuffModifier);
+            if (transcendBonus.DebuffModifier != null) result.Add(transcendBonus.DebuffModifier);
+
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// 패시브 레벨별 데이터 (0=기본, 1=강화)
+    /// </summary>
+    public class PassiveLevelData
+    {
+        public BaseStatSet BuffModifier { get; set; } = new BaseStatSet();
+        public DebuffSet DebuffModifier { get; set; } = new DebuffSet();
+        public string Effect { get; set; }
+    }
+
+    /// <summary>
+    /// 패시브 초월 보너스
+    /// </summary>
+    public class PassiveTranscendBonus
+    {
+        public BaseStatSet BuffModifier { get; set; } = new BaseStatSet();
+        public DebuffSet DebuffModifier { get; set; } = new DebuffSet();
+        public string Effect { get; set; }
     }
     
     public enum PassiveTarget { Self, Ally, Enemy }
@@ -174,5 +275,41 @@ namespace GameDamageCalculator.Models
         public int Level { get; set; }          // 1~12
         public BaseStatSet BonusStats { get; set; } = new BaseStatSet();
         public string SpecialEffect { get; set; }   // 특수 효과 설명 (6초월 방무 등)
+    }
+
+    /// <summary>
+    /// 적에게 거는 디버프 (패시브/스킬)
+    /// </summary>
+    public class DebuffSet
+    {
+        public double Def_Reduction { get; set; }       // 방어력 감소%
+        public double Dmg_Taken_Increase { get; set; }  // 받는 피해 증가%
+        public double Vulnerability { get; set; }       // 취약%
+        public double Atk_Reduction { get; set; }       // 공격력 감소%
+        public double Spd_Reduction { get; set; }       // 속도 감소%
+        public double Dmg_Reduction { get; set; }       // 주는 피해량 감소% ← 추가
+    
+        public void Add(DebuffSet other)
+        {
+            if (other == null) return;
+            
+            Def_Reduction += other.Def_Reduction;
+            Dmg_Taken_Increase += other.Dmg_Taken_Increase;
+            Vulnerability += other.Vulnerability;
+            Atk_Reduction += other.Atk_Reduction;
+            Spd_Reduction += other.Spd_Reduction;
+        }
+    
+        public DebuffSet Clone()
+        {
+            return new DebuffSet
+            {
+                Def_Reduction = this.Def_Reduction,
+                Dmg_Taken_Increase = this.Dmg_Taken_Increase,
+                Vulnerability = this.Vulnerability,
+                Atk_Reduction = this.Atk_Reduction,
+                Spd_Reduction = this.Spd_Reduction
+            };
+        }
     }
 }

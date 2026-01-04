@@ -161,10 +161,10 @@ namespace GameDamageCalculator.Database
             public static readonly Dictionary<string, FormationBonus> Formations = 
                 new Dictionary<string, FormationBonus>
             {
-                { "기본 진형", new FormationBonus { Atk_Rate_Back = 0.14, Def_Rate_Front = 0.21 } },
-                { "밸런스 진형", new FormationBonus { Atk_Rate_Back = 0.21, Def_Rate_Front = 0.14 } },
-                { "공격 진형", new FormationBonus { Atk_Rate_Back = 0.105, Def_Rate_Front = 0.42 } },
-                { "보호 진형", new FormationBonus { Atk_Rate_Back = 0.42, Def_Rate_Front = 0.105 } }
+                { "기본 진형", new FormationBonus { Atk_Rate_Back = 14, Def_Rate_Front = 21 } },
+                { "밸런스 진형", new FormationBonus { Atk_Rate_Back = 21, Def_Rate_Front = 14 } },
+                { "공격 진형", new FormationBonus { Atk_Rate_Back = 10.5, Def_Rate_Front = 42 } },
+                { "보호 진형", new FormationBonus { Atk_Rate_Back = 42, Def_Rate_Front = 10.5 } }
             };
         }
     }

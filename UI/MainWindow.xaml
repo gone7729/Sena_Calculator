@@ -86,6 +86,29 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
+
+        <!-- ========== 버프,디버프관련 ========== -->
+        <Style x:Key="BuffOptionButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="MinWidth" Value="40"/>
+            <Setter Property="Background" Value="#3a3a3a"/>
+            <Setter Property="Foreground" Value="#ccc"/>
+            <Setter Property="BorderBrush" Value="#555"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         
     </Window.Resources>
     
@@ -354,20 +377,20 @@
 
                             <!-- 장신구 섹션 -->
                             <TextBlock Text="장신구" FontWeight="Bold" Margin="0,10,0,5"/>
-                            
+
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                            
+
                                 <!-- 성급 -->
                                 <StackPanel Orientation="Horizontal" Grid.Column="0" Margin="0,2,15,2">
                                     <TextBlock Text="성급" Width="35" VerticalAlignment="Center"/>
                                     <ComboBox x:Name="cboAccessoryGrade" Width="60" SelectionChanged="CboAccessoryGrade_SelectionChanged"/>
                                 </StackPanel>
-                            
+
                                 <!-- 메인옵션 -->
                                 <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="0,2,15,2">
                                     <TextBlock Text="옵션" Width="35" VerticalAlignment="Center"/>
@@ -375,7 +398,7 @@
                                     <TextBlock x:Name="txtAccessoryMainValue" Width="40" TextAlignment="Center" 
                                                VerticalAlignment="Center" Margin="5,0,0,0"/>
                                 </StackPanel>
-                            
+
                                 <!-- 부옵션 (6성만) -->
                                 <StackPanel x:Name="panelAccessorySub" Orientation="Horizontal" Grid.Column="2" Margin="0,2,0,2" Visibility="Collapsed">
                                     <TextBlock Text="부옵션" Width="40" VerticalAlignment="Center"/>
@@ -652,30 +675,74 @@
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
                             <TextBlock Text="버프 - 패시브" Style="{StaticResource SectionTitle}"/>
-                            <TextBlock Text="선택하면 값 가져오고 위 영향받는 스텟에 계산되는 방식" 
-                                       Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+                            <TextBlock Text="아군에게 적용되는 패시브 효과" 
+                                    Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
                             
                             <WrapPanel>
-                                <CheckBox x:Name="chkPassiveDellons" Content="델론즈" Style="{StaticResource CheckBoxStyle}"/>
-                                <CheckBox x:Name="chkPassiveRina" Content="리나" Style="{StaticResource CheckBoxStyle}"/>
-                                <CheckBox x:Name="chkPassiveEileene" Content="에이린" Style="{StaticResource CheckBoxStyle}"/>
-                                <CheckBox x:Name="chkPassiveAileen" Content="아일린" Style="{StaticResource CheckBoxStyle}"/>
+                                <!-- TODO: 버프 패시브 캐릭터 추가 시 아래 형식으로 추가
+                                <StackPanel Orientation="Horizontal" Margin="0,0,15,4">
+                                    <CheckBox x:Name="chkBuffPassiveXXX" VerticalAlignment="Center"
+                                            Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                    <Button x:Name="btnBuffPassiveXXX" Content="캐릭터명" Tag="0" 
+                                            Click="BuffOption_Click" Margin="4,0,0,0"
+                                            Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    <TextBlock Text="(효과)" Foreground="#888" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                </StackPanel>
+                                -->
+                                <TextBlock Text="(추가 예정)" Foreground="#555" FontStyle="Italic"/>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
-                    
+
                     <!-- 버프-액티브 -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
                             <TextBlock Text="버프 - 액티브" Style="{StaticResource SectionTitle}"/>
-                            <TextBlock Text="선택하면 값 가져오고 위 영향받는 스텟에 계산되는 방식" 
-                                       Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+                            <TextBlock Text="스킬로 적용되는 버프 효과" 
+                                    Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
                             
                             <WrapPanel>
-                                <CheckBox x:Name="chkActiveBiske" Content="바스킷" Style="{StaticResource CheckBoxStyle}"/>
-                                <CheckBox x:Name="chkActiveRina" Content="리나" Style="{StaticResource CheckBoxStyle}"/>
-                                <CheckBox x:Name="chkActiveRachel" Content="레이첼" Style="{StaticResource CheckBoxStyle}"/>
-                                <CheckBox x:Name="chkActiveAileen" Content="아일린" Style="{StaticResource CheckBoxStyle}"/>
+                                <!-- TODO: 버프 액티브 캐릭터 추가 시 -->
+                                <TextBlock Text="(추가 예정)" Foreground="#555" FontStyle="Italic"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 디버프-패시브 -->
+                    <Border Style="{StaticResource SectionBorder}">
+                        <StackPanel>
+                            <TextBlock Text="디버프 - 패시브" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock Text="적에게 적용되는 패시브 효과" 
+                                       Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+
+                            <WrapPanel>
+                                <!-- 타카 -->
+                                <StackPanel Margin="0,0,15,4">
+                                    <TextBlock Text="(받피증, 취약)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkDebuffPassiveTaka" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnDebuffPassiveTaka" Content="타카" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- 다른 캐릭터 추가 시 같은 패턴 -->
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 디버프-액티브 -->
+                    <Border Style="{StaticResource SectionBorder}">
+                        <StackPanel>
+                            <TextBlock Text="디버프 - 액티브" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock Text="스킬로 적용되는 디버프 효과" 
+                                    Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+                            
+                            <WrapPanel>
+                                <!-- TODO: 디버프 액티브 캐릭터 추가 시 -->
+                                <TextBlock Text="(추가 예정)" Foreground="#555" FontStyle="Italic"/>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -689,70 +756,85 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 
-                <!-- 보스 섹션 -->
+                <!-- 보스 -->
                 <Border Style="{StaticResource SectionBorder}">
                     <StackPanel>
                         <TextBlock Text="보스" Style="{StaticResource SectionTitle}"/>
-                        
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <RadioButton x:Name="rbSiege" Content="공성" Foreground="#272727" Margin="0,0,15,0" 
-                                         GroupName="BossType" IsChecked="True" Checked="BossType_Changed"/>
-                            <RadioButton x:Name="rbRaid" Content="레이드" Foreground="#272727" Margin="0,0,15,0"
-                                         GroupName="BossType" Checked="BossType_Changed"/>
-                            <RadioButton x:Name="rbGuild" Content="강림" Foreground="#272727"
-                                         GroupName="BossType" Checked="BossType_Changed"/>
+
+                        <!-- 보스 타입 선택 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <RadioButton x:Name="rbSiege" Content="공성" GroupName="BossType" IsChecked="True"
+                                         Checked="BossType_Changed" Foreground="#ccc" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="rbRaid" Content="레이드" GroupName="BossType"
+                                         Checked="BossType_Changed" Foreground="#ccc" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="rbDescend" Content="강림" GroupName="BossType"
+                                         Checked="BossType_Changed" Foreground="#ccc"/>
                         </StackPanel>
-                        
-                        <ComboBox x:Name="cboBoss" Style="{StaticResource ComboStyle}" Margin="0,0,0,10"
-                                  SelectionChanged="CboBoss_SelectionChanged"/>
-                        
-                        <!-- 보스 스탯 -->
-                        <Grid Margin="0,0,0,8">
+
+                        <!-- 보스 선택 -->
+                        <ComboBox x:Name="cboBoss" SelectionChanged="CboBoss_SelectionChanged" Margin="0,0,0,8"/>
+
+                        <!-- 보스 스탯 입력 -->
+                        <Grid Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            
-                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                                <TextBlock Text="방어력" Style="{StaticResource LabelText}"/>
-                                <TextBox x:Name="txtBossAtk" Text="0" Style="{StaticResource OutputBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="0,0,5,0">
-                                <TextBlock Text="방증%" Style="{StaticResource LabelText}"/>
-                                <TextBox x:Name="txtBossDefInc" Text="0" Style="{StaticResource OutputBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="받피감%" Style="{StaticResource LabelText}"/>
-                                <TextBox x:Name="txtBossDefDec" Text="0" Style="{StaticResource InputBox}"/>
-                            </StackPanel>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- 1행: 방어력, 방증%, 받피감% (보스 고유 - 입력 가능) -->
+                            <TextBlock Text="방어력" Grid.Row="0" Grid.Column="0" Foreground="#888" FontSize="10"/>
+                            <TextBlock Text="방증%" Grid.Row="0" Grid.Column="1" Foreground="#888" FontSize="10" Margin="4,0,0,0"/>
+                            <TextBlock Text="받피감%" Grid.Row="0" Grid.Column="2" Foreground="#888" FontSize="10" Margin="4,0,0,0"/>
+
+                            <TextBox x:Name="txtBossDef" Grid.Row="1" Grid.Column="0" Margin="0,2,4,8" Text="0"/>
+                            <TextBox x:Name="txtBossDefInc" Grid.Row="1" Grid.Column="1" Margin="4,2,4,8" Text="0"/>
+                            <TextBox x:Name="txtBossDmgRdc" Grid.Row="1" Grid.Column="2" Margin="4,2,0,8" Text="0"/>
+
+                            <!-- 2행: 방깎%, 받피증%, 취약% (디버프 - 자동 계산) -->
+                            <TextBlock Text="방깎%" Grid.Row="2" Grid.Column="0" Foreground="#888" FontSize="10"/>
+                            <TextBlock Text="받피증%" Grid.Row="2" Grid.Column="1" Foreground="#888" FontSize="10" Margin="4,0,0,0"/>
+                            <TextBlock Text="취약%" Grid.Row="2" Grid.Column="2" Foreground="#888" FontSize="10" Margin="4,0,0,0"/>
+
+                            <Border Grid.Row="3" Grid.Column="0" Background="#3a3a3a" Margin="0,2,4,4" Padding="4,2">
+                                <TextBlock x:Name="txtBossDefRed" Text="0" Foreground="#0f0"/>
+                            </Border>
+                            <Border Grid.Row="3" Grid.Column="1" Background="#3a3a3a" Margin="4,2,4,4" Padding="4,2">
+                                <TextBlock x:Name="txtBossDmgTaken" Text="0" Foreground="#0f0"/>
+                            </Border>
+                            <Border Grid.Row="3" Grid.Column="2" Background="#3a3a3a" Margin="4,2,0,4" Padding="4,2">
+                                <TextBlock x:Name="txtBossVulnerable" Text="0" Foreground="#0f0"/>
+                            </Border>
+
+                            <!-- 3행: 1인기감소, 3인기감소, 5인기감소 (보스 고유) -->
+                            <TextBlock Text="1인기감%" Grid.Row="4" Grid.Column="0" Foreground="#888" FontSize="10"/>
+                            <TextBlock Text="3인기감%" Grid.Row="4" Grid.Column="1" Foreground="#888" FontSize="10" Margin="4,0,0,0"/>
+                            <TextBlock Text="5인기감%" Grid.Row="4" Grid.Column="2" Foreground="#888" FontSize="10" Margin="4,0,0,0"/>
+
+                            <Border Grid.Row="5" Grid.Column="0" Background="#3a3a3a" Margin="0,2,4,4" Padding="4,2">
+                                <TextBlock x:Name="txtBoss1TargetRdc" Text="0" Foreground="#ff9"/>
+                            </Border>
+                            <Border Grid.Row="5" Grid.Column="1" Background="#3a3a3a" Margin="4,2,4,4" Padding="4,2">
+                                <TextBlock x:Name="txtBoss3TargetRdc" Text="0" Foreground="#ff9"/>
+                            </Border>
+                            <Border Grid.Row="5" Grid.Column="2" Background="#3a3a3a" Margin="4,2,0,4" Padding="4,2">
+                                <TextBlock x:Name="txtBoss5TargetRdc" Text="0" Foreground="#ff9"/>
+                            </Border>
                         </Grid>
-                        
-                        <Grid Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            
-                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                                <TextBlock Text="방깎%" Style="{StaticResource LabelText}"/>
-                                <TextBox x:Name="txtBossDef" Text="0" Style="{StaticResource OutputBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="0,0,5,0">
-                                <TextBlock Text="받피증%" Style="{StaticResource LabelText}"/>
-                                <TextBox x:Name="txtBossPhyRdc" Text="0" Style="{StaticResource OutputBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="취약%" Style="{StaticResource LabelText}"/>
-                                <TextBox x:Name="txtBossMagRdc" Text="0" Style="{StaticResource OutputBox}"/>
-                            </StackPanel>
-                        </Grid>
-                        
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox x:Name="chkCritical" Content="치명타" Style="{StaticResource CheckBoxStyle}" IsChecked="True"/>
-                            <CheckBox x:Name="chkWeakpoint" Content="약공" Style="{StaticResource CheckBoxStyle}"/>
-                            <CheckBox x:Name="chkBlock" Content="막기" Style="{StaticResource CheckBoxStyle}"/>
+
+                        <!-- 전투 옵션 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <CheckBox x:Name="chkCritical" Content="치명타" IsChecked="True" Foreground="#ccc" Margin="0,0,10,0"/>
+                            <CheckBox x:Name="chkWeakpoint" Content="약공" Foreground="#ccc" Margin="0,0,10,0"/>
+                            <CheckBox x:Name="chkBlock" Content="막기" Foreground="#ccc"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -773,13 +855,13 @@
                             <Button Content="데미지 계산" Style="{StaticResource CalcButton}" 
                                     Click="BtnCalculate_Click" Margin="0,0,10,0"/>
                             <Button Content="초기화" Style="{StaticResource CalcButton}" 
-                                    Background="#0f3460" Click="BtnReset_Click"/>
+                                    Click="BtnReset_Click"/>
                         </StackPanel>
                         
                         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                             <TextBlock x:Name="txtResult" 
                                        FontFamily="Consolas" FontSize="13"
-                                       Foreground="#eaeaea" TextWrapping="Wrap"
+                                       Foreground="#272727" TextWrapping="Wrap"
                                        Text="계산 버튼을 눌러&#x0a;결과를 확인하세요."/>
                         </ScrollViewer>
                     </Grid>

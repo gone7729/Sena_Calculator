@@ -44,9 +44,9 @@ namespace GameDamageCalculator.Models
         public double Dmg_Dealt_1to3 { get; set; }  // ← 추가: 1-3인기 보스 피해량
         public double Dmg_Dealt_4to5 { get; set; }  // ← 추가: 4-5인기 보스 피해량
 
-        public double Dmg_Taken { get; set; }    // 받는 피해량 (%)
-
-        public double Def_Red { get; set; }     // 방어력 감소 (%) - 디버프용
+        public double Dmg_Rdc_Single { get; set; }  // 1인기 받피감
+        public double Dmg_Rdc_Triple { get; set; }  // 3인기 받피감
+        public double Dmg_Rdc_Multi { get; set; }   // 5인기 받피감
 
         /// <summary>
         /// 다른 스탯 세트를 현재 세트에 더함
@@ -78,6 +78,9 @@ namespace GameDamageCalculator.Models
             Hp_Rate += other.Hp_Rate;
             Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
             Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
+            Dmg_Rdc_Single += other.Dmg_Rdc_Single;
+            Dmg_Rdc_Triple += other.Dmg_Rdc_Triple;
+            Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
         }
 
         /// <summary>
@@ -141,6 +144,9 @@ namespace GameDamageCalculator.Models
                 Hp_Rate = this.Hp_Rate,
                 Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5,
+                Dmg_Rdc_Single = this.Dmg_Rdc_Single,
+                Dmg_Rdc_Triple = this.Dmg_Rdc_Triple,
+                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi
             };
         }
 
@@ -162,21 +168,46 @@ namespace GameDamageCalculator.Models
         {
             return new BaseStatSet
             {
+                // 기본 스탯
                 Atk = this.Atk * multiplier,
-                Atk_Rate = this.Atk_Rate * multiplier,
                 Def = this.Def * multiplier,
-                Def_Rate = this.Def_Rate * multiplier,
                 Hp = this.Hp * multiplier,
-                Hp_Rate = this.Hp_Rate * multiplier,
+                Spd = this.Spd * multiplier,
+        
+                // 치명타 관련
                 Cri = this.Cri * multiplier,
                 Cri_Dmg = this.Cri_Dmg * multiplier,
-                Spd = this.Spd * multiplier,
+        
+                // 약점 공격 관련
                 Wek = this.Wek * multiplier,
+                Wek_Dmg = this.Wek_Dmg * multiplier,
+        
+                // 방어/생존 관련
                 Blk = this.Blk * multiplier,
+                Blk_Red = this.Blk_Red * multiplier,
+                Dmg_Rdc = this.Dmg_Rdc * multiplier,
+                Heal_Rec = this.Heal_Rec * multiplier,
+        
+                // 효과 관련
                 Eff_Hit = this.Eff_Hit * multiplier,
                 Eff_Res = this.Eff_Res * multiplier,
+                Eff_Acc = this.Eff_Acc * multiplier,
+        
+                // 피해량 관련
+                Arm_Pen = this.Arm_Pen * multiplier,
+                Dmg_Dealt = this.Dmg_Dealt * multiplier,
+                Dmg_Dealt_Bos = this.Dmg_Dealt_Bos * multiplier,
                 Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3 * multiplier,
                 Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5 * multiplier,
+        
+                // 비율 증가
+                Atk_Rate = this.Atk_Rate * multiplier,
+                Def_Rate = this.Def_Rate * multiplier,
+                Hp_Rate = this.Hp_Rate * multiplier,
+
+                Dmg_Rdc_Single = this.Dmg_Rdc_Single * multiplier,
+                Dmg_Rdc_Triple = this.Dmg_Rdc_Triple * multiplier,
+                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi * multiplier
             };
         }
     }
