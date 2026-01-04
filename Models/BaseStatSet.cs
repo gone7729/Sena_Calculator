@@ -44,6 +44,10 @@ namespace GameDamageCalculator.Models
         public double Dmg_Dealt_1to3 { get; set; }  // ← 추가: 1-3인기 보스 피해량
         public double Dmg_Dealt_4to5 { get; set; }  // ← 추가: 4-5인기 보스 피해량
 
+        public double Dmg_Taken { get; set; }    // 받는 피해량 (%)
+
+        public double Def_Red { get; set; }     // 방어력 감소 (%) - 디버프용
+
         /// <summary>
         /// 다른 스탯 세트를 현재 세트에 더함
         /// </summary>

@@ -150,19 +150,21 @@ namespace GameDamageCalculator.Models
     {
         public string Name { get; set; }
         public string Description { get; set; }
-
-        // 패시브로 주는 스탯 보너스
-        public BaseStatSet BonusStats { get; set; } = new BaseStatSet();
-
-        // 적에게 주는 디버프 (받는 피해 증가 등)
-        public BaseStatSet DebuffToEnemy { get; set; } = new BaseStatSet();
-
+    
+        // 버프/디버프 대상
+        public PassiveTarget Target { get; set; }  // Self, Ally, Enemy
+    
+        // 스탯 효과 (Target에 따라 버프 또는 디버프)
+        public BaseStatSet StatModifier { get; set; } = new BaseStatSet();
+    
         // 중첩 수
         public int MaxStacks { get; set; } = 1;
-
+    
         // 강화 시 추가 효과
-        public BaseStatSet EnhancedBonusStats { get; set; } = new BaseStatSet();
+        public BaseStatSet EnhancedStatModifier { get; set; } = new BaseStatSet();
     }
+    
+    public enum PassiveTarget { Self, Ally, Enemy }
 
     /// <summary>
     /// 초월 단계별 보너스

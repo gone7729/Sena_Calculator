@@ -795,7 +795,7 @@ namespace GameDamageCalculator.UI {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/세나리_데미지계산기;component/ui/mainwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/세나리_데미지계산기;V1.0.0.0;component/ui/mainwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\UI\MainWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

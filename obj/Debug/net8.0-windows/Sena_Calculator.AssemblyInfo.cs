@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("세나리_데미지계산기")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+208b1d3f20511cf8b2618ad66686beae249f793c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c7ea7084addc27bfcd5d9df2f06e7add242eeb92")]
 [assembly: System.Reflection.AssemblyProductAttribute("세나리_데미지계산기")]
 [assembly: System.Reflection.AssemblyTitleAttribute("세나리_데미지계산기")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

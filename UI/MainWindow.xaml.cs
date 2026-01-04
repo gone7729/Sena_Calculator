@@ -656,16 +656,16 @@ namespace GameDamageCalculator.UI
                 Atk = totalAtk,
                 Def = totalDef,
                 Hp = totalHp,
-                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri,
-                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg,
-                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek,
+                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri,  // ← 추가
+                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg,  // ← 추가
+                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek,  // ← 추가
                 Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg,
-                Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt,
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos,
+                Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + GetPassiveBuffDmgDealt(),  // ← 추가
+                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos,  // ← 추가
                 Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen,
-                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk,
-                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit,
-                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res,
+                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,  // ← 추가
+                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,  // ← 추가
+                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res,  // ← 추가
                 Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
                 Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc,
                 Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3,
@@ -866,13 +866,8 @@ namespace GameDamageCalculator.UI
         private double GetBuffAtkRate()
         {
             double buffRate = 0;
-            
-            // 펫 스킬
             buffRate += GetPetSkillAtkRate();
-            
-            // TODO: 패시브 버프 (델론즈, 에이린 등)
-            // TODO: 액티브 버프 (바스킷, 리나 등)
-            
+            buffRate += GetPassiveBuffAtkRate();
             return buffRate;
         }
 
@@ -888,6 +883,34 @@ namespace GameDamageCalculator.UI
             double rate = 0;
             // TODO: 패시브/액티브 체력 버프
             return rate;
+        }
+
+        private double GetPassiveBuffAtkRate()
+        {
+            double rate = 0;
+            // 델론즈 패시브: Dmg_Dealt이므로 여기서는 빈 값
+            return rate;
+        }
+
+        private double GetPassiveBuffDmgDealt()
+        {
+            double rate = 0;
+
+            if (chkPassiveDellons.IsChecked == true)
+            {
+                var dellons = CharacterDb.GetByName("델론즈");
+                if (dellons?.Passive?.StatModifier != null)
+                {
+                    rate += dellons.Passive.StatModifier.Dmg_Dealt;
+                }
+            }
+
+            return rate;
+        }
+
+        private void PassiveBuff_Changed(object sender, RoutedEventArgs e)
+        {
+            RecalculateStats();
         }
 
         #endregion
