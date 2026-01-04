@@ -22,33 +22,33 @@ namespace GameDamageCalculator.Database
         /// </summary>
         public static class MainStatDb
         {
-            public static readonly Dictionary<string, Dictionary<string, BaseStatSet>> OptionsBySlot = 
-                new Dictionary<string, Dictionary<string, BaseStatSet>>
+            // 공통 메인옵션 값
+            public static readonly Dictionary<string, BaseStatSet> MainOptions = 
+                new Dictionary<string, BaseStatSet>
             {
-                { "무기", new Dictionary<string, BaseStatSet> {
-                    { "공격력%", new BaseStatSet { Atk_Rate = 0.28 } },
-                    { "공격력", new BaseStatSet { Atk = 240 } },
-                    { "치명타확률%", new BaseStatSet { Cri = 0.24 } },
-                    { "치명타피해%", new BaseStatSet { Cri_Dmg = 0.36 } },
-                    { "약점공격확률%", new BaseStatSet { Wek = 0.28 } },
-                    { "생명력%", new BaseStatSet { Hp_Rate = 0.28 } },
-                    { "생명력", new BaseStatSet { Hp = 850 } },
-                    { "방어력%", new BaseStatSet { Def_Rate = 0.28 } },
-                    { "방어력", new BaseStatSet { Def = 160 } },
-                    { "효과적중%", new BaseStatSet { Eff_Hit = 0.3 } }
-                }},
+                { "공격력%", new BaseStatSet { Atk_Rate = 28 } },
+                { "공격력", new BaseStatSet { Atk = 240 } },
+                { "치명타확률%", new BaseStatSet { Cri = 24 } },
+                { "치명타피해%", new BaseStatSet { Cri_Dmg = 36 } },
+                { "약점공격확률%", new BaseStatSet { Wek = 28 } },
+                { "생명력%", new BaseStatSet { Hp_Rate = 28 } },
+                { "생명력", new BaseStatSet { Hp = 850 } },
+                { "방어력%", new BaseStatSet { Def_Rate = 28 } },
+                { "방어력", new BaseStatSet { Def = 160 } },
+                { "효과적중%", new BaseStatSet { Eff_Hit = 30 } },
+                { "효과저항%", new BaseStatSet { Eff_Res = 30 } },
+                { "받피감%", new BaseStatSet { Dmg_Rdc = 16 } },
+                { "막기확률%", new BaseStatSet { Blk = 24 } }
+            };
 
-                { "방어구", new Dictionary<string, BaseStatSet> {
-                    { "공격력%", new BaseStatSet { Atk_Rate = 0.28 } },
-                    { "공격력", new BaseStatSet { Atk = 240 } },
-                    { "생명력%", new BaseStatSet { Hp_Rate = 0.28 } },
-                    { "생명력", new BaseStatSet { Hp = 850 } },
-                    { "방어력%", new BaseStatSet { Def_Rate = 0.28 } },
-                    { "방어력", new BaseStatSet { Def = 160 } },
-                    { "효과저항%", new BaseStatSet { Eff_Res = 0.3 } },
-                    { "받피감%", new BaseStatSet { Dmg_Rdc = 0.16 } },
-                    { "막기확률%", new BaseStatSet { Blk = 0.24 } }
-                }}
+            // 슬롯별 사용 가능한 옵션 목록
+            public static readonly Dictionary<string, string[]> AvailableOptions = 
+                new Dictionary<string, string[]>
+            {
+                { "무기", new[] { "공격력%", "공격력", "치명타확률%", "치명타피해%", "약점공격확률%", 
+                                 "생명력%", "생명력", "방어력%", "방어력", "효과적중%" } },
+                { "방어구", new[] { "공격력%", "공격력", "생명력%", "생명력", "방어력%", "방어력",
+                                   "효과저항%", "받피감%", "막기확률%" } }
             };
         }
 
@@ -61,19 +61,19 @@ namespace GameDamageCalculator.Database
             public static readonly Dictionary<string, BaseStatSet> SubStatBase = 
                 new Dictionary<string, BaseStatSet>
             {
-                { "공%", new BaseStatSet { Atk_Rate = 0.05 } },
+                { "공%", new BaseStatSet { Atk_Rate = 5 } },
                 { "공", new BaseStatSet { Atk = 50 } },
-                { "치확%", new BaseStatSet { Cri = 0.04 } },
-                { "치피%", new BaseStatSet { Cri_Dmg = 0.06 } },
+                { "치확%", new BaseStatSet { Cri = 4 } },
+                { "치피%", new BaseStatSet { Cri_Dmg = 6 } },
                 { "속공", new BaseStatSet { Spd = 4 } },
-                { "약공%", new BaseStatSet { Wek = 0.05 } },
-                { "피통%", new BaseStatSet { Hp_Rate = 0.05 } },
+                { "약공%", new BaseStatSet { Wek = 5 } },
+                { "피통%", new BaseStatSet { Hp_Rate = 5 } },
                 { "피통", new BaseStatSet { Hp = 180 } },
-                { "방어%", new BaseStatSet { Def_Rate = 0.05 } },
+                { "방어%", new BaseStatSet { Def_Rate = 5 } },
                 { "방어", new BaseStatSet { Def = 30 } },
-                { "막기%", new BaseStatSet { Blk = 0.04 } },
-                { "효적%", new BaseStatSet { Eff_Hit = 0.05 } },
-                { "효저%", new BaseStatSet { Eff_Res = 0.05 } }
+                { "막기%", new BaseStatSet { Blk = 4 } },
+                { "효적%", new BaseStatSet { Eff_Hit = 5 } },
+                { "효저%", new BaseStatSet { Eff_Res = 5 } }
             };
         }
 
@@ -84,56 +84,116 @@ namespace GameDamageCalculator.Database
             new Dictionary<string, Dictionary<int, BaseStatSet>>
         {
             { "선봉장", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Atk_Rate = 0.20 } },
-                { 4, new BaseStatSet { Atk_Rate = 0.45, Eff_Hit = 0.20 } }
+                { 2, new BaseStatSet { Atk_Rate = 20 } },
+                { 4, new BaseStatSet { Atk_Rate = 45, Eff_Hit = 20 } }
             }},
             { "추적자", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Wek = 0.15 } },
-                { 4, new BaseStatSet { Wek = 0.35, Wek_Dmg = 35 } }
+                { 2, new BaseStatSet { Wek = 15 } },
+                { 4, new BaseStatSet { Wek = 35, Wek_Dmg = 35 } }
             }},
             { "성기사", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Hp_Rate = 0.17 } },
-                { 4, new BaseStatSet { Hp_Rate = 0.40, Heal_Rec = 0.20 } }
+                { 2, new BaseStatSet { Hp_Rate = 17 } },
+                { 4, new BaseStatSet { Hp_Rate = 40, Heal_Rec = 20 } }
             }},
             { "수문장", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Blk = 0.15 } },
-                { 4, new BaseStatSet { Blk = 0.30, Blk_Red = 0.10 } }
+                { 2, new BaseStatSet { Blk = 15 } },
+                { 4, new BaseStatSet { Blk = 30, Blk_Red = 10 } }
             }},
             { "수호자", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Def_Rate = 0.20 } },
-                { 4, new BaseStatSet { Def_Rate = 0.45, Eff_Res = 0.20 } }
+                { 2, new BaseStatSet { Def_Rate = 20 } },
+                { 4, new BaseStatSet { Def_Rate = 45, Eff_Res = 20 } }
             }},
             { "암살자", new Dictionary<int, BaseStatSet> {
                 { 2, new BaseStatSet { Cri = 15 } },
-                { 4, new BaseStatSet { Cri = 30, Arm_Pen = 0.15 } }
+                { 4, new BaseStatSet { Cri = 30, Arm_Pen = 15 } }
             }},
             { "복수자", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Dmg_Dealt = 0.15 } },
-                { 4, new BaseStatSet { Dmg_Dealt = 0.30, Dmg_Dealt_Bos = 0.40 } }
+                { 2, new BaseStatSet { Dmg_Dealt = 15 } },
+                { 4, new BaseStatSet { Dmg_Dealt = 30, Dmg_Dealt_Bos = 40 } }
             }},
             { "주술사", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Eff_Hit = 0.17 } },
-                { 4, new BaseStatSet { Eff_Hit = 0.35, Eff_Acc = 0.10 } }
+                { 2, new BaseStatSet { Eff_Hit = 17 } },
+                { 4, new BaseStatSet { Eff_Hit = 35, Eff_Acc = 10 } }
             }},
             { "조율자", new Dictionary<int, BaseStatSet> {
-                { 2, new BaseStatSet { Eff_Res = 0.17 } },
-                { 4, new BaseStatSet { Eff_Res = 0.35 } }
+                { 2, new BaseStatSet { Eff_Res = 17 } },
+                { 4, new BaseStatSet { Eff_Res = 35 } }
             }}
         };
     }
 
     public static class AccessoryDb
     {
-        /// <summary>
-        /// 장신구 등급별 스탯
-        /// Key: 등급 (4, 5, 6)
-        /// </summary>
-        public static readonly Dictionary<int, BaseStatSet> Stats = 
-            new Dictionary<int, BaseStatSet>
+        // 성급별 기본 보너스
+        public static readonly Dictionary<int, BaseStatSet> GradeBonus = new Dictionary<int, BaseStatSet>
         {
-            { 4, new BaseStatSet { Atk_Rate = 0.05, Def_Rate = 0.05, Hp_Rate = 0.05 } },
-            { 5, new BaseStatSet { Atk_Rate = 0.07, Def_Rate = 0.07, Hp_Rate = 0.07 } },
-            { 6, new BaseStatSet { Atk_Rate = 0.10, Def_Rate = 0.10, Hp_Rate = 0.10 } }
+            { 4, new BaseStatSet { Atk_Rate = 3, Def_Rate = 3, Hp_Rate = 3 } },
+            { 5, new BaseStatSet { Atk_Rate = 5, Def_Rate = 5, Hp_Rate = 5 } },
+            { 6, new BaseStatSet { Atk_Rate = 7, Def_Rate = 7, Hp_Rate = 7 } }
+        };
+    
+        // 메인옵션 값 (성급별)
+        public static readonly Dictionary<int, Dictionary<string, BaseStatSet>> MainOptions = 
+            new Dictionary<int, Dictionary<string, BaseStatSet>>
+        {
+            { 4, new Dictionary<string, BaseStatSet> {
+                { "피증%", new BaseStatSet { Dmg_Dealt = 2 } },
+                { "방어력%", new BaseStatSet { Def_Rate = 3 } },
+                { "생명력%", new BaseStatSet { Hp_Rate = 3 } },
+                { "치명타확률%", new BaseStatSet { Cri = 3 } },
+                { "막기%", new BaseStatSet { Blk = 3 } },
+                { "약점공격확률%", new BaseStatSet { Wek = 4 } },
+                { "효과적중%", new BaseStatSet { Eff_Hit = 5 } },
+                { "효과저항%", new BaseStatSet { Eff_Res = 5 } },
+                { "보피증%", new BaseStatSet { Dmg_Dealt_Bos = 4 } },
+                { "1-3인기%", new BaseStatSet { Dmg_Dealt_1to3 = 3 } },
+                { "4-5인기%", new BaseStatSet { Dmg_Dealt_4to5 = 3 } }
+            }},
+            { 5, new Dictionary<string, BaseStatSet> {
+                { "피증%", new BaseStatSet { Dmg_Dealt = 4 } },
+                { "방어력%", new BaseStatSet { Def_Rate = 6 } },
+                { "생명력%", new BaseStatSet { Hp_Rate = 6 } },
+                { "치명타확률%", new BaseStatSet { Cri = 6 } },
+                { "막기%", new BaseStatSet { Blk = 6 } },
+                { "약점공격확률%", new BaseStatSet { Wek = 8 } },
+                { "효과적중%", new BaseStatSet { Eff_Hit = 10 } },
+                { "효과저항%", new BaseStatSet { Eff_Res = 10 } },
+                { "보피증%", new BaseStatSet { Dmg_Dealt_Bos = 8 } },
+                { "1-3인기%", new BaseStatSet { Dmg_Dealt_1to3 = 6 } },
+                { "4-5인기%", new BaseStatSet { Dmg_Dealt_4to5 = 6 } }
+            }},
+            { 6, new Dictionary<string, BaseStatSet> {
+                { "피증%", new BaseStatSet { Dmg_Dealt = 6 } },
+                { "방어력%", new BaseStatSet { Def_Rate = 10 } },
+                { "생명력%", new BaseStatSet { Hp_Rate = 10 } },
+                { "치명타확률%", new BaseStatSet { Cri = 10 } },
+                { "막기%", new BaseStatSet { Blk = 10 } },
+                { "약점공격확률%", new BaseStatSet { Wek = 12 } },
+                { "효과적중%", new BaseStatSet { Eff_Hit = 15 } },
+                { "효과저항%", new BaseStatSet { Eff_Res = 15 } },
+                { "보피증%", new BaseStatSet { Dmg_Dealt_Bos = 12 } },
+                { "1-3인기%", new BaseStatSet { Dmg_Dealt_1to3 = 10 } },
+                { "4-5인기%", new BaseStatSet { Dmg_Dealt_4to5 = 10 } }
+            }}
+        };
+    
+        // 부옵션 값 (성급별)
+        public static readonly Dictionary<int, Dictionary<string, BaseStatSet>> SubOptions = 
+            new Dictionary<int, Dictionary<string, BaseStatSet>>
+        {
+            { 6, new Dictionary<string, BaseStatSet> {
+                { "피증%", new BaseStatSet { Dmg_Dealt = 6 } },
+                { "방어력%", new BaseStatSet { Def_Rate = 10 } },
+                { "생명력%", new BaseStatSet { Hp_Rate = 10 } },
+                { "치명타확률%", new BaseStatSet { Cri = 10 } },
+                { "막기%", new BaseStatSet { Blk = 10 } },
+                { "약점공격확률%", new BaseStatSet { Wek = 12 } },
+                { "효과적중%", new BaseStatSet { Eff_Hit = 15 } },
+                { "효과저항%", new BaseStatSet { Eff_Res = 15 } },
+                { "보피증%", new BaseStatSet { Dmg_Dealt_Bos = 12 } },
+                { "1-3인기%", new BaseStatSet { Dmg_Dealt_1to3 = 10 } },
+                { "4-5인기%", new BaseStatSet { Dmg_Dealt_4to5 = 10 } }
+            }}
         };
     }
 }

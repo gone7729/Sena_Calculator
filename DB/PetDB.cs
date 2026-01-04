@@ -19,9 +19,9 @@ namespace GameDamageCalculator.Database
                 Rarity = "전설",
                 Skills = new Dictionary<int, BaseStatSet>   // PetSkill → BaseStatSet
                 {
-                    { 4, new BaseStatSet { Atk_Rate = 0.17 } },
-                    { 5, new BaseStatSet { Atk_Rate = 0.19 } },
-                    { 6, new BaseStatSet { Atk_Rate = 0.21 } }
+                    { 4, new BaseStatSet { Atk_Rate = 17 } },
+                    { 5, new BaseStatSet { Atk_Rate = 19 } },
+                    { 6, new BaseStatSet { Atk_Rate = 21 } }
                 }
             },
             

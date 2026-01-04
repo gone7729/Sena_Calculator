@@ -39,12 +39,9 @@ namespace GameDamageCalculator.Models
         /// </summary>
         public BaseStatSet GetMainStats()
         {
-            if (EquipmentDb.MainStatDb.OptionsBySlot.TryGetValue(Slot, out var slotOptions))
+            if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(MainStatName, out var mainStat))
             {
-                if (slotOptions.TryGetValue(MainStatName, out var mainStat))
-                {
-                    return mainStat.Clone();
-                }
+                return mainStat.Clone();
             }
             return new BaseStatSet();
         }

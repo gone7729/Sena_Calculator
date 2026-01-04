@@ -101,12 +101,12 @@ namespace GameDamageCalculator.Database
         {
             public static readonly List<TranscendBonus> CommonBonuses = new List<TranscendBonus>
             {
-                new TranscendBonus { Level = 7, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                new TranscendBonus { Level = 8, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                new TranscendBonus { Level = 9, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                new TranscendBonus { Level = 10, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                new TranscendBonus { Level = 11, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } },
-                new TranscendBonus { Level = 12, BonusStats = new BaseStatSet { Atk_Rate = 0.02, Def_Rate = 0.02, Hp_Rate = 0.02 } }
+                new TranscendBonus { Level = 7, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } },
+                new TranscendBonus { Level = 8, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } },
+                new TranscendBonus { Level = 9, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } },
+                new TranscendBonus { Level = 10, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } },
+                new TranscendBonus { Level = 11, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } },
+                new TranscendBonus { Level = 12, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } }
             };
 
             /// <summary>

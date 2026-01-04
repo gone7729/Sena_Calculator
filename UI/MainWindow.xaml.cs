@@ -41,7 +41,7 @@ namespace GameDamageCalculator.UI
             {
                 cboTranscend.Items.Add($"{i}초월");
             }
-            cboTranscend.SelectedIndex = 6;
+            cboTranscend.SelectedIndex = 0;
 
             // 장비 세트
             cboEquipSet1.Items.Add("없음");
@@ -67,6 +67,8 @@ namespace GameDamageCalculator.UI
 
             InitializeMainOptionComboBoxes(); 
 
+            InitializeAccessoryComboBoxes();
+
             // 보스 목록 초기화
             UpdateBossList();
 
@@ -79,11 +81,12 @@ namespace GameDamageCalculator.UI
             cboPet.SelectedIndex = 0;
         }
 
-        private void InitializeMainOptionComboBoxes()
+       private void InitializeMainOptionComboBoxes()
         {
             // 무기 메인옵션
-            var weaponOptions = new[] {"없음", "공격력%", "치명타확률%", "치명타피해%", "약점공격확률%", "생명력%", "방어력%", "효과적중%" };
-            foreach (var opt in weaponOptions)
+            cboWeapon1Main.Items.Add("없음");
+            cboWeapon2Main.Items.Add("없음");
+            foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["무기"])
             {
                 cboWeapon1Main.Items.Add(opt);
                 cboWeapon2Main.Items.Add(opt);
@@ -92,8 +95,9 @@ namespace GameDamageCalculator.UI
             cboWeapon2Main.SelectedIndex = 0;
 
             // 방어구 메인옵션
-            var armorOptions = new[] { "공격력%", "생명력%", "방어력%", "효과저항%", "받는피해감소%", "막기확률%" };
-            foreach (var opt in armorOptions)
+            cboArmor1Main.Items.Add("없음");
+            cboArmor2Main.Items.Add("없음");
+            foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["방어구"])
             {
                 cboArmor1Main.Items.Add(opt);
                 cboArmor2Main.Items.Add(opt);
@@ -106,58 +110,25 @@ namespace GameDamageCalculator.UI
         {
             BaseStatSet stats = new BaseStatSet();
 
-            // 무기1
-            if (cboWeapon1Main.SelectedItem != null)
+            var combos = new[] { cboWeapon1Main, cboWeapon2Main, cboArmor1Main, cboArmor2Main };
+
+            foreach (var cbo in combos)
             {
-                double value = ParseDouble(txtWeapon1MainValue.Text) / 100.0;
-                ApplyMainOption(stats, cboWeapon1Main.SelectedItem.ToString(), value);
-            }
-            // 무기2
-            if (cboWeapon2Main.SelectedItem != null)
-            {
-                double value = ParseDouble(txtWeapon2MainValue.Text) / 100.0;
-                ApplyMainOption(stats, cboWeapon2Main.SelectedItem.ToString(), value);
-            }
-            // 방어구1
-            if (cboArmor1Main.SelectedItem != null)
-            {
-                double value = ParseDouble(txtArmor1MainValue.Text) / 100.0;
-                ApplyMainOption(stats, cboArmor1Main.SelectedItem.ToString(), value);
-            }
-            // 방어구2
-            if (cboArmor2Main.SelectedItem != null)
-            {
-                double value = ParseDouble(txtArmor2MainValue.Text) / 100.0;
-                ApplyMainOption(stats, cboArmor2Main.SelectedItem.ToString(), value);
+                if (cbo.SelectedIndex > 0)
+                {
+                    string option = cbo.SelectedItem.ToString();
+                    if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(option, out var bonus))
+                        stats.Add(bonus);
+                }
             }
 
             return stats;
         }
 
-        private void ApplyMainOption(BaseStatSet stats, string option, double value)
-        {
-            switch (option)
-            {
-                case "공격력%": stats.Atk_Rate += value; break;
-                case "방어력%": stats.Def_Rate += value; break;
-                case "생명력%": stats.Hp_Rate += value; break;
-                case "치명타확률%": stats.Cri += value * 100; break;
-                case "치명타피해%": stats.Cri_Dmg += value * 100; break;
-                case "약점공격확률%": stats.Wek += value * 100; break;
-                case "효과적중%": stats.Eff_Hit += value * 100; break;
-                case "효과저항%": stats.Eff_Res += value * 100; break;
-                case "받는피해감소%": stats.Dmg_Rdc += value * 100; break;
-                case "막기확률%": stats.Blk += value * 100; break;
-            }
-        }
-
         private void MainOption_Changed(object sender, SelectionChangedEventArgs e)
         {
-            RecalculateStats();
-        }
-
-        private void MainOption_ValueChanged(object sender, TextChangedEventArgs e)
-        {
+            if (!_isInitialized) return;
+            UpdateMainOptionDisplay();
             RecalculateStats();
         }
 
@@ -178,6 +149,32 @@ namespace GameDamageCalculator.UI
                     combo.Items.Add(opt);
                 combo.SelectedIndex = 0;
             }
+        }
+
+        private void InitializeAccessoryComboBoxes()
+        {
+            // 성급
+            cboAccessoryGrade.Items.Add("없음");
+            cboAccessoryGrade.Items.Add("4성");
+            cboAccessoryGrade.Items.Add("5성");
+            cboAccessoryGrade.Items.Add("6성");
+            cboAccessoryGrade.SelectedIndex = 0;
+
+            // 메인옵션
+            var mainOptions = new[] { "없음", "공격력%", "방어력%", "생명력%", "치명타확률%", "치명타피해%", 
+                                      "약점공격확률%", "효과적중%", "효과저항%", 
+                                      "1-3인기%", "4-5인기%" };  // ← 추가
+            foreach (var opt in mainOptions)
+                cboAccessoryMain.Items.Add(opt);
+            cboAccessoryMain.SelectedIndex = 0;
+
+            // 부옵션
+            var subOptions = new[] { "없음", "공격력%", "방어력%", "생명력%", "치명타확률%", "치명타피해%",
+                                     "약점공격확률%", "효과적중%", "효과저항%", "막기확률%",
+                                     "1-3인기%", "4-5인기%" };  // ← 추가
+            foreach (var opt in subOptions)
+                cboAccessorySub.Items.Add(opt);
+            cboAccessorySub.SelectedIndex = 0;
         }
 
         #endregion
@@ -259,7 +256,51 @@ namespace GameDamageCalculator.UI
         private void CboAccessory_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
+            UpdateAccessoryDisplay();
             RecalculateStats();
+        }
+
+        private void UpdateAccessoryDisplay()
+        {
+            if (cboAccessoryGrade.SelectedIndex <= 0)
+            {
+                txtAccessoryMainValue.Text = "";
+                txtAccessorySubValue.Text = "";
+                return;
+            }
+
+            int grade = cboAccessoryGrade.SelectedIndex + 3;
+
+            // 메인옵션 값 표시
+            txtAccessoryMainValue.Text = GetAccessoryOptionValue(grade, cboAccessoryMain, AccessoryDb.MainOptions);
+
+            // 부옵션 값 표시
+            txtAccessorySubValue.Text = GetAccessoryOptionValue(grade, cboAccessorySub, AccessoryDb.SubOptions);
+        }
+
+        private string GetAccessoryOptionValue(int grade, ComboBox cbo, Dictionary<int, Dictionary<string, BaseStatSet>> optionDb)
+        {
+            if (cbo.SelectedIndex <= 0) return "";
+
+            string option = cbo.SelectedItem.ToString();
+            if (optionDb.TryGetValue(grade, out var options))
+            {
+                if (options.TryGetValue(option, out var stats))
+                {
+                    if (stats.Atk_Rate > 0) return $"{stats.Atk_Rate}%";
+                    if (stats.Def_Rate > 0) return $"{stats.Def_Rate}%";
+                    if (stats.Hp_Rate > 0) return $"{stats.Hp_Rate}%";
+                    if (stats.Cri > 0) return $"{stats.Cri}%";
+                    if (stats.Cri_Dmg > 0) return $"{stats.Cri_Dmg}%";
+                    if (stats.Wek > 0) return $"{stats.Wek}%";
+                    if (stats.Eff_Hit > 0) return $"{stats.Eff_Hit}%";
+                    if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
+                    if (stats.Blk > 0) return $"{stats.Blk}%";
+                    if (stats.Dmg_Dealt_1to3 > 0) return $"{stats.Dmg_Dealt_1to3}%";  // ← 추가
+                    if (stats.Dmg_Dealt_4to5 > 0) return $"{stats.Dmg_Dealt_4to5}%";  // ← 추가
+                }
+            }
+            return "";
         }
 
         private void SubOption_Changed(object sender, SelectionChangedEventArgs e)
@@ -347,7 +388,7 @@ namespace GameDamageCalculator.UI
         {
             // 캐릭터
             cboCharacter.SelectedIndex = 0;
-            cboTranscend.SelectedIndex = 6;
+            cboTranscend.SelectedIndex = 0;
             chkSkillEnhanced.IsChecked = false;
 
             // 잠재능력
@@ -361,7 +402,7 @@ namespace GameDamageCalculator.UI
             cboSetCount1.SelectedIndex = 1;
 
             // 장신구
-            cboAccessory.SelectedIndex = 0;
+            cboAccessoryGrade.SelectedIndex = 0;
 
             // 서브옵션
             cboSub1Type.SelectedIndex = 0; cboSub2Type.SelectedIndex = 0; cboSub3Type.SelectedIndex = 0;
@@ -424,6 +465,46 @@ namespace GameDamageCalculator.UI
             RecalculateStats();
         }
 
+
+        
+        private void UpdateMainOptionDisplay()
+        {
+            txtWeapon1MainValue.Text = GetMainOptionDisplayValue(cboWeapon1Main);
+            txtWeapon2MainValue.Text = GetMainOptionDisplayValue(cboWeapon2Main);
+            txtArmor1MainValue.Text = GetMainOptionDisplayValue(cboArmor1Main);
+            txtArmor2MainValue.Text = GetMainOptionDisplayValue(cboArmor2Main);
+        }
+        
+        private string GetMainOptionDisplayValue(ComboBox cbo)
+        {
+            if (cbo.SelectedIndex <= 0) return "";
+            
+            string option = cbo.SelectedItem.ToString();
+            System.Diagnostics.Debug.WriteLine($"선택된 옵션: '{option}'");
+
+            if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(option, out var stats))
+            {
+                System.Diagnostics.Debug.WriteLine($"  DB에서 찾음! Atk_Rate={stats.Atk_Rate}, Cri={stats.Cri}, Cri_Dmg={stats.Cri_Dmg}, Atk={stats.Atk}");
+                if (stats.Atk_Rate > 0) return $"{stats.Atk_Rate}%";
+                if (stats.Atk > 0) return $"{stats.Atk}";
+                if (stats.Def_Rate > 0) return $"{stats.Def_Rate}%";
+                if (stats.Def > 0) return $"{stats.Def}";
+                if (stats.Hp_Rate > 0) return $"{stats.Hp_Rate}%";
+                if (stats.Hp > 0) return $"{stats.Hp}";
+                if (stats.Cri > 0) return $"{stats.Cri}%";
+                if (stats.Cri_Dmg > 0) return $"{stats.Cri_Dmg}%";
+                if (stats.Wek > 0) return $"{stats.Wek}%";
+                if (stats.Eff_Hit > 0) return $"{stats.Eff_Hit}%";
+                if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
+                if (stats.Dmg_Rdc > 0) return $"{stats.Dmg_Rdc}%";
+                if (stats.Blk > 0) return $"{stats.Blk}%";
+            }else
+            {
+                System.Diagnostics.Debug.WriteLine($"  DB에서 찾지 못함!");
+            }
+            return "";
+        }
+
         #endregion
 
         #region 스탯 계산 (UI 표시용)
@@ -434,13 +515,13 @@ namespace GameDamageCalculator.UI
         private void RecalculateStats()
         {
             if (!_isInitialized) return;
-        
+
             // ========== 기본공격력 (캐릭터 DB 기초 스탯) ==========
             double baseAtk = 0;
             double baseDef = 0;
             double baseHp = 0;
             BaseStatSet characterStats = new BaseStatSet();
-        
+
             if (cboCharacter.SelectedIndex > 0)
             {
                 var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
@@ -452,24 +533,27 @@ namespace GameDamageCalculator.UI
                     baseHp = characterStats.Hp;
                 }
             }
-        
-            // ========== 깡스탯 합계 (장비 + 잠재능력 + 서브옵션 + 펫) ==========
+
+            // ========== 각종 스탯 소스 가져오기 ==========
+            var potentialStats = GetPotentialStats();
+            BaseStatSet subStats = GetSubOptionStats();
+            BaseStatSet mainOptionStats = GetMainOptionStats();  // ← 먼저 선언!
+            BaseStatSet accessoryStats = GetAccessoryStats();
+
+            // ========== 깡스탯 합계 (장비 + 잠재능력 + 서브옵션 + 펫 + 메인옵션) ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
             double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def;
             double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
-        
-            var potentialStats = GetPotentialStats();
-            BaseStatSet subStats = GetSubOptionStats();
-        
+
             double petFlatAtk = GetPetFlatAtk();
             double petFlatDef = GetPetFlatDef();
             double petFlatHp = GetPetFlatHp();
-        
-            double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk;
-            double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef;
-            double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp;
-        
-            // ========== 합연산% ==========
+
+            double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk + mainOptionStats.Atk;
+            double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef + mainOptionStats.Def;
+            double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
+
+            // ========== 합연산% (정수로 합산) ==========
             // 초월%
             double transcendAtkRate = 0;
             double transcendDefRate = 0;
@@ -486,11 +570,11 @@ namespace GameDamageCalculator.UI
                     transcendHpRate = transcendStats.Hp_Rate;
                 }
             }
-        
+
             // 진형%
             double formationAtkRate = GetFormationAtkRate();
             double formationDefRate = GetFormationDefRate();
-        
+
             // 세트%
             BaseStatSet setBonus = new BaseStatSet();
             if (cboEquipSet1.SelectedIndex > 0)
@@ -504,66 +588,75 @@ namespace GameDamageCalculator.UI
                 string setName = cboEquipSet2.SelectedItem.ToString();
                 setBonus.Add(GetSetBonus(setName, 2));
             }
-        
-            // 장신구%
-            BaseStatSet accessoryStats = GetAccessoryStats();
 
-            // 메인옵션% ← 여기 추가
-            BaseStatSet mainOptionStats = GetMainOptionStats();
-        
             // 펫옵션%
             double petOptionAtkRate = GetPetOptionAtkRate();
             double petOptionDefRate = GetPetOptionDefRate();
             double petOptionHpRate = GetPetOptionHpRate();
-        
-            // 합연산% 합계
+
+            // 합연산% 합계 (정수)
             double totalAtkRate = transcendAtkRate + formationAtkRate 
                     + setBonus.Atk_Rate + subStats.Atk_Rate 
                     + accessoryStats.Atk_Rate + petOptionAtkRate
-                    + mainOptionStats.Atk_Rate;  // ← 추가
+                    + mainOptionStats.Atk_Rate;
 
             double totalDefRate = transcendDefRate + formationDefRate 
                     + setBonus.Def_Rate + subStats.Def_Rate 
                     + accessoryStats.Def_Rate + petOptionDefRate
-                    + mainOptionStats.Def_Rate;  // ← 추가
+                    + mainOptionStats.Def_Rate;
 
             double totalHpRate = transcendHpRate 
                    + setBonus.Hp_Rate + subStats.Hp_Rate 
                    + accessoryStats.Hp_Rate + petOptionHpRate
-                   + mainOptionStats.Hp_Rate;  // ← 추가
-        
+                   + mainOptionStats.Hp_Rate;
+
             // ========== 버프% (펫스킬% + 패시브% + 액티브%) ==========
             double buffAtkRate = GetBuffAtkRate();
             double buffDefRate = GetBuffDefRate();
             double buffHpRate = GetBuffHpRate();
-        
-            // ========== 최종 스탯 계산 ==========
-            // 공식: (기본공격력 × (1 + 총공격력%) + 깡공합계) × (1 + 버프%)
-            double totalAtk = (baseAtk * (1 + totalAtkRate) + flatAtk) * (1 + buffAtkRate);
-            double totalDef = (baseDef * (1 + totalDefRate) + flatDef) * (1 + buffDefRate);
-            double totalHp = (baseHp * (1 + totalHpRate) + flatHp) * (1 + buffHpRate);
-        
-            // ========== UI에 표시 ==========
+
+            // ========== 최종 스탯 계산 (정수 → /100.0) ==========
+            // 공식: (기본공격력 × (1 + 총공격력%/100) + 깡공합계) × (1 + 버프%/100)
+            double totalAtk = (baseAtk * (1 + totalAtkRate / 100.0) + flatAtk) * (1 + buffAtkRate / 100.0);
+            double totalDef = (baseDef * (1 + totalDefRate / 100.0) + flatDef) * (1 + buffDefRate / 100.0);
+            double totalHp = (baseHp * (1 + totalHpRate / 100.0) + flatHp) * (1 + buffHpRate / 100.0);
+
+            // ========== UI에 표시 (정수 합산) ==========
             BaseStatSet displayStats = new BaseStatSet
             {
                 Atk = totalAtk,
                 Def = totalDef,
                 Hp = totalHp,
-                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri * 100,
-                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg * 100,
-                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek,
+                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri,
+                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg,
+                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek,
                 Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg,
                 Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt,
                 Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos,
                 Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen,
-                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk,
-                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit,
-                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res,
+                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk,
+                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit,
+                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res,
                 Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
-                Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc
+                Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc,
+                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5
             };
-        
+
             UpdateStatDisplay(displayStats);
+
+            System.Diagnostics.Debug.WriteLine("========== 디버그 ==========");
+            System.Diagnostics.Debug.WriteLine($"기본공격력: {baseAtk}");
+            System.Diagnostics.Debug.WriteLine($"깡공합계: {flatAtk}");
+            System.Diagnostics.Debug.WriteLine($"초월%: {transcendAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"메인옵션%: {mainOptionStats.Atk_Rate}");
+            System.Diagnostics.Debug.WriteLine($"서브옵션%: {subStats.Atk_Rate}");
+            System.Diagnostics.Debug.WriteLine($"세트%: {setBonus.Atk_Rate}");
+            System.Diagnostics.Debug.WriteLine($"장신구%: {accessoryStats.Atk_Rate}");
+            System.Diagnostics.Debug.WriteLine($"진형%: {formationAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"펫옵션%: {petOptionAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"총 공격력%: {totalAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"최종 공격력: {totalAtk}");
         }
 
         private void UpdateStatDisplay(BaseStatSet stats)
@@ -571,18 +664,21 @@ namespace GameDamageCalculator.UI
             txtStatAtk.Text = stats.Atk.ToString("N0");
             txtStatDef.Text = stats.Def.ToString("N0");
             txtStatHp.Text = stats.Hp.ToString("N0");
+            // % 스탯 - 정수 그대로 표시
             txtStatCri.Text = $"{stats.Cri}%";
             txtStatCriDmg.Text = $"{stats.Cri_Dmg}%";
-            txtStatWek.Text = $"{stats.Wek * 100:F0}%";
+            txtStatWek.Text = $"{stats.Wek}%";
             txtStatWekDmg.Text = $"{stats.Wek_Dmg}%";
-            txtStatDmgDealt.Text = $"{stats.Dmg_Dealt * 100:F0}%";
-            txtStatBossDmg.Text = $"{stats.Dmg_Dealt_Bos * 100:F0}%";
-            txtStatArmPen.Text = $"{stats.Arm_Pen * 100:F0}%";
-            txtStatBlk.Text = $"{stats.Blk * 100:F0}%";
-            txtStatEffHit.Text = $"{stats.Eff_Hit * 100:F0}%";
-            txtStatEffRes.Text = $"{stats.Eff_Res * 100:F0}%";
-            txtStatEffAcc.Text = $"{stats.Eff_Acc * 100:F0}%";
-            txtStatDmgRdc.Text = $"{stats.Dmg_Rdc * 100:F0}%";
+            txtStatDmgDealt.Text = $"{stats.Dmg_Dealt}%";
+            txtStatBossDmg.Text = $"{stats.Dmg_Dealt_Bos}%";
+            txtStatDmg1to3.Text = $"{stats.Dmg_Dealt_1to3}%";
+            txtStatDmg4to5.Text = $"{stats.Dmg_Dealt_4to5}%";
+            txtStatArmPen.Text = $"{stats.Arm_Pen}%";
+            txtStatBlk.Text = $"{stats.Blk}%";
+            txtStatEffHit.Text = $"{stats.Eff_Hit}%";
+            txtStatEffRes.Text = $"{stats.Eff_Res}%";
+            txtStatEffAcc.Text = $"{stats.Eff_Acc}%";
+            txtStatDmgRdc.Text = $"{stats.Dmg_Rdc}%";
         }
 
         #endregion
@@ -849,15 +945,39 @@ namespace GameDamageCalculator.UI
 
         private BaseStatSet GetAccessoryStats()
         {
-            if (cboAccessory.SelectedIndex <= 0) return new BaseStatSet();
-            
-            int grade = cboAccessory.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
-            
-            if (AccessoryDb.Stats.TryGetValue(grade, out var stats))
+            BaseStatSet stats = new BaseStatSet();
+
+            if (cboAccessoryGrade.SelectedIndex <= 0) return stats;
+
+            int grade = cboAccessoryGrade.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
+
+            // 성급 기본 보너스
+            if (AccessoryDb.GradeBonus.TryGetValue(grade, out var gradeBonus))
+                stats.Add(gradeBonus);
+
+            // 메인옵션
+            if (cboAccessoryMain.SelectedIndex > 0)
             {
-                return stats;
+                string mainOpt = cboAccessoryMain.SelectedItem.ToString();
+                if (AccessoryDb.MainOptions.TryGetValue(grade, out var mainOptions))
+                {
+                    if (mainOptions.TryGetValue(mainOpt, out var mainBonus))
+                        stats.Add(mainBonus);
+                }
             }
-            return new BaseStatSet();
+
+            // 부옵션
+            if (cboAccessorySub.SelectedIndex > 0)
+            {
+                string subOpt = cboAccessorySub.SelectedItem.ToString();
+                if (AccessoryDb.SubOptions.TryGetValue(grade, out var subOptions))
+                {
+                    if (subOptions.TryGetValue(subOpt, out var subBonus))
+                        stats.Add(subBonus);
+                }
+            }
+
+            return stats;
         }
 
         private BaseStatSet GetPotentialStats()

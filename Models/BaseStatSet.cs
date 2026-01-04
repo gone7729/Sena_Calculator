@@ -41,6 +41,9 @@ namespace GameDamageCalculator.Models
         public double Def_Rate { get; set; }    // 방어력 % 증가
         public double Hp_Rate { get; set; }     // 생명력 % 증가
 
+        public double Dmg_Dealt_1to3 { get; set; }  // ← 추가: 1-3인기 보스 피해량
+        public double Dmg_Dealt_4to5 { get; set; }  // ← 추가: 4-5인기 보스 피해량
+
         /// <summary>
         /// 다른 스탯 세트를 현재 세트에 더함
         /// </summary>
@@ -69,6 +72,8 @@ namespace GameDamageCalculator.Models
             Atk_Rate += other.Atk_Rate;
             Def_Rate += other.Def_Rate;
             Hp_Rate += other.Hp_Rate;
+            Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
+            Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
         }
 
         /// <summary>
@@ -129,7 +134,9 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt_Bos = this.Dmg_Dealt_Bos,
                 Atk_Rate = this.Atk_Rate,
                 Def_Rate = this.Def_Rate,
-                Hp_Rate = this.Hp_Rate
+                Hp_Rate = this.Hp_Rate,
+                Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5,
             };
         }
 
@@ -163,7 +170,9 @@ namespace GameDamageCalculator.Models
                 Wek = this.Wek * multiplier,
                 Blk = this.Blk * multiplier,
                 Eff_Hit = this.Eff_Hit * multiplier,
-                Eff_Res = this.Eff_Res * multiplier
+                Eff_Res = this.Eff_Res * multiplier,
+                Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3 * multiplier,
+                Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5 * multiplier,
             };
         }
     }
