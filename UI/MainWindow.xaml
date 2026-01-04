@@ -206,99 +206,154 @@
                                            HorizontalAlignment="Center" FontSize="11"/>
                             </Grid>
 
-                            <!-- 장비 메인옵션 -->
-                            <TextBlock Text="무기1 메인" Style="{StaticResource LabelText}"/>
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox x:Name="cboWeapon1Main" Style="{StaticResource ComboStyle}" Width="100"
-                                          SelectionChanged="MainOption_Changed"/>
-                                <TextBox x:Name="txtWeapon1MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
-                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
-                            </StackPanel>
+                            <!-- 메인옵션 섹션 -->
+                            <TextBlock Text="메인옵션" FontWeight="Bold" Margin="0,10,0,5"/>
                             
-                            <TextBlock Text="무기2 메인" Style="{StaticResource LabelText}"/>
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox x:Name="cboWeapon2Main" Style="{StaticResource ComboStyle}" Width="100"
-                                          SelectionChanged="MainOption_Changed"/>
-                                <TextBox x:Name="txtWeapon2MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
-                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
-                            </StackPanel>
-                            
-                            <TextBlock Text="방어구1 메인" Style="{StaticResource LabelText}"/>
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox x:Name="cboArmor1Main" Style="{StaticResource ComboStyle}" Width="100"
-                                          SelectionChanged="MainOption_Changed"/>
-                                <TextBox x:Name="txtArmor1MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
-                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
-                            </StackPanel>
-                            
-                            <TextBlock Text="방어구2 메인" Style="{StaticResource LabelText}"/>
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox x:Name="cboArmor2Main" Style="{StaticResource ComboStyle}" Width="100"
-                                          SelectionChanged="MainOption_Changed"/>
-                                <TextBox x:Name="txtArmor2MainValue" Width="50" Text="43" TextChanged="MainOption_ValueChanged"/>
-                                <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
-                            </StackPanel>
-
-                            <!-- ===== 장비 서브옵션 ===== -->
-                            <TextBlock Text="장비 서브옵션" Style="{StaticResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
-
-                            <Grid Margin="0,0,0,8">
+                            <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="45"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="45"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="45"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="200"/>
+                                </Grid.ColumnDefinitions>
+                            
+                                <!-- 무기1 -->
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="무기1" Width="45" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="cboWeapon1Main" Width="80" SelectionChanged="MainOption_Changed"/>
+                                    <TextBox x:Name="txtWeapon1MainValue" Width="35" Text="0" TextAlignment="Center" 
+                                             TextChanged="MainOption_ValueChanged" Margin="5,0,0,0"/>
+                                    <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                </StackPanel>
+
+                                <!-- 무기2 -->
+                                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="무기2" Width="45" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="cboWeapon2Main" Width="80" SelectionChanged="MainOption_Changed"/>
+                                    <TextBox x:Name="txtWeapon2MainValue" Width="35" Text="0" TextAlignment="Center" 
+                                             TextChanged="MainOption_ValueChanged" Margin="5,0,0,0"/>
+                                    <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                </StackPanel>
+                            
+                                <!-- 방어구1 -->
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="방어구1" Width="45" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="cboArmor1Main" Width="80" SelectionChanged="MainOption_Changed" Margin="5,0,0,0"/>
+                                    <TextBox x:Name="txtArmor1MainValue" Width="35" Text="0" TextAlignment="Center" 
+                                             TextChanged="MainOption_ValueChanged" Margin="5,0,0,0"/>
+                                    <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                </StackPanel>
+                            
+                                <!-- 방어구2 -->
+                                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="방어구2" Width="45" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="cboArmor2Main" Width="80" SelectionChanged="MainOption_Changed" Margin="5,0,0,0"/>
+                                    <TextBox x:Name="txtArmor2MainValue" Width="35" Text="0" TextAlignment="Center" 
+                                             TextChanged="MainOption_ValueChanged" Margin="5,0,0,0"/>
+                                    <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 서브옵션 섹션 -->
+                            <TextBlock Text="서브옵션 (좌클릭 +1 / 우클릭 -1)" FontWeight="Bold" Margin="0,10,0,5"/>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Row 0 -->
-                                <ComboBox x:Name="cboSub1" Grid.Row="0" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv1" Grid.Row="0" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub2" Grid.Row="0" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv2" Grid.Row="0" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub3" Grid.Row="0" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv3" Grid.Row="0" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub4" Grid.Row="0" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv4" Grid.Row="0" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub1Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub1Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub1Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub2Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub2Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub2Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="2" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub3Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub3Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub3Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
 
                                 <!-- Row 1 -->
-                                <ComboBox x:Name="cboSub5" Grid.Row="1" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv5" Grid.Row="1" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub6" Grid.Row="1" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv6" Grid.Row="1" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub7" Grid.Row="1" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv7" Grid.Row="1" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub8" Grid.Row="1" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv8" Grid.Row="1" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub4Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub4Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub4Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub5Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub5Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub5Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="2" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub6Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub6Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub6Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
 
                                 <!-- Row 2 -->
-                                <ComboBox x:Name="cboSub9" Grid.Row="2" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv9" Grid.Row="2" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub10" Grid.Row="2" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv10" Grid.Row="2" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub11" Grid.Row="2" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv11" Grid.Row="2" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub12" Grid.Row="2" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv12" Grid.Row="2" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub7Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub7Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub7Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
 
-                                <!-- Row 3 -->
-                                <ComboBox x:Name="cboSub13" Grid.Row="3" Grid.Column="0" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv13" Grid.Row="3" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub14" Grid.Row="3" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv14" Grid.Row="3" Grid.Column="3" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub15" Grid.Row="3" Grid.Column="4" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv15" Grid.Row="3" Grid.Column="5" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSub16" Grid.Row="3" Grid.Column="6" Style="{StaticResource ComboStyle}" Margin="0,2" SelectionChanged="SubOption_Changed"/>
-                                <ComboBox x:Name="cboSubLv16" Grid.Row="3" Grid.Column="7" Style="{StaticResource ComboStyle}" Margin="2" SelectionChanged="SubOption_Changed"/>
+                                <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub8Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub8Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub8Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="2" Margin="0,2,10,2">
+                                    <ComboBox x:Name="cboSub9Type" Width="70" SelectionChanged="SubOption_Changed"/>
+                                    <TextBox x:Name="txtSub9Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="SubOption_TextChanged"/>
+                                    <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                            MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSub9Tier">
+                                        <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
                             </Grid>
 
                             <!-- ===== 장신구 ===== -->

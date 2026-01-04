@@ -146,5 +146,25 @@ namespace GameDamageCalculator.Models
             Arm_Pen = Dmg_Dealt = Dmg_Dealt_Bos = 0;
             Atk_Rate = Def_Rate = Hp_Rate = 0;
         }
+
+        public BaseStatSet Multiply(double multiplier)
+        {
+            return new BaseStatSet
+            {
+                Atk = this.Atk * multiplier,
+                Atk_Rate = this.Atk_Rate * multiplier,
+                Def = this.Def * multiplier,
+                Def_Rate = this.Def_Rate * multiplier,
+                Hp = this.Hp * multiplier,
+                Hp_Rate = this.Hp_Rate * multiplier,
+                Cri = this.Cri * multiplier,
+                Cri_Dmg = this.Cri_Dmg * multiplier,
+                Spd = this.Spd * multiplier,
+                Wek = this.Wek * multiplier,
+                Blk = this.Blk * multiplier,
+                Eff_Hit = this.Eff_Hit * multiplier,
+                Eff_Res = this.Eff_Res * multiplier
+            };
+        }
     }
 }

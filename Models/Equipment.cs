@@ -57,7 +57,7 @@ namespace GameDamageCalculator.Models
             BaseStatSet total = new BaseStatSet();
             foreach (var sub in SubSlots)
             {
-                total.Add(sub.StatName, sub.GetValue());
+                total.Add(sub.GetStats());
             }
             return total;
         }
@@ -86,21 +86,15 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 티어에 따른 실제 값 계산
         /// </summary>
-        public double GetValue()
+        public BaseStatSet GetStats()
         {
-            if (EquipmentDb.SubStatDb.SubStatTiers.TryGetValue(StatName, out var tiers))
+            if (Tier <= 0) return new BaseStatSet();
+
+            if (EquipmentDb.SubStatDb.SubStatBase.TryGetValue(StatName, out var baseStats))
             {
-                if (Tier >= 1 && Tier <= tiers.Length)
-                {
-                    // 해당 티어의 BaseStatSet에서 값을 가져옴
-                    var statSet = tiers[Tier - 1] as BaseStatSet;
-                    if (statSet != null)
-                    {
-                        return GetValueFromStatSet(statSet, StatName);
-                    }
-                }
+                return baseStats.Multiply(Tier);
             }
-            return 0;
+            return new BaseStatSet();
         }
 
         private double GetValueFromStatSet(BaseStatSet stat, string statName)

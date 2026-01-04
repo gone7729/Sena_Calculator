@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Services;
+using System.Windows.Input;
 
 namespace GameDamageCalculator.UI
 {
@@ -13,8 +14,6 @@ namespace GameDamageCalculator.UI
     {
         private readonly DamageCalculator _calculator;
         private bool _isInitialized = false;
-        private ComboBox[] _subOptionCombos;
-        private ComboBox[] _subLevelCombos;
         
         public MainWindow()
         {
@@ -83,7 +82,7 @@ namespace GameDamageCalculator.UI
         private void InitializeMainOptionComboBoxes()
         {
             // 무기 메인옵션
-            var weaponOptions = new[] { "공격력%", "치명타확률%", "치명타피해%", "약점공격확률%", "생명력%", "방어력%", "효과적중%" };
+            var weaponOptions = new[] {"없음", "공격력%", "치명타확률%", "치명타피해%", "약점공격확률%", "생명력%", "방어력%", "효과적중%" };
             foreach (var opt in weaponOptions)
             {
                 cboWeapon1Main.Items.Add(opt);
@@ -164,41 +163,20 @@ namespace GameDamageCalculator.UI
 
         private void InitializeSubOptionComboBoxes()
         {
-            _subOptionCombos = new ComboBox[] 
-            { 
-                cboSub1, cboSub2, cboSub3, cboSub4,
-                cboSub5, cboSub6, cboSub7, cboSub8,
-                cboSub9, cboSub10, cboSub11, cboSub12,
-                cboSub13, cboSub14, cboSub15, cboSub16
+            var typeOptions = new[] { "없음", "공%", "공", "치확%", "치피%", "속공", "약공%", 
+                                       "피통%", "피통", "방어%", "방어", "막기%", "효적%", "효저%" };
+
+            var typeComboBoxes = new[] { 
+                cboSub1Type, cboSub2Type, cboSub3Type,
+                cboSub4Type, cboSub5Type, cboSub6Type,
+                cboSub7Type, cboSub8Type, cboSub9Type 
             };
-            
-            _subLevelCombos = new ComboBox[] 
-            { 
-                cboSubLv1, cboSubLv2, cboSubLv3, cboSubLv4,
-                cboSubLv5, cboSubLv6, cboSubLv7, cboSubLv8,
-                cboSubLv9, cboSubLv10, cboSubLv11, cboSubLv12,
-                cboSubLv13, cboSubLv14, cboSubLv15, cboSubLv16
-            };
-            
-            // 옵션 종류
-            foreach (var cbo in _subOptionCombos)
+
+            foreach (var combo in typeComboBoxes)
             {
-                cbo.Items.Add("없음");
-                foreach (var optionName in EquipmentDb.SubStatDb.SubStatTiers.Keys)
-                {
-                    cbo.Items.Add(optionName);
-                }
-                cbo.SelectedIndex = 0;
-            }
-            
-            // 레벨 (1~5)
-            foreach (var cbo in _subLevelCombos)
-            {
-                for (int i = 1; i <= 5; i++)
-                {
-                    cbo.Items.Add(i.ToString());
-                }
-                cbo.SelectedIndex = 0;
+                foreach (var opt in typeOptions)
+                    combo.Items.Add(opt);
+                combo.SelectedIndex = 0;
             }
         }
 
@@ -285,6 +263,12 @@ namespace GameDamageCalculator.UI
         }
 
         private void SubOption_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            RecalculateStats();
+        }
+
+        private void SubOption_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!_isInitialized) return;
             RecalculateStats();
@@ -380,8 +364,13 @@ namespace GameDamageCalculator.UI
             cboAccessory.SelectedIndex = 0;
 
             // 서브옵션
-            foreach (var cbo in _subOptionCombos) cbo.SelectedIndex = 0;
-            foreach (var cbo in _subLevelCombos) cbo.SelectedIndex = 0;
+            cboSub1Type.SelectedIndex = 0; cboSub2Type.SelectedIndex = 0; cboSub3Type.SelectedIndex = 0;
+            cboSub4Type.SelectedIndex = 0; cboSub5Type.SelectedIndex = 0; cboSub6Type.SelectedIndex = 0;
+            cboSub7Type.SelectedIndex = 0; cboSub8Type.SelectedIndex = 0; cboSub9Type.SelectedIndex = 0;
+
+            txtSub1Tier.Text = "0"; txtSub2Tier.Text = "0"; txtSub3Tier.Text = "0";
+            txtSub4Tier.Text = "0"; txtSub5Tier.Text = "0"; txtSub6Tier.Text = "0";
+            txtSub7Tier.Text = "0"; txtSub8Tier.Text = "0"; txtSub9Tier.Text = "0";
 
             // 진형
             cboFormation.SelectedIndex = 0;
@@ -404,6 +393,35 @@ namespace GameDamageCalculator.UI
             chkBlock.IsChecked = false;
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
+        }
+        
+        private void Tier_MouseLeft(object sender, MouseButtonEventArgs e)
+        {
+            var border = sender as Border;
+            var txtBox = FindName(border.Tag.ToString()) as TextBox;
+            if (txtBox != null && int.TryParse(txtBox.Text, out int val))
+            {
+                txtBox.Text = (val + 1).ToString();
+                RecalculateStats();
+            }
+        }
+
+        private void Tier_MouseRight(object sender, MouseButtonEventArgs e)
+        {
+            var border = sender as Border;
+            var txtBox = FindName(border.Tag.ToString()) as TextBox;
+            if (txtBox != null && int.TryParse(txtBox.Text, out int val) && val > 0)
+            {
+                txtBox.Text = (val - 1).ToString();
+                RecalculateStats();
+            }
+            e.Handled = true;  // 우클릭 메뉴 방지
+        }
+
+        private void SubOption_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            RecalculateStats();
         }
 
         #endregion
@@ -798,22 +816,35 @@ namespace GameDamageCalculator.UI
 
         private BaseStatSet GetSubOptionStats()
         {
-            BaseStatSet total = new BaseStatSet();
-            
-            for (int i = 0; i < 16; i++)
+            BaseStatSet result = new BaseStatSet();
+
+            var subOptions = new[]
             {
-                if (_subOptionCombos[i].SelectedIndex <= 0) continue;
-                
-                string optionName = _subOptionCombos[i].SelectedItem.ToString();
-                int level = _subLevelCombos[i].SelectedIndex;
-                
-                if (EquipmentDb.SubStatDb.SubStatTiers.TryGetValue(optionName, out var statArray))
+                (cboSub1Type, txtSub1Tier),
+                (cboSub2Type, txtSub2Tier),
+                (cboSub3Type, txtSub3Tier),
+                (cboSub4Type, txtSub4Tier),
+                (cboSub5Type, txtSub5Tier),
+                (cboSub6Type, txtSub6Tier),
+                (cboSub7Type, txtSub7Tier),
+                (cboSub8Type, txtSub8Tier),
+                (cboSub9Type, txtSub9Tier)
+            };
+
+            foreach (var (typeCombo, tierTextBox) in subOptions)
+            {
+                if (typeCombo.SelectedIndex <= 0) continue;
+
+                string statType = typeCombo.SelectedItem.ToString();
+                if (!int.TryParse(tierTextBox.Text, out int tier) || tier <= 0) continue;
+
+                if (EquipmentDb.SubStatDb.SubStatBase.TryGetValue(statType, out var baseStats))
                 {
-                    total.Add(statArray[level]);
+                    result.Add(baseStats.Multiply(tier));
                 }
             }
-            
-            return total;
+
+            return result;
         }
 
         private BaseStatSet GetAccessoryStats()

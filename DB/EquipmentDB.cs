@@ -27,18 +27,24 @@ namespace GameDamageCalculator.Database
             {
                 { "무기", new Dictionary<string, BaseStatSet> {
                     { "공격력%", new BaseStatSet { Atk_Rate = 0.28 } },
+                    { "공격력", new BaseStatSet { Atk = 240 } },
                     { "치명타확률%", new BaseStatSet { Cri = 0.24 } },
                     { "치명타피해%", new BaseStatSet { Cri_Dmg = 0.36 } },
                     { "약점공격확률%", new BaseStatSet { Wek = 0.28 } },
                     { "생명력%", new BaseStatSet { Hp_Rate = 0.28 } },
+                    { "생명력", new BaseStatSet { Hp = 850 } },
                     { "방어력%", new BaseStatSet { Def_Rate = 0.28 } },
+                    { "방어력", new BaseStatSet { Def = 160 } },
                     { "효과적중%", new BaseStatSet { Eff_Hit = 0.3 } }
                 }},
 
                 { "방어구", new Dictionary<string, BaseStatSet> {
                     { "공격력%", new BaseStatSet { Atk_Rate = 0.28 } },
+                    { "공격력", new BaseStatSet { Atk = 240 } },
                     { "생명력%", new BaseStatSet { Hp_Rate = 0.28 } },
+                    { "생명력", new BaseStatSet { Hp = 850 } },
                     { "방어력%", new BaseStatSet { Def_Rate = 0.28 } },
+                    { "방어력", new BaseStatSet { Def = 160 } },
                     { "효과저항%", new BaseStatSet { Eff_Res = 0.3 } },
                     { "받피감%", new BaseStatSet { Dmg_Rdc = 0.16 } },
                     { "막기확률%", new BaseStatSet { Blk = 0.24 } }
@@ -51,101 +57,23 @@ namespace GameDamageCalculator.Database
         /// </summary>
         public static class SubStatDb
         {
-            // Key: 스탯 종류, Value: 1~5단계 BaseStatSet 배열
-            public static readonly Dictionary<string, BaseStatSet[]> SubStatTiers = 
-                new Dictionary<string, BaseStatSet[]>
+            // Key: 스탯 종류, Value: 1단계 기본값 (단계 × 기본값 = 최종값)
+            public static readonly Dictionary<string, BaseStatSet> SubStatBase = 
+                new Dictionary<string, BaseStatSet>
             {
-                { "공%", new BaseStatSet[] {
-                    new BaseStatSet { Atk_Rate = 0.05 },
-                    new BaseStatSet { Atk_Rate = 0.10 },
-                    new BaseStatSet { Atk_Rate = 0.15 },
-                    new BaseStatSet { Atk_Rate = 0.20 },
-                    new BaseStatSet { Atk_Rate = 0.25 }
-                }},
-                { "공", new BaseStatSet[] {
-                    new BaseStatSet { Atk = 50 },
-                    new BaseStatSet { Atk = 100 },
-                    new BaseStatSet { Atk = 150 },
-                    new BaseStatSet { Atk = 200 },
-                    new BaseStatSet { Atk = 250 }
-                }},
-                { "치확%", new BaseStatSet[] {
-                    new BaseStatSet { Cri = 0.04 },
-                    new BaseStatSet { Cri = 0.08 },
-                    new BaseStatSet { Cri = 0.12 },
-                    new BaseStatSet { Cri = 0.16 },
-                    new BaseStatSet { Cri = 0.20 }
-                }},
-                { "치피%", new BaseStatSet[] {
-                    new BaseStatSet { Cri_Dmg = 0.06 },
-                    new BaseStatSet { Cri_Dmg = 0.12 },
-                    new BaseStatSet { Cri_Dmg = 0.18 },
-                    new BaseStatSet { Cri_Dmg = 0.24 },
-                    new BaseStatSet { Cri_Dmg = 0.30 }
-                }},
-                { "속공", new BaseStatSet[] {
-                    new BaseStatSet { Spd = 4 },
-                    new BaseStatSet { Spd = 8 },
-                    new BaseStatSet { Spd = 12 },
-                    new BaseStatSet { Spd = 16 },
-                    new BaseStatSet { Spd = 20 }
-                }},
-                { "약공%", new BaseStatSet[] {
-                    new BaseStatSet { Wek = 0.05 },
-                    new BaseStatSet { Wek = 0.10 },
-                    new BaseStatSet { Wek = 0.15 },
-                    new BaseStatSet { Wek = 0.20 },
-                    new BaseStatSet { Wek = 0.25 }
-                }},
-                { "피통%", new BaseStatSet[] {
-                    new BaseStatSet { Hp_Rate = 0.05 },
-                    new BaseStatSet { Hp_Rate = 0.10 },
-                    new BaseStatSet { Hp_Rate = 0.15 },
-                    new BaseStatSet { Hp_Rate = 0.20 },
-                    new BaseStatSet { Hp_Rate = 0.25 }
-                }},
-                { "피통", new BaseStatSet[] {
-                    new BaseStatSet { Hp = 180 },
-                    new BaseStatSet { Hp = 360 },
-                    new BaseStatSet { Hp = 540 },
-                    new BaseStatSet { Hp = 720 },
-                    new BaseStatSet { Hp = 900 }
-                }},
-                { "방어%", new BaseStatSet[] {
-                    new BaseStatSet { Def_Rate = 0.05 },
-                    new BaseStatSet { Def_Rate = 0.10 },
-                    new BaseStatSet { Def_Rate = 0.15 },
-                    new BaseStatSet { Def_Rate = 0.20 },
-                    new BaseStatSet { Def_Rate = 0.25 }
-                }},
-                { "방어", new BaseStatSet[] {
-                    new BaseStatSet { Def = 30 },
-                    new BaseStatSet { Def = 60 },
-                    new BaseStatSet { Def = 90 },
-                    new BaseStatSet { Def = 120 },
-                    new BaseStatSet { Def = 150 }
-                }},
-                { "막기%", new BaseStatSet[] {
-                    new BaseStatSet { Blk = 0.04 },
-                    new BaseStatSet { Blk = 0.08 },
-                    new BaseStatSet { Blk = 0.12 },
-                    new BaseStatSet { Blk = 0.16 },
-                    new BaseStatSet { Blk = 0.20 }
-                }},
-                { "효적%", new BaseStatSet[] {
-                    new BaseStatSet { Eff_Hit = 0.05 },
-                    new BaseStatSet { Eff_Hit = 0.10 },
-                    new BaseStatSet { Eff_Hit = 0.15 },
-                    new BaseStatSet { Eff_Hit = 0.20 },
-                    new BaseStatSet { Eff_Hit = 0.25 }
-                }},
-                { "효저%", new BaseStatSet[] {
-                    new BaseStatSet { Eff_Res = 0.05 },
-                    new BaseStatSet { Eff_Res = 0.10 },
-                    new BaseStatSet { Eff_Res = 0.15 },
-                    new BaseStatSet { Eff_Res = 0.20 },
-                    new BaseStatSet { Eff_Res = 0.25 }
-                }}
+                { "공%", new BaseStatSet { Atk_Rate = 0.05 } },
+                { "공", new BaseStatSet { Atk = 50 } },
+                { "치확%", new BaseStatSet { Cri = 0.04 } },
+                { "치피%", new BaseStatSet { Cri_Dmg = 0.06 } },
+                { "속공", new BaseStatSet { Spd = 4 } },
+                { "약공%", new BaseStatSet { Wek = 0.05 } },
+                { "피통%", new BaseStatSet { Hp_Rate = 0.05 } },
+                { "피통", new BaseStatSet { Hp = 180 } },
+                { "방어%", new BaseStatSet { Def_Rate = 0.05 } },
+                { "방어", new BaseStatSet { Def = 30 } },
+                { "막기%", new BaseStatSet { Blk = 0.04 } },
+                { "효적%", new BaseStatSet { Eff_Hit = 0.05 } },
+                { "효저%", new BaseStatSet { Eff_Res = 0.05 } }
             };
         }
 
