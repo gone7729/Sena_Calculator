@@ -67,6 +67,7 @@ namespace GameDamageCalculator.UI
 
             InitializeMainOptionComboBoxes(); 
 
+            InitializeMainOptionComboBoxes();
             InitializeAccessoryComboBoxes();
 
             // 보스 목록 초기화
@@ -161,17 +162,17 @@ namespace GameDamageCalculator.UI
             cboAccessoryGrade.SelectedIndex = 0;
 
             // 메인옵션
-            var mainOptions = new[] { "없음", "공격력%", "방어력%", "생명력%", "치명타확률%", "치명타피해%", 
-                                      "약점공격확률%", "효과적중%", "효과저항%", 
-                                      "1-3인기%", "4-5인기%" };  // ← 추가
+            var mainOptions = new[] { "없음", "피증%", "방어력%", "생명력%", "치명타확률%", "막기%",
+                                      "약점공격확률%", "효과적중%", "효과저항%", "보피증%",
+                                      "1-3인기%", "4-5인기%" };
             foreach (var opt in mainOptions)
                 cboAccessoryMain.Items.Add(opt);
             cboAccessoryMain.SelectedIndex = 0;
 
-            // 부옵션
-            var subOptions = new[] { "없음", "공격력%", "방어력%", "생명력%", "치명타확률%", "치명타피해%",
-                                     "약점공격확률%", "효과적중%", "효과저항%", "막기확률%",
-                                     "1-3인기%", "4-5인기%" };  // ← 추가
+            // 부옵션 (6성만)
+            var subOptions = new[] { "없음", "피증%", "방어력%", "생명력%", "치명타확률%", "막기%",
+                                     "약점공격확률%", "효과적중%", "효과저항%", "보피증%",
+                                     "1-3인기%", "4-5인기%" };
             foreach (var opt in subOptions)
                 cboAccessorySub.Items.Add(opt);
             cboAccessorySub.SelectedIndex = 0;
@@ -253,13 +254,32 @@ namespace GameDamageCalculator.UI
             RecalculateStats();
         }
 
-        private void CboAccessory_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CboAccessoryGrade_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+        
+            // 6성이면 부옵션 표시, 아니면 숨김
+            if (cboAccessoryGrade.SelectedIndex == 3)  // 6성
+            {
+                panelAccessorySub.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                panelAccessorySub.Visibility = Visibility.Collapsed;
+                cboAccessorySub.SelectedIndex = 0;  // 부옵션 초기화
+            }
+        
+            UpdateAccessoryDisplay();
+            RecalculateStats();
+        }
+        
+        private void CboAccessoryOption_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
             UpdateAccessoryDisplay();
             RecalculateStats();
         }
-
+        
         private void UpdateAccessoryDisplay()
         {
             if (cboAccessoryGrade.SelectedIndex <= 0)
@@ -268,20 +288,27 @@ namespace GameDamageCalculator.UI
                 txtAccessorySubValue.Text = "";
                 return;
             }
-
-            int grade = cboAccessoryGrade.SelectedIndex + 3;
-
+        
+            int grade = cboAccessoryGrade.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
+        
             // 메인옵션 값 표시
             txtAccessoryMainValue.Text = GetAccessoryOptionValue(grade, cboAccessoryMain, AccessoryDb.MainOptions);
-
-            // 부옵션 값 표시
-            txtAccessorySubValue.Text = GetAccessoryOptionValue(grade, cboAccessorySub, AccessoryDb.SubOptions);
+        
+            // 부옵션 값 표시 (6성만)
+            if (grade == 6)
+            {
+                txtAccessorySubValue.Text = GetAccessoryOptionValue(grade, cboAccessorySub, AccessoryDb.SubOptions);
+            }
+            else
+            {
+                txtAccessorySubValue.Text = "";
+            }
         }
-
+        
         private string GetAccessoryOptionValue(int grade, ComboBox cbo, Dictionary<int, Dictionary<string, BaseStatSet>> optionDb)
         {
             if (cbo.SelectedIndex <= 0) return "";
-
+        
             string option = cbo.SelectedItem.ToString();
             if (optionDb.TryGetValue(grade, out var options))
             {
@@ -296,8 +323,10 @@ namespace GameDamageCalculator.UI
                     if (stats.Eff_Hit > 0) return $"{stats.Eff_Hit}%";
                     if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
                     if (stats.Blk > 0) return $"{stats.Blk}%";
-                    if (stats.Dmg_Dealt_1to3 > 0) return $"{stats.Dmg_Dealt_1to3}%";  // ← 추가
-                    if (stats.Dmg_Dealt_4to5 > 0) return $"{stats.Dmg_Dealt_4to5}%";  // ← 추가
+                    if (stats.Dmg_Dealt > 0) return $"{stats.Dmg_Dealt}%";
+                    if (stats.Dmg_Dealt_Bos > 0) return $"{stats.Dmg_Dealt_Bos}%";
+                    if (stats.Dmg_Dealt_1to3 > 0) return $"{stats.Dmg_Dealt_1to3}%";
+                    if (stats.Dmg_Dealt_4to5 > 0) return $"{stats.Dmg_Dealt_4to5}%";
                 }
             }
             return "";
@@ -966,8 +995,8 @@ namespace GameDamageCalculator.UI
                 }
             }
 
-            // 부옵션
-            if (cboAccessorySub.SelectedIndex > 0)
+            // 부옵션 (6성만)
+            if (grade == 6 && cboAccessorySub.SelectedIndex > 0)
             {
                 string subOpt = cboAccessorySub.SelectedItem.ToString();
                 if (AccessoryDb.SubOptions.TryGetValue(grade, out var subOptions))
