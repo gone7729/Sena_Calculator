@@ -13,7 +13,10 @@ namespace GameDamageCalculator.UI
 {
     public partial class MainWindow : Window
     {
+        
         private readonly DamageCalculator _calculator;
+        // 필드 추가 (클래스 상단)
+        private PresetManager _presetManager;
         private bool _isInitialized = false;
 
         private DebuffSet _currentDebuffs = new DebuffSet();
@@ -23,6 +26,9 @@ namespace GameDamageCalculator.UI
             InitializeComponent();
             _calculator = new DamageCalculator();
             InitializeComboBoxes();
+             // 생성자에서 초기화 (InitializeComboBoxes() 다음에)
+            _presetManager = new PresetManager();
+            RefreshPresetList();
             _isInitialized = true;
             RecalculateStats();
         }
@@ -1562,6 +1568,372 @@ namespace GameDamageCalculator.UI
         {
             if (!_isInitialized) return;
             RecalculateStats();
+        }
+
+        #endregion
+
+        
+
+        // region 프리셋 추가
+        #region 프리셋
+
+        private void RefreshPresetList()
+        {
+            cboPreset.Items.Clear();
+            cboPreset.Items.Add("-- 프리셋 선택 --");
+            foreach (var name in _presetManager.GetPresetNames())
+            {
+                cboPreset.Items.Add(name);
+            }
+            cboPreset.SelectedIndex = 0;
+        }
+
+        private Preset CreatePresetFromUI()
+        {
+            var preset = new Preset
+            {
+                // 캐릭터
+                CharacterName = cboCharacter.SelectedIndex > 0 ? cboCharacter.SelectedItem.ToString() : "",
+                SkillName = cboSkill.SelectedIndex >= 0 ? cboSkill.SelectedItem?.ToString() : "",
+                TranscendLevel = cboTranscend.SelectedIndex,
+                IsSkillEnhanced = chkSkillEnhanced.IsChecked == true,
+
+                // 잠재능력
+                PotentialAtk = cboPotentialAtk.SelectedIndex,
+                PotentialDef = cboPotentialDef.SelectedIndex,
+                PotentialHp = cboPotentialHp.SelectedIndex,
+
+                // 세트
+                EquipSet1 = cboEquipSet1.SelectedIndex > 0 ? cboEquipSet1.SelectedItem.ToString() : "",
+                EquipSet2 = cboEquipSet2.SelectedIndex > 0 ? cboEquipSet2.SelectedItem.ToString() : "",
+                SetCount1 = cboSetCount1.SelectedIndex,
+
+                // 메인옵션
+                MainWeapon1 = cboWeapon1Main.SelectedIndex > 0 ? cboWeapon1Main.SelectedItem.ToString() : "",
+                MainWeapon2 = cboWeapon2Main.SelectedIndex > 0 ? cboWeapon2Main.SelectedItem.ToString() : "",
+                MainArmor1 = cboArmor1Main.SelectedIndex > 0 ? cboArmor1Main.SelectedItem.ToString() : "",
+                MainArmor2 = cboArmor2Main.SelectedIndex > 0 ? cboArmor2Main.SelectedItem.ToString() : "",
+
+                // 장신구
+                AccessoryGrade = cboAccessoryGrade.SelectedIndex,
+                AccessoryOption = cboAccessoryMain.SelectedIndex > 0 ? cboAccessoryMain.SelectedItem.ToString() : "",
+                AccessorySubOption = cboAccessorySub.SelectedIndex > 0 ? cboAccessorySub.SelectedItem.ToString() : "",
+
+                // 진형
+                Formation = cboFormation.SelectedIndex > 0 ? cboFormation.SelectedItem.ToString() : "",
+                IsBackPosition = rbBack.IsChecked == true,
+
+                // 펫
+                PetName = cboPet.SelectedIndex > 0 ? cboPet.SelectedItem.ToString() : "",
+                PetStar = cboPetStar.SelectedIndex,
+
+                // 보스
+                BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : "Descend"),
+                BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
+            };
+
+            // 서브옵션
+            preset.SubOptions = new List<SubOptionData>
+            {
+                new SubOptionData { Type = cboSub1Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub1Tier.Text, out int t1) ? t1 : 0 },
+                new SubOptionData { Type = cboSub2Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub2Tier.Text, out int t2) ? t2 : 0 },
+                new SubOptionData { Type = cboSub3Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub3Tier.Text, out int t3) ? t3 : 0 },
+                new SubOptionData { Type = cboSub4Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub4Tier.Text, out int t4) ? t4 : 0 },
+                new SubOptionData { Type = cboSub5Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub5Tier.Text, out int t5) ? t5 : 0 },
+                new SubOptionData { Type = cboSub6Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub6Tier.Text, out int t6) ? t6 : 0 },
+                new SubOptionData { Type = cboSub7Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub7Tier.Text, out int t7) ? t7 : 0 },
+                new SubOptionData { Type = cboSub8Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub8Tier.Text, out int t8) ? t8 : 0 },
+                new SubOptionData { Type = cboSub9Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub9Tier.Text, out int t9) ? t9 : 0 }
+            };
+
+            // 펫옵션
+            preset.PetOptions = new List<PetOptionData>
+            {
+                new PetOptionData { Type = (cboPetOpt1.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt1.Text) },
+                new PetOptionData { Type = (cboPetOpt2.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt2.Text) },
+                new PetOptionData { Type = (cboPetOpt3.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt3.Text) }
+            };
+
+            // 버프/디버프 체크 상태
+            preset.BuffChecks = new Dictionary<string, bool>
+            {
+                { "BuffPassiveLion", chkBuffPassiveLion.IsChecked == true },
+                { "BuffPassiveLina", chkBuffPassiveLina.IsChecked == true },
+                { "BuffPassiveRachel", chkBuffPassiveRachel.IsChecked == true },
+                { "BuffActiveBiscuit", chkBuffActiveBiscuit.IsChecked == true },
+                { "BuffActiveLina", chkBuffActiveLina.IsChecked == true },
+                { "DebuffPassiveTaka", chkDebuffPassiveTaka.IsChecked == true },
+                { "DebuffPassiveBiscuit", chkDebuffPassiveBiscuit.IsChecked == true },
+                { "DebuffActiveLina", chkDebuffActiveLina.IsChecked == true },
+                { "DebuffActiveRachelFlame", chkDebuffActiveRachelFlame.IsChecked == true },
+                { "DebuffActiveRachelPhoenix", chkDebuffActiveRachelPhoenix.IsChecked == true }
+            };
+
+            // 버프 버튼 상태
+            preset.BuffStates = new Dictionary<string, int>
+            {
+                { "BuffPassiveLion", int.Parse(btnBuffPassiveLion.Tag?.ToString() ?? "0") },
+                { "BuffPassiveLina", int.Parse(btnBuffPassiveLina.Tag?.ToString() ?? "0") },
+                { "BuffPassiveRachel", int.Parse(btnBuffPassiveRachel.Tag?.ToString() ?? "0") },
+                { "BuffActiveBiscuit", int.Parse(btnBuffActiveBiscuit.Tag?.ToString() ?? "0") },
+                { "BuffActiveLina", int.Parse(btnBuffActiveLina.Tag?.ToString() ?? "0") },
+                { "DebuffPassiveTaka", int.Parse(btnDebuffPassiveTaka.Tag?.ToString() ?? "0") },
+                { "DebuffPassiveBiscuit", int.Parse(btnDebuffPassiveBiscuit.Tag?.ToString() ?? "0") },
+                { "DebuffActiveLina", int.Parse(btnDebuffActiveLina.Tag?.ToString() ?? "0") },
+                { "DebuffActiveRachel", int.Parse(btnDebuffActiveRachel.Tag?.ToString() ?? "0") }
+            };
+
+            return preset;
+        }
+
+        private void ApplyPresetToUI(Preset preset)
+        {
+            if (preset == null) return;
+
+            _isInitialized = false;
+
+            // 캐릭터
+            SelectComboBoxItem(cboCharacter, preset.CharacterName);
+            cboTranscend.SelectedIndex = preset.TranscendLevel;
+            chkSkillEnhanced.IsChecked = preset.IsSkillEnhanced;
+
+            // 스킬은 캐릭터 선택 후 업데이트되므로 잠시 대기
+            if (cboCharacter.SelectedIndex > 0)
+            {
+                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                if (character != null)
+                {
+                    cboSkill.Items.Clear();
+                    foreach (var skill in character.Skills)
+                    {
+                        cboSkill.Items.Add(skill.Name);
+                    }
+                }
+            }
+            SelectComboBoxItem(cboSkill, preset.SkillName);
+
+            // 잠재능력
+            cboPotentialAtk.SelectedIndex = preset.PotentialAtk;
+            cboPotentialDef.SelectedIndex = preset.PotentialDef;
+            cboPotentialHp.SelectedIndex = preset.PotentialHp;
+
+            // 세트
+            SelectComboBoxItem(cboEquipSet1, preset.EquipSet1);
+            SelectComboBoxItem(cboEquipSet2, preset.EquipSet2);
+            cboSetCount1.SelectedIndex = preset.SetCount1;
+
+            // 메인옵션
+            SelectComboBoxItem(cboWeapon1Main, preset.MainWeapon1);
+            SelectComboBoxItem(cboWeapon2Main, preset.MainWeapon2);
+            SelectComboBoxItem(cboArmor1Main, preset.MainArmor1);
+            SelectComboBoxItem(cboArmor2Main, preset.MainArmor2);
+
+            // 장신구
+            cboAccessoryGrade.SelectedIndex = preset.AccessoryGrade;
+            SelectComboBoxItem(cboAccessoryMain, preset.AccessoryOption);
+            SelectComboBoxItem(cboAccessorySub, preset.AccessorySubOption);
+
+            // 진형
+            SelectComboBoxItem(cboFormation, preset.Formation);
+            if (preset.IsBackPosition)
+                rbBack.IsChecked = true;
+            else
+                rbFront.IsChecked = true;
+
+            // 펫
+            SelectComboBoxItem(cboPet, preset.PetName);
+            cboPetStar.SelectedIndex = preset.PetStar;
+
+            // 서브옵션
+            if (preset.SubOptions != null && preset.SubOptions.Count >= 9)
+            {
+                SelectComboBoxItem(cboSub1Type, preset.SubOptions[0].Type); txtSub1Tier.Text = preset.SubOptions[0].Tier.ToString();
+                SelectComboBoxItem(cboSub2Type, preset.SubOptions[1].Type); txtSub2Tier.Text = preset.SubOptions[1].Tier.ToString();
+                SelectComboBoxItem(cboSub3Type, preset.SubOptions[2].Type); txtSub3Tier.Text = preset.SubOptions[2].Tier.ToString();
+                SelectComboBoxItem(cboSub4Type, preset.SubOptions[3].Type); txtSub4Tier.Text = preset.SubOptions[3].Tier.ToString();
+                SelectComboBoxItem(cboSub5Type, preset.SubOptions[4].Type); txtSub5Tier.Text = preset.SubOptions[4].Tier.ToString();
+                SelectComboBoxItem(cboSub6Type, preset.SubOptions[5].Type); txtSub6Tier.Text = preset.SubOptions[5].Tier.ToString();
+                SelectComboBoxItem(cboSub7Type, preset.SubOptions[6].Type); txtSub7Tier.Text = preset.SubOptions[6].Tier.ToString();
+                SelectComboBoxItem(cboSub8Type, preset.SubOptions[7].Type); txtSub8Tier.Text = preset.SubOptions[7].Tier.ToString();
+                SelectComboBoxItem(cboSub9Type, preset.SubOptions[8].Type); txtSub9Tier.Text = preset.SubOptions[8].Tier.ToString();
+            }
+
+            // 펫옵션
+            if (preset.PetOptions != null && preset.PetOptions.Count >= 3)
+            {
+                SelectPetOptionComboBox(cboPetOpt1, preset.PetOptions[0].Type); txtPetOpt1.Text = preset.PetOptions[0].Value.ToString();
+                SelectPetOptionComboBox(cboPetOpt2, preset.PetOptions[1].Type); txtPetOpt2.Text = preset.PetOptions[1].Value.ToString();
+                SelectPetOptionComboBox(cboPetOpt3, preset.PetOptions[2].Type); txtPetOpt3.Text = preset.PetOptions[2].Value.ToString();
+            }
+
+            // 보스
+            if (preset.BossType == "Siege") rbSiege.IsChecked = true;
+            else if (preset.BossType == "Raid") rbRaid.IsChecked = true;
+            else rbDescend.IsChecked = true;
+            UpdateBossList();
+            SelectComboBoxItem(cboBoss, preset.BossName);
+
+            // 버프/디버프 체크 상태
+            if (preset.BuffChecks != null)
+            {
+                chkBuffPassiveLion.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffPassiveLion", false);
+                chkBuffPassiveLina.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffPassiveLina", false);
+                chkBuffPassiveRachel.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffPassiveRachel", false);
+                chkBuffActiveBiscuit.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffActiveBiscuit", false);
+                chkBuffActiveLina.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffActiveLina", false);
+                chkDebuffPassiveTaka.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffPassiveTaka", false);
+                chkDebuffPassiveBiscuit.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffPassiveBiscuit", false);
+                chkDebuffActiveLina.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffActiveLina", false);
+                chkDebuffActiveRachelFlame.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffActiveRachelFlame", false);
+                chkDebuffActiveRachelPhoenix.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffActiveRachelPhoenix", false);
+            }
+
+            // 버프 버튼 상태
+            if (preset.BuffStates != null)
+            {
+                ApplyBuffButtonState(btnBuffPassiveLion, "라이언", preset.BuffStates.GetValueOrDefault("BuffPassiveLion", 0));
+                ApplyBuffButtonState(btnBuffPassiveLina, "리나", preset.BuffStates.GetValueOrDefault("BuffPassiveLina", 0));
+                ApplyBuffButtonState(btnBuffPassiveRachel, "레이첼", preset.BuffStates.GetValueOrDefault("BuffPassiveRachel", 0));
+                ApplyBuffButtonState(btnBuffActiveBiscuit, "비스킷", preset.BuffStates.GetValueOrDefault("BuffActiveBiscuit", 0));
+                ApplyBuffButtonState(btnBuffActiveLina, "리나", preset.BuffStates.GetValueOrDefault("BuffActiveLina", 0));
+                ApplyBuffButtonState(btnDebuffPassiveTaka, "타카", preset.BuffStates.GetValueOrDefault("DebuffPassiveTaka", 0));
+                ApplyBuffButtonState(btnDebuffPassiveBiscuit, "비스킷", preset.BuffStates.GetValueOrDefault("DebuffPassiveBiscuit", 0));
+                ApplyBuffButtonState(btnDebuffActiveLina, "리나", preset.BuffStates.GetValueOrDefault("DebuffActiveLina", 0));
+                ApplyBuffButtonState(btnDebuffActiveRachel, "레이첼", preset.BuffStates.GetValueOrDefault("DebuffActiveRachel", 0));
+            }
+
+            _isInitialized = true;
+            UpdateMainOptionDisplay();
+            UpdateAccessoryDisplay();
+            RecalculateStats();
+        }
+
+        private void ApplyBuffButtonState(Button btn, string baseName, int state)
+        {
+            btn.Tag = state;
+            btn.Background = BuffBgColors[state];
+            btn.Foreground = BuffFgColors[state];
+            btn.Content = baseName + BuffOptionSuffix[state];
+        }
+
+        private void SelectComboBoxItem(ComboBox cbo, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                cbo.SelectedIndex = 0;
+                return;
+            }
+
+            for (int i = 0; i < cbo.Items.Count; i++)
+            {
+                if (cbo.Items[i].ToString() == value)
+                {
+                    cbo.SelectedIndex = i;
+                    return;
+                }
+            }
+            cbo.SelectedIndex = 0;
+        }
+
+        private void SelectPetOptionComboBox(ComboBox cbo, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                cbo.SelectedIndex = 0;
+                return;
+            }
+
+            for (int i = 0; i < cbo.Items.Count; i++)
+            {
+                if (cbo.Items[i] is ComboBoxItem item && item.Content?.ToString() == value)
+                {
+                    cbo.SelectedIndex = i;
+                    return;
+                }
+            }
+            cbo.SelectedIndex = 0;
+        }
+
+        private void BtnSavePreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (cboPreset.SelectedIndex > 0)
+            {
+                // 기존 프리셋 덮어쓰기
+                var preset = CreatePresetFromUI();
+                preset.Name = cboPreset.SelectedItem.ToString();
+                _presetManager.UpdatePreset(cboPreset.SelectedIndex - 1, preset);
+                MessageBox.Show($"'{preset.Name}' 프리셋이 저장되었습니다.", "저장 완료");
+            }
+            else
+            {
+                // 새 프리셋
+                BtnSaveAsPreset_Click(sender, e);
+            }
+        }
+
+        private void BtnSaveAsPreset_Click(object sender, RoutedEventArgs e)
+        {
+            var inputWindow = new Window
+            {
+                Title = "프리셋 이름",
+                Width = 300,
+                Height = 150,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                Background = new SolidColorBrush(Color.FromRgb(39, 39, 39))
+            };
+
+            var panel = new StackPanel { Margin = new Thickness(15) };
+            var label = new TextBlock { Text = "프리셋 이름을 입력하세요:", Foreground = Brushes.White, Margin = new Thickness(0, 0, 0, 10) };
+            var textBox = new TextBox { Margin = new Thickness(0, 0, 0, 15) };
+
+            var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            var btnOk = new Button { Content = "확인", Width = 60, Margin = new Thickness(0, 0, 5, 0) };
+            var btnCancel = new Button { Content = "취소", Width = 60 };
+
+            btnOk.Click += (s, ev) => { inputWindow.DialogResult = true; };
+            btnCancel.Click += (s, ev) => { inputWindow.DialogResult = false; };
+
+            btnPanel.Children.Add(btnOk);
+            btnPanel.Children.Add(btnCancel);
+            panel.Children.Add(label);
+            panel.Children.Add(textBox);
+            panel.Children.Add(btnPanel);
+            inputWindow.Content = panel;
+
+            if (inputWindow.ShowDialog() == true && !string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                var preset = CreatePresetFromUI();
+                preset.Name = textBox.Text;
+                _presetManager.AddPreset(preset);
+                RefreshPresetList();
+                cboPreset.SelectedIndex = cboPreset.Items.Count - 1;
+                MessageBox.Show($"'{preset.Name}' 프리셋이 저장되었습니다.", "저장 완료");
+            }
+        }
+
+        private void BtnDeletePreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (cboPreset.SelectedIndex <= 0) return;
+
+            string name = cboPreset.SelectedItem.ToString();
+            var result = MessageBox.Show($"'{name}' 프리셋을 삭제하시겠습니까?", "삭제 확인", 
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                _presetManager.DeletePreset(cboPreset.SelectedIndex - 1);
+                RefreshPresetList();
+            }
+        }
+
+        private void CboPreset_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            if (cboPreset.SelectedIndex <= 0) return;
+
+            var preset = _presetManager.GetPreset(cboPreset.SelectedIndex - 1);
+            ApplyPresetToUI(preset);
         }
 
         #endregion

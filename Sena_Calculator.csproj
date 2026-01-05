@@ -8,6 +8,9 @@
     <RootNamespace>GameDamageCalculator</RootNamespace>
     <AssemblyName>세나리_데미지계산기</AssemblyName>
     <ApplicationIcon></ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
 </Project>
