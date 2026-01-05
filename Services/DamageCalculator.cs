@@ -32,7 +32,7 @@ namespace GameDamageCalculator.Services
             public double BossDef { get; set; }           // 보스 방어력
             public double BossDefIncrease { get; set; }   // 보스 방증%
             public double BossDmgReduction { get; set; }  // 보스 받피감%
-            public double BossTargetReduction { get; set; } // 인기별 감소%
+            public double BossTargetReduction { get; set; } // n인기별 감소%
 
             // 전투 옵션
             public bool IsCritical { get; set; }
@@ -41,6 +41,10 @@ namespace GameDamageCalculator.Services
 
             // 조건
             public bool IsSkillConditionMet { get; set; }
+
+            public double FinalDef { get; set; }      // 최종 방어력 (힐 계산용)
+            public double FinalHp { get; set; }       // 최종 체력 (힐 계산용)
+            public double HealReduction { get; set; } // 회복량 감소%
         }
 
         public class DamageResult
@@ -56,6 +60,9 @@ namespace GameDamageCalculator.Services
             public double FinalDamage { get; set; }
             public double ExtraDamage { get; set; }
             public string Details { get; set; }
+            public double WekBonusDmg { get; set; }
+            public double HealAmount { get; set; }    // 회복량
+            public string HealSource { get; set; }    // 회복 기준 (공격력/방어력/체력)
         }
 
         public DamageResult Calculate(DamageInput input)
@@ -126,17 +133,54 @@ namespace GameDamageCalculator.Services
                 double extraRatio = levelData.ConditionalExtraDmg;
                 result.ExtraDamage = (result.FinalAtk / result.DefCoefficient)
                                    * extraRatio
-                                   * result.CritMultiplier
-                                   * result.WeakpointMultiplier
                                    * result.DamageMultiplier;
                 baseDamage += result.ExtraDamage;
             }
 
-            // 9. 막기 시 50% 감소
+            // 9. 약점 공격 성공 시 추가 피해 (순수 공격력 배율, 치명타/약점피해 계수 미적용)
+            result.WekBonusDmg = 0;
+            if (input.IsWeakpoint && levelData != null && levelData.WekBonusDmg > 0)
+            {
+                result.WekBonusDmg = (result.FinalAtk / result.DefCoefficient)
+                                   * levelData.WekBonusDmg
+                                   * result.DamageMultiplier;
+                baseDamage += result.WekBonusDmg;
+            }
+
+            // 10. 막기 시 50% 감소
             if (input.IsBlocked)
             {
                 baseDamage *= 0.5;
                 result.ExtraDamage *= 0.5;
+            }
+
+            // 11. 회복량 계산
+            result.HealAmount = 0;
+            result.HealSource = "";
+            if (levelData != null)
+            {
+                double baseHeal = 0;
+                
+                if (levelData.HealAtkRatio > 0)
+                {
+                    baseHeal = input.FinalAtk * levelData.HealAtkRatio;
+                    result.HealSource = "공격력";
+                }
+                else if (levelData.HealDefRatio > 0)
+                {
+                    baseHeal = input.FinalDef * levelData.HealDefRatio;
+                    result.HealSource = "방어력";
+                }
+                else if (levelData.HealHpRatio > 0)
+                {
+                    baseHeal = input.FinalHp * levelData.HealHpRatio;
+                    result.HealSource = "최대체력";
+                }
+                
+                if (baseHeal > 0)
+                {
+                    result.HealAmount = baseHeal * (1 - input.HealReduction / 100.0);
+                }
             }
 
             result.FinalDamage = baseDamage;
@@ -150,6 +194,14 @@ namespace GameDamageCalculator.Services
             string extraDmgInfo = result.ExtraDamage > 0
                 ? $"\n▶ 조건부 추가 피해: {result.ExtraDamage:N0}"
                 : "";
+
+            string wekBonusInfo = result.WekBonusDmg > 0
+                ? $"\n▶ 약점 추가 피해: {result.WekBonusDmg:N0}"
+                : "";
+
+            string healInfo = result.HealAmount > 0
+            ? $"\n\n💚 회복량: {result.HealAmount:N0} ({result.HealSource} 기준)"
+            : "";
 
             string blockInfo = input.IsBlocked ? " (막기 -50%)" : "";
             string critInfo = input.IsCritical ? "(치명타!)" : "(일반)";

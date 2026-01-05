@@ -63,7 +63,7 @@ namespace GameDamageCalculator.Models
             }
         
             // 7~12 공통 초월 (누적 합산)
-            foreach (var bonus in StatTable.TranscendDb.CommonBonuses)  // ← 여기 수정!
+            foreach (var bonus in StatTable.TranscendDb.CommonBonuses)
             {
                 if (bonus.Level <= level)
                 {
@@ -73,7 +73,6 @@ namespace GameDamageCalculator.Models
         
             return result;
         }
-        
     }
 
     /// <summary>
@@ -92,8 +91,8 @@ namespace GameDamageCalculator.Models
         // 레벨별 스탯 (0=기본, 1=강화)
         public Dictionary<int, SkillLevelData> LevelData { get; set; } = new Dictionary<int, SkillLevelData>();
         
-        // 초월별 추가 효과
-        public Dictionary<int, SkillTranscendBonus> TranscendBonuses { get; set; } = new Dictionary<int, SkillTranscendBonus>();
+        // 초월별 추가 효과 (통합)
+        public Dictionary<int, TranscendEffect> TranscendBonuses { get; set; } = new Dictionary<int, TranscendEffect>();
     
         // ===== 헬퍼 메서드 =====
         public SkillLevelData GetLevelData(bool isEnhanced)
@@ -102,9 +101,9 @@ namespace GameDamageCalculator.Models
             return LevelData.TryGetValue(key, out var data) ? data : new SkillLevelData();
         }
     
-        public SkillTranscendBonus GetTranscendBonus(int level)
+        public TranscendEffect GetTranscendBonus(int level)
         {
-            SkillTranscendBonus result = new SkillTranscendBonus();
+            TranscendEffect result = new TranscendEffect();
             if (TranscendBonuses == null) return result;
     
             // 해당 레벨 이하의 모든 보너스 누적
@@ -113,6 +112,8 @@ namespace GameDamageCalculator.Models
                 result.ArmorPen += kvp.Value.ArmorPen;
                 result.BonusDmg += kvp.Value.BonusDmg;
                 result.BonusCriDmg += kvp.Value.BonusCriDmg;
+                if (kvp.Value.BuffModifier != null) result.BuffModifier.Add(kvp.Value.BuffModifier);
+                if (kvp.Value.DebuffModifier != null) result.DebuffModifier.Add(kvp.Value.DebuffModifier);
                 result.Effect = kvp.Value.Effect;  // 마지막 효과 설명 사용
             }
             return result;
@@ -143,9 +144,9 @@ namespace GameDamageCalculator.Models
         public double Ratio { get; set; }               // 기본 스킬 배율
 
         // 추가 스케일링 (다른 스탯 기준)
-        public double DefRatio { get; set; }        // 방어력 비례 배율
-        public double HpRatio { get; set; }         // 생명력 비례 배율
-        public double SpdRatio { get; set; }        // 속공 비례 배율
+        public double DefRatio { get; set; }            // 방어력 비례 배율
+        public double HpRatio { get; set; }             // 생명력 비례 배율
+        public double SpdRatio { get; set; }            // 속공 비례 배율
         public double ArmorPen { get; set; }            // 방어 관통
         public double BonusCriDmg { get; set; }         // 추가 치피
 
@@ -154,21 +155,18 @@ namespace GameDamageCalculator.Models
         public double ConditionalExtraDmg { get; set; }     // 조건 시 추가 피해 (공격력의 X%)
 
         // 스킬이 부여하는 버프/디버프
-        public BaseStatSet BuffEffect { get; set; }      // 아군에게 버프
-        public DebuffSet DebuffEffect { get; set; }      // 적에게 디버프
-        public int EffectDuration { get; set; }          // 지속 턴
-        public double EffectChance { get; set; } = 100;  // 적용 확률%
-    }
-    
-    /// <summary>
-    /// 스킬 초월 보너스
-    /// </summary>
-    public class SkillTranscendBonus
-    {
-        public double ArmorPen { get; set; }
-        public double BonusDmg { get; set; }
-        public double BonusCriDmg { get; set; }
-        public string Effect { get; set; }
+        public BuffSet BuffEffect { get; set; }             // 아군에게 버프
+        public DebuffSet DebuffEffect { get; set; }         // 적에게 디버프
+        public int EffectDuration { get; set; }             // 지속 턴
+        public double EffectChance { get; set; } = 100;     // 적용 확률%
+        
+        // 약점 공격 성공 시 추가 피해 (순수 공격력 배율)
+        public double WekBonusDmg { get; set; }
+
+        // 회복 관련 (시전자 기준, 하나만 사용)
+        public double HealAtkRatio { get; set; }   // 시전자 공격력 비례 회복량
+        public double HealDefRatio { get; set; }   // 시전자 방어력 비례 회복량
+        public double HealHpRatio { get; set; }    // 시전자 최대체력 비례 회복량
     }
 
     /// <summary>
@@ -191,38 +189,40 @@ namespace GameDamageCalculator.Models
         public string Description { get; set; }
         public int MaxStacks { get; set; } = 1;
         
-        // Target 제거 (데이터 유무로 판단)
-        // public PassiveTarget Target { get; set; }  ← 삭제
-        
         public Dictionary<int, PassiveLevelData> LevelData { get; set; } = new Dictionary<int, PassiveLevelData>();
-        public Dictionary<int, PassiveTranscendBonus> TranscendBonuses { get; set; } = new Dictionary<int, PassiveTranscendBonus>();
+        
+        // 초월별 추가 효과 (통합)
+        public Dictionary<int, TranscendEffect> TranscendBonuses { get; set; } = new Dictionary<int, TranscendEffect>();
 
         // ===== 헬퍼 메서드 =====
         public PassiveLevelData GetLevelData(bool isEnhanced)
         {
             int key = isEnhanced ? 1 : 0;
-            return LevelData.TryGetValue(key, out var data) ? data : new PassiveLevelData();  // 없으면 빈 객체!
+            return LevelData.TryGetValue(key, out var data) ? data : new PassiveLevelData();
         }
 
-        public PassiveTranscendBonus GetTranscendBonus(int transcendLevel)
+        public TranscendEffect GetTranscendBonus(int transcendLevel)
         {
-            PassiveTranscendBonus result = new PassiveTranscendBonus();
+            TranscendEffect result = new TranscendEffect();
             if (TranscendBonuses == null) return result;
 
             // 해당 레벨 이하의 모든 보너스 누적
             foreach (var kvp in TranscendBonuses.Where(t => t.Key <= transcendLevel).OrderBy(t => t.Key))
             {
-                result.BuffModifier.Add(kvp.Value.BuffModifier);
-                result.DebuffModifier.Add(kvp.Value.DebuffModifier);
+                result.ArmorPen += kvp.Value.ArmorPen;
+                result.BonusDmg += kvp.Value.BonusDmg;
+                result.BonusCriDmg += kvp.Value.BonusCriDmg;
+                if (kvp.Value.BuffModifier != null) result.BuffModifier.Add(kvp.Value.BuffModifier);
+                if (kvp.Value.DebuffModifier != null) result.DebuffModifier.Add(kvp.Value.DebuffModifier);
                 result.Effect = kvp.Value.Effect;
             }
             return result;
         }
 
         // 편의 메서드 (스킬 레벨 + 초월 합산)
-        public BaseStatSet GetBuffModifier(bool isEnhanced, int transcendLevel)
+        public BuffSet GetBuffModifier(bool isEnhanced, int transcendLevel)
         {
-            var result = new BaseStatSet();
+            var result = new BuffSet();
             var levelData = GetLevelData(isEnhanced);
             var transcendBonus = GetTranscendBonus(transcendLevel);
 
@@ -250,25 +250,30 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveLevelData
     {
-        public BaseStatSet BuffModifier { get; set; } = new BaseStatSet();
+        public BuffSet BuffModifier { get; set; } = new BuffSet();
         public DebuffSet DebuffModifier { get; set; } = new DebuffSet();
         public string Effect { get; set; }
     }
 
     /// <summary>
-    /// 패시브 초월 보너스
+    /// 스킬/패시브 초월 보너스 (통합)
     /// </summary>
-    public class PassiveTranscendBonus
+    public class TranscendEffect
     {
-        public BaseStatSet BuffModifier { get; set; } = new BaseStatSet();
+        // 스킬용
+        public double ArmorPen { get; set; }
+        public double BonusDmg { get; set; }
+        public double BonusCriDmg { get; set; }
+        
+        // 버프/디버프
+        public BuffSet BuffModifier { get; set; } = new BuffSet();
         public DebuffSet DebuffModifier { get; set; } = new DebuffSet();
+        
         public string Effect { get; set; }
     }
-    
-    public enum PassiveTarget { Self, Ally, Enemy }
 
     /// <summary>
-    /// 초월 단계별 보너스
+    /// 초월 단계별 보너스 (캐릭터 스탯용)
     /// </summary>
     public class TranscendBonus
     {
@@ -287,7 +292,8 @@ namespace GameDamageCalculator.Models
         public double Vulnerability { get; set; }       // 취약%
         public double Atk_Reduction { get; set; }       // 공격력 감소%
         public double Spd_Reduction { get; set; }       // 속도 감소%
-        public double Dmg_Reduction { get; set; }       // 주는 피해량 감소% ← 추가
+        public double Dmg_Reduction { get; set; }       // 주는 피해량 감소%
+        public double Heal_Reduction { get; set; }      // 회복량 감소%
     
         public void Add(DebuffSet other)
         {
@@ -298,6 +304,8 @@ namespace GameDamageCalculator.Models
             Vulnerability += other.Vulnerability;
             Atk_Reduction += other.Atk_Reduction;
             Spd_Reduction += other.Spd_Reduction;
+            Dmg_Reduction += other.Dmg_Reduction;
+            Heal_Reduction += other.Heal_Reduction;
         }
     
         public DebuffSet Clone()
@@ -308,7 +316,80 @@ namespace GameDamageCalculator.Models
                 Dmg_Taken_Increase = this.Dmg_Taken_Increase,
                 Vulnerability = this.Vulnerability,
                 Atk_Reduction = this.Atk_Reduction,
-                Spd_Reduction = this.Spd_Reduction
+                Spd_Reduction = this.Spd_Reduction,
+                Dmg_Reduction = this.Dmg_Reduction,
+                Heal_Reduction = this.Heal_Reduction
+            };
+        }
+    }
+
+    /// <summary>
+    /// 아군에게 거는 버프 (패시브/스킬)
+    /// </summary>
+    public class BuffSet
+    {
+        public double Atk_Rate { get; set; }        // 공격력% 증가
+        public double Def_Rate { get; set; }        // 방어력% 증가
+        public double Hp_Rate { get; set; }         // 체력% 증가
+        public double Cri { get; set; }             // 치명타 확률 증가
+        public double Cri_Dmg { get; set; }         // 치명타 피해 증가
+        public double Wek { get; set; }             // 약점 확률 증가
+        public double Wek_Dmg { get; set; }         // 약점 피해 증가
+        public double Dmg_Dealt { get; set; }       // 피해량 증가%
+        public double Dmg_Dealt_Bos { get; set; }   // 보스 피해량 증가%
+        public double Dmg_Dealt_1to3 { get; set; }  // 1-3인기 피해량 증가%
+        public double Dmg_Dealt_4to5 { get; set; }  // 4-5인기 피해량 증가%
+        public double Arm_Pen { get; set; }         // 방어 관통%
+        public double Dmg_Rdc { get; set; }         // 받는 피해 감소%
+        public double Heal_Bonus { get; set; }      // 받는 회복량 증가%
+        public double Dmg_Rdc_Multi { get; set; }   // 받는 피해 감소% (다중)
+        public double Eff_Res { get; set; }         // 효과 저항 증가%
+        public double Shield_HpRatio { get; set; }  // 보호막 (최대체력 비례%)
+
+        public void Add(BuffSet other)
+        {
+            if (other == null) return;
+            
+            Atk_Rate += other.Atk_Rate;
+            Def_Rate += other.Def_Rate;
+            Hp_Rate += other.Hp_Rate;
+            Cri += other.Cri;
+            Cri_Dmg += other.Cri_Dmg;
+            Wek += other.Wek;
+            Wek_Dmg += other.Wek_Dmg;
+            Dmg_Dealt += other.Dmg_Dealt;
+            Dmg_Dealt_Bos += other.Dmg_Dealt_Bos;
+            Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
+            Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
+            Arm_Pen += other.Arm_Pen;
+            Dmg_Rdc += other.Dmg_Rdc;
+            Heal_Bonus += other.Heal_Bonus;
+            Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
+            Eff_Res += other.Eff_Res;
+            Shield_HpRatio += other.Shield_HpRatio;
+        }
+    
+        public BuffSet Clone()
+        {
+            return new BuffSet
+            {
+                Atk_Rate = this.Atk_Rate,
+                Def_Rate = this.Def_Rate,
+                Hp_Rate = this.Hp_Rate,
+                Cri = this.Cri,
+                Cri_Dmg = this.Cri_Dmg,
+                Wek = this.Wek,
+                Wek_Dmg = this.Wek_Dmg,
+                Dmg_Dealt = this.Dmg_Dealt,
+                Dmg_Dealt_Bos = this.Dmg_Dealt_Bos,
+                Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5,
+                Arm_Pen = this.Arm_Pen,
+                Dmg_Rdc = this.Dmg_Rdc,
+                Heal_Bonus = this.Heal_Bonus,
+                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi,
+                Eff_Res = this.Eff_Res,
+                Shield_HpRatio = this.Shield_HpRatio
             };
         }
     }

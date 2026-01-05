@@ -460,6 +460,8 @@ namespace GameDamageCalculator.UI
 
                     // UI에서 계산된 최종 스탯
                     FinalAtk = ParseStatValue(txtStatAtk.Text),
+                    FinalDef = ParseStatValue(txtStatDef.Text),
+                    FinalHp = ParseStatValue(txtStatHp.Text),
                     CritDamage = ParseStatValue(txtStatCriDmg.Text),
                     DmgDealt = ParseStatValue(txtStatDmgDealt.Text),
                     DmgDealtBoss = ParseStatValue(txtStatBossDmg.Text),
@@ -470,6 +472,7 @@ namespace GameDamageCalculator.UI
                     DefReduction = _currentDebuffs.Def_Reduction,
                     DmgTakenIncrease = _currentDebuffs.Dmg_Taken_Increase,
                     Vulnerability = _currentDebuffs.Vulnerability,
+                    HealReduction = _currentDebuffs.Heal_Reduction,
 
                     // 보스 정보
                     BossDef = ParseDouble(txtBossDef.Text),
@@ -483,7 +486,7 @@ namespace GameDamageCalculator.UI
                     IsBlocked = chkBlock.IsChecked == true,
 
                     // 조건 (TODO: 체크박스 추가 시)
-                    IsSkillConditionMet = false
+                    IsSkillConditionMet = false,
                 };
 
                 // 계산 및 출력
@@ -753,12 +756,12 @@ namespace GameDamageCalculator.UI
             BaseStatSet accessoryStats = GetAccessoryStats();
 
             // 버프/디버프
-            BaseStatSet passiveBuffs = GetAllPassiveBuffs();
-            BaseStatSet activeBuffs = GetAllActiveBuffs();
+            BuffSet passiveBuffs = GetAllPassiveBuffs();
+            BuffSet activeBuffs = GetAllActiveBuffs();
             DebuffSet passiveDebuffs = GetAllPassiveDebuffs();
             DebuffSet activeDebuffs = GetAllActiveDebuffs();
 
-            BaseStatSet totalBuffs = new BaseStatSet();
+            BuffSet totalBuffs = new BuffSet();
             totalBuffs.Add(passiveBuffs);
             totalBuffs.Add(activeBuffs);
 
@@ -853,19 +856,19 @@ namespace GameDamageCalculator.UI
                 Def = totalDef,
                 Hp = totalHp,
                 Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri,
-                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg,
-                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek,
-                Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg,
+                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg,
+                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek + totalBuffs.Wek,
+                Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg + totalBuffs.Wek_Dmg,
                 Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt,
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos,
-                Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen,
+                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos + totalBuffs.Dmg_Dealt_Bos,
+                Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen + totalBuffs.Arm_Pen,
                 Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,
                 Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,
                 Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res,
                 Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
-                Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc,
-                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3,
-                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5
+                Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc + totalBuffs.Dmg_Rdc,
+                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 + totalBuffs.Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5
             };
 
             UpdateStatDisplay(displayStats);
@@ -1284,17 +1287,19 @@ namespace GameDamageCalculator.UI
 
         #region 버프/디버프 합산 메서드
 
-        private BaseStatSet GetAllPassiveBuffs()
+        private BuffSet GetAllPassiveBuffs()
         {
-            BaseStatSet total = new BaseStatSet();
+            BuffSet total = new BuffSet();
             // TODO: 버프 패시브 캐릭터 추가 시
+            // 예: 리나 패시브 등
             return total;
         }
 
-        private BaseStatSet GetAllActiveBuffs()
+        private BuffSet GetAllActiveBuffs()
         {
-            BaseStatSet total = new BaseStatSet();
+            BuffSet total = new BuffSet();
             // TODO: 버프 액티브 캐릭터 추가 시
+            // 예: 리나 스킬 버프 등
             return total;
         }
 

@@ -41,8 +41,8 @@ namespace GameDamageCalculator.Models
         public double Def_Rate { get; set; }    // 방어력 % 증가
         public double Hp_Rate { get; set; }     // 생명력 % 증가
 
-        public double Dmg_Dealt_1to3 { get; set; }  // ← 추가: 1-3인기 보스 피해량
-        public double Dmg_Dealt_4to5 { get; set; }  // ← 추가: 4-5인기 보스 피해량
+        public double Dmg_Dealt_1to3 { get; set; }  // ← 추가: 1-3인기 피해량
+        public double Dmg_Dealt_4to5 { get; set; }  // ← 추가: 4-5인기 피해량
 
         public double Dmg_Rdc_Single { get; set; }  // 1인기 받피감
         public double Dmg_Rdc_Triple { get; set; }  // 3인기 받피감
