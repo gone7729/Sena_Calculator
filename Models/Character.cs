@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using GameDamageCalculator.Database;
 
 namespace GameDamageCalculator.Models
@@ -134,6 +135,24 @@ namespace GameDamageCalculator.Models
 
         public double GetConditionalExtraDmg(bool isEnhanced)
             => GetLevelData(isEnhanced).ConditionalExtraDmg;
+
+        /// <summary>
+        /// 초월 레벨에 따른 타겟 수 반환
+        /// </summary>
+        public int GetTargetCount(int transcendLevel)
+        {
+            if (TranscendBonuses == null) return TargetCount;
+            
+            foreach (var kvp in TranscendBonuses.Where(t => t.Key <= transcendLevel)
+                                                .OrderByDescending(t => t.Key))
+            {
+                if (kvp.Value.TargetCountOverride.HasValue)
+                {
+                    return kvp.Value.TargetCountOverride.Value;
+                }
+            }
+            return TargetCount;
+        }
     }
     
     /// <summary>
@@ -167,6 +186,8 @@ namespace GameDamageCalculator.Models
         public double HealAtkRatio { get; set; }   // 시전자 공격력 비례 회복량
         public double HealDefRatio { get; set; }   // 시전자 방어력 비례 회복량
         public double HealHpRatio { get; set; }    // 시전자 최대체력 비례 회복량
+        public string Effect { get; set; } //설명
+        public double BonusCri { get; set; }  // 스킬 치명타 확률 보정%
     }
 
     /// <summary>
@@ -269,7 +290,11 @@ namespace GameDamageCalculator.Models
         public BuffSet BuffModifier { get; set; } = new BuffSet();
         public DebuffSet DebuffModifier { get; set; } = new DebuffSet();
         
+        // 스킬 타겟 수 변경 (초월 시)
+        public int? TargetCountOverride { get; set; }
+        
         public string Effect { get; set; }
+        public double BonusCri { get; set; }  // 초월 치명타 확률 보정%
     }
 
     /// <summary>
@@ -295,6 +320,9 @@ namespace GameDamageCalculator.Models
         public double Dmg_Reduction { get; set; }       // 주는 피해량 감소%
         public double Heal_Reduction { get; set; }      // 회복량 감소%
     
+        /// <summary>
+        /// 단순 합산 (패시브+액티브 간 중첩용)
+        /// </summary>
         public void Add(DebuffSet other)
         {
             if (other == null) return;
@@ -306,6 +334,22 @@ namespace GameDamageCalculator.Models
             Spd_Reduction += other.Spd_Reduction;
             Dmg_Reduction += other.Dmg_Reduction;
             Heal_Reduction += other.Heal_Reduction;
+        }
+
+        /// <summary>
+        /// 높은 값만 적용 (같은 카테고리 내 중복 방지)
+        /// </summary>
+        public void MaxMerge(DebuffSet other)
+        {
+            if (other == null) return;
+            
+            Def_Reduction = Math.Max(Def_Reduction, other.Def_Reduction);
+            Dmg_Taken_Increase = Math.Max(Dmg_Taken_Increase, other.Dmg_Taken_Increase);
+            Vulnerability = Math.Max(Vulnerability, other.Vulnerability);
+            Atk_Reduction = Math.Max(Atk_Reduction, other.Atk_Reduction);
+            Spd_Reduction = Math.Max(Spd_Reduction, other.Spd_Reduction);
+            Dmg_Reduction = Math.Max(Dmg_Reduction, other.Dmg_Reduction);
+            Heal_Reduction = Math.Max(Heal_Reduction, other.Heal_Reduction);
         }
     
         public DebuffSet Clone()
@@ -341,11 +385,14 @@ namespace GameDamageCalculator.Models
         public double Dmg_Dealt_4to5 { get; set; }  // 4-5인기 피해량 증가%
         public double Arm_Pen { get; set; }         // 방어 관통%
         public double Dmg_Rdc { get; set; }         // 받는 피해 감소%
+        public double Dmg_Rdc_Multi { get; set; }   // 5인기 받는 피해 감소% (추가)
         public double Heal_Bonus { get; set; }      // 받는 회복량 증가%
-        public double Dmg_Rdc_Multi { get; set; }   // 받는 피해 감소% (다중)
-        public double Eff_Res { get; set; }         // 효과 저항 증가%
+        public double Eff_Res { get; set; }         // 효과 저항%
         public double Shield_HpRatio { get; set; }  // 보호막 (최대체력 비례%)
-
+    
+        /// <summary>
+        /// 단순 합산 (패시브+액티브 간 중첩용)
+        /// </summary>
         public void Add(BuffSet other)
         {
             if (other == null) return;
@@ -364,9 +411,35 @@ namespace GameDamageCalculator.Models
             Arm_Pen += other.Arm_Pen;
             Dmg_Rdc += other.Dmg_Rdc;
             Heal_Bonus += other.Heal_Bonus;
-            Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
             Eff_Res += other.Eff_Res;
             Shield_HpRatio += other.Shield_HpRatio;
+            Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
+        }
+
+        /// <summary>
+        /// 높은 값만 적용 (같은 카테고리 내 중복 방지)
+        /// </summary>
+        public void MaxMerge(BuffSet other)
+        {
+            if (other == null) return;
+            
+            Atk_Rate = Math.Max(Atk_Rate, other.Atk_Rate);
+            Def_Rate = Math.Max(Def_Rate, other.Def_Rate);
+            Hp_Rate = Math.Max(Hp_Rate, other.Hp_Rate);
+            Cri = Math.Max(Cri, other.Cri);
+            Cri_Dmg = Math.Max(Cri_Dmg, other.Cri_Dmg);
+            Wek = Math.Max(Wek, other.Wek);
+            Wek_Dmg = Math.Max(Wek_Dmg, other.Wek_Dmg);
+            Dmg_Dealt = Math.Max(Dmg_Dealt, other.Dmg_Dealt);
+            Dmg_Dealt_Bos = Math.Max(Dmg_Dealt_Bos, other.Dmg_Dealt_Bos);
+            Dmg_Dealt_1to3 = Math.Max(Dmg_Dealt_1to3, other.Dmg_Dealt_1to3);
+            Dmg_Dealt_4to5 = Math.Max(Dmg_Dealt_4to5, other.Dmg_Dealt_4to5);
+            Arm_Pen = Math.Max(Arm_Pen, other.Arm_Pen);
+            Dmg_Rdc = Math.Max(Dmg_Rdc, other.Dmg_Rdc);
+            Heal_Bonus = Math.Max(Heal_Bonus, other.Heal_Bonus);
+            Eff_Res = Math.Max(Eff_Res, other.Eff_Res);
+            Shield_HpRatio = Math.Max(Shield_HpRatio, other.Shield_HpRatio);
+            Dmg_Rdc_Multi = Math.Max(Dmg_Rdc_Multi, other.Dmg_Rdc_Multi);
         }
     
         public BuffSet Clone()
@@ -387,9 +460,9 @@ namespace GameDamageCalculator.Models
                 Arm_Pen = this.Arm_Pen,
                 Dmg_Rdc = this.Dmg_Rdc,
                 Heal_Bonus = this.Heal_Bonus,
-                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi,
                 Eff_Res = this.Eff_Res,
-                Shield_HpRatio = this.Shield_HpRatio
+                Shield_HpRatio = this.Shield_HpRatio,
+                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi
             };
         }
     }

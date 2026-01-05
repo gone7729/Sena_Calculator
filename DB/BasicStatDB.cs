@@ -20,6 +20,14 @@ namespace GameDamageCalculator.Database
                 Dmg_Dealt = 0, Dmg_Dealt_Bos = 0, Eff_Acc = 0, 
                 Atk_Rate = 0, Def_Rate = 0, Hp_Rate = 0
             }},
+            { "마법형", new BaseStatSet { 
+                Atk = 1500, Def = 571, Hp = 3326, Spd = 29, 
+                Cri = 5, Cri_Dmg = 150, Wek = 0, Wek_Dmg = 130, 
+                Blk = 0, Dmg_Rdc = 0, Eff_Hit = 0, Eff_Res = 0, 
+                Heal_Rec = 0, Blk_Red = 0, Arm_Pen = 0, 
+                Dmg_Dealt = 0, Dmg_Dealt_Bos = 0, Eff_Acc = 0, 
+                Atk_Rate = 0, Def_Rate = 0, Hp_Rate = 0
+            }},
             { "만능형", new BaseStatSet { 
                 Atk = 1306, Def = 659, Hp = 3693, Spd = 25, 
                 Cri = 5, Cri_Dmg = 150, Wek = 0, Wek_Dmg = 130, 
@@ -50,6 +58,14 @@ namespace GameDamageCalculator.Database
         public static readonly Dictionary<string, BaseStatSet> HeroStats = new Dictionary<string, BaseStatSet>
         {
             { "공격형", new BaseStatSet { 
+                Atk = 1389, Def = 533, Hp = 3174, Spd = 25, 
+                Cri = 5, Cri_Dmg = 150, Wek = 0, Wek_Dmg = 130, 
+                Blk = 0, Dmg_Rdc = 0, Eff_Hit = 0, Eff_Res = 0, 
+                Heal_Rec = 0, Blk_Red = 0, Arm_Pen = 0, 
+                Dmg_Dealt = 0, Dmg_Dealt_Bos = 0, Eff_Acc = 0, 
+                Atk_Rate = 0, Def_Rate = 0, Hp_Rate = 0
+            }},
+            { "마법형", new BaseStatSet { 
                 Atk = 1389, Def = 533, Hp = 3174, Spd = 25, 
                 Cri = 5, Cri_Dmg = 150, Wek = 0, Wek_Dmg = 130, 
                 Blk = 0, Dmg_Rdc = 0, Eff_Hit = 0, Eff_Res = 0, 

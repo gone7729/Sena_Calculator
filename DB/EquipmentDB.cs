@@ -129,7 +129,7 @@ namespace GameDamageCalculator.Database
         {
             { 4, new BaseStatSet { Atk_Rate = 3, Def_Rate = 3, Hp_Rate = 3 } },
             { 5, new BaseStatSet { Atk_Rate = 5, Def_Rate = 5, Hp_Rate = 5 } },
-            { 6, new BaseStatSet { Atk_Rate = 7, Def_Rate = 7, Hp_Rate = 7 } }
+            { 6, new BaseStatSet { Atk_Rate = 10, Def_Rate = 10, Hp_Rate = 10 } }
         };
     
         // 메인옵션 값 (성급별)

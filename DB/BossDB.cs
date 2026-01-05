@@ -55,12 +55,18 @@ namespace GameDamageCalculator.Database
                 Id = 101,
                 Name = "강철의 포식자",
                 BossType = BossType.Raid,
-                Difficulty = 7,
+                Difficulty = 15,
                 Stats = new BaseStatSet
                 {
-                    Def = 1956
+                    Atk = 4745,
+                    Def = 3906,
+                    Hp = 380024,
+                    Spd = 30,
+                    Cri = 0,
+                    Cri_Dmg = 0,
+                    Eff_Hit = 100
                 },
-                DefenseIncrease = 0.30,
+                DefenseIncrease = 0.4,
                 DefenseIncreaseCondition = "체력 30% 이상"
             },
         

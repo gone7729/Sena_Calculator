@@ -414,6 +414,40 @@ namespace GameDamageCalculator.UI
                 txtBoss1TargetRdc.Text = (boss.SingleTargetReduction * 100).ToString("F0");
                 txtBoss3TargetRdc.Text = (boss.TripleTargetReduction * 100).ToString("F0");
                 txtBoss5TargetRdc.Text = (boss.MultiTargetReduction * 100).ToString("F0");
+
+                // 조건부 방증 처리
+                if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
+                {
+                    panelBossCondition.Visibility = Visibility.Visible;
+                    txtBossCondition.Text = boss.DefenseIncreaseCondition;
+                    chkBossCondition.IsChecked = false;  // 기본: 조건 미충족 (방증 적용)
+                    txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                }
+                else
+                {
+                    panelBossCondition.Visibility = Visibility.Collapsed;
+                    txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                }
+            }
+        }
+
+        private void BossCondition_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            // 조건 충족 체크 시 → 방증 해제 (체력 30% 미만이면 방증 없음)
+            if (chkBossCondition.IsChecked == true)
+            {
+                txtBossDefInc.Text = "0";
+            }
+            else
+            {
+                // 조건 미충족 → 방증 적용
+                var boss = GetSelectedBoss();
+                if (boss != null)
+                {
+                    txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                }
             }
         }
 
@@ -486,7 +520,7 @@ namespace GameDamageCalculator.UI
                     IsBlocked = chkBlock.IsChecked == true,
 
                     // 조건 (TODO: 체크박스 추가 시)
-                    IsSkillConditionMet = false,
+                    IsSkillConditionMet = false
                 };
 
                 // 계산 및 출력
@@ -637,15 +671,37 @@ namespace GameDamageCalculator.UI
             txtBoss1TargetRdc.Text = "0";
             txtBoss3TargetRdc.Text = "0";
             txtBoss5TargetRdc.Text = "0";
+            // 보스 조건 초기화
+            panelBossCondition.Visibility = Visibility.Collapsed;
+            chkBossCondition.IsChecked = false;
 
-            // ===== 버프/디버프 초기화 =====
+            /// ===== 버프/디버프 초기화 =====
+            // 버프 패시브
+            chkBuffPassiveLion.IsChecked = false;
+            ResetBuffOptionButton(btnBuffPassiveLion, "라이언");
+            chkBuffPassiveLina.IsChecked = false;
+            ResetBuffOptionButton(btnBuffPassiveLina, "리나");
+            chkBuffPassiveRachel.IsChecked = false;
+            ResetBuffOptionButton(btnBuffPassiveRachel, "레이첼");
+            
+            // 버프 액티브
+            chkBuffActiveBiscuit.IsChecked = false;
+            ResetBuffOptionButton(btnBuffActiveBiscuit, "비스킷");
+            chkBuffActiveLina.IsChecked = false;
+            ResetBuffOptionButton(btnBuffActiveLina, "리나");
+            
             // 디버프 패시브
             chkDebuffPassiveTaka.IsChecked = false;
             ResetBuffOptionButton(btnDebuffPassiveTaka, "타카");
-        
-            // TODO: 다른 캐릭터 추가 시
-            // chkBuffPassiveXXX.IsChecked = false;
-            // ResetBuffOptionButton(btnBuffPassiveXXX, "캐릭터명");
+            chkDebuffPassiveBiscuit.IsChecked = false;
+            ResetBuffOptionButton(btnDebuffPassiveBiscuit, "비스킷");
+            
+            // 디버프 액티브
+            chkDebuffActiveLina.IsChecked = false;
+            ResetBuffOptionButton(btnDebuffActiveLina, "리나");
+            chkDebuffActiveRachelFlame.IsChecked = false;
+            chkDebuffActiveRachelPhoenix.IsChecked = false;
+            ResetBuffOptionButton(btnDebuffActiveRachel, "레이첼");
             
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
@@ -749,13 +805,30 @@ namespace GameDamageCalculator.UI
                 }
             }
 
+            // ========== 선택한 캐릭터의 패시브 버프 (자신에게 적용) ==========
+            BuffSet characterPassiveBuff = new BuffSet();
+            if (cboCharacter.SelectedIndex > 0)
+            {
+                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                if (character?.Passive != null)
+                {
+                    bool isEnhanced = chkSkillEnhanced.IsChecked == true;
+                    int transcendLevel = cboTranscend.SelectedIndex;
+                    var buff = character.Passive.GetBuffModifier(isEnhanced, transcendLevel);
+                    if (buff != null)
+                    {
+                        characterPassiveBuff.Add(buff);
+                    }
+                }
+            }
+
             // ========== 각종 스탯 소스 가져오기 ==========
             var potentialStats = GetPotentialStats();
             BaseStatSet subStats = GetSubOptionStats();
             BaseStatSet mainOptionStats = GetMainOptionStats();
             BaseStatSet accessoryStats = GetAccessoryStats();
 
-            // 버프/디버프
+            // 버프/디버프 (UI 체크박스)
             BuffSet passiveBuffs = GetAllPassiveBuffs();
             BuffSet activeBuffs = GetAllActiveBuffs();
             DebuffSet passiveDebuffs = GetAllPassiveDebuffs();
@@ -783,20 +856,16 @@ namespace GameDamageCalculator.UI
             double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
 
             // ========== 합연산% (정수로 합산) ==========
-            // 초월%
-            double transcendAtkRate = 0;
-            double transcendDefRate = 0;
-            double transcendHpRate = 0;
+            // 초월 스탯 (전체)
+            BaseStatSet transcendStats = new BaseStatSet();
+        
             if (cboCharacter.SelectedIndex > 0)
             {
                 var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
                 if (character != null)
                 {
                     int transcendLevel = cboTranscend.SelectedIndex;
-                    var transcendStats = character.GetTranscendStats(transcendLevel);
-                    transcendAtkRate = transcendStats.Atk_Rate;
-                    transcendDefRate = transcendStats.Def_Rate;
-                    transcendHpRate = transcendStats.Hp_Rate;
+                    transcendStats = character.GetTranscendStats(transcendLevel);
                 }
             }
 
@@ -823,52 +892,66 @@ namespace GameDamageCalculator.UI
             double petOptionDefRate = GetPetOptionDefRate();
             double petOptionHpRate = GetPetOptionHpRate();
 
-            // 합연산% 합계 (정수)
-            double totalAtkRate = transcendAtkRate + formationAtkRate 
+            // 합연산% 합계 (정수) - 진형 포함
+            double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
                     + setBonus.Atk_Rate + subStats.Atk_Rate 
                     + accessoryStats.Atk_Rate + petOptionAtkRate
                     + mainOptionStats.Atk_Rate;
 
-            double totalDefRate = transcendDefRate + formationDefRate 
+            double totalDefRate = transcendStats.Def_Rate + formationDefRate
                     + setBonus.Def_Rate + subStats.Def_Rate 
                     + accessoryStats.Def_Rate + petOptionDefRate
                     + mainOptionStats.Def_Rate;
 
-            double totalHpRate = transcendHpRate 
+            double totalHpRate = transcendStats.Hp_Rate 
                    + setBonus.Hp_Rate + subStats.Hp_Rate 
                    + accessoryStats.Hp_Rate + petOptionHpRate
                    + mainOptionStats.Hp_Rate;
 
-            // ========== 버프% (펫스킬% + 패시브% + 액티브%) ==========
-            double buffAtkRate = GetPetSkillAtkRate() + totalBuffs.Atk_Rate;
-            double buffDefRate = totalBuffs.Def_Rate;
-            double buffHpRate = totalBuffs.Hp_Rate;
+            // ========== 버프% (펫스킬% + UI버프% + 캐릭터패시브%) ==========
+            double buffAtkRate = GetPetSkillAtkRate() + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
+            double buffDefRate = totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
+            double buffHpRate = totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
 
-            // ========== 최종 스탯 계산 (정수 → /100.0) ==========
-            double totalAtk = (baseAtk * (1 + totalAtkRate / 100.0) + flatAtk) * (1 + buffAtkRate / 100.0);
-            double totalDef = (baseDef * (1 + totalDefRate / 100.0) + flatDef) * (1 + buffDefRate / 100.0);
-            double totalHp = (baseHp * (1 + totalHpRate / 100.0) + flatHp) * (1 + buffHpRate / 100.0);
+            // ========== 기본 스탯 (버프 적용 전) ==========
+            double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
+            double baseStatDef = baseDef * (1 + totalDefRate / 100.0) + flatDef;
+            double baseStatHp = baseHp * (1 + totalHpRate / 100.0) + flatHp;
 
-            // ========== UI에 표시 ==========
+            // ========== 최종 스탯 (버프 적용 후) ==========
+            double totalAtk = baseStatAtk * (1 + buffAtkRate / 100.0);
+            double totalDef = baseStatDef * (1 + buffDefRate / 100.0);
+            double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
+
+            // ========== 기본/최종 스탯 UI 표시 ==========
+            // 표시용 (진형 미포함) - 게임 스탯창과 동일
+            double displayBaseAtk = baseAtk * (1 + (totalAtkRate - formationAtkRate) / 100.0) + flatAtk;
+            double displayBaseDef = baseDef * (1 + (totalDefRate - formationDefRate) / 100.0) + flatDef;
+            txtStatAtkBase.Text = baseStatAtk.ToString("N0");
+            txtStatDefBase.Text = baseStatDef.ToString("N0");
+            txtStatHpBase.Text = baseStatHp.ToString("N0");
+
+            txtStatAtk.Text = totalAtk.ToString("N0");
+            txtStatDef.Text = totalDef.ToString("N0");
+            txtStatHp.Text = totalHp.ToString("N0");
+
+            // ========== 기타 스탯 UI 표시 ==========
             BaseStatSet displayStats = new BaseStatSet
             {
-                Atk = totalAtk,
-                Def = totalDef,
-                Hp = totalHp,
-                Cri = characterStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri,
-                Cri_Dmg = characterStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg,
-                Wek = characterStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek + totalBuffs.Wek,
-                Wek_Dmg = characterStats.Wek_Dmg + setBonus.Wek_Dmg + totalBuffs.Wek_Dmg,
-                Dmg_Dealt = characterStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt,
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos + totalBuffs.Dmg_Dealt_Bos,
-                Arm_Pen = characterStats.Arm_Pen + setBonus.Arm_Pen + totalBuffs.Arm_Pen,
-                Blk = characterStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,
-                Eff_Hit = characterStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,
-                Eff_Res = characterStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res,
-                Eff_Acc = characterStats.Eff_Acc + setBonus.Eff_Acc,
-                Dmg_Rdc = characterStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc + totalBuffs.Dmg_Rdc,
-                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 + totalBuffs.Dmg_Dealt_1to3,
-                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5
+                Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri + characterPassiveBuff.Cri,
+                Cri_Dmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg + characterPassiveBuff.Cri_Dmg,
+                Wek = characterStats.Wek + transcendStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek + totalBuffs.Wek + characterPassiveBuff.Wek,
+                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
+                Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt,
+                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
+                Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,
+                Blk = characterStats.Blk + transcendStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,
+                Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,
+                Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res + characterPassiveBuff.Eff_Res,
+                Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
+                Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc,
+                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5
             };
 
             UpdateStatDisplay(displayStats);
@@ -876,21 +959,16 @@ namespace GameDamageCalculator.UI
 
             // 디버그 출력
             System.Diagnostics.Debug.WriteLine("========== 디버그 ==========");
-            System.Diagnostics.Debug.WriteLine($"기본공격력: {baseAtk}");
-            System.Diagnostics.Debug.WriteLine($"깡공합계: {flatAtk}");
-            System.Diagnostics.Debug.WriteLine($"총 공격력%: {totalAtkRate}");
+            System.Diagnostics.Debug.WriteLine($"기본공격력(버프전): {baseStatAtk}");
+            System.Diagnostics.Debug.WriteLine($"최종공격력(버프후): {totalAtk}");
             System.Diagnostics.Debug.WriteLine($"버프 공격력%: {buffAtkRate}");
-            System.Diagnostics.Debug.WriteLine($"패시브 버프 피증%: {passiveBuffs.Dmg_Dealt}");
-            System.Diagnostics.Debug.WriteLine($"액티브 버프 피증%: {activeBuffs.Dmg_Dealt}");
-            System.Diagnostics.Debug.WriteLine($"총 디버프 받피증%: {_currentDebuffs.Dmg_Taken_Increase}");
-            System.Diagnostics.Debug.WriteLine($"최종 공격력: {totalAtk}");
+            System.Diagnostics.Debug.WriteLine($"캐릭터 패시브 공격력%: {characterPassiveBuff.Atk_Rate}");
+            System.Diagnostics.Debug.WriteLine($"캐릭터 패시브 치피%: {characterPassiveBuff.Cri_Dmg}");
         }
 
         private void UpdateStatDisplay(BaseStatSet stats)
         {
-            txtStatAtk.Text = stats.Atk.ToString("N0");
-            txtStatDef.Text = stats.Def.ToString("N0");
-            txtStatHp.Text = stats.Hp.ToString("N0");
+            // 공/방/생은 RecalculateStats에서 직접 처리
             // % 스탯 - 정수 그대로 표시
             txtStatCri.Text = $"{stats.Cri}%";
             txtStatCriDmg.Text = $"{stats.Cri_Dmg}%";
@@ -1290,16 +1368,92 @@ namespace GameDamageCalculator.UI
         private BuffSet GetAllPassiveBuffs()
         {
             BuffSet total = new BuffSet();
-            // TODO: 버프 패시브 캐릭터 추가 시
-            // 예: 리나 패시브 등
+
+            // 라이언 - 쾌속의 마검사 (1-3인기 피증)
+            if (chkBuffPassiveLion.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffPassiveLion);
+                var lion = CharacterDb.GetByName("라이언");
+                var buff = lion?.Passive?.GetBuffModifier(isEnhanced, transcendLevel);
+                if (buff != null)
+                {
+                    total.MaxMerge(buff);
+                }
+            }
+
+            // 리나 - 불협화음 (치피 @2초월)
+            if (chkBuffPassiveLina.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffPassiveLina);
+                var lina = CharacterDb.GetByName("리나");
+                var buff = lina?.Passive?.GetBuffModifier(isEnhanced, transcendLevel);
+                if (buff != null)
+                {
+                    total.MaxMerge(buff);
+                }
+            }
+
+            // 레이첼 - 화염의 힘 (약공확)
+            if (chkBuffPassiveRachel.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffPassiveRachel);
+                var rachel = CharacterDb.GetByName("레이첼");
+                var buff = rachel?.Passive?.GetBuffModifier(isEnhanced, transcendLevel);
+                if (buff != null)
+                {
+                    total.MaxMerge(buff);
+                }
+            }
+
             return total;
         }
 
         private BuffSet GetAllActiveBuffs()
         {
             BuffSet total = new BuffSet();
-            // TODO: 버프 액티브 캐릭터 추가 시
-            // 예: 리나 스킬 버프 등
+
+            // 비스킷 - 장비 강화 (보피증, 약공확)
+            if (chkBuffActiveBiscuit.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffActiveBiscuit);
+                var biscuit = CharacterDb.GetByName("비스킷");
+                var skill = biscuit?.Skills?.FirstOrDefault(s => s.Name == "장비 강화");
+                if (skill != null)
+                {
+                    var levelData = skill.GetLevelData(isEnhanced);
+                    if (levelData?.BuffEffect != null)
+                    {
+                        total.MaxMerge(levelData.BuffEffect);
+                    }
+                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                    if (transcendBonus?.BuffModifier != null)
+                    {
+                        total.MaxMerge(transcendBonus.BuffModifier);
+                    }
+                }
+            }
+
+            // 리나 - 따뜻한 울림 (피증)
+            if (chkBuffActiveLina.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffActiveLina);
+                var lina = CharacterDb.GetByName("리나");
+                var skill = lina?.Skills?.FirstOrDefault(s => s.Name == "따뜻한 울림");
+                if (skill != null)
+                {
+                    var levelData = skill.GetLevelData(isEnhanced);
+                    if (levelData?.BuffEffect != null)
+                    {
+                        total.MaxMerge(levelData.BuffEffect);
+                    }
+                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                    if (transcendBonus?.BuffModifier != null)
+                    {
+                        total.MaxMerge(transcendBonus.BuffModifier);
+                    }
+                }
+            }
+
             return total;
         }
 
@@ -1307,6 +1461,7 @@ namespace GameDamageCalculator.UI
         {
             DebuffSet total = new DebuffSet();
 
+            // 타카 - 매의 발톱 (취약, 받피증)
             if (chkDebuffPassiveTaka.IsChecked == true)
             {
                 var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffPassiveTaka);
@@ -1314,7 +1469,19 @@ namespace GameDamageCalculator.UI
                 var debuff = taka?.Passive?.GetDebuffModifier(isEnhanced, transcendLevel);
                 if (debuff != null)
                 {
-                    total.Add(debuff);
+                    total.MaxMerge(debuff);
+                }
+            }
+
+            // 비스킷 - 대장장이의 강화 (방깎)
+            if (chkDebuffPassiveBiscuit.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffPassiveBiscuit);
+                var biscuit = CharacterDb.GetByName("비스킷");
+                var debuff = biscuit?.Passive?.GetDebuffModifier(isEnhanced, transcendLevel);
+                if (debuff != null)
+                {
+                    total.MaxMerge(debuff);
                 }
             }
 
@@ -1324,7 +1491,70 @@ namespace GameDamageCalculator.UI
         private DebuffSet GetAllActiveDebuffs()
         {
             DebuffSet total = new DebuffSet();
-            // TODO: 디버프 액티브 캐릭터 추가 시
+
+            // 리나 - 따뜻한 울림 (방깎)
+            if (chkDebuffActiveLina.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffActiveLina);
+                var lina = CharacterDb.GetByName("리나");
+                var skill = lina?.Skills?.FirstOrDefault(s => s.Name == "따뜻한 울림");
+                if (skill != null)
+                {
+                    var levelData = skill.GetLevelData(isEnhanced);
+                    if (levelData?.DebuffEffect != null)
+                    {
+                        total.MaxMerge(levelData.DebuffEffect);
+                    }
+                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                    if (transcendBonus?.DebuffModifier != null)
+                    {
+                        total.MaxMerge(transcendBonus.DebuffModifier);
+                    }
+                }
+            }
+
+            // 레이첼 - 염화 (공깎, 피해량감소)
+            if (chkDebuffActiveRachelFlame.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffActiveRachel);
+                var rachel = CharacterDb.GetByName("레이첼");
+                var skill = rachel?.Skills?.FirstOrDefault(s => s.Name == "염화");
+                if (skill != null)
+                {
+                    var levelData = skill.GetLevelData(isEnhanced);
+                    if (levelData?.DebuffEffect != null)
+                    {
+                        total.MaxMerge(levelData.DebuffEffect);
+                    }
+                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                    if (transcendBonus?.DebuffModifier != null)
+                    {
+                        total.MaxMerge(transcendBonus.DebuffModifier);
+                    }
+                }
+            }
+
+            // 레이첼 - 불새 (방깎, 취약)
+            if (chkDebuffActiveRachelPhoenix.IsChecked == true)
+            {
+                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffActiveRachel);
+                var rachel = CharacterDb.GetByName("레이첼");
+                var skill = rachel?.Skills?.FirstOrDefault(s => s.Name == "불새");
+                if (skill != null)
+                {
+                    var levelData = skill.GetLevelData(isEnhanced);
+                    if (levelData?.DebuffEffect != null)
+                    {
+                        total.MaxMerge(levelData.DebuffEffect);
+                    }
+                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                    if (transcendBonus?.DebuffModifier != null)
+                    {
+                        total.MaxMerge(transcendBonus.DebuffModifier);
+                    }
+                }
+            }
+
             return total;
         }
 
