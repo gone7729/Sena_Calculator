@@ -20,17 +20,58 @@ namespace GameDamageCalculator.UI
         private bool _isInitialized = false;
 
         private DebuffSet _currentDebuffs = new DebuffSet();
+
+        // 버프/디버프 설정 리스트
+        private List<BuffConfig> _buffConfigs;
+
+        // 버프 설정 클래스
+        private class BuffConfig
+        {
+            public string Key { get; set; }
+            public CheckBox CheckBox { get; set; }
+            public Button Button { get; set; }
+            public string BaseName { get; set; }
+            public string CharacterName { get; set; }
+            public string SkillName { get; set; }
+            public bool IsBuff { get; set; }
+        }
         
         public MainWindow()
         {
             InitializeComponent();
             _calculator = new DamageCalculator();
             InitializeComboBoxes();
+            InitializeBuffConfigs();
              // 생성자에서 초기화 (InitializeComboBoxes() 다음에)
             _presetManager = new PresetManager();
             RefreshPresetList();
             _isInitialized = true;
             RecalculateStats();
+        }
+
+        private void InitializeBuffConfigs()
+        {
+            _buffConfigs = new List<BuffConfig>
+            {
+                // 버프 패시브
+                new BuffConfig { Key = "BuffPassiveLion", CheckBox = chkBuffPassiveLion, Button = btnBuffPassiveLion, BaseName = "라이언", CharacterName = "라이언", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLina", CheckBox = chkBuffPassiveLina, Button = btnBuffPassiveLina, BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRachel", CheckBox = chkBuffPassiveRachel, Button = btnBuffPassiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveDelonz", CheckBox = chkBuffPassiveDelonz, Button = btnBuffPassiveDelonz, BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
+
+                // 버프 액티브
+                new BuffConfig { Key = "BuffActiveBiscuit", CheckBox = chkBuffActiveBiscuit, Button = btnBuffActiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveLina", CheckBox = chkBuffActiveLina, Button = btnBuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
+
+                // 디버프 패시브
+                new BuffConfig { Key = "DebuffPassiveTaka", CheckBox = chkDebuffPassiveTaka, Button = btnDebuffPassiveTaka, BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveBiscuit", CheckBox = chkDebuffPassiveBiscuit, Button = btnDebuffPassiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
+
+                // 디버프 액티브
+                new BuffConfig { Key = "DebuffActiveLina", CheckBox = chkDebuffActiveLina, Button = btnDebuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelFlame", CheckBox = chkDebuffActiveRachelFlame, Button = btnDebuffActiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelPhoenix", CheckBox = chkDebuffActiveRachelPhoenix, Button = null, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", IsBuff = false }
+            };
         }
 
         #region 초기화
@@ -682,32 +723,12 @@ namespace GameDamageCalculator.UI
             chkBossCondition.IsChecked = false;
 
             /// ===== 버프/디버프 초기화 =====
-            // 버프 패시브
-            chkBuffPassiveLion.IsChecked = false;
-            ResetBuffOptionButton(btnBuffPassiveLion, "라이언");
-            chkBuffPassiveLina.IsChecked = false;
-            ResetBuffOptionButton(btnBuffPassiveLina, "리나");
-            chkBuffPassiveRachel.IsChecked = false;
-            ResetBuffOptionButton(btnBuffPassiveRachel, "레이첼");
-            
-            // 버프 액티브
-            chkBuffActiveBiscuit.IsChecked = false;
-            ResetBuffOptionButton(btnBuffActiveBiscuit, "비스킷");
-            chkBuffActiveLina.IsChecked = false;
-            ResetBuffOptionButton(btnBuffActiveLina, "리나");
-            
-            // 디버프 패시브
-            chkDebuffPassiveTaka.IsChecked = false;
-            ResetBuffOptionButton(btnDebuffPassiveTaka, "타카");
-            chkDebuffPassiveBiscuit.IsChecked = false;
-            ResetBuffOptionButton(btnDebuffPassiveBiscuit, "비스킷");
-            
-            // 디버프 액티브
-            chkDebuffActiveLina.IsChecked = false;
-            ResetBuffOptionButton(btnDebuffActiveLina, "리나");
-            chkDebuffActiveRachelFlame.IsChecked = false;
-            chkDebuffActiveRachelPhoenix.IsChecked = false;
-            ResetBuffOptionButton(btnDebuffActiveRachel, "레이첼");
+            foreach (var config in _buffConfigs)
+            {
+                config.CheckBox.IsChecked = false;
+                if (config.Button != null)
+                    ResetBuffOptionButton(config.Button, config.BaseName);
+            }
             
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
@@ -820,7 +841,7 @@ namespace GameDamageCalculator.UI
                 {
                     bool isEnhanced = chkSkillEnhanced.IsChecked == true;
                     int transcendLevel = cboTranscend.SelectedIndex;
-                    var buff = character.Passive.GetBuffModifier(isEnhanced, transcendLevel);
+                    var buff = character.Passive.GetTotalBuff(isEnhanced, transcendLevel);
                     if (buff != null)
                     {
                         characterPassiveBuff.Add(buff);
@@ -962,14 +983,6 @@ namespace GameDamageCalculator.UI
 
             UpdateStatDisplay(displayStats);
             UpdateBossDebuffDisplay();
-
-            // 디버그 출력
-            System.Diagnostics.Debug.WriteLine("========== 디버그 ==========");
-            System.Diagnostics.Debug.WriteLine($"기본공격력(버프전): {baseStatAtk}");
-            System.Diagnostics.Debug.WriteLine($"최종공격력(버프후): {totalAtk}");
-            System.Diagnostics.Debug.WriteLine($"버프 공격력%: {buffAtkRate}");
-            System.Diagnostics.Debug.WriteLine($"캐릭터 패시브 공격력%: {characterPassiveBuff.Atk_Rate}");
-            System.Diagnostics.Debug.WriteLine($"캐릭터 패시브 치피%: {characterPassiveBuff.Cri_Dmg}");
         }
 
         private void UpdateStatDisplay(BaseStatSet stats)
@@ -1348,6 +1361,7 @@ namespace GameDamageCalculator.UI
 
         private (bool isEnhanced, int transcendLevel) GetBuffOption(Button btn)
         {
+            if (btn == null) return (false, 0);
             int state = int.Parse(btn.Tag?.ToString() ?? "0");
             return state switch
             {
@@ -1374,193 +1388,69 @@ namespace GameDamageCalculator.UI
         private BuffSet GetAllPassiveBuffs()
         {
             BuffSet total = new BuffSet();
-
-            // 라이언 - 쾌속의 마검사 (1-3인기 피증)
-            if (chkBuffPassiveLion.IsChecked == true)
+            foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName == null))
             {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffPassiveLion);
-                var lion = CharacterDb.GetByName("라이언");
-                var buff = lion?.Passive?.GetBuffModifier(isEnhanced, transcendLevel);
-                if (buff != null)
-                {
-                    total.MaxMerge(buff);
-                }
+                if (config.CheckBox.IsChecked != true) continue;
+                var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
+                var character = CharacterDb.GetByName(config.CharacterName);
+                var buff = character?.Passive?.GetTotalBuff(isEnhanced, transcendLevel);
+                if (buff != null) total.MaxMerge(buff);
             }
-
-            // 리나 - 불협화음 (치피 @2초월)
-            if (chkBuffPassiveLina.IsChecked == true)
-            {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffPassiveLina);
-                var lina = CharacterDb.GetByName("리나");
-                var buff = lina?.Passive?.GetBuffModifier(isEnhanced, transcendLevel);
-                if (buff != null)
-                {
-                    total.MaxMerge(buff);
-                }
-            }
-
-            // 레이첼 - 화염의 힘 (약공확)
-            if (chkBuffPassiveRachel.IsChecked == true)
-            {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffPassiveRachel);
-                var rachel = CharacterDb.GetByName("레이첼");
-                var buff = rachel?.Passive?.GetBuffModifier(isEnhanced, transcendLevel);
-                if (buff != null)
-                {
-                    total.MaxMerge(buff);
-                }
-            }
-
             return total;
         }
 
         private BuffSet GetAllActiveBuffs()
         {
             BuffSet total = new BuffSet();
-
-            // 비스킷 - 장비 강화 (보피증, 약공확)
-            if (chkBuffActiveBiscuit.IsChecked == true)
+            foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName != null))
             {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffActiveBiscuit);
-                var biscuit = CharacterDb.GetByName("비스킷");
-                var skill = biscuit?.Skills?.FirstOrDefault(s => s.Name == "장비 강화");
+                if (config.CheckBox.IsChecked != true) continue;
+                var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
+                var character = CharacterDb.GetByName(config.CharacterName);
+                var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
                 if (skill != null)
                 {
                     var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.BuffEffect != null)
-                    {
-                        total.MaxMerge(levelData.BuffEffect);
-                    }
+                    if (levelData?.BuffEffect != null) total.MaxMerge(levelData.BuffEffect);
                     var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.BuffModifier != null)
-                    {
-                        total.MaxMerge(transcendBonus.BuffModifier);
-                    }
+                    if (transcendBonus?.Bonus != null) total.MaxMerge(transcendBonus.Bonus);
                 }
             }
-
-            // 리나 - 따뜻한 울림 (피증)
-            if (chkBuffActiveLina.IsChecked == true)
-            {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnBuffActiveLina);
-                var lina = CharacterDb.GetByName("리나");
-                var skill = lina?.Skills?.FirstOrDefault(s => s.Name == "따뜻한 울림");
-                if (skill != null)
-                {
-                    var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.BuffEffect != null)
-                    {
-                        total.MaxMerge(levelData.BuffEffect);
-                    }
-                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.BuffModifier != null)
-                    {
-                        total.MaxMerge(transcendBonus.BuffModifier);
-                    }
-                }
-            }
-
             return total;
         }
 
         private DebuffSet GetAllPassiveDebuffs()
         {
             DebuffSet total = new DebuffSet();
-
-            // 타카 - 매의 발톱 (취약, 받피증)
-            if (chkDebuffPassiveTaka.IsChecked == true)
+            foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName == null))
             {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffPassiveTaka);
-                var taka = CharacterDb.GetByName("타카");
-                var debuff = taka?.Passive?.GetDebuffModifier(isEnhanced, transcendLevel);
-                if (debuff != null)
-                {
-                    total.MaxMerge(debuff);
-                }
+                if (config.CheckBox.IsChecked != true) continue;
+                var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
+                var character = CharacterDb.GetByName(config.CharacterName);
+                var debuff = character?.Passive?.GetTotalDebuff(isEnhanced, transcendLevel);
+                if (debuff != null) total.MaxMerge(debuff);
             }
-
-            // 비스킷 - 대장장이의 강화 (방깎)
-            if (chkDebuffPassiveBiscuit.IsChecked == true)
-            {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffPassiveBiscuit);
-                var biscuit = CharacterDb.GetByName("비스킷");
-                var debuff = biscuit?.Passive?.GetDebuffModifier(isEnhanced, transcendLevel);
-                if (debuff != null)
-                {
-                    total.MaxMerge(debuff);
-                }
-            }
-
             return total;
         }
 
         private DebuffSet GetAllActiveDebuffs()
         {
             DebuffSet total = new DebuffSet();
-
-            // 리나 - 따뜻한 울림 (방깎)
-            if (chkDebuffActiveLina.IsChecked == true)
+            foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName != null))
             {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffActiveLina);
-                var lina = CharacterDb.GetByName("리나");
-                var skill = lina?.Skills?.FirstOrDefault(s => s.Name == "따뜻한 울림");
+                if (config.CheckBox.IsChecked != true) continue;
+                Button btn = config.Button ?? _buffConfigs.FirstOrDefault(c => c.CharacterName == config.CharacterName && c.Button != null)?.Button;
+                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
+                var character = CharacterDb.GetByName(config.CharacterName);
+                var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
                 if (skill != null)
                 {
                     var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.DebuffEffect != null)
-                    {
-                        total.MaxMerge(levelData.DebuffEffect);
-                    }
+                    if (levelData?.DebuffEffect != null) total.MaxMerge(levelData.DebuffEffect);
                     var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.DebuffModifier != null)
-                    {
-                        total.MaxMerge(transcendBonus.DebuffModifier);
-                    }
+                    if (transcendBonus?.Debuff != null) total.MaxMerge(transcendBonus.Debuff);
                 }
             }
-
-            // 레이첼 - 염화 (공깎, 피해량감소)
-            if (chkDebuffActiveRachelFlame.IsChecked == true)
-            {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffActiveRachel);
-                var rachel = CharacterDb.GetByName("레이첼");
-                var skill = rachel?.Skills?.FirstOrDefault(s => s.Name == "염화");
-                if (skill != null)
-                {
-                    var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.DebuffEffect != null)
-                    {
-                        total.MaxMerge(levelData.DebuffEffect);
-                    }
-                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.DebuffModifier != null)
-                    {
-                        total.MaxMerge(transcendBonus.DebuffModifier);
-                    }
-                }
-            }
-
-            // 레이첼 - 불새 (방깎, 취약)
-            if (chkDebuffActiveRachelPhoenix.IsChecked == true)
-            {
-                var (isEnhanced, transcendLevel) = GetBuffOption(btnDebuffActiveRachel);
-                var rachel = CharacterDb.GetByName("레이첼");
-                var skill = rachel?.Skills?.FirstOrDefault(s => s.Name == "불새");
-                if (skill != null)
-                {
-                    var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.DebuffEffect != null)
-                    {
-                        total.MaxMerge(levelData.DebuffEffect);
-                    }
-                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.DebuffModifier != null)
-                    {
-                        total.MaxMerge(transcendBonus.DebuffModifier);
-                    }
-                }
-            }
-
             return total;
         }
 
@@ -1654,34 +1544,15 @@ namespace GameDamageCalculator.UI
                 new PetOptionData { Type = (cboPetOpt3.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt3.Text) }
             };
 
-            // 버프/디버프 체크 상태
-            preset.BuffChecks = new Dictionary<string, bool>
+            // 버프/디버프 체크 상태 및 버튼 상태
+            preset.BuffChecks = new Dictionary<string, bool>();
+            preset.BuffStates = new Dictionary<string, int>();
+            foreach (var config in _buffConfigs)
             {
-                { "BuffPassiveLion", chkBuffPassiveLion.IsChecked == true },
-                { "BuffPassiveLina", chkBuffPassiveLina.IsChecked == true },
-                { "BuffPassiveRachel", chkBuffPassiveRachel.IsChecked == true },
-                { "BuffActiveBiscuit", chkBuffActiveBiscuit.IsChecked == true },
-                { "BuffActiveLina", chkBuffActiveLina.IsChecked == true },
-                { "DebuffPassiveTaka", chkDebuffPassiveTaka.IsChecked == true },
-                { "DebuffPassiveBiscuit", chkDebuffPassiveBiscuit.IsChecked == true },
-                { "DebuffActiveLina", chkDebuffActiveLina.IsChecked == true },
-                { "DebuffActiveRachelFlame", chkDebuffActiveRachelFlame.IsChecked == true },
-                { "DebuffActiveRachelPhoenix", chkDebuffActiveRachelPhoenix.IsChecked == true }
-            };
-
-            // 버프 버튼 상태
-            preset.BuffStates = new Dictionary<string, int>
-            {
-                { "BuffPassiveLion", int.Parse(btnBuffPassiveLion.Tag?.ToString() ?? "0") },
-                { "BuffPassiveLina", int.Parse(btnBuffPassiveLina.Tag?.ToString() ?? "0") },
-                { "BuffPassiveRachel", int.Parse(btnBuffPassiveRachel.Tag?.ToString() ?? "0") },
-                { "BuffActiveBiscuit", int.Parse(btnBuffActiveBiscuit.Tag?.ToString() ?? "0") },
-                { "BuffActiveLina", int.Parse(btnBuffActiveLina.Tag?.ToString() ?? "0") },
-                { "DebuffPassiveTaka", int.Parse(btnDebuffPassiveTaka.Tag?.ToString() ?? "0") },
-                { "DebuffPassiveBiscuit", int.Parse(btnDebuffPassiveBiscuit.Tag?.ToString() ?? "0") },
-                { "DebuffActiveLina", int.Parse(btnDebuffActiveLina.Tag?.ToString() ?? "0") },
-                { "DebuffActiveRachel", int.Parse(btnDebuffActiveRachel.Tag?.ToString() ?? "0") }
-            };
+                preset.BuffChecks[config.Key] = config.CheckBox.IsChecked == true;
+                if (config.Button != null)
+                    preset.BuffStates[config.Key] = int.Parse(config.Button.Tag?.ToString() ?? "0");
+            }
 
             return preset;
         }
@@ -1776,30 +1647,15 @@ namespace GameDamageCalculator.UI
             // 버프/디버프 체크 상태
             if (preset.BuffChecks != null)
             {
-                chkBuffPassiveLion.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffPassiveLion", false);
-                chkBuffPassiveLina.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffPassiveLina", false);
-                chkBuffPassiveRachel.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffPassiveRachel", false);
-                chkBuffActiveBiscuit.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffActiveBiscuit", false);
-                chkBuffActiveLina.IsChecked = preset.BuffChecks.GetValueOrDefault("BuffActiveLina", false);
-                chkDebuffPassiveTaka.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffPassiveTaka", false);
-                chkDebuffPassiveBiscuit.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffPassiveBiscuit", false);
-                chkDebuffActiveLina.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffActiveLina", false);
-                chkDebuffActiveRachelFlame.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffActiveRachelFlame", false);
-                chkDebuffActiveRachelPhoenix.IsChecked = preset.BuffChecks.GetValueOrDefault("DebuffActiveRachelPhoenix", false);
-            }
-
-            // 버프 버튼 상태
-            if (preset.BuffStates != null)
-            {
-                ApplyBuffButtonState(btnBuffPassiveLion, "라이언", preset.BuffStates.GetValueOrDefault("BuffPassiveLion", 0));
-                ApplyBuffButtonState(btnBuffPassiveLina, "리나", preset.BuffStates.GetValueOrDefault("BuffPassiveLina", 0));
-                ApplyBuffButtonState(btnBuffPassiveRachel, "레이첼", preset.BuffStates.GetValueOrDefault("BuffPassiveRachel", 0));
-                ApplyBuffButtonState(btnBuffActiveBiscuit, "비스킷", preset.BuffStates.GetValueOrDefault("BuffActiveBiscuit", 0));
-                ApplyBuffButtonState(btnBuffActiveLina, "리나", preset.BuffStates.GetValueOrDefault("BuffActiveLina", 0));
-                ApplyBuffButtonState(btnDebuffPassiveTaka, "타카", preset.BuffStates.GetValueOrDefault("DebuffPassiveTaka", 0));
-                ApplyBuffButtonState(btnDebuffPassiveBiscuit, "비스킷", preset.BuffStates.GetValueOrDefault("DebuffPassiveBiscuit", 0));
-                ApplyBuffButtonState(btnDebuffActiveLina, "리나", preset.BuffStates.GetValueOrDefault("DebuffActiveLina", 0));
-                ApplyBuffButtonState(btnDebuffActiveRachel, "레이첼", preset.BuffStates.GetValueOrDefault("DebuffActiveRachel", 0));
+                foreach (var config in _buffConfigs)
+                {
+                    config.CheckBox.IsChecked = preset.BuffChecks.GetValueOrDefault(config.Key, false);
+                    if (config.Button != null && preset.BuffStates != null)
+                    {
+                        int state = preset.BuffStates.GetValueOrDefault(config.Key, 0);
+                        ApplyBuffButtonState(config.Button, config.BaseName, state);
+                    }
+                }
             }
 
             _isInitialized = true;

@@ -725,6 +725,19 @@
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
                                 </StackPanel>
+
+                                <!-- 델론즈 -->
+                                <StackPanel Margin="0,0,15,4">
+                                    <TextBlock Text="(물리피해증가)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkBuffPassiveDelonz" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnBuffPassiveDelonz" Content="델론즈" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
                             </WrapPanel>
                         </StackPanel>
                     </Border>
