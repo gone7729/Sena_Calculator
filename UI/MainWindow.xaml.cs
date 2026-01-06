@@ -58,6 +58,7 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "BuffPassiveLina", CheckBox = chkBuffPassiveLina, Button = btnBuffPassiveLina, BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveRachel", CheckBox = chkBuffPassiveRachel, Button = btnBuffPassiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveDelonz", CheckBox = chkBuffPassiveDelonz, Button = btnBuffPassiveDelonz, BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveMiho", CheckBox = chkBuffPassiveMiho, Button = btnBuffPassiveMiho, BaseName = "미호", CharacterName = "미호", SkillName = null, IsBuff = true },
 
                 // 버프 액티브
                 new BuffConfig { Key = "BuffActiveBiscuit", CheckBox = chkBuffActiveBiscuit, Button = btnBuffActiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
@@ -531,6 +532,11 @@ namespace GameDamageCalculator.UI
                     return;
                 }
 
+                // 버프 합산 추가!
+                BuffSet passiveBuffs = GetAllPassiveBuffs();
+                BuffSet activeBuffs = GetAllActiveBuffs();
+                double weakDmgBuff = passiveBuffs.Wek_Dmg + activeBuffs.Wek_Dmg;
+
                 // DamageInput 생성
                 var input = new DamageCalculator.DamageInput
                 {
@@ -549,6 +555,7 @@ namespace GameDamageCalculator.UI
                     DmgDealtBoss = ParseStatValue(txtStatBossDmg.Text),
                     ArmorPen = ParseStatValue(txtStatArmPen.Text),
                     WeakpointDmg = ParseStatValue(txtStatWekDmg.Text),
+                    WeakpointDmgBuff = weakDmgBuff,
 
                     // 디버프
                     DefReduction = _currentDebuffs.Def_Reduction,
@@ -779,11 +786,9 @@ namespace GameDamageCalculator.UI
             if (cbo.SelectedIndex <= 0) return "";
             
             string option = cbo.SelectedItem.ToString();
-            System.Diagnostics.Debug.WriteLine($"선택된 옵션: '{option}'");
 
             if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(option, out var stats))
             {
-                System.Diagnostics.Debug.WriteLine($"  DB에서 찾음! Atk_Rate={stats.Atk_Rate}, Cri={stats.Cri}, Cri_Dmg={stats.Cri_Dmg}, Atk={stats.Atk}");
                 if (stats.Atk_Rate > 0) return $"{stats.Atk_Rate}%";
                 if (stats.Atk > 0) return $"{stats.Atk}";
                 if (stats.Def_Rate > 0) return $"{stats.Def_Rate}%";
@@ -1008,7 +1013,7 @@ namespace GameDamageCalculator.UI
                 Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri + characterPassiveBuff.Cri,
                 Cri_Dmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg + characterPassiveBuff.Cri_Dmg,
                 Wek = characterStats.Wek + transcendStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek + totalBuffs.Wek + characterPassiveBuff.Wek,
-                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
+                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
                 Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt,
                 Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
                 Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,

@@ -12,6 +12,7 @@ namespace GameDamageCalculator.Database
         public static readonly List<Pet> Pets = new List<Pet>
         {
             // ===== 전설 펫 =====
+            // 이린
             new Pet
             {
                 Id = 1,
@@ -26,6 +27,19 @@ namespace GameDamageCalculator.Database
             },
             
             // ===== 희귀 펫 =====
+            // 노트
+            new Pet
+            {
+                Id = 51,
+                Name = "노트",
+                Rarity = "희귀",
+                Skills = new Dictionary<int, BaseStatSet>   // PetSkill → BaseStatSet
+                {
+                    { 4, new BaseStatSet { Atk_Rate = 13 } },
+                    { 5, new BaseStatSet { Atk_Rate = 15 } },
+                    { 6, new BaseStatSet { Atk_Rate = 17 } }
+                }
+            },
         };
 
         public static Pet GetByName(string name)

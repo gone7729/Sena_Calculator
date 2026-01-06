@@ -24,6 +24,7 @@ namespace GameDamageCalculator.Services
             public double DmgDealtBoss { get; set; }      // 보스 피해%
             public double ArmorPen { get; set; }          // 방무%
             public double WeakpointDmg { get; set; }      // 약점공격 피해%
+            public double WeakpointDmgBuff { get; set; }  // 버프 약피% (미호 등)
 
             // 디버프 (정수%)
             public double DefReduction { get; set; }      // 방깎%
@@ -107,7 +108,7 @@ namespace GameDamageCalculator.Services
 
             // 5. 약점 계수
             result.WeakpointMultiplier = input.IsWeakpoint 
-                ? input.WeakpointDmg / 100.0 
+                ? (input.WeakpointDmg / 100.0) * (1 + input.WeakpointDmgBuff / 100.0)
                 : 1.0;
 
             // 6. 피해 증가 계수
@@ -181,14 +182,29 @@ namespace GameDamageCalculator.Services
 
         /// <summary>
         /// 방어 계수 계산
-        /// = 1 + 방어력 × (1 + 방증% - 방깎%) × (1 - 방무%) × 0.00214
+        /// = 1 + 방어력 × (1 + 방증% - 방깎%) × (1 - 방무%) × 0.00202
         /// </summary>
         private double CalcDefCoefficient(DamageInput input, double armorPen, out double effectiveDef)
         {
+            const double DEF_CONSTANT = 0.00214;  // 0.002141 보통 0.00214
+            const double THRESHOLD = 3125.0;
+
             double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
             double armorPenModifier = 1 - armorPen;
             effectiveDef = input.BossDef * defModifier * armorPenModifier;
-            return 1 + effectiveDef * 0.00214;
+
+            if (effectiveDef <= THRESHOLD)
+            {
+                // 기존 공식
+                return 1 + effectiveDef * DEF_CONSTANT;
+            }
+            else
+            {
+                // 3125 이후 효율 절반
+                double baseCoef = 1 + THRESHOLD * DEF_CONSTANT;
+                double extraDef = effectiveDef - THRESHOLD;
+                return baseCoef + extraDef * DEF_CONSTANT * 0.5;
+            }
         }
 
         /// <summary>
@@ -304,7 +320,32 @@ namespace GameDamageCalculator.Services
 
 ═══════════════════════════════════════════════════
 💥 최종 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{bonusDmgInfo}{atkCountInfo}{healInfo}
-═══════════════════════════════════════════════════";
+═══════════════════════════════════════════════════
+---디버깅용---
+  [캐릭터 스탯]
+  공격력: {input.FinalAtk:N0}
+  치피%: {input.CritDamage}
+  약피%: {input.WeakpointDmg}
+  주피%: {input.DmgDealt}
+  보피%: {input.DmgDealtBoss}
+  방무%: {input.ArmorPen}
+
+  [디버프]
+  방깎%: {input.DefReduction}
+  받피증%: {input.DmgTakenIncrease}
+  취약%: {input.Vulnerability}
+
+  [보스]
+  방어력: {input.BossDef}
+  방증%: {input.BossDefIncrease}
+  받피감%: {input.BossDmgReduction}
+  인기감%: {input.BossTargetReduction}
+
+  [전투옵션]
+  치명타: {input.IsCritical}
+  약점: {input.IsWeakpoint}
+  막기: {input.IsBlocked}
+";
         }
 
         #endregion
