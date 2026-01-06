@@ -13,13 +13,13 @@ namespace GameDamageCalculator.UI
 {
     public partial class MainWindow : Window
     {
-        
+        private bool _isInitialized = false;
         private readonly DamageCalculator _calculator;
         // 필드 추가 (클래스 상단)
         private PresetManager _presetManager;
-        private bool _isInitialized = false;
-
+        private GameMode _currentMode = GameMode.PVE;
         private DebuffSet _currentDebuffs = new DebuffSet();
+        private readonly PvpDamageCalculator _pvpCalculator = new PvpDamageCalculator();
 
         // 버프/디버프 설정 리스트
         private List<BuffConfig> _buffConfigs;
@@ -45,6 +45,9 @@ namespace GameDamageCalculator.UI
              // 생성자에서 초기화 (InitializeComboBoxes() 다음에)
             _presetManager = new PresetManager();
             RefreshPresetList();
+            // PVP 패널 초기화
+            pvpMyPanel.Initialize();
+            pvpEnemyPanel.Initialize();
             _isInitialized = true;
             RecalculateStats();
         }
@@ -540,6 +543,7 @@ namespace GameDamageCalculator.UI
                 // DamageInput 생성
                 var input = new DamageCalculator.DamageInput
                 {
+                    Mode = _currentMode,
                     // 캐릭터/스킬
                     Character = character,
                     Skill = selectedSkill,
@@ -556,6 +560,8 @@ namespace GameDamageCalculator.UI
                     ArmorPen = ParseStatValue(txtStatArmPen.Text),
                     WeakpointDmg = ParseStatValue(txtStatWekDmg.Text),
                     WeakpointDmgBuff = weakDmgBuff,
+                    Dmg1to3 = ParseStatValue(txtStatDmg1to3.Text),      // ★ 추가
+                    Dmg4to5 = ParseStatValue(txtStatDmg4to5.Text),
 
                     // 디버프
                     DefReduction = _currentDebuffs.Def_Reduction,
@@ -845,6 +851,147 @@ namespace GameDamageCalculator.UI
                 cboCharacter.SelectedItem = previousSelection;
             else
                 cboCharacter.SelectedIndex = 0;
+        }
+
+        private void GameMode_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            if (rbModePVE.IsChecked == true)
+            {
+                _currentMode = GameMode.PVE;
+                gridPVE.Visibility = Visibility.Visible;
+                gridPVP.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                _currentMode = GameMode.PVP;
+                gridPVE.Visibility = Visibility.Collapsed;
+                gridPVP.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void BtnPvpCalculate_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 내 캐릭터 정보
+                var myCharacter = pvpMyPanel.GetSelectedCharacter();
+                var mySkill = pvpMyPanel.GetSelectedSkill();
+
+                // 상대 캐릭터 정보
+                var enemyCharacter = pvpEnemyPanel.GetSelectedCharacter();
+                var enemySkill = pvpEnemyPanel.GetSelectedSkill();
+
+                if (myCharacter == null || mySkill == null)
+                {
+                    txtPvpResultMy.Text = "내 캐릭터/스킬을 선택해주세요.";
+                    return;
+                }
+
+                if (enemyCharacter == null)
+                {
+                    txtPvpResultEnemy.Text = "상대 캐릭터를 선택해주세요.";
+                    return;
+                }
+
+                // ========== 내 캐릭터 → 상대 데미지 계산 ==========
+                var myInput = new PvpDamageCalculator.PvpDamageInput
+                {
+                    // 내 캐릭터/스킬
+                    Character = myCharacter,
+                    Skill = mySkill,
+                    IsSkillEnhanced = pvpMyPanel.IsSkillEnhanced(),
+                    TranscendLevel = pvpMyPanel.GetTranscendLevel(),
+
+                    // 내 스탯
+                    FinalAtk = pvpMyPanel.GetFinalAtk(),
+                    FinalDef = pvpMyPanel.GetFinalDef(),
+                    FinalHp = pvpMyPanel.GetFinalHp(),
+                    CritDamage = pvpMyPanel.GetCritDamage(),
+                    WeakpointDmg = pvpMyPanel.GetWeakpointDmg(),
+                    WeakpointDmgBuff = pvpMyPanel.GetWeakDmgBuff(),
+                    DmgDealt = pvpMyPanel.GetDmgDealt(),
+                    ArmorPen = pvpMyPanel.GetArmorPen(),
+                    Dmg1to3 = pvpMyPanel.GetDmg1to3(),
+                    Dmg4to5 = pvpMyPanel.GetDmg4to5(),
+
+                    // 내가 건 디버프
+                    DefReduction = pvpMyPanel.GetCurrentDebuffs().Def_Reduction,
+                    DmgTakenIncrease = pvpMyPanel.GetCurrentDebuffs().Dmg_Taken_Increase,
+                    Vulnerability = pvpMyPanel.GetCurrentDebuffs().Vulnerability,
+
+                    // 상대 정보
+                    TargetDef = pvpEnemyPanel.GetFinalDef(),
+                    TargetDefIncrease = pvpEnemyPanel.GetDefIncrease(),  // 진형 방증 등
+                    TargetDmgRdc = pvpEnemyPanel.GetDmgRdc(),
+                    TargetHp = pvpEnemyPanel.GetFinalHp(),
+                    Target1to3Rdc = pvpEnemyPanel.GetDmgRdc1to3(),
+                    Target4to5Rdc = pvpEnemyPanel.GetDmgRdc4to5(),
+
+                    // 전투 옵션
+                    IsCritical = pvpChkCritical.IsChecked == true,
+                    IsWeakpoint = pvpChkWeakpoint.IsChecked == true,
+                    IsBlocked = pvpChkBlock.IsChecked == true,
+                };
+
+                var myResult = _pvpCalculator.Calculate(myInput);
+                txtPvpResultMy.Text = myResult.Details;
+
+                // ========== 상대 → 내 캐릭터 데미지 계산 ==========
+                if (enemySkill != null)
+                {
+                    var enemyInput = new PvpDamageCalculator.PvpDamageInput
+                    {
+                        // 상대 캐릭터/스킬
+                        Character = enemyCharacter,
+                        Skill = enemySkill,
+                        IsSkillEnhanced = pvpEnemyPanel.IsSkillEnhanced(),
+                        TranscendLevel = pvpEnemyPanel.GetTranscendLevel(),
+
+                        // 상대 스탯
+                        FinalAtk = pvpEnemyPanel.GetFinalAtk(),
+                        FinalDef = pvpEnemyPanel.GetFinalDef(),
+                        FinalHp = pvpEnemyPanel.GetFinalHp(),
+                        CritDamage = pvpEnemyPanel.GetCritDamage(),
+                        WeakpointDmg = pvpEnemyPanel.GetWeakpointDmg(),
+                        WeakpointDmgBuff = pvpEnemyPanel.GetWeakDmgBuff(),
+                        DmgDealt = pvpEnemyPanel.GetDmgDealt(),
+                        ArmorPen = pvpEnemyPanel.GetArmorPen(),
+                        Dmg1to3 = pvpEnemyPanel.GetDmg1to3(),
+                        Dmg4to5 = pvpEnemyPanel.GetDmg4to5(),
+
+                        // 상대가 건 디버프
+                        DefReduction = pvpEnemyPanel.GetCurrentDebuffs().Def_Reduction,
+                        DmgTakenIncrease = pvpEnemyPanel.GetCurrentDebuffs().Dmg_Taken_Increase,
+                        Vulnerability = pvpEnemyPanel.GetCurrentDebuffs().Vulnerability,
+
+                        // 내 정보 (타겟)
+                        TargetDef = pvpMyPanel.GetFinalDef(),
+                        TargetDefIncrease = pvpMyPanel.GetDefIncrease(),
+                        TargetDmgRdc = pvpMyPanel.GetDmgRdc(),
+                        TargetHp = pvpMyPanel.GetFinalHp(),
+                        Target1to3Rdc = pvpMyPanel.GetDmgRdc1to3(),
+                        Target4to5Rdc = pvpMyPanel.GetDmgRdc4to5(),
+
+                        // 전투 옵션 (동일하게 적용)
+                        IsCritical = pvpChkCritical.IsChecked == true,
+                        IsWeakpoint = pvpChkWeakpoint.IsChecked == true,
+                        IsBlocked = pvpChkBlock.IsChecked == true,
+                    };
+
+                    var enemyResult = _pvpCalculator.Calculate(enemyInput);
+                    txtPvpResultEnemy.Text = enemyResult.Details;
+                }
+                else
+                {
+                    txtPvpResultEnemy.Text = "상대 스킬을 선택해주세요.";
+                }
+            }
+            catch (Exception ex)
+            {
+                txtPvpResultMy.Text = $"오류: {ex.Message}\n{ex.StackTrace}";
+            }
         }
 
         #endregion

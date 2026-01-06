@@ -1,0 +1,724 @@
+<UserControl x:Class="GameDamageCalculator.UI.Controls.PVPPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- PVE MainWindow 스타일 상속 (DynamicResource 사용) -->
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            
+            <!-- 캐릭터 섹션 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="캐릭터" Style="{DynamicResource SectionTitle}"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 등급 필터 (Row 0) -->
+                        <TextBlock Text="등급" Grid.Row="0" Style="{DynamicResource LabelText}" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="PvpCboGrade" Grid.Row="0" Grid.Column="1" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpCboFilter_SelectionChanged">
+                            <ComboBoxItem Content="전체" IsSelected="True"/>
+                            <ComboBoxItem Content="전설"/>
+                            <ComboBoxItem Content="영웅"/>
+                        </ComboBox>
+                        <ComboBox x:Name="PvpCboType" Grid.Row="0" Grid.Column="2" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpCboFilter_SelectionChanged">
+                            <ComboBoxItem Content="전체" IsSelected="True"/>
+                            <ComboBoxItem Content="공격형"/>
+                            <ComboBoxItem Content="마법형"/>
+                            <ComboBoxItem Content="만능형"/>
+                            <ComboBoxItem Content="지원형"/>
+                            <ComboBoxItem Content="방어형"/>
+                        </ComboBox>
+
+                        <!-- 캐릭터 (Row 1) -->
+                        <TextBlock Text="캐릭터" Grid.Row="1" Style="{DynamicResource LabelText}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                        <ComboBox x:Name="PvpCboCharacter" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
+                                  Style="{DynamicResource ComboStyle}" Margin="0,8,0,0"
+                                  SelectionChanged="PvpCboCharacter_SelectionChanged"/>
+
+                        <!-- 스킬 (Row 2) -->
+                        <TextBlock Text="스킬" Grid.Row="2" Style="{DynamicResource LabelText}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                        <ComboBox x:Name="PvpCboSkill" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
+                                  Style="{DynamicResource ComboStyle}" Margin="0,8,0,0"
+                                  SelectionChanged="PvpCboSkill_SelectionChanged"/>
+
+                        <!-- 잠재능력 (Row 3) -->
+                        <TextBlock Text="잠재능력" Grid.Row="3" Style="{DynamicResource LabelText}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                        <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,8,0,0">
+                            <ComboBox x:Name="PvpCboPotentialAtk" Style="{DynamicResource ComboStyle}" Width="55"
+                                      SelectionChanged="PvpPotential_SelectionChanged">
+                                <ComboBoxItem Content="0" IsSelected="True"/>
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                                <ComboBoxItem Content="3"/>
+                            </ComboBox>
+                            <TextBlock Text="공" Foreground="#666" VerticalAlignment="Center" Margin="3,0,8,0" FontSize="10"/>
+
+                            <ComboBox x:Name="PvpCboPotentialDef" Style="{DynamicResource ComboStyle}" Width="55"
+                                      SelectionChanged="PvpPotential_SelectionChanged">
+                                <ComboBoxItem Content="0" IsSelected="True"/>
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                                <ComboBoxItem Content="3"/>
+                            </ComboBox>
+                            <TextBlock Text="방" Foreground="#666" VerticalAlignment="Center" Margin="3,0,8,0" FontSize="10"/>
+
+                            <ComboBox x:Name="PvpCboPotentialHp" Style="{DynamicResource ComboStyle}" Width="55"
+                                      SelectionChanged="PvpPotential_SelectionChanged">
+                                <ComboBoxItem Content="0" IsSelected="True"/>
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                                <ComboBoxItem Content="3"/>
+                            </ComboBox>
+                            <TextBlock Text="생" Foreground="#666" VerticalAlignment="Center" Margin="3,0,0,0" FontSize="10"/>
+                        </StackPanel>
+
+                        <!-- 초월 (Row 4) -->
+                        <TextBlock Text="초월" Grid.Row="4" Style="{DynamicResource LabelText}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                        <ComboBox x:Name="PvpCboTranscend" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                                  Style="{DynamicResource ComboStyle}" Width="100" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                  SelectionChanged="PvpCboTranscend_SelectionChanged"/>
+                    </Grid>
+
+                    <CheckBox x:Name="PvpChkSkillEnhanced" Content="스킬 강화" 
+                              Style="{DynamicResource CheckBoxStyle}" Margin="0,10,0,0"/>
+
+                    <CheckBox x:Name="PvpChkPassiveCondition" Content="불사" 
+                              Style="{DynamicResource CheckBoxStyle}"/>
+
+                    <!-- 세트 -->
+                    <TextBlock Text="세트" Style="{DynamicResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="PvpCboEquipSet1" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpCboEquipSet_SelectionChanged"/>
+                        <ComboBox x:Name="PvpCboSetCount1" Grid.Column="1" Style="{DynamicResource ComboStyle}" Margin="5,0,0,0"
+                                  SelectionChanged="PvpCboSetCount1_SelectionChanged">
+                            <ComboBoxItem Content="2세트"/>
+                            <ComboBoxItem Content="4세트" IsSelected="True"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid x:Name="PvpGridEquipSet2" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="PvpCboEquipSet2" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpCboEquipSet_SelectionChanged"/>
+                        <TextBlock Text="2세트" Grid.Column="1" Foreground="#666" VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center" FontSize="11"/>
+                    </Grid>
+
+                    <!-- 메인옵션 -->
+                    <TextBlock Text="메인옵션" FontWeight="Bold" Margin="0,10,0,5"/>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="무기1" Width="45" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboWeapon1Main" Width="80" SelectionChanged="PvpMainOption_Changed"/>
+                            <TextBlock x:Name="PvpTxtWeapon1MainValue" Width="40" Text="" TextAlignment="Center" 
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="무기2" Width="45" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboWeapon2Main" Width="80" SelectionChanged="PvpMainOption_Changed"/>
+                            <TextBlock x:Name="PvpTxtWeapon2MainValue" Width="40" Text="" TextAlignment="Center" 
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="방어구1" Width="45" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboArmor1Main" Width="80" SelectionChanged="PvpMainOption_Changed"/>
+                            <TextBlock x:Name="PvpTxtArmor1MainValue" Width="40" Text="" TextAlignment="Center" 
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="방어구2" Width="45" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboArmor2Main" Width="80" SelectionChanged="PvpMainOption_Changed"/>
+                            <TextBlock x:Name="PvpTxtArmor2MainValue" Width="40" Text="" TextAlignment="Center" 
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 서브옵션 -->
+                    <TextBlock Text="서브옵션 (좌클릭 +1 / 우클릭 -1)" FontWeight="Bold" Margin="0,10,0,5"/>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Row 0 -->
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub1Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub1Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub1Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub2Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub2Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub2Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="2" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub3Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub3Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub3Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Row 1 -->
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub4Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub4Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub4Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub5Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub5Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub5Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="2" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub6Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub6Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub6Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Row 2 -->
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub7Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub7Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub7Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub8Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub8Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub8Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="2" Margin="0,2,10,2">
+                            <ComboBox x:Name="PvpCboSub9Type" Width="70" SelectionChanged="PvpSubOption_Changed"/>
+                            <TextBox x:Name="PvpTxtSub9Tier" Width="30" Text="0" TextAlignment="Center" TextChanged="PvpSubOption_TextChanged"/>
+                            <Border Width="20" Background="#DDD" Cursor="Hand" 
+                                    MouseLeftButtonDown="PvpTier_MouseLeft" MouseRightButtonDown="PvpTier_MouseRight" Tag="PvpTxtSub9Tier">
+                                <TextBlock Text="▲▼" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 장신구 -->
+                    <TextBlock Text="장신구" FontWeight="Bold" Margin="0,10,0,5"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Grid.Column="0" Margin="0,2,15,2">
+                            <TextBlock Text="성급" Width="35" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboAccessoryGrade" Width="60" SelectionChanged="PvpCboAccessoryGrade_SelectionChanged"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="0,2,15,2">
+                            <TextBlock Text="옵션" Width="35" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboAccessoryMain" Width="80" SelectionChanged="PvpCboAccessoryOption_SelectionChanged"/>
+                            <TextBlock x:Name="PvpTxtAccessoryMainValue" Width="40" TextAlignment="Center" 
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel x:Name="PvpPanelAccessorySub" Orientation="Horizontal" Grid.Column="2" Margin="0,2,0,2" Visibility="Collapsed">
+                            <TextBlock Text="부옵션" Width="40" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="PvpCboAccessorySub" Width="80" SelectionChanged="PvpCboAccessoryOption_SelectionChanged"/>
+                            <TextBlock x:Name="PvpTxtAccessorySubValue" Width="40" TextAlignment="Center" 
+                                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 진형 -->
+                    <TextBlock Text="진형" Style="{DynamicResource LabelText}" Margin="0,15,0,5" FontWeight="SemiBold" Foreground="#272727"/>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox x:Name="PvpCboFormation" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpCboFormation_SelectionChanged"/>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <RadioButton x:Name="PvpRbBack" Content="후방" Foreground="#272727" 
+                                         IsChecked="True" 
+                                         Checked="PvpFormation_PositionChanged" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="PvpRbFront" Content="전방" Foreground="#272727" 
+                                         
+                                         Checked="PvpFormation_PositionChanged"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 스탯 출력 섹션 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="스탯" Style="{DynamicResource SectionTitle}"/>
+
+                    <!-- 기본 스탯 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="공격력" Width="50"/>
+                        <TextBlock x:Name="PvpTxtStatAtkBase" Text="0" Width="80" Foreground="#CCC"/>
+                        <TextBlock Text="방어력" Width="50" Margin="10,0,0,0"/>
+                        <TextBlock x:Name="PvpTxtStatDefBase" Text="0" Width="80" Foreground="#CCC"/>
+                        <TextBlock Text="생명력" Width="50" Margin="10,0,0,0"/>
+                        <TextBlock x:Name="PvpTxtStatHpBase" Text="0" Width="80" Foreground="#CCC"/>
+                    </StackPanel>
+
+                    <!-- 최종 스탯 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="최종 공격력" Width="50"/>
+                        <TextBlock x:Name="PvpTxtStatAtk" Text="0" Width="80" Foreground="#4FC3F7"/>
+                        <TextBlock Text="최종 방어력" Width="50" Margin="10,0,0,0"/>
+                        <TextBlock x:Name="PvpTxtStatDef" Text="0" Width="80" Foreground="#4FC3F7"/>
+                        <TextBlock Text="최종 생명력" Width="50" Margin="10,0,0,0"/>
+                        <TextBlock x:Name="PvpTxtStatHp" Text="0" Width="80" Foreground="#4FC3F7"/>
+                    </StackPanel>
+
+                    <!-- 치명타 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="치명타 확률" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatCri" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="치명타 피해" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatCriDmg" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 약공 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="약점공격 확률" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatWek" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="약점공격 피해" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatWekDmg" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 주는피해 / 보스피해 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="주는 피해량" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatDmgDealt" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="보스 피해량" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatBossDmg" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 1-3인기 / 4-5인기 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="1-3인기 주는피해" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatDmg1to3" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,5,0">
+                            <TextBlock Text="4-5인기 주는피해" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatDmg4to5" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 방어관통 / 막기 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="방어 관통" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatArmPen" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="막기 확률" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatBlk" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 효과 적중/저항 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="효과 적중" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatEffHit" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="효과 저항" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatEffRes" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 효과 적중확률 / 받피감 -->
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="효과 적중확률" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatEffAcc" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="받피감" Style="{DynamicResource LabelText}"/>
+                            <TextBox x:Name="PvpTxtStatDmgRdc" Text="0" Style="{DynamicResource OutputBox}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 펫 섹션 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="펫" Style="{DynamicResource SectionTitle}"/>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="펫 선택" Style="{DynamicResource LabelText}"/>
+                            <ComboBox x:Name="PvpCboPet" Style="{DynamicResource ComboStyle}"
+                                      SelectionChanged="PvpCboPet_SelectionChanged"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="성급" Style="{DynamicResource LabelText}"/>
+                            <ComboBox x:Name="PvpCboPetStar" Style="{DynamicResource ComboStyle}"
+                                      SelectionChanged="PvpCboPet_SelectionChanged">
+                                <ComboBoxItem Content="4성"/>
+                                <ComboBoxItem Content="5성"/>
+                                <ComboBoxItem Content="6성" IsSelected="True"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="펫 옵션" Style="{DynamicResource LabelText}" Margin="0,5,0,5"/>
+
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="70"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="PvpCboPetOpt1" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpPetOption_Changed">
+                            <ComboBoxItem Content="없음" IsSelected="True"/>
+                            <ComboBoxItem Content="공격력%"/>
+                            <ComboBoxItem Content="방어력%"/>
+                            <ComboBoxItem Content="생명력%"/>
+                        </ComboBox>
+                        <TextBox x:Name="PvpTxtPetOpt1" Grid.Column="1" Text="0" 
+                                 Style="{DynamicResource InputBox}" Margin="5,0,0,0"
+                                 TextChanged="PvpPetOption_Changed"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="70"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="PvpCboPetOpt2" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpPetOption_Changed">
+                            <ComboBoxItem Content="없음" IsSelected="True"/>
+                            <ComboBoxItem Content="공격력%"/>
+                            <ComboBoxItem Content="방어력%"/>
+                            <ComboBoxItem Content="생명력%"/>
+                        </ComboBox>
+                        <TextBox x:Name="PvpTxtPetOpt2" Grid.Column="1" Text="0" 
+                                 Style="{DynamicResource InputBox}" Margin="5,0,0,0"
+                                 TextChanged="PvpPetOption_Changed"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="70"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="PvpCboPetOpt3" Style="{DynamicResource ComboStyle}"
+                                  SelectionChanged="PvpPetOption_Changed">
+                            <ComboBoxItem Content="없음" IsSelected="True"/>
+                            <ComboBoxItem Content="공격력%"/>
+                            <ComboBoxItem Content="방어력%"/>
+                            <ComboBoxItem Content="생명력%"/>
+                        </ComboBox>
+                        <TextBox x:Name="PvpTxtPetOpt3" Grid.Column="1" Text="0" 
+                                 Style="{DynamicResource InputBox}" Margin="5,0,0,0"
+                                 TextChanged="PvpPetOption_Changed"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 버프-패시브 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="버프 - 패시브" Style="{DynamicResource SectionTitle}"/>
+                    <TextBlock Text="아군에게 적용되는 패시브 효과 (같은 항목은 높은 값만)" 
+                            Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(1-3인기 피증)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffPassiveLion" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffPassiveLion" Content="라이언" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(치피 @2초)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffPassiveLina" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffPassiveLina" Content="리나" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(약공확)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffPassiveRachel" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffPassiveRachel" Content="레이첼" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(물리피해증가)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffPassiveDelonz" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffPassiveDelonz" Content="델론즈" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(약공증)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffPassiveMiho" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffPassiveMiho" Content="미호" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 버프-액티브 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="버프 - 액티브" Style="{DynamicResource SectionTitle}"/>
+                    <TextBlock Text="스킬로 적용되는 버프 효과 (같은 항목은 높은 값만)" 
+                            Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(보피증, 약공확)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffActiveBiscuit" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffActiveBiscuit" Content="비스킷" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(피증)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkBuffActiveLina" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnBuffActiveLina" Content="리나" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 디버프-패시브 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="디버프 - 패시브" Style="{DynamicResource SectionTitle}"/>
+                    <TextBlock Text="적에게 적용되는 패시브 효과 (같은 항목은 높은 값만)" 
+                               Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(받피증, 취약)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkDebuffPassiveTaka" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnDebuffPassiveTaka" Content="타카" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(방깎)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkDebuffPassiveBiscuit" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnDebuffPassiveBiscuit" Content="비스킷" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 디버프-액티브 -->
+            <Border Style="{DynamicResource SectionBorder}">
+                <StackPanel>
+                    <TextBlock Text="디버프 - 액티브" Style="{DynamicResource SectionTitle}"/>
+                    <TextBlock Text="스킬로 적용되는 디버프 효과 (같은 항목은 높은 값만)" 
+                            Foreground="#666" FontSize="10" Margin="0,0,0,8"/>
+
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(방깎)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkDebuffActiveLina" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnDebuffActiveLina" Content="리나" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="4,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,15,4">
+                            <TextBlock Text="(염화: 공깎,피감 / 불새: 방깎,취약)" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="PvpChkDebuffActiveRachelFlame" Content="염화" VerticalAlignment="Center"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <CheckBox x:Name="PvpChkDebuffActiveRachelPhoenix" Content="불새" VerticalAlignment="Center" Margin="8,0,0,0"
+                                          Checked="PvpPassiveBuff_Changed" Unchecked="PvpPassiveBuff_Changed"/>
+                                <Button x:Name="PvpBtnDebuffActiveRachel" Content="레이첼" Tag="0" 
+                                        Click="PvpBuffOption_Click" Margin="8,0,0,0"
+                                        Style="{DynamicResource BuffOptionButtonStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

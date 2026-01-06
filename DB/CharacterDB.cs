@@ -490,8 +490,8 @@ namespace GameDamageCalculator.Database
                     new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
                     new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "뒤지면 파티 힐" },
                     new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
-                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 18 } },
-                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Eff_Hit = 24 } },
                     new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "스킬 발동 시 취약" }
                 }
             },

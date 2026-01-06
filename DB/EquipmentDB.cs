@@ -127,8 +127,8 @@ namespace GameDamageCalculator.Database
         // 성급별 기본 보너스
         public static readonly Dictionary<int, BaseStatSet> GradeBonus = new Dictionary<int, BaseStatSet>
         {
-            { 4, new BaseStatSet { Atk_Rate = 3, Def_Rate = 3, Hp_Rate = 3 } },
-            { 5, new BaseStatSet { Atk_Rate = 5, Def_Rate = 5, Hp_Rate = 5 } },
+            { 4, new BaseStatSet { Atk_Rate = 5, Def_Rate = 5, Hp_Rate = 5 } },
+            { 5, new BaseStatSet { Atk_Rate = 7, Def_Rate = 7, Hp_Rate = 7 } },
             { 6, new BaseStatSet { Atk_Rate = 10, Def_Rate = 10, Hp_Rate = 10 } }
         };
     
