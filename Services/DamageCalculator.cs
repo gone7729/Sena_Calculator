@@ -74,6 +74,8 @@ namespace GameDamageCalculator.Services
             public double HealAmount { get; set; }
             public string HealSource { get; set; }
 
+            public double BonusDamage { get; set; }        // 별도 피해 (출혈 폭발 등)
+
             public string Details { get; set; }
         }
 
@@ -145,13 +147,31 @@ namespace GameDamageCalculator.Services
                 result.WekBonusDmg *= 0.5;
             }
 
-            // 12. 총 데미지 (타수 적용)
+            // 12. 별도 피해 (출혈 폭발 등, 치명타/약점 미적용)
+            result.BonusDamage = 0;
+            if (levelData?.BonusDmgRatio > 0)
+            {
+                var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
+                double totalBonusRatio = levelData.BonusDmgRatio + skillTranscend.BonusDmgRatio;
+                int stacks = levelData.BonusDmgMaxStacks;
+
+                // 치명타/약점 미적용, 피증만 적용
+                result.BonusDamage = atkOverDef * totalBonusRatio * result.DamageMultiplier * stacks;
+
+                // 막기 시 50% 감소
+                if (input.IsBlocked)
+                {
+                    result.BonusDamage *= 0.5;
+                }
+            }
+
+            // 13. 총 데미지 (타수 적용)
             result.FinalDamage = result.DamagePerHit * result.AtkCount;
 
-            // 13. 회복량 계산
+            // 14. 회복량 계산
             CalcHeal(input, levelData, result);
 
-            // 14. 상세 정보
+            // 15. 상세 정보
             result.Details = GenerateDetails(input, result);
 
             return result;
@@ -177,7 +197,16 @@ namespace GameDamageCalculator.Services
         /// </summary>
         private double CalcDamageMultiplier(DamageInput input)
         {
-            double increase = input.DmgDealt + input.DmgDealtBoss + input.DmgTakenIncrease + input.Vulnerability;
+            // 스킬 초월 조건부 피해 보너스
+            double conditionalDmgBonus = 0;
+            if (input.Skill != null)
+            {
+                var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
+                conditionalDmgBonus = skillTranscend.ConditionalDmgBonus;
+            }
+
+            double increase = input.DmgDealt + input.DmgDealtBoss + input.DmgTakenIncrease 
+                            + input.Vulnerability + conditionalDmgBonus;
             double reduction = input.BossDmgReduction + input.BossTargetReduction;
             return 1 + (increase - reduction) / 100.0;
         }
@@ -223,8 +252,24 @@ namespace GameDamageCalculator.Services
         private string GenerateDetails(DamageInput input, DamageResult result)
         {
             string critInfo = input.IsCritical ? "(치명타!)" : "(일반)";
+
             string wekInfo = input.IsWeakpoint ? "(약점!)" : "";
+
             string blockInfo = input.IsBlocked ? " (막기 -50%)" : "";
+
+            string bonusDmgInfo = result.BonusDamage > 0
+            ? $"\n  ├ 별도 피해: {result.BonusDamage:N0}"
+            : "";
+
+            string conditionalInfo = "";
+            if (input.IsSkillConditionMet && input.Skill != null)
+            {
+                var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
+                if (skillTranscend.ConditionalDmgBonus > 0)
+                {
+                    conditionalInfo = $"\n  스킬 조건부 피해: +{skillTranscend.ConditionalDmgBonus}%";
+                }
+            }
 
             string extraInfo = result.ExtraDamage > 0
                 ? $"\n  ├ 조건부 추가: {result.ExtraDamage:N0}"
@@ -255,10 +300,10 @@ namespace GameDamageCalculator.Services
   스킬 배율: {result.SkillRatio:F2}x
   치명 계수: {result.CritMultiplier:F2}x {critInfo}
   약공 계수: {result.WeakpointMultiplier:F2}x {wekInfo}
-  피증 계수: {result.DamageMultiplier:F2}x
+  피증 계수: {result.DamageMultiplier:F2}x{conditionalInfo}
 
 ═══════════════════════════════════════════════════
-💥 최종 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{atkCountInfo}{healInfo}
+💥 최종 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{bonusDmgInfo}{atkCountInfo}{healInfo}
 ═══════════════════════════════════════════════════";
         }
 

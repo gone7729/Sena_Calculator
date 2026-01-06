@@ -266,6 +266,178 @@ namespace GameDamageCalculator.Database
                 }
             },
 
+            // 세인
+            new Character
+            {
+                Id = 4,
+                Name = "세인",
+                Grade = "전설",
+                Type = "공격형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 1.0 } },
+                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "귀신 베기",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 5.7 } },
+                            { 1, new SkillLevelData { Ratio = 6.9 } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { ConditionalDmgBonus = 2, Effect = "디버프 1개당 피해량 증가(최대 4개)" } }
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "악마의 힘",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Buff = new BuffSet { Dmg_Rdc = 24, Cri = 35 }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Buff = new BuffSet { Dmg_Rdc = 29, Cri = 41 }
+                        }}
+                    },
+                        TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                        {
+                            { 2, new PassiveTranscend { Buff = new BuffSet{ Dmg_Dealt = 80 }, Effect = "디버프당 피해량 증가 20%" } }
+                        }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "처치 시 100% 위력으로 연속 발동" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 18 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "아군 죽음 내가 쌔짐 ㄹㅇ ㅇㅇ" }
+                }
+            },
+
+
+            // 비담
+            new Character
+            {
+                Id = 5,
+                Name = "비담",
+                Grade = "전설",
+                Type = "공격형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 2,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 0.55 } },
+                            { 1, new SkillLevelData { Ratio = 0.65 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "거궁신포",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 3,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 1.15 } },
+                            { 1, new SkillLevelData { Ratio = 1.35 } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { Effect = "쿨 55초 변경, 상대 출혈 시 확정 출혈" } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "태전포화",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 3,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 1.75, BonusDmgRatio = 1.2, BonusDmgMaxStacks = 3 }},
+                            { 1, new SkillLevelData { Ratio = 2.05, BonusDmgRatio = 1.2, BonusDmgMaxStacks = 3 }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { BonusDmgRatio = 0.3, Effect = "출혈폭발 댐증" } }
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "화랑의 후예",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Buff = new BuffSet { Dmg_Dealt = 29 }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Buff = new BuffSet { Dmg_Dealt = 35 }
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "처치 시 100% 위력으로 연속 발동" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 18 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "아군 죽음 내가 쌔짐 ㄹㅇ ㅇㅇ" }
+                }
+            },
+
+            // 카구라
+
+
+            // 태오
+
+
+            // 클라한
+
+
+            // 카일
+
+
+            // 콜트
+
+
+            // 아멜리아
+
+
+            // 발리스타
+
+
+
             #endregion
 
             #region 전설 - 마법형 101~
@@ -519,6 +691,44 @@ namespace GameDamageCalculator.Database
                 }
             },
 
+            // 연희
+
+
+            // 쥬리
+
+
+            // 벨리카
+
+
+            // 에스파다
+
+
+            // 데이지
+
+
+            // 바네사
+
+
+            // 키리엘
+
+
+            // 멜키르
+
+
+            // 실베스타
+
+
+            // 프레이야
+
+
+            // 린
+
+
+            // 밀리아
+
+
+            // 유신
+
             #endregion
 
             #region 전설 - 지원형 201~
@@ -706,6 +916,17 @@ namespace GameDamageCalculator.Database
                 }
             },
 
+            // 오를리
+
+
+            // 플라튼
+
+
+            // 로지
+
+
+            // 엘리스
+
             #endregion
 
             #region 전설 - 만능형 301~
@@ -813,6 +1034,60 @@ namespace GameDamageCalculator.Database
                     new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "대상 증가" }
                 }
             },
+
+            // 아일린
+
+
+            // 지크
+
+
+            // 에이스
+
+
+            // 엘리시아
+
+
+            // 크리스
+
+
+            // 제이브
+
+
+            // 트루드
+
+
+            // 카르마
+
+
+            // 스파이크
+
+
+            // 손오공
+
+
+            // 챈슬러
+
+
+            // 니아
+
+            #endregion
+
+            #region 전설 - 방어형 401~
+
+            // 루디
+
+
+            // 아킬라
+
+
+            // 녹스
+
+
+            // 아라곤
+
+
+            // 룩
+
 
             #endregion
         };

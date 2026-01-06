@@ -175,6 +175,8 @@ namespace GameDamageCalculator.Models
         public BuffSet Bonus { get; set; } = new BuffSet();
         public DebuffSet Debuff { get; set; } = new DebuffSet();
         public int? TargetCountOverride { get; set; }
+        // 조건부 효과 추가
+        public double ConditionalDmgBonus { get; set; }     // 조건 충족 시 피해량 증가%
         public string Effect { get; set; }
     }
 
