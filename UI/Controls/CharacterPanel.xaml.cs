@@ -377,7 +377,7 @@ namespace GameDamageCalculator.UI.Controls
             BuffSet characterPassiveBuff = new BuffSet();
             if (SelectedCharacter?.Passive != null)
             {
-                var buff = SelectedCharacter.Passive.GetTotalBuff(IsSkillEnhanced, TranscendLevel);
+                var buff = SelectedCharacter.Passive.GetTotalSelfBuff(IsSkillEnhanced, TranscendLevel);
                 if (buff != null) characterPassiveBuff.Add(buff);
             }
 

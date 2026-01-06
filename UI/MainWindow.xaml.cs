@@ -78,6 +78,7 @@ namespace GameDamageCalculator.UI
 
         private void InitializeComboBoxes()
         {
+             UpdateCharacterList();
             // 캐릭터 목록
             cboCharacter.Items.Add("직접 입력하거나 골라주세요");
             foreach (var character in CharacterDb.Characters)
@@ -803,6 +804,44 @@ namespace GameDamageCalculator.UI
             return "";
         }
 
+        private void CboFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            UpdateCharacterList();
+        }
+        
+        private void UpdateCharacterList()
+        {
+            // 현재 선택 저장
+            string previousSelection = cboCharacter.SelectedItem?.ToString();
+            
+            cboCharacter.Items.Clear();
+            cboCharacter.Items.Add("선택하세요");
+            
+            // 필터 값 가져오기
+            string gradeFilter = (cboGrade.SelectedItem as ComboBoxItem)?.Content.ToString();
+            string typeFilter = (cboType.SelectedItem as ComboBoxItem)?.Content.ToString();
+            
+            foreach (var character in CharacterDb.Characters)
+            {
+                // 등급 필터
+                if (gradeFilter != "전체" && character.Grade != gradeFilter)
+                    continue;
+                
+                // 유형 필터
+                if (typeFilter != "전체" && character.Type != typeFilter)
+                    continue;
+                
+                cboCharacter.Items.Add(character.Name);
+            }
+            
+            // 이전 선택 복원 시도
+            if (previousSelection != null && cboCharacter.Items.Contains(previousSelection))
+                cboCharacter.SelectedItem = previousSelection;
+            else
+                cboCharacter.SelectedIndex = 0;
+        }
+
         #endregion
 
         #region 스탯 계산 (UI 표시용)
@@ -839,9 +878,10 @@ namespace GameDamageCalculator.UI
                 var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
                 if (character?.Passive != null)
                 {
+                    bool isConditionMet = chkPassiveCondition.IsChecked == true;
                     bool isEnhanced = chkSkillEnhanced.IsChecked == true;
                     int transcendLevel = cboTranscend.SelectedIndex;
-                    var buff = character.Passive.GetTotalBuff(isEnhanced, transcendLevel);
+                    var buff = character.Passive.GetTotalSelfBuff(isEnhanced, transcendLevel, isConditionMet);
                     if (buff != null)
                     {
                         characterPassiveBuff.Add(buff);
@@ -1393,7 +1433,7 @@ namespace GameDamageCalculator.UI
                 if (config.CheckBox.IsChecked != true) continue;
                 var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
                 var character = CharacterDb.GetByName(config.CharacterName);
-                var buff = character?.Passive?.GetTotalBuff(isEnhanced, transcendLevel);
+                var buff = character?.Passive?.GetPartyBuff(isEnhanced, transcendLevel);
                 if (buff != null) total.MaxMerge(buff);
             }
             return total;

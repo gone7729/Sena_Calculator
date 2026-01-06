@@ -164,6 +164,10 @@ namespace GameDamageCalculator.Models
         public double HealDefRatio { get; set; }
         public double HealHpRatio { get; set; }
 
+        // 비담 개새끼 땜에 추가 출혈 폭발 같은 별도 피해 (치명타/약점 미적용)
+        public double BonusDmgRatio { get; set; }      // 폭발 피해 배율 (120%)
+        public int BonusDmgMaxStacks { get; set; }     // 최대 스택 (3개)
+
         public string Effect { get; set; }
     }
 
@@ -175,8 +179,11 @@ namespace GameDamageCalculator.Models
         public BuffSet Bonus { get; set; } = new BuffSet();
         public DebuffSet Debuff { get; set; } = new DebuffSet();
         public int? TargetCountOverride { get; set; }
+        
         // 조건부 효과 추가
         public double ConditionalDmgBonus { get; set; }     // 조건 충족 시 피해량 증가%
+
+        public double BonusDmgRatio { get; set; }
         public string Effect { get; set; }
     }
 
@@ -214,7 +221,8 @@ namespace GameDamageCalculator.Models
 
             foreach (var kvp in TranscendBonuses.Where(t => t.Key <= level).OrderBy(t => t.Key))
             {
-                result.Buff.Add(kvp.Value.Buff);
+                result.SelfBuff.Add(kvp.Value.SelfBuff);
+                result.PartyBuff.Add(kvp.Value.PartyBuff);
                 result.Debuff.Add(kvp.Value.Debuff);
                 result.Effect = kvp.Value.Effect;
             }
@@ -222,17 +230,39 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 패시브 레벨 + 초월 합산 버프
+        /// 본인 전용 버프 (SelfBuff + PartyBuff 둘 다)
         /// </summary>
-        public BuffSet GetTotalBuff(bool isEnhanced, int transcendLevel)
+        public BuffSet GetTotalSelfBuff(bool isEnhanced, int transcendLevel, bool isConditionMet = false)
         {
             var result = new BuffSet();
 
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.Buff != null) result.Add(levelData.Buff);
+            if (levelData.SelfBuff != null) result.Add(levelData.SelfBuff);
+            if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
+            if (isConditionMet && levelData.ConditionalSelfBuff != null) 
+                result.Add(levelData.ConditionalSelfBuff);
 
             var transcend = GetTranscendBonus(transcendLevel);
-            if (transcend.Buff != null) result.Add(transcend.Buff);
+            if (transcend.SelfBuff != null) result.Add(transcend.SelfBuff);
+            if (transcend.PartyBuff != null) result.Add(transcend.PartyBuff);
+            if (isConditionMet && transcend.ConditionalSelfBuff != null) 
+                result.Add(transcend.ConditionalSelfBuff);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 아군용 버프 (PartyBuff만)
+        /// </summary>
+        public BuffSet GetPartyBuff(bool isEnhanced, int transcendLevel)
+        {
+            var result = new BuffSet();
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
+
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.PartyBuff != null) result.Add(transcend.PartyBuff);
 
             return result;
         }
@@ -259,7 +289,9 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveLevelData
     {
-        public BuffSet Buff { get; set; } = new BuffSet();
+        public BuffSet SelfBuff { get; set; } = new BuffSet();   // 본인 전용
+        public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
+        public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
         public string Effect { get; set; }
     }
@@ -269,7 +301,9 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveTranscend
     {
-        public BuffSet Buff { get; set; } = new BuffSet();
+        public BuffSet SelfBuff { get; set; } = new BuffSet();   // 본인 전용
+        public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
+        public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
         public string Effect { get; set; }
     }
