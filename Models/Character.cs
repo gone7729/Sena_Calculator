@@ -133,6 +133,26 @@ namespace GameDamageCalculator.Models
     }
 
     /// <summary>
+    /// 스킬이 부여하는 상태이상 인스턴스
+    /// </summary>
+    public class SkillStatusEffect
+    {
+        public StatusEffectType Type { get; set; }
+        public int Duration { get; set; }               // 지속 턴
+        public int Stacks { get; set; } = 1;            // 부여 스택
+        public double Chance { get; set; } = 100;       // 부여 확률%
+        public string Condition { get; set; }           // 부여 조건
+
+        // 커스텀 값 (기본값 오버라이드)
+        public double? CustomAtkRatio { get; set; }
+        public double? CustomHpRatio { get; set; }
+        public double? CustomAtkCap { get; set; }
+        public double? CustomArmorPen { get; set; }
+        public double? CustomFixedDamage { get; set; }
+        
+    }
+
+    /// <summary>
     /// 스킬 레벨별 데이터 (0=기본, 1=강화)
     /// </summary>
     public class SkillLevelData
@@ -163,10 +183,16 @@ namespace GameDamageCalculator.Models
         public double HealAtkRatio { get; set; }
         public double HealDefRatio { get; set; }
         public double HealHpRatio { get; set; }
+        // === 생명력 비례 피해 (NEW) ===
+        public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP 비례% (8%)
+        public double TargetCurrentHpRatio { get; set; } // 대상 현재 HP 비례%
+        public double AtkCap { get; set; }    // 공격력 제한% (75%)
 
-        // 비담 개새끼 땜에 추가 출혈 폭발 같은 별도 피해 (치명타/약점 미적용)
-        public double BonusDmgRatio { get; set; }      // 폭발 피해 배율 (120%)
-        public int BonusDmgMaxStacks { get; set; }     // 최대 스택 (3개)
+        // === 잃은 HP 비례 피해 증가 (NEW) ===
+        public double LostHpBonusDmgMax { get; set; }   // 잃은 HP 비례 최대 피해 증가% (50%)
+
+        // === 상태이상 부여 (NEW) ===
+        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
 
         public string Effect { get; set; }
     }
@@ -182,8 +208,10 @@ namespace GameDamageCalculator.Models
         
         // 조건부 효과 추가
         public double ConditionalDmgBonus { get; set; }     // 조건 충족 시 피해량 증가%
+        public double ConditionalExtraDmg { get; set; }     // 조건 충족 시 피해량 증가%
+        // === 상태이상 부여 (NEW) ===
+        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
 
-        public double BonusDmgRatio { get; set; }
         public string Effect { get; set; }
     }
 
@@ -293,6 +321,8 @@ namespace GameDamageCalculator.Models
         public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
         public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
+        // === 상태이상 부여 (NEW) ===
+        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
     }
 
@@ -305,6 +335,8 @@ namespace GameDamageCalculator.Models
         public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
         public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
+        // === 상태이상 부여 (NEW) ===
+        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
     }
 

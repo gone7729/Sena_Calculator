@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
@@ -28,8 +29,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0, ConditionalExtraDmg = 0.45, ConditionalDesc = "체력 30% 미만" } },
-                            { 1, new SkillLevelData { Ratio = 1.2, ConditionalExtraDmg = 0.55, ConditionalDesc = "체력 30% 미만" } }
+                            { 0, new SkillLevelData { Ratio = 100, ConditionalExtraDmg = 45, ConditionalDesc = "체력 30% 미만" } },
+                            { 1, new SkillLevelData { Ratio = 120, ConditionalExtraDmg = 55, ConditionalDesc = "체력 30% 미만" } }
                         }
                     },
                     new Skill
@@ -41,8 +42,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.45, Bonus = new BuffSet { Cri_Dmg = 37 } } },
-                            { 1, new SkillLevelData { Ratio = 1.70, Bonus = new BuffSet { Cri_Dmg = 46 } } }
+                            { 0, new SkillLevelData { Ratio = 145, Bonus = new BuffSet { Cri_Dmg = 37 } } },
+                            { 1, new SkillLevelData { Ratio = 170, Bonus = new BuffSet { Cri_Dmg = 46 } } }
                         }
                     },
                     new Skill
@@ -54,8 +55,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.45, ConditionalExtraDmg = 2.60, ConditionalDesc = "체력 30% 미만" } },
-                            { 1, new SkillLevelData { Ratio = 1.70, ConditionalExtraDmg = 2.60, ConditionalDesc = "체력 30% 미만" } }
+                            { 0, new SkillLevelData { Ratio = 145, ConditionalExtraDmg = 260, ConditionalDesc = "체력 30% 미만" } },
+                            { 1, new SkillLevelData { Ratio = 170, ConditionalExtraDmg = 260, ConditionalDesc = "체력 30% 미만" } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -106,8 +107,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -119,8 +120,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.30 } },
-                            { 1, new SkillLevelData { Ratio = 1.55 } }
+                            { 0, new SkillLevelData { Ratio = 130 } },
+                            { 1, new SkillLevelData { Ratio = 155 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -137,16 +138,16 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                Ratio = 1.45, 
-                                ConditionalExtraDmg = 0.50,
+                                Ratio = 145, 
+                                ConditionalExtraDmg = 50,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
-                                Bonus = new BuffSet { WekBonusDmg = 2.30 }
+                                Bonus = new BuffSet { WekBonusDmg = 230 }
                             }},
                             { 1, new SkillLevelData { 
-                                Ratio = 1.70, 
-                                ConditionalExtraDmg = 0.50,
+                                Ratio = 170, 
+                                ConditionalExtraDmg = 50,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
-                                Bonus = new BuffSet { WekBonusDmg = 2.70 }
+                                Bonus = new BuffSet { WekBonusDmg = 270 }
                             }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -199,8 +200,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -212,8 +213,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.15 } },
-                            { 1, new SkillLevelData { Ratio = 1.35 } }
+                            { 0, new SkillLevelData { Ratio = 115 } },
+                            { 1, new SkillLevelData { Ratio = 135 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -229,8 +230,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.19 }},
-                            { 1, new SkillLevelData { Ratio = 1.58 }}
+                            { 0, new SkillLevelData { Ratio = 119 }},
+                            { 1, new SkillLevelData { Ratio = 158 }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -284,8 +285,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -297,8 +298,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 5.7 } },
-                            { 1, new SkillLevelData { Ratio = 6.9 } }
+                            { 0, new SkillLevelData { Ratio = 570 } },
+                            { 1, new SkillLevelData { Ratio = 690 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -334,7 +335,6 @@ namespace GameDamageCalculator.Database
                 }
             },
 
-
             // 비담
             new Character
             {
@@ -353,8 +353,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 0.55 } },
-                            { 1, new SkillLevelData { Ratio = 0.65 } }
+                            { 0, new SkillLevelData { Ratio = 55 } },
+                            { 1, new SkillLevelData { Ratio = 65 } }
                         }
                     },
                     new Skill
@@ -366,8 +366,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.15 } },
-                            { 1, new SkillLevelData { Ratio = 1.35 } }
+                            { 0, new SkillLevelData { Ratio = 115 } },
+                            { 1, new SkillLevelData { Ratio = 135 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -383,12 +383,17 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.75, BonusDmgRatio = 1.2, BonusDmgMaxStacks = 3 }},
-                            { 1, new SkillLevelData { Ratio = 2.05, BonusDmgRatio = 1.2, BonusDmgMaxStacks = 3 }}
+                            { 0, new SkillLevelData { Ratio = 175, StatusEffects = new List<SkillStatusEffect> { new SkillStatusEffect{ Type = StatusEffectType.BleedExplosion } } }},
+                            { 1, new SkillLevelData { Ratio = 205, StatusEffects = new List<SkillStatusEffect> { new SkillStatusEffect{ Type = StatusEffectType.BleedExplosion } } }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { BonusDmgRatio = 0.3, Effect = "출혈폭발 댐증" } }
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect> {
+                                    new SkillStatusEffect { Type = StatusEffectType.BleedExplosion, CustomAtkRatio = 600 } // (150% × 2턴) × 2중첩
+                                },
+                                Effect = "출혈폭발 댐증" 
+                            }}
                         }
                     }
                 },
@@ -434,8 +439,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1 } },
-                            { 1, new SkillLevelData { Ratio = 1.3 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 130 } }
                         }
                     },
                     new Skill
@@ -447,8 +452,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 0.62, DebuffEffect = new DebuffSet { Heal_Reduction = 0.52 } } },
-                            { 1, new SkillLevelData { Ratio = 0.62, DebuffEffect = new DebuffSet { Heal_Reduction = 0.68 } } }
+                            { 0, new SkillLevelData { Ratio = 62, DebuffEffect = new DebuffSet { Heal_Reduction = 52 } } },
+                            { 1, new SkillLevelData { Ratio = 62, DebuffEffect = new DebuffSet { Heal_Reduction = 68 } } }
                         }
                     },
                     new Skill
@@ -460,8 +465,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 0.57 }},
-                            { 1, new SkillLevelData { Ratio = 0.57 }}
+                            { 0, new SkillLevelData { Ratio = 57 }},
+                            { 1, new SkillLevelData { Ratio = 57 }}
                         }
                     }
                 },
@@ -514,8 +519,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1 } },
-                            { 1, new SkillLevelData { Ratio = 1.3 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 130 } }
                         }
                     },
                     new Skill
@@ -527,8 +532,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.3, Bonus = new BuffSet { Cri = 30 } } },
-                            { 1, new SkillLevelData { Ratio = 1.7 } }
+                            { 0, new SkillLevelData { Ratio = 130, Bonus = new BuffSet { Cri = 30 } } },
+                            { 1, new SkillLevelData { Ratio = 170 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -544,8 +549,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 0.65, Bonus = new BuffSet { Cri = 30 } }},
-                            { 1, new SkillLevelData { Ratio = 0.85 }}
+                            { 0, new SkillLevelData { Ratio = 65, Bonus = new BuffSet { Cri = 30 } }},
+                            { 1, new SkillLevelData { Ratio = 85 }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -583,9 +588,176 @@ namespace GameDamageCalculator.Database
             },
 
             // 클라한
-
+            new Character
+            {
+                Id = 8,
+                Name = "클라한",
+                Grade = "전설",
+                Type = "공격형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 130 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "먼저쓰면안됨",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 115, ConditionalExtraDmg = 100 } },
+                            { 1, new SkillLevelData { Ratio = 150, ConditionalExtraDmg = 100 } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { ConditionalExtraDmg = 115 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "먼저쓰셈",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 115, ConditionalExtraDmg = 125 } },
+                            { 1, new SkillLevelData { Ratio = 165, ConditionalExtraDmg = 125 } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { ConditionalExtraDmg = 135 } }
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "호랑이의 용맹",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new BuffSet{ Atk_Rate = 27 }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            SelfBuff = new BuffSet{ Atk_Rate = 33 }
+                        }}
+                    },
+                        TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                        {
+                            { 2, new PassiveTranscend { SelfBuff = new BuffSet{ Dmg_Dealt = 33 }, Effect = "피증" } }
+                        }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "피증" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 18 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "조건충족뎀지증가" }
+                }
+            },
 
             // 카일
+            new Character
+            {
+                Id = 9,
+                Name = "카일",
+                Grade = "전설",
+                Type = "공격형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100, ConditionalExtraDmg = 130 } },
+                            { 1, new SkillLevelData { Ratio = 130, ConditionalExtraDmg = 130 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "철쇄폭압",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 4,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 60, TargetMaxHpRatio = 8,  AtkCap = 75, ConditionalExtraDmg = 65 } },
+                            { 1, new SkillLevelData { Ratio = 72, TargetMaxHpRatio = 10, AtkCap = 75, ConditionalExtraDmg = 65 } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { Bonus = new BuffSet{ Arm_Pen = 40 } } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "사슬의 무덤",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 4,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 70, ConditionalExtraDmg = 65 } },
+                            { 1, new SkillLevelData { Ratio = 90, ConditionalExtraDmg = 65 } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { Bonus = new BuffSet{ Arm_Pen = 40 } } }
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "소검쌍무",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new BuffSet{ Cri = 27 },
+                            StatusEffects = new List<SkillStatusEffect> { new SkillStatusEffect{ Type = StatusEffectType.ChainDamage } }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            SelfBuff = new BuffSet{ Cri = 27 },
+                            StatusEffects = new List<SkillStatusEffect> { new SkillStatusEffect{ Type = StatusEffectType.ChainDamage, CustomTargetMaxHpRatio = 32 } }
+                        }}
+                    },
+                        TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                        {
+                            { 2, new PassiveTranscend { Effect = "잉 때리면 또 버티기" } }
+                        }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "잉 때리면 또 버티기" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 18 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "스킬에 방무" }
+                }
+            },
 
 
             // 콜트
@@ -620,8 +792,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -649,8 +821,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 3.90, Bonus = new BuffSet { Cri = 50 } } },
-                            { 1, new SkillLevelData { Ratio = 4.70, Bonus = new BuffSet { Cri = 50 } } }
+                            { 0, new SkillLevelData { Ratio = 390, Bonus = new BuffSet { Cri = 50 } } },
+                            { 1, new SkillLevelData { Ratio = 470, Bonus = new BuffSet { Cri = 50 } } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -705,8 +877,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -718,8 +890,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 0.75, Bonus = new BuffSet { WekBonusDmg = 0.35 } } },
-                            { 1, new SkillLevelData { Ratio = 0.9, Bonus = new BuffSet { WekBonusDmg = 0.42 } } }
+                            { 0, new SkillLevelData { Ratio = 75, Bonus = new BuffSet { WekBonusDmg = 35 } } },
+                            { 1, new SkillLevelData { Ratio = 90, Bonus = new BuffSet { WekBonusDmg = 42 } } }
                         }
                     },
                     new Skill
@@ -731,8 +903,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.45, Bonus = new BuffSet { WekBonusDmg = 1.3 } } },
-                            { 1, new SkillLevelData { Ratio = 1.7, Bonus = new BuffSet { WekBonusDmg = 1.55 } } }
+                            { 0, new SkillLevelData { Ratio = 145, Bonus = new BuffSet { WekBonusDmg = 130 } } },
+                            { 1, new SkillLevelData { Ratio = 170, Bonus = new BuffSet { WekBonusDmg = 155 } } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -788,8 +960,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.0 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -801,13 +973,13 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.45, DebuffEffect = new DebuffSet { Vulnerability = 22 } } },
-                            { 1, new SkillLevelData { Ratio = 1.7, DebuffEffect = new DebuffSet { Vulnerability = 22 } } }
+                            { 0, new SkillLevelData { Ratio = 145, DebuffEffect = new DebuffSet { Vulnerability = 22 } } },
+                            { 1, new SkillLevelData { Ratio = 170, DebuffEffect = new DebuffSet { Vulnerability = 22 } } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             { 6, new SkillTranscend { 
-                                Bonus = new BuffSet { WekBonusDmg = 0.75 }
+                                Bonus = new BuffSet { WekBonusDmg = 75 }
                             }}
                         }
                     },
@@ -820,13 +992,13 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1.6 } },
-                            { 1, new SkillLevelData { Ratio = 1.85 } }
+                            { 0, new SkillLevelData { Ratio = 160 } },
+                            { 1, new SkillLevelData { Ratio = 185 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             { 6, new SkillTranscend { 
-                                Bonus = new BuffSet { WekBonusDmg = 0.85 }
+                                Bonus = new BuffSet { WekBonusDmg = 85 }
                             }}
                         }
                     }
@@ -911,8 +1083,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 0.5, DefRatio = 0.6 } },
-                            { 1, new SkillLevelData { Ratio = 0.5, DefRatio = 0.6, DebuffEffect = new DebuffSet { Dmg_Reduction = 6 } } }
+                            { 0, new SkillLevelData { Ratio = 50, DefRatio = 60 } },
+                            { 1, new SkillLevelData { Ratio = 50, DefRatio = 60, DebuffEffect = new DebuffSet { Dmg_Reduction = 6 } } }
                         }
                     },
                     new Skill
@@ -946,8 +1118,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1, DefRatio = 1.15, Bonus = new BuffSet { Arm_Pen = 40 } } },
-                            { 1, new SkillLevelData { Ratio = 1.15, DefRatio = 1.35, Bonus = new BuffSet { Arm_Pen = 40 } } }
+                            { 0, new SkillLevelData { Ratio = 100, DefRatio = 115, Bonus = new BuffSet { Arm_Pen = 40 } } },
+                            { 1, new SkillLevelData { Ratio = 115, DefRatio = 135, Bonus = new BuffSet { Arm_Pen = 40 } } }
                         }
                     }
                 },
@@ -1002,8 +1174,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -1111,8 +1283,8 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 1 } },
-                            { 1, new SkillLevelData { Ratio = 1.2 } }
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
                         }
                     },
                     new Skill
@@ -1125,14 +1297,14 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                Ratio = 1.02,
+                                Ratio = 102,
                                 DebuffEffect = new DebuffSet { 
                                     Atk_Reduction = 22,
                                     Dmg_Reduction = 17
                                 }
                             }},
                             { 1, new SkillLevelData { 
-                                Ratio = 1.22,
+                                Ratio = 122,
                                 DebuffEffect = new DebuffSet { 
                                     Atk_Reduction = 22,
                                     Dmg_Reduction = 17
@@ -1157,11 +1329,11 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                Ratio = 1.6,
+                                Ratio = 160,
                                 DebuffEffect = new DebuffSet { Def_Reduction = 29, Vulnerability = 22 }
                             }},
                             { 1, new SkillLevelData { 
-                                Ratio = 1.6,
+                                Ratio = 160,
                                 DebuffEffect = new DebuffSet { Def_Reduction = 36, Vulnerability = 28 }
                             }}
                         },
