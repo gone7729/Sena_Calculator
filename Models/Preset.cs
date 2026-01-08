@@ -45,7 +45,9 @@ namespace GameDamageCalculator.Models
         // 펫
         public string PetName { get; set; }
         public int PetStar { get; set; }
-        public List<PetOptionData> PetOptions { get; set; } = new List<PetOptionData>();
+        public double PetAtkRate { get; set; }
+        public double PetDefRate { get; set; }
+        public double PetHpRate { get; set; }
         
         // 보스
         public string BossType { get; set; }  // Siege, Raid, Guild

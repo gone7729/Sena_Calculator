@@ -196,6 +196,29 @@ namespace GameDamageCalculator.UI
             cboAccessorySub.SelectedIndex = 0;
         }
 
+        private void FormationPosition_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            string currentTag = btn.Tag.ToString();
+
+            if (currentTag == "Back")
+            {
+                btn.Tag = "Front";
+                btn.Content = "전열";
+                rbBack.IsChecked = false;
+                rbFront.IsChecked = true;
+            }
+            else
+            {
+                btn.Tag = "Back";
+                btn.Content = "후열";
+                rbBack.IsChecked = true;
+                rbFront.IsChecked = false;
+            }
+
+            RecalculateStats();
+        }
+
         #endregion
 
         #region 이벤트 핸들러
@@ -674,9 +697,6 @@ namespace GameDamageCalculator.UI
             // 펫
             cboPet.SelectedIndex = 0;
             cboPetStar.SelectedIndex = 2;
-            cboPetOpt1.SelectedIndex = 0;
-            cboPetOpt2.SelectedIndex = 0;
-            cboPetOpt3.SelectedIndex = 0;
             txtPetOpt1.Text = "0";
             txtPetOpt2.Text = "0";
             txtPetOpt3.Text = "0";
@@ -798,6 +818,89 @@ namespace GameDamageCalculator.UI
                 cboCharacter.SelectedIndex = 0;
         }
 
+        private void AccessoryGrade_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            int currentTag = int.Parse(btn.Tag.ToString());
+            
+            // 0(없음) → 1(4성) → 2(5성) → 3(6성) → 0(없음) 순환
+            int nextTag = (currentTag + 1) % 4;
+            btn.Tag = nextTag.ToString();
+            
+            // 버튼 텍스트 변경
+            string[] grades = { "없음", "4성", "5성", "6성" };
+            btn.Content = grades[nextTag];
+            
+            // 기존 콤보박스도 동기화 (다른 코드 호환용)
+            cboAccessoryGrade.SelectedIndex = nextTag;
+            
+            // 6성이면 부옵션 표시
+            if (nextTag == 3)
+            {
+                cboAccessorySub.Visibility = Visibility.Visible;
+                txtAccessorySubValue.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                cboAccessorySub.Visibility = Visibility.Collapsed;
+                txtAccessorySubValue.Visibility = Visibility.Collapsed;
+            }
+            
+            RecalculateStats();
+        }
+
+        private void PetStar_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            int currentTag = int.Parse(btn.Tag.ToString());
+            
+            // 4 → 5 → 6 → 4 순환
+            int nextTag = currentTag == 6 ? 4 : currentTag + 1;
+            btn.Tag = nextTag.ToString();
+            btn.Content = $"{nextTag}성";
+            
+            RecalculateStats();
+        }
+
+        private void CboPetFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            RecalculateStats();
+        }
+
+        private void UpdatePetList()
+        {
+            if (cboPet == null) return;
+
+            cboPet.Items.Clear();
+            cboPet.Items.Add("직접 입력하거나 골라주세요");
+
+            string starFilter = (cboPetStar.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "전체";
+            string rarityFilter = (cboPetRarity.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "전체";
+
+            // 성급 문자열 → 숫자 변환
+            int starValue = 0;
+            if (starFilter == "4성") starValue = 4;
+            else if (starFilter == "5성") starValue = 5;
+            else if (starFilter == "6성") starValue = 6;
+
+            foreach (var pet in PetDb.Pets)
+            {
+                // 희귀도 필터
+                bool matchRarity = rarityFilter == "전체" || pet.Rarity == rarityFilter;
+
+                // 성급 필터 (Skills 딕셔너리 키로 확인)
+                bool matchStar = starFilter == "전체" || pet.Skills.ContainsKey(starValue);
+
+                if (matchRarity && matchStar)
+                {
+                    cboPet.Items.Add(pet.Name);
+                }
+            }
+
+            cboPet.SelectedIndex = 0;
+        }
+
         #endregion
 
         #region 스탯 계산 (UI 표시용)
@@ -862,19 +965,6 @@ namespace GameDamageCalculator.UI
             _currentDebuffs.Add(passiveDebuffs);
             _currentDebuffs.Add(activeDebuffs);
 
-            // ========== 깡스탯 합계 ==========
-            double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
-            double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
-            double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
-
-            double petFlatAtk = GetPetFlatAtk();
-            double petFlatDef = GetPetFlatDef();
-            double petFlatHp = GetPetFlatHp();
-
-            double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk + mainOptionStats.Atk;
-            double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef + mainOptionStats.Def;
-            double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
-
             // ========== 합연산% ==========
             BaseStatSet transcendStats = new BaseStatSet();
         
@@ -887,9 +977,6 @@ namespace GameDamageCalculator.UI
                     transcendStats = character.GetTranscendStats(transcendLevel);
                 }
             }
-
-            double formationAtkRate = GetFormationAtkRate();
-            double formationDefRate = GetFormationDefRate();
 
             BaseStatSet setBonus = new BaseStatSet();
             if (cboEquipSet1.SelectedIndex > 0)
@@ -904,6 +991,27 @@ namespace GameDamageCalculator.UI
                 setBonus.Add(GetSetBonus(setName, 2));
             }
 
+            // ========== 깡스탯 합계 ==========
+            double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
+            double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
+            double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
+
+            double petFlatAtk = GetPetFlatAtk();
+            double petFlatDef = GetPetFlatDef();
+            double petFlatHp = GetPetFlatHp();
+
+            double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk + mainOptionStats.Atk;
+            double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef + mainOptionStats.Def;
+            double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
+
+            // 순수 기본 = 캐릭터 기본 + 장비 + 초월 + 장신구
+            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + flatAtk;
+            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + flatDef;
+            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
+
+            double formationAtkRate = GetFormationAtkRate();
+            double formationDefRate = GetFormationDefRate();
+
             double petOptionAtkRate = GetPetOptionAtkRate();
             double petOptionDefRate = GetPetOptionDefRate();
             double petOptionHpRate = GetPetOptionHpRate();
@@ -911,7 +1019,7 @@ namespace GameDamageCalculator.UI
             double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
                     + setBonus.Atk_Rate + subStats.Atk_Rate 
                     + accessoryStats.Atk_Rate + petOptionAtkRate
-                    + mainOptionStats.Atk_Rate;
+                    + mainOptionStats.Atk_Rate + GetPetSkillAtkRate();
 
             double totalDefRate = transcendStats.Def_Rate + formationDefRate
                     + setBonus.Def_Rate + subStats.Def_Rate 
@@ -924,9 +1032,9 @@ namespace GameDamageCalculator.UI
                    + mainOptionStats.Hp_Rate;
 
             // ========== 버프% ==========
-            double buffAtkRate = GetPetSkillAtkRate() + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
-            double buffDefRate = totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
-            double buffHpRate = totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
+            double buffAtkRate = GetPetAtkRate() + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
+            double buffDefRate = GetPetDefRate()+ totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
+            double buffHpRate = GetPetHpRate()+ totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
 
             // ========== 기본 스탯 (버프 적용 전) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
@@ -939,9 +1047,9 @@ namespace GameDamageCalculator.UI
             double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
 
             // ========== UI 표시 ==========
-            txtStatAtkBase.Text = baseStatAtk.ToString("N0");
-            txtStatDefBase.Text = baseStatDef.ToString("N0");
-            txtStatHpBase.Text = baseStatHp.ToString("N0");
+            txtStatAtkBase.Text = pureBaseAtk.ToString("N0");
+            txtStatDefBase.Text = pureBaseDef.ToString("N0");
+            txtStatHpBase.Text = pureBaseHp.ToString("N0");
 
             txtStatAtk.Text = totalAtk.ToString("N0");
             txtStatDef.Text = totalDef.ToString("N0");
@@ -963,7 +1071,8 @@ namespace GameDamageCalculator.UI
                 Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
                 Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc,
                 Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3,
-                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5
+                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5,
+                Atk_Rate = totalAtkRate
             };
 
             UpdateStatDisplay(displayStats);
@@ -986,33 +1095,22 @@ namespace GameDamageCalculator.UI
             txtStatEffRes.Text = $"{stats.Eff_Res}%";
             txtStatEffAcc.Text = $"{stats.Eff_Acc}%";
             txtStatDmgRdc.Text = $"{stats.Dmg_Rdc}%";
-        }
-
-        #endregion
-
-        #region 총 공격력 계산
-
-        private double CalculateTotalAtk()
-        {
-            RecalculateStats();
-            return ParseStatValue(txtStatAtk.Text);
-        }
-
-        private double GetBaseAtk()
-        {
-            if (cboCharacter.SelectedIndex <= 0) return 0;
-            
-            var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
-            if (character != null)
-            {
-                return character.GetBaseStats().Atk;
-            }
-            return 0;
+            txtStatAtkRate.Text = $"{stats.Atk_Rate}%";
         }
 
         #endregion
 
         #region 펫 관련
+
+        private int GetPetStar()
+        {
+            string starStr = (cboPetStar.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "6성";
+
+            if (starStr == "4성") return 4;
+            else if (starStr == "5성") return 5;
+            else if (starStr == "6성") return 6;
+            else return 0;
+        }
 
         private double GetPetFlatAtk()
         {
@@ -1021,7 +1119,7 @@ namespace GameDamageCalculator.UI
             var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
             if (pet != null)
             {
-                int star = cboPetStar.SelectedIndex + 4;
+                int star = GetPetStar();
                 return pet.GetBaseStats(star).Atk;
             }
             return 0;
@@ -1034,7 +1132,7 @@ namespace GameDamageCalculator.UI
             var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
             if (pet != null)
             {
-                int star = cboPetStar.SelectedIndex + 4;
+                int star = GetPetStar();
                 return pet.GetBaseStats(star).Def;
             }
             return 0;
@@ -1047,7 +1145,7 @@ namespace GameDamageCalculator.UI
             var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
             if (pet != null)
             {
-                int star = cboPetStar.SelectedIndex + 4;
+                int star = GetPetStar();
                 return pet.GetBaseStats(star).Hp;
             }
             return 0;
@@ -1056,53 +1154,56 @@ namespace GameDamageCalculator.UI
         private double GetPetSkillAtkRate()
         {
             if (cboPet.SelectedIndex <= 0) return 0;
-
             var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
             if (pet != null)
             {
-                int star = cboPetStar.SelectedIndex + 4;
+                int star = GetPetStar();
+                if (star == 0) return 0;
                 return pet.GetSkillBonus(star).Atk_Rate;
             }
             return 0;
         }
 
-        private double GetSinglePetOptionRate(ComboBox cbo, TextBox txt, string targetOption)
+        private double GetPetAtkRate()
         {
-            if (cbo.SelectedIndex <= 0) return 0;
-            
-            string option = (cbo.SelectedItem as ComboBoxItem)?.Content.ToString();
-            if (option == targetOption)
-            {
-                return ParseDouble(txt.Text) / 100;
-            }
+            if (double.TryParse(txtPetAtk.Text, out double val))
+                return val;
+            return 0;
+        }
+        
+        private double GetPetDefRate()
+        {
+            if (double.TryParse(txtPetDef.Text, out double val))
+                return val;
+            return 0;
+        }
+        
+        private double GetPetHpRate()
+        {
+            if (double.TryParse(txtPetHp.Text, out double val))
+                return val;
             return 0;
         }
 
         private double GetPetOptionAtkRate()
         {
-            double rate = 0;
-            rate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "공격력%");
-            rate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "공격력%");
-            rate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "공격력%");
-            return rate;
+            if (double.TryParse(txtPetAtk.Text, out double val))
+                return val;
+            return 0;
         }
 
         private double GetPetOptionDefRate()
         {
-            double rate = 0;
-            rate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "방어력%");
-            rate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "방어력%");
-            rate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "방어력%");
-            return rate;
+            if (double.TryParse(txtPetDef.Text, out double val))
+                return val;
+            return 0;
         }
 
         private double GetPetOptionHpRate()
         {
-            double rate = 0;
-            rate += GetSinglePetOptionRate(cboPetOpt1, txtPetOpt1, "생명력%");
-            rate += GetSinglePetOptionRate(cboPetOpt2, txtPetOpt2, "생명력%");
-            rate += GetSinglePetOptionRate(cboPetOpt3, txtPetOpt3, "생명력%");
-            return rate;
+            if (double.TryParse(txtPetHp.Text, out double val))
+                return val;
+            return 0;
         }
 
         #endregion
@@ -1512,12 +1613,9 @@ namespace GameDamageCalculator.UI
                 { "EffRes", int.TryParse(txtSubEffRes.Text, out int t13) ? t13 : 0 }
             };
 
-            preset.PetOptions = new List<PetOptionData>
-            {
-                new PetOptionData { Type = (cboPetOpt1.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt1.Text) },
-                new PetOptionData { Type = (cboPetOpt2.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt2.Text) },
-                new PetOptionData { Type = (cboPetOpt3.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt3.Text) }
-            };
+            preset.PetAtkRate = ParseDouble(txtPetAtk.Text);
+            preset.PetDefRate = ParseDouble(txtPetDef.Text);
+            preset.PetHpRate = ParseDouble(txtPetHp.Text);
 
             preset.BuffChecks = new Dictionary<string, bool>();
             preset.BuffStates = new Dictionary<string, int>();
@@ -1599,12 +1697,9 @@ namespace GameDamageCalculator.UI
                 txtSubEffRes.Text = preset.SubOptions.GetValueOrDefault("EffRes", 0).ToString();
             }
 
-            if (preset.PetOptions != null && preset.PetOptions.Count >= 3)
-            {
-                SelectPetOptionComboBox(cboPetOpt1, preset.PetOptions[0].Type); txtPetOpt1.Text = preset.PetOptions[0].Value.ToString();
-                SelectPetOptionComboBox(cboPetOpt2, preset.PetOptions[1].Type); txtPetOpt2.Text = preset.PetOptions[1].Value.ToString();
-                SelectPetOptionComboBox(cboPetOpt3, preset.PetOptions[2].Type); txtPetOpt3.Text = preset.PetOptions[2].Value.ToString();
-            }
+            txtPetAtk.Text = preset.PetAtkRate.ToString();
+            txtPetDef.Text = preset.PetDefRate.ToString();
+            txtPetHp.Text = preset.PetHpRate.ToString();
 
             if (preset.BossType == "Siege") rbSiege.IsChecked = true;
             else if (preset.BossType == "Raid") rbRaid.IsChecked = true;
