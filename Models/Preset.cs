@@ -31,7 +31,7 @@ namespace GameDamageCalculator.Models
         public string MainArmor2 { get; set; }
         
         // 서브옵션 (9개)
-        public List<SubOptionData> SubOptions { get; set; } = new List<SubOptionData>();
+        public Dictionary<string, int> SubOptions { get; set; } = new Dictionary<string, int>();
         
         // 장신구
         public int AccessoryGrade { get; set; }

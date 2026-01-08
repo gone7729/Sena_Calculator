@@ -155,22 +155,6 @@ namespace GameDamageCalculator.Services
                 result.WekBonusDmg *= 0.5;
             }
 
-            // 12. 별도 피해 (출혈 폭발 등)
-            result.BonusDamage = 0;
-            if (levelData?.BonusDmgRatio > 0)
-            {
-                var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
-                double totalBonusRatio = levelData.BonusDmgRatio + skillTranscend.BonusDmgRatio;
-                int stacks = levelData.BonusDmgMaxStacks;
-
-                result.BonusDamage = atkOverDef * totalBonusRatio * result.DamageMultiplier * stacks;
-
-                if (input.IsBlocked)
-                {
-                    result.BonusDamage *= 0.5;
-                }
-            }
-
             // 13. 총 데미지
             result.FinalDamage = result.DamagePerHit * result.AtkCount;
 

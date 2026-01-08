@@ -149,6 +149,8 @@ namespace GameDamageCalculator.Models
         public double? CustomAtkCap { get; set; }
         public double? CustomArmorPen { get; set; }
         public double? CustomFixedDamage { get; set; }
+        public double? CustomTargetMaxHpRatio { get; set; }  // NEW - 명확한 네이밍
+        public double? CustomTargetCurrentHpRatio { get; set; } // NEW - 현재HP도 추가
         
     }
 

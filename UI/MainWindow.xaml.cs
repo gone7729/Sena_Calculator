@@ -15,11 +15,8 @@ namespace GameDamageCalculator.UI
     {
         private bool _isInitialized = false;
         private readonly DamageCalculator _calculator;
-        // 필드 추가 (클래스 상단)
         private PresetManager _presetManager;
-        private GameMode _currentMode = GameMode.PVE;
         private DebuffSet _currentDebuffs = new DebuffSet();
-        private readonly PvpDamageCalculator _pvpCalculator = new PvpDamageCalculator();
 
         // 버프/디버프 설정 리스트
         private List<BuffConfig> _buffConfigs;
@@ -42,12 +39,8 @@ namespace GameDamageCalculator.UI
             _calculator = new DamageCalculator();
             InitializeComboBoxes();
             InitializeBuffConfigs();
-             // 생성자에서 초기화 (InitializeComboBoxes() 다음에)
             _presetManager = new PresetManager();
             RefreshPresetList();
-            // PVP 패널 초기화
-            pvpMyPanel.Initialize();
-            pvpEnemyPanel.Initialize();
             _isInitialized = true;
             RecalculateStats();
         }
@@ -83,13 +76,6 @@ namespace GameDamageCalculator.UI
         private void InitializeComboBoxes()
         {
              UpdateCharacterList();
-            // 캐릭터 목록
-            cboCharacter.Items.Add("직접 입력하거나 골라주세요");
-            foreach (var character in CharacterDb.Characters)
-            {
-                cboCharacter.Items.Add(character.Name);
-            }
-            cboCharacter.SelectedIndex = 0;
 
             // 초월 단계
             for (int i = 0; i <= 12; i++)
@@ -108,9 +94,6 @@ namespace GameDamageCalculator.UI
             }
             cboEquipSet1.SelectedIndex = 0;
             cboEquipSet2.SelectedIndex = 0;
-
-            // 서브옵션 초기화
-            InitializeSubOptionComboBoxes();
 
             // 진형 목록
             cboFormation.Items.Add("없음");
@@ -185,25 +168,6 @@ namespace GameDamageCalculator.UI
             if (!_isInitialized) return;
             UpdateMainOptionDisplay();
             RecalculateStats();
-        }
-
-        private void InitializeSubOptionComboBoxes()
-        {
-            var typeOptions = new[] { "없음", "공%", "공", "치확%", "치피%", "속공", "약공%", 
-                                       "피통%", "피통", "방어%", "방어", "막기%", "효적%", "효저%" };
-
-            var typeComboBoxes = new[] { 
-                cboSub1Type, cboSub2Type, cboSub3Type,
-                cboSub4Type, cboSub5Type, cboSub6Type,
-                cboSub7Type, cboSub8Type, cboSub9Type 
-            };
-
-            foreach (var combo in typeComboBoxes)
-            {
-                foreach (var opt in typeOptions)
-                    combo.Items.Add(opt);
-                combo.SelectedIndex = 0;
-            }
         }
 
         private void InitializeAccessoryComboBoxes()
@@ -386,12 +350,6 @@ namespace GameDamageCalculator.UI
             return "";
         }
 
-        private void SubOption_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (!_isInitialized) return;
-            RecalculateStats();
-        }
-
         private void SubOption_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!_isInitialized) return;
@@ -535,7 +493,7 @@ namespace GameDamageCalculator.UI
                     return;
                 }
 
-                // 버프 합산 추가!
+                // 버프 합산
                 BuffSet passiveBuffs = GetAllPassiveBuffs();
                 BuffSet activeBuffs = GetAllActiveBuffs();
                 double weakDmgBuff = passiveBuffs.Wek_Dmg + activeBuffs.Wek_Dmg;
@@ -543,7 +501,6 @@ namespace GameDamageCalculator.UI
                 // DamageInput 생성
                 var input = new DamageCalculator.DamageInput
                 {
-                    Mode = _currentMode,
                     // 캐릭터/스킬
                     Character = character,
                     Skill = selectedSkill,
@@ -560,7 +517,7 @@ namespace GameDamageCalculator.UI
                     ArmorPen = ParseStatValue(txtStatArmPen.Text),
                     WeakpointDmg = ParseStatValue(txtStatWekDmg.Text),
                     WeakpointDmgBuff = weakDmgBuff,
-                    Dmg1to3 = ParseStatValue(txtStatDmg1to3.Text),      // ★ 추가
+                    Dmg1to3 = ParseStatValue(txtStatDmg1to3.Text),
                     Dmg4to5 = ParseStatValue(txtStatDmg4to5.Text),
 
                     // 디버프
@@ -580,7 +537,7 @@ namespace GameDamageCalculator.UI
                     IsWeakpoint = chkWeakpoint.IsChecked == true,
                     IsBlocked = chkBlock.IsChecked == true,
 
-                    // 조건 (TODO: 체크박스 추가 시)
+                    // 조건
                     IsSkillConditionMet = false
                 };
 
@@ -596,9 +553,6 @@ namespace GameDamageCalculator.UI
 
         private double GetSelectedTargetReduction()
         {
-            // 스킬 타겟 수에 따라 인기감소 선택
-            // TODO: 스킬별 타겟 수 확인 후 적용
-            // 현재는 UI에서 직접 선택하거나 0 반환
             return 0;
         }
 
@@ -698,14 +652,20 @@ namespace GameDamageCalculator.UI
             // 장신구
             cboAccessoryGrade.SelectedIndex = 0;
 
-            // 서브옵션
-            cboSub1Type.SelectedIndex = 0; cboSub2Type.SelectedIndex = 0; cboSub3Type.SelectedIndex = 0;
-            cboSub4Type.SelectedIndex = 0; cboSub5Type.SelectedIndex = 0; cboSub6Type.SelectedIndex = 0;
-            cboSub7Type.SelectedIndex = 0; cboSub8Type.SelectedIndex = 0; cboSub9Type.SelectedIndex = 0;
-
-            txtSub1Tier.Text = "0"; txtSub2Tier.Text = "0"; txtSub3Tier.Text = "0";
-            txtSub4Tier.Text = "0"; txtSub5Tier.Text = "0"; txtSub6Tier.Text = "0";
-            txtSub7Tier.Text = "0"; txtSub8Tier.Text = "0"; txtSub9Tier.Text = "0";
+            // 서브옵션 초기화
+            txtSubAtkRate.Text = "0";
+            txtSubAtk.Text = "0";
+            txtSubCri.Text = "0";
+            txtSubCriDmg.Text = "0";
+            txtSubWek.Text = "0";
+            txtSubBlk.Text = "0";
+            txtSubDmgRdc.Text = "0";
+            txtSubDefRate.Text = "0";
+            txtSubDef.Text = "0";
+            txtSubHpRate.Text = "0";
+            txtSubHp.Text = "0";
+            txtSubEffHit.Text = "0";
+            txtSubEffRes.Text = "0";
 
             // 진형
             cboFormation.SelectedIndex = 0;
@@ -736,14 +696,13 @@ namespace GameDamageCalculator.UI
             panelBossCondition.Visibility = Visibility.Collapsed;
             chkBossCondition.IsChecked = false;
 
-            /// ===== 버프/디버프 초기화 =====
+            // 버프/디버프 초기화
             foreach (var config in _buffConfigs)
             {
                 config.CheckBox.IsChecked = false;
                 if (config.Button != null)
                     ResetBuffOptionButton(config.Button, config.BaseName);
             }
-            
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
         }
@@ -751,7 +710,8 @@ namespace GameDamageCalculator.UI
         private void Tier_MouseLeft(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
-            var txtBox = FindName(border.Tag.ToString()) as TextBox;
+            var txtBox = border.Child as TextBox;
+
             if (txtBox != null && int.TryParse(txtBox.Text, out int val))
             {
                 txtBox.Text = (val + 1).ToString();
@@ -762,22 +722,15 @@ namespace GameDamageCalculator.UI
         private void Tier_MouseRight(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
-            var txtBox = FindName(border.Tag.ToString()) as TextBox;
+            var txtBox = border.Child as TextBox;
+
             if (txtBox != null && int.TryParse(txtBox.Text, out int val) && val > 0)
             {
                 txtBox.Text = (val - 1).ToString();
                 RecalculateStats();
             }
-            e.Handled = true;  // 우클릭 메뉴 방지
+            e.Handled = true;
         }
-
-        private void SubOption_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (!_isInitialized) return;
-            RecalculateStats();
-        }
-
-
         
         private void UpdateMainOptionDisplay()
         {
@@ -808,9 +761,6 @@ namespace GameDamageCalculator.UI
                 if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
                 if (stats.Dmg_Rdc > 0) return $"{stats.Dmg_Rdc}%";
                 if (stats.Blk > 0) return $"{stats.Blk}%";
-            }else
-            {
-                System.Diagnostics.Debug.WriteLine($"  DB에서 찾지 못함!");
             }
             return "";
         }
@@ -823,184 +773,35 @@ namespace GameDamageCalculator.UI
         
         private void UpdateCharacterList()
         {
-            // 현재 선택 저장
             string previousSelection = cboCharacter.SelectedItem?.ToString();
             
             cboCharacter.Items.Clear();
             cboCharacter.Items.Add("선택하세요");
             
-            // 필터 값 가져오기
             string gradeFilter = (cboGrade.SelectedItem as ComboBoxItem)?.Content.ToString();
             string typeFilter = (cboType.SelectedItem as ComboBoxItem)?.Content.ToString();
             
             foreach (var character in CharacterDb.Characters)
             {
-                // 등급 필터
                 if (gradeFilter != "전체" && character.Grade != gradeFilter)
                     continue;
                 
-                // 유형 필터
                 if (typeFilter != "전체" && character.Type != typeFilter)
                     continue;
                 
                 cboCharacter.Items.Add(character.Name);
             }
             
-            // 이전 선택 복원 시도
             if (previousSelection != null && cboCharacter.Items.Contains(previousSelection))
                 cboCharacter.SelectedItem = previousSelection;
             else
                 cboCharacter.SelectedIndex = 0;
         }
 
-        private void GameMode_Changed(object sender, RoutedEventArgs e)
-        {
-            if (!_isInitialized) return;
-
-            if (rbModePVE.IsChecked == true)
-            {
-                _currentMode = GameMode.PVE;
-                gridPVE.Visibility = Visibility.Visible;
-                gridPVP.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                _currentMode = GameMode.PVP;
-                gridPVE.Visibility = Visibility.Collapsed;
-                gridPVP.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void BtnPvpCalculate_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // 내 캐릭터 정보
-                var myCharacter = pvpMyPanel.GetSelectedCharacter();
-                var mySkill = pvpMyPanel.GetSelectedSkill();
-
-                // 상대 캐릭터 정보
-                var enemyCharacter = pvpEnemyPanel.GetSelectedCharacter();
-                var enemySkill = pvpEnemyPanel.GetSelectedSkill();
-
-                if (myCharacter == null || mySkill == null)
-                {
-                    txtPvpResultMy.Text = "내 캐릭터/스킬을 선택해주세요.";
-                    return;
-                }
-
-                if (enemyCharacter == null)
-                {
-                    txtPvpResultEnemy.Text = "상대 캐릭터를 선택해주세요.";
-                    return;
-                }
-
-                // ========== 내 캐릭터 → 상대 데미지 계산 ==========
-                var myInput = new PvpDamageCalculator.PvpDamageInput
-                {
-                    // 내 캐릭터/스킬
-                    Character = myCharacter,
-                    Skill = mySkill,
-                    IsSkillEnhanced = pvpMyPanel.IsSkillEnhanced(),
-                    TranscendLevel = pvpMyPanel.GetTranscendLevel(),
-
-                    // 내 스탯
-                    FinalAtk = pvpMyPanel.GetFinalAtk(),
-                    FinalDef = pvpMyPanel.GetFinalDef(),
-                    FinalHp = pvpMyPanel.GetFinalHp(),
-                    CritDamage = pvpMyPanel.GetCritDamage(),
-                    WeakpointDmg = pvpMyPanel.GetWeakpointDmg(),
-                    WeakpointDmgBuff = pvpMyPanel.GetWeakDmgBuff(),
-                    DmgDealt = pvpMyPanel.GetDmgDealt(),
-                    ArmorPen = pvpMyPanel.GetArmorPen(),
-                    Dmg1to3 = pvpMyPanel.GetDmg1to3(),
-                    Dmg4to5 = pvpMyPanel.GetDmg4to5(),
-
-                    // 내가 건 디버프
-                    DefReduction = pvpMyPanel.GetCurrentDebuffs().Def_Reduction,
-                    DmgTakenIncrease = pvpMyPanel.GetCurrentDebuffs().Dmg_Taken_Increase,
-                    Vulnerability = pvpMyPanel.GetCurrentDebuffs().Vulnerability,
-
-                    // 상대 정보
-                    TargetDef = pvpEnemyPanel.GetFinalDef(),
-                    TargetDefIncrease = pvpEnemyPanel.GetDefIncrease(),  // 진형 방증 등
-                    TargetDmgRdc = pvpEnemyPanel.GetDmgRdc(),
-                    TargetHp = pvpEnemyPanel.GetFinalHp(),
-                    Target1to3Rdc = pvpEnemyPanel.GetDmgRdc1to3(),
-                    Target4to5Rdc = pvpEnemyPanel.GetDmgRdc4to5(),
-
-                    // 전투 옵션
-                    IsCritical = pvpChkCritical.IsChecked == true,
-                    IsWeakpoint = pvpChkWeakpoint.IsChecked == true,
-                    IsBlocked = pvpChkBlock.IsChecked == true,
-                };
-
-                var myResult = _pvpCalculator.Calculate(myInput);
-                txtPvpResultMy.Text = myResult.Details;
-
-                // ========== 상대 → 내 캐릭터 데미지 계산 ==========
-                if (enemySkill != null)
-                {
-                    var enemyInput = new PvpDamageCalculator.PvpDamageInput
-                    {
-                        // 상대 캐릭터/스킬
-                        Character = enemyCharacter,
-                        Skill = enemySkill,
-                        IsSkillEnhanced = pvpEnemyPanel.IsSkillEnhanced(),
-                        TranscendLevel = pvpEnemyPanel.GetTranscendLevel(),
-
-                        // 상대 스탯
-                        FinalAtk = pvpEnemyPanel.GetFinalAtk(),
-                        FinalDef = pvpEnemyPanel.GetFinalDef(),
-                        FinalHp = pvpEnemyPanel.GetFinalHp(),
-                        CritDamage = pvpEnemyPanel.GetCritDamage(),
-                        WeakpointDmg = pvpEnemyPanel.GetWeakpointDmg(),
-                        WeakpointDmgBuff = pvpEnemyPanel.GetWeakDmgBuff(),
-                        DmgDealt = pvpEnemyPanel.GetDmgDealt(),
-                        ArmorPen = pvpEnemyPanel.GetArmorPen(),
-                        Dmg1to3 = pvpEnemyPanel.GetDmg1to3(),
-                        Dmg4to5 = pvpEnemyPanel.GetDmg4to5(),
-
-                        // 상대가 건 디버프
-                        DefReduction = pvpEnemyPanel.GetCurrentDebuffs().Def_Reduction,
-                        DmgTakenIncrease = pvpEnemyPanel.GetCurrentDebuffs().Dmg_Taken_Increase,
-                        Vulnerability = pvpEnemyPanel.GetCurrentDebuffs().Vulnerability,
-
-                        // 내 정보 (타겟)
-                        TargetDef = pvpMyPanel.GetFinalDef(),
-                        TargetDefIncrease = pvpMyPanel.GetDefIncrease(),
-                        TargetDmgRdc = pvpMyPanel.GetDmgRdc(),
-                        TargetHp = pvpMyPanel.GetFinalHp(),
-                        Target1to3Rdc = pvpMyPanel.GetDmgRdc1to3(),
-                        Target4to5Rdc = pvpMyPanel.GetDmgRdc4to5(),
-
-                        // 전투 옵션 (동일하게 적용)
-                        IsCritical = pvpChkCritical.IsChecked == true,
-                        IsWeakpoint = pvpChkWeakpoint.IsChecked == true,
-                        IsBlocked = pvpChkBlock.IsChecked == true,
-                    };
-
-                    var enemyResult = _pvpCalculator.Calculate(enemyInput);
-                    txtPvpResultEnemy.Text = enemyResult.Details;
-                }
-                else
-                {
-                    txtPvpResultEnemy.Text = "상대 스킬을 선택해주세요.";
-                }
-            }
-            catch (Exception ex)
-            {
-                txtPvpResultMy.Text = $"오류: {ex.Message}\n{ex.StackTrace}";
-            }
-        }
-
         #endregion
 
         #region 스탯 계산 (UI 표시용)
 
-        /// <summary>
-        /// 최종 공격력 = 기본공격력 × (1 + 총 공격력%) + 깡공 합계 × (1 + 버프%)
-        /// </summary>
         private void RecalculateStats()
         {
             if (!_isInitialized) return;
@@ -1061,9 +862,9 @@ namespace GameDamageCalculator.UI
             _currentDebuffs.Add(passiveDebuffs);
             _currentDebuffs.Add(activeDebuffs);
 
-            // ========== 깡스탯 합계 (장비 + 잠재능력 + 서브옵션 + 펫 + 메인옵션) ==========
+            // ========== 깡스탯 합계 ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
-            double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def;
+            double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
             double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
 
             double petFlatAtk = GetPetFlatAtk();
@@ -1074,8 +875,7 @@ namespace GameDamageCalculator.UI
             double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef + mainOptionStats.Def;
             double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
 
-            // ========== 합연산% (정수로 합산) ==========
-            // 초월 스탯 (전체)
+            // ========== 합연산% ==========
             BaseStatSet transcendStats = new BaseStatSet();
         
             if (cboCharacter.SelectedIndex > 0)
@@ -1088,11 +888,9 @@ namespace GameDamageCalculator.UI
                 }
             }
 
-            // 진형%
             double formationAtkRate = GetFormationAtkRate();
             double formationDefRate = GetFormationDefRate();
 
-            // 세트%
             BaseStatSet setBonus = new BaseStatSet();
             if (cboEquipSet1.SelectedIndex > 0)
             {
@@ -1106,12 +904,10 @@ namespace GameDamageCalculator.UI
                 setBonus.Add(GetSetBonus(setName, 2));
             }
 
-            // 펫옵션%
             double petOptionAtkRate = GetPetOptionAtkRate();
             double petOptionDefRate = GetPetOptionDefRate();
             double petOptionHpRate = GetPetOptionHpRate();
 
-            // 합연산% 합계 (정수) - 진형 포함
             double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
                     + setBonus.Atk_Rate + subStats.Atk_Rate 
                     + accessoryStats.Atk_Rate + petOptionAtkRate
@@ -1127,7 +923,7 @@ namespace GameDamageCalculator.UI
                    + accessoryStats.Hp_Rate + petOptionHpRate
                    + mainOptionStats.Hp_Rate;
 
-            // ========== 버프% (펫스킬% + UI버프% + 캐릭터패시브%) ==========
+            // ========== 버프% ==========
             double buffAtkRate = GetPetSkillAtkRate() + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
             double buffDefRate = totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
             double buffHpRate = totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
@@ -1142,10 +938,7 @@ namespace GameDamageCalculator.UI
             double totalDef = baseStatDef * (1 + buffDefRate / 100.0);
             double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
 
-            // ========== 기본/최종 스탯 UI 표시 ==========
-            // 표시용 (진형 미포함) - 게임 스탯창과 동일
-            double displayBaseAtk = baseAtk * (1 + (totalAtkRate - formationAtkRate) / 100.0) + flatAtk;
-            double displayBaseDef = baseDef * (1 + (totalDefRate - formationDefRate) / 100.0) + flatDef;
+            // ========== UI 표시 ==========
             txtStatAtkBase.Text = baseStatAtk.ToString("N0");
             txtStatDefBase.Text = baseStatDef.ToString("N0");
             txtStatHpBase.Text = baseStatHp.ToString("N0");
@@ -1154,7 +947,7 @@ namespace GameDamageCalculator.UI
             txtStatDef.Text = totalDef.ToString("N0");
             txtStatHp.Text = totalHp.ToString("N0");
 
-            // ========== 기타 스탯 UI 표시 ==========
+            // ========== 기타 스탯 ==========
             BaseStatSet displayStats = new BaseStatSet
             {
                 Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri + characterPassiveBuff.Cri,
@@ -1179,8 +972,6 @@ namespace GameDamageCalculator.UI
 
         private void UpdateStatDisplay(BaseStatSet stats)
         {
-            // 공/방/생은 RecalculateStats에서 직접 처리
-            // % 스탯 - 정수 그대로 표시
             txtStatCri.Text = $"{stats.Cri}%";
             txtStatCriDmg.Text = $"{stats.Cri_Dmg}%";
             txtStatWek.Text = $"{stats.Wek}%";
@@ -1405,33 +1196,37 @@ namespace GameDamageCalculator.UI
         private BaseStatSet GetSubOptionStats()
         {
             BaseStatSet result = new BaseStatSet();
-
-            var subOptions = new[]
-            {
-                (cboSub1Type, txtSub1Tier),
-                (cboSub2Type, txtSub2Tier),
-                (cboSub3Type, txtSub3Tier),
-                (cboSub4Type, txtSub4Tier),
-                (cboSub5Type, txtSub5Tier),
-                (cboSub6Type, txtSub6Tier),
-                (cboSub7Type, txtSub7Tier),
-                (cboSub8Type, txtSub8Tier),
-                (cboSub9Type, txtSub9Tier)
-            };
-
-            foreach (var (typeCombo, tierTextBox) in subOptions)
-            {
-                if (typeCombo.SelectedIndex <= 0) continue;
-
-                string statType = typeCombo.SelectedItem.ToString();
-                if (!int.TryParse(tierTextBox.Text, out int tier) || tier <= 0) continue;
-
-                if (EquipmentDb.SubStatDb.SubStatBase.TryGetValue(statType, out var baseStats))
-                {
-                    result.Add(baseStats.Multiply(tier));
-                }
-            }
-
+        
+            // 티어 값 파싱
+            int atkRateTier = int.TryParse(txtSubAtkRate.Text, out int t1) ? t1 : 0;
+            int atkTier = int.TryParse(txtSubAtk.Text, out int t2) ? t2 : 0;
+            int criTier = int.TryParse(txtSubCri.Text, out int t3) ? t3 : 0;
+            int criDmgTier = int.TryParse(txtSubCriDmg.Text, out int t4) ? t4 : 0;
+            int wekTier = int.TryParse(txtSubWek.Text, out int t5) ? t5 : 0;
+            int blkTier = int.TryParse(txtSubBlk.Text, out int t6) ? t6 : 0;
+            int dmgRdcTier = int.TryParse(txtSubDmgRdc.Text, out int t7) ? t7 : 0;
+            int defRateTier = int.TryParse(txtSubDefRate.Text, out int t8) ? t8 : 0;
+            int defTier = int.TryParse(txtSubDef.Text, out int t9) ? t9 : 0;
+            int hpRateTier = int.TryParse(txtSubHpRate.Text, out int t10) ? t10 : 0;
+            int hpTier = int.TryParse(txtSubHp.Text, out int t11) ? t11 : 0;
+            int effHitTier = int.TryParse(txtSubEffHit.Text, out int t12) ? t12 : 0;
+            int effResTier = int.TryParse(txtSubEffRes.Text, out int t13) ? t13 : 0;
+        
+            // 티어당 스탯 적용
+            if (atkRateTier > 0) result.Atk_Rate = 5 * atkRateTier;
+            if (atkTier > 0) result.Atk = 30 * atkTier;
+            if (criTier > 0) result.Cri = 4 * criTier;
+            if (criDmgTier > 0) result.Cri_Dmg = 5 * criDmgTier;
+            if (wekTier > 0) result.Wek = 4 * wekTier;
+            if (blkTier > 0) result.Blk = 5 * blkTier;
+            if (dmgRdcTier > 0) result.Dmg_Rdc = 3 * dmgRdcTier;
+            if (defRateTier > 0) result.Def_Rate = 5 * defRateTier;
+            if (defTier > 0) result.Def = 30 * defTier;
+            if (hpRateTier > 0) result.Hp_Rate = 5 * hpRateTier;
+            if (hpTier > 0) result.Hp = 200 * hpTier;
+            if (effHitTier > 0) result.Eff_Hit = 5 * effHitTier;
+            if (effResTier > 0) result.Eff_Res = 5 * effResTier;
+        
             return result;
         }
 
@@ -1441,13 +1236,11 @@ namespace GameDamageCalculator.UI
 
             if (cboAccessoryGrade.SelectedIndex <= 0) return stats;
 
-            int grade = cboAccessoryGrade.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
+            int grade = cboAccessoryGrade.SelectedIndex + 3;
 
-            // 성급 기본 보너스
             if (AccessoryDb.GradeBonus.TryGetValue(grade, out var gradeBonus))
                 stats.Add(gradeBonus);
 
-            // 메인옵션
             if (cboAccessoryMain.SelectedIndex > 0)
             {
                 string mainOpt = cboAccessoryMain.SelectedItem.ToString();
@@ -1458,7 +1251,6 @@ namespace GameDamageCalculator.UI
                 }
             }
 
-            // 부옵션 (6성만)
             if (grade == 6 && cboAccessorySub.SelectedIndex > 0)
             {
                 string subOpt = cboAccessorySub.SelectedItem.ToString();
@@ -1513,21 +1305,20 @@ namespace GameDamageCalculator.UI
 
         #region 버프/디버프 옵션 버튼 로직
 
-        // 버튼 상태별 색상: 기본, 스강★, 초월◆, 풀★◆
         private static readonly Brush[] BuffBgColors = new Brush[]
         {
-            new SolidColorBrush(Color.FromRgb(58, 58, 58)),   // 0: 기본
-            new SolidColorBrush(Color.FromRgb(180, 150, 50)), // 1: 스강
-            new SolidColorBrush(Color.FromRgb(70, 130, 180)), // 2: 초월
-            new SolidColorBrush(Color.FromRgb(138, 43, 226))  // 3: 풀
+            new SolidColorBrush(Color.FromRgb(58, 58, 58)),
+            new SolidColorBrush(Color.FromRgb(180, 150, 50)),
+            new SolidColorBrush(Color.FromRgb(70, 130, 180)),
+            new SolidColorBrush(Color.FromRgb(138, 43, 226))
         };
 
         private static readonly Brush[] BuffFgColors = new Brush[]
         {
-            new SolidColorBrush(Color.FromRgb(204, 204, 204)), // 0: 기본
-            Brushes.Black,   // 1: 스강
-            Brushes.White,   // 2: 초월
-            Brushes.White    // 3: 풀
+            new SolidColorBrush(Color.FromRgb(204, 204, 204)),
+            Brushes.Black,
+            Brushes.White,
+            Brushes.White
         };
 
         private static readonly string[] BuffOptionSuffix = { "", " 스강", " 초월", " 풀" };
@@ -1654,9 +1445,6 @@ namespace GameDamageCalculator.UI
 
         #endregion
 
-        
-
-        // region 프리셋 추가
         #region 프리셋
 
         private void RefreshPresetList()
@@ -1674,61 +1462,56 @@ namespace GameDamageCalculator.UI
         {
             var preset = new Preset
             {
-                // 캐릭터
                 CharacterName = cboCharacter.SelectedIndex > 0 ? cboCharacter.SelectedItem.ToString() : "",
                 SkillName = cboSkill.SelectedIndex >= 0 ? cboSkill.SelectedItem?.ToString() : "",
                 TranscendLevel = cboTranscend.SelectedIndex,
                 IsSkillEnhanced = chkSkillEnhanced.IsChecked == true,
 
-                // 잠재능력
                 PotentialAtk = cboPotentialAtk.SelectedIndex,
                 PotentialDef = cboPotentialDef.SelectedIndex,
                 PotentialHp = cboPotentialHp.SelectedIndex,
 
-                // 세트
                 EquipSet1 = cboEquipSet1.SelectedIndex > 0 ? cboEquipSet1.SelectedItem.ToString() : "",
                 EquipSet2 = cboEquipSet2.SelectedIndex > 0 ? cboEquipSet2.SelectedItem.ToString() : "",
                 SetCount1 = cboSetCount1.SelectedIndex,
 
-                // 메인옵션
                 MainWeapon1 = cboWeapon1Main.SelectedIndex > 0 ? cboWeapon1Main.SelectedItem.ToString() : "",
                 MainWeapon2 = cboWeapon2Main.SelectedIndex > 0 ? cboWeapon2Main.SelectedItem.ToString() : "",
                 MainArmor1 = cboArmor1Main.SelectedIndex > 0 ? cboArmor1Main.SelectedItem.ToString() : "",
                 MainArmor2 = cboArmor2Main.SelectedIndex > 0 ? cboArmor2Main.SelectedItem.ToString() : "",
 
-                // 장신구
                 AccessoryGrade = cboAccessoryGrade.SelectedIndex,
                 AccessoryOption = cboAccessoryMain.SelectedIndex > 0 ? cboAccessoryMain.SelectedItem.ToString() : "",
                 AccessorySubOption = cboAccessorySub.SelectedIndex > 0 ? cboAccessorySub.SelectedItem.ToString() : "",
 
-                // 진형
                 Formation = cboFormation.SelectedIndex > 0 ? cboFormation.SelectedItem.ToString() : "",
                 IsBackPosition = rbBack.IsChecked == true,
 
-                // 펫
                 PetName = cboPet.SelectedIndex > 0 ? cboPet.SelectedItem.ToString() : "",
                 PetStar = cboPetStar.SelectedIndex,
 
-                // 보스
                 BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : "Descend"),
                 BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
             };
 
-            // 서브옵션
-            preset.SubOptions = new List<SubOptionData>
+            // 프리셋 저장 (CreatePresetFromUI)
+            preset.SubOptions = new Dictionary<string, int>
             {
-                new SubOptionData { Type = cboSub1Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub1Tier.Text, out int t1) ? t1 : 0 },
-                new SubOptionData { Type = cboSub2Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub2Tier.Text, out int t2) ? t2 : 0 },
-                new SubOptionData { Type = cboSub3Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub3Tier.Text, out int t3) ? t3 : 0 },
-                new SubOptionData { Type = cboSub4Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub4Tier.Text, out int t4) ? t4 : 0 },
-                new SubOptionData { Type = cboSub5Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub5Tier.Text, out int t5) ? t5 : 0 },
-                new SubOptionData { Type = cboSub6Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub6Tier.Text, out int t6) ? t6 : 0 },
-                new SubOptionData { Type = cboSub7Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub7Tier.Text, out int t7) ? t7 : 0 },
-                new SubOptionData { Type = cboSub8Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub8Tier.Text, out int t8) ? t8 : 0 },
-                new SubOptionData { Type = cboSub9Type.SelectedItem?.ToString(), Tier = int.TryParse(txtSub9Tier.Text, out int t9) ? t9 : 0 }
+                { "AtkRate", int.TryParse(txtSubAtkRate.Text, out int t1) ? t1 : 0 },
+                { "Atk", int.TryParse(txtSubAtk.Text, out int t2) ? t2 : 0 },
+                { "Cri", int.TryParse(txtSubCri.Text, out int t3) ? t3 : 0 },
+                { "CriDmg", int.TryParse(txtSubCriDmg.Text, out int t4) ? t4 : 0 },
+                { "Wek", int.TryParse(txtSubWek.Text, out int t5) ? t5 : 0 },
+                { "Blk", int.TryParse(txtSubBlk.Text, out int t6) ? t6 : 0 },
+                { "DmgRdc", int.TryParse(txtSubDmgRdc.Text, out int t7) ? t7 : 0 },
+                { "DefRate", int.TryParse(txtSubDefRate.Text, out int t8) ? t8 : 0 },
+                { "Def", int.TryParse(txtSubDef.Text, out int t9) ? t9 : 0 },
+                { "HpRate", int.TryParse(txtSubHpRate.Text, out int t10) ? t10 : 0 },
+                { "Hp", int.TryParse(txtSubHp.Text, out int t11) ? t11 : 0 },
+                { "EffHit", int.TryParse(txtSubEffHit.Text, out int t12) ? t12 : 0 },
+                { "EffRes", int.TryParse(txtSubEffRes.Text, out int t13) ? t13 : 0 }
             };
 
-            // 펫옵션
             preset.PetOptions = new List<PetOptionData>
             {
                 new PetOptionData { Type = (cboPetOpt1.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt1.Text) },
@@ -1736,7 +1519,6 @@ namespace GameDamageCalculator.UI
                 new PetOptionData { Type = (cboPetOpt3.SelectedItem as ComboBoxItem)?.Content?.ToString(), Value = ParseDouble(txtPetOpt3.Text) }
             };
 
-            // 버프/디버프 체크 상태 및 버튼 상태
             preset.BuffChecks = new Dictionary<string, bool>();
             preset.BuffStates = new Dictionary<string, int>();
             foreach (var config in _buffConfigs)
@@ -1755,12 +1537,10 @@ namespace GameDamageCalculator.UI
 
             _isInitialized = false;
 
-            // 캐릭터
             SelectComboBoxItem(cboCharacter, preset.CharacterName);
             cboTranscend.SelectedIndex = preset.TranscendLevel;
             chkSkillEnhanced.IsChecked = preset.IsSkillEnhanced;
 
-            // 스킬은 캐릭터 선택 후 업데이트되므로 잠시 대기
             if (cboCharacter.SelectedIndex > 0)
             {
                 var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
@@ -1775,53 +1555,50 @@ namespace GameDamageCalculator.UI
             }
             SelectComboBoxItem(cboSkill, preset.SkillName);
 
-            // 잠재능력
             cboPotentialAtk.SelectedIndex = preset.PotentialAtk;
             cboPotentialDef.SelectedIndex = preset.PotentialDef;
             cboPotentialHp.SelectedIndex = preset.PotentialHp;
 
-            // 세트
             SelectComboBoxItem(cboEquipSet1, preset.EquipSet1);
             SelectComboBoxItem(cboEquipSet2, preset.EquipSet2);
             cboSetCount1.SelectedIndex = preset.SetCount1;
 
-            // 메인옵션
             SelectComboBoxItem(cboWeapon1Main, preset.MainWeapon1);
             SelectComboBoxItem(cboWeapon2Main, preset.MainWeapon2);
             SelectComboBoxItem(cboArmor1Main, preset.MainArmor1);
             SelectComboBoxItem(cboArmor2Main, preset.MainArmor2);
 
-            // 장신구
             cboAccessoryGrade.SelectedIndex = preset.AccessoryGrade;
             SelectComboBoxItem(cboAccessoryMain, preset.AccessoryOption);
             SelectComboBoxItem(cboAccessorySub, preset.AccessorySubOption);
 
-            // 진형
             SelectComboBoxItem(cboFormation, preset.Formation);
             if (preset.IsBackPosition)
                 rbBack.IsChecked = true;
             else
                 rbFront.IsChecked = true;
 
-            // 펫
             SelectComboBoxItem(cboPet, preset.PetName);
             cboPetStar.SelectedIndex = preset.PetStar;
-
-            // 서브옵션
-            if (preset.SubOptions != null && preset.SubOptions.Count >= 9)
+            
+            // 프리셋 불러오기 (ApplyPresetToUI)
+            if (preset.SubOptions != null)
             {
-                SelectComboBoxItem(cboSub1Type, preset.SubOptions[0].Type); txtSub1Tier.Text = preset.SubOptions[0].Tier.ToString();
-                SelectComboBoxItem(cboSub2Type, preset.SubOptions[1].Type); txtSub2Tier.Text = preset.SubOptions[1].Tier.ToString();
-                SelectComboBoxItem(cboSub3Type, preset.SubOptions[2].Type); txtSub3Tier.Text = preset.SubOptions[2].Tier.ToString();
-                SelectComboBoxItem(cboSub4Type, preset.SubOptions[3].Type); txtSub4Tier.Text = preset.SubOptions[3].Tier.ToString();
-                SelectComboBoxItem(cboSub5Type, preset.SubOptions[4].Type); txtSub5Tier.Text = preset.SubOptions[4].Tier.ToString();
-                SelectComboBoxItem(cboSub6Type, preset.SubOptions[5].Type); txtSub6Tier.Text = preset.SubOptions[5].Tier.ToString();
-                SelectComboBoxItem(cboSub7Type, preset.SubOptions[6].Type); txtSub7Tier.Text = preset.SubOptions[6].Tier.ToString();
-                SelectComboBoxItem(cboSub8Type, preset.SubOptions[7].Type); txtSub8Tier.Text = preset.SubOptions[7].Tier.ToString();
-                SelectComboBoxItem(cboSub9Type, preset.SubOptions[8].Type); txtSub9Tier.Text = preset.SubOptions[8].Tier.ToString();
+                txtSubAtkRate.Text = preset.SubOptions.GetValueOrDefault("AtkRate", 0).ToString();
+                txtSubAtk.Text = preset.SubOptions.GetValueOrDefault("Atk", 0).ToString();
+                txtSubCri.Text = preset.SubOptions.GetValueOrDefault("Cri", 0).ToString();
+                txtSubCriDmg.Text = preset.SubOptions.GetValueOrDefault("CriDmg", 0).ToString();
+                txtSubWek.Text = preset.SubOptions.GetValueOrDefault("Wek", 0).ToString();
+                txtSubBlk.Text = preset.SubOptions.GetValueOrDefault("Blk", 0).ToString();
+                txtSubDmgRdc.Text = preset.SubOptions.GetValueOrDefault("DmgRdc", 0).ToString();
+                txtSubDefRate.Text = preset.SubOptions.GetValueOrDefault("DefRate", 0).ToString();
+                txtSubDef.Text = preset.SubOptions.GetValueOrDefault("Def", 0).ToString();
+                txtSubHpRate.Text = preset.SubOptions.GetValueOrDefault("HpRate", 0).ToString();
+                txtSubHp.Text = preset.SubOptions.GetValueOrDefault("Hp", 0).ToString();
+                txtSubEffHit.Text = preset.SubOptions.GetValueOrDefault("EffHit", 0).ToString();
+                txtSubEffRes.Text = preset.SubOptions.GetValueOrDefault("EffRes", 0).ToString();
             }
 
-            // 펫옵션
             if (preset.PetOptions != null && preset.PetOptions.Count >= 3)
             {
                 SelectPetOptionComboBox(cboPetOpt1, preset.PetOptions[0].Type); txtPetOpt1.Text = preset.PetOptions[0].Value.ToString();
@@ -1829,14 +1606,12 @@ namespace GameDamageCalculator.UI
                 SelectPetOptionComboBox(cboPetOpt3, preset.PetOptions[2].Type); txtPetOpt3.Text = preset.PetOptions[2].Value.ToString();
             }
 
-            // 보스
             if (preset.BossType == "Siege") rbSiege.IsChecked = true;
             else if (preset.BossType == "Raid") rbRaid.IsChecked = true;
             else rbDescend.IsChecked = true;
             UpdateBossList();
             SelectComboBoxItem(cboBoss, preset.BossName);
 
-            // 버프/디버프 체크 상태
             if (preset.BuffChecks != null)
             {
                 foreach (var config in _buffConfigs)
@@ -1906,7 +1681,6 @@ namespace GameDamageCalculator.UI
         {
             if (cboPreset.SelectedIndex > 0)
             {
-                // 기존 프리셋 덮어쓰기
                 var preset = CreatePresetFromUI();
                 preset.Name = cboPreset.SelectedItem.ToString();
                 _presetManager.UpdatePreset(cboPreset.SelectedIndex - 1, preset);
@@ -1914,7 +1688,6 @@ namespace GameDamageCalculator.UI
             }
             else
             {
-                // 새 프리셋
                 BtnSaveAsPreset_Click(sender, e);
             }
         }
