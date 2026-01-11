@@ -151,7 +151,7 @@ namespace GameDamageCalculator.Services
 
             // 5. 약점 계수
             result.WeakpointMultiplier = input.IsWeakpoint 
-                ? 1 + (input.WeakpointDmg / 100.0) * (1 + input.WeakpointDmgBuff / 100.0)
+                ? (input.WeakpointDmg / 100.0) * (1 + input.WeakpointDmgBuff / 100.0)
                 : 1.0;
 
             // 6. 피해 증가 계수 (★ 모드에 따라 보스피해 적용 여부 결정)
