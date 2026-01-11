@@ -559,9 +559,12 @@ namespace GameDamageCalculator.UI
                     IsCritical = chkCritical.IsChecked == true,
                     IsWeakpoint = chkWeakpoint.IsChecked == true,
                     IsBlocked = chkBlock.IsChecked == true,
+                    TargetStackCount = int.TryParse(txtTargetStackCount.Text, out int stacks) ? stacks : 0,
+                    ForceStatusEffect = chkStatusEffect.IsChecked == true,
+                    IsLostHpConditionMet = chkLostHpCondition.IsChecked == true,
 
                     // 조건
-                    IsSkillConditionMet = false
+                    IsSkillConditionMet = chkSkillCondition.IsChecked == true,
                 };
 
                 // 계산 및 출력
@@ -689,6 +692,7 @@ namespace GameDamageCalculator.UI
             txtSubHp.Text = "0";
             txtSubEffHit.Text = "0";
             txtSubEffRes.Text = "0";
+            txtSubSpd.Text = "0";
 
             // 진형
             cboFormation.SelectedIndex = 0;
@@ -900,6 +904,11 @@ namespace GameDamageCalculator.UI
 
             cboPet.SelectedIndex = 0;
         }
+        private void BossOption_Changed(object sender, TextChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            RecalculateStats();
+        }
 
         #endregion
 
@@ -1003,11 +1012,12 @@ namespace GameDamageCalculator.UI
             double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk + mainOptionStats.Atk;
             double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef + mainOptionStats.Def;
             double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
-
-            // 순수 기본 = 캐릭터 기본 + 장비 + 초월 + 장신구
-            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + flatAtk;
-            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + flatDef;
-            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
+            
+            // ========== 속공 계산 ==========
+            double baseSpd = characterStats.Spd;  // 캐릭터 기본 속공
+            double subSpd = subStats.Spd;         // GetSubOptionStats()에서 이미 4 * tier 계산됨
+            double totalSpd = baseSpd + subSpd;
+            
 
             double formationAtkRate = GetFormationAtkRate();
             double formationDefRate = GetFormationDefRate();
@@ -1041,10 +1051,69 @@ namespace GameDamageCalculator.UI
             double baseStatDef = baseDef * (1 + totalDefRate / 100.0) + flatDef;
             double baseStatHp = baseHp * (1 + totalHpRate / 100.0) + flatHp;
 
+            // ========== 스탯 비례 증가 (속공 비례 공격력 등) ==========
+            double scalingFlatAtk = 0;
+            double scalingFlatDef = 0;
+            double scalingFlatHp = 0;
+            double scalingCri = 0;
+
+            if (cboCharacter.SelectedIndex > 0)
+            {
+                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                if (character?.Passive != null)
+                {
+                    bool isEnhanced = chkSkillEnhanced.IsChecked == true;
+                    var passiveData = character.Passive.GetLevelData(isEnhanced);
+
+                    if (passiveData?.StatScalings != null)
+                    {
+                        foreach (var scaling in passiveData.StatScalings)
+                        {
+                            double sourceValue = scaling.SourceStat switch
+                            {
+                                StatType.Spd => totalSpd,
+                                StatType.Hp => baseStatHp,
+                                StatType.Def => baseStatDef,
+                                StatType.Atk => baseStatAtk,
+                                _ => 0
+                            };
+
+                            double bonus = CalcStatScaling(sourceValue, scaling);
+
+                            switch (scaling.TargetStat)
+                            {
+                                case StatType.Atk:
+                                    scalingFlatAtk += bonus;
+                                    break;
+                                case StatType.Def:
+                                    scalingFlatDef += bonus;
+                                    break;
+                                case StatType.Hp:
+                                    scalingFlatHp += bonus;
+                                    break;
+                                case StatType.Cri:
+                                    scalingCri += bonus;
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ========== 스탯 비례 보너스 적용 ==========
+            baseStatAtk += scalingFlatAtk;
+            baseStatDef += scalingFlatDef;
+            baseStatHp += scalingFlatHp;
+
             // ========== 최종 스탯 (버프 적용 후) ==========
             double totalAtk = baseStatAtk * (1 + buffAtkRate / 100.0);
             double totalDef = baseStatDef * (1 + buffDefRate / 100.0);
             double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
+
+            // 순수 기본 = 캐릭터 기본 + 장비 + 초월 + 장신구
+            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + flatAtk;
+            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + flatDef;
+            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
 
             // ========== UI 표시 ==========
             txtStatAtkBase.Text = pureBaseAtk.ToString("N0");
@@ -1054,6 +1123,7 @@ namespace GameDamageCalculator.UI
             txtStatAtk.Text = totalAtk.ToString("N0");
             txtStatDef.Text = totalDef.ToString("N0");
             txtStatHp.Text = totalHp.ToString("N0");
+            txtStatSpd.Text = totalSpd.ToString("N0");
 
             // ========== 기타 스탯 ==========
             BaseStatSet displayStats = new BaseStatSet
@@ -1096,6 +1166,23 @@ namespace GameDamageCalculator.UI
             txtStatEffAcc.Text = $"{stats.Eff_Acc}%";
             txtStatDmgRdc.Text = $"{stats.Dmg_Rdc}%";
             txtStatAtkRate.Text = $"{stats.Atk_Rate}%";
+        }
+
+        /// <summary>
+        /// 스탯 비례 증가 계산
+        /// </summary>
+        private double CalcStatScaling(double sourceValue, StatScaling scaling)
+        {
+            if (scaling == null || scaling.SourceUnit <= 0) return 0;
+
+            // 기준 스탯 / 단위 = 배수
+            double multiplier = Math.Floor(sourceValue / scaling.SourceUnit);
+
+            // 증가량
+            double bonus = multiplier * scaling.PerUnit;
+
+            // 최대치 제한
+            return Math.Min(bonus, scaling.MaxValue);
         }
 
         #endregion
@@ -1312,6 +1399,7 @@ namespace GameDamageCalculator.UI
             int hpTier = int.TryParse(txtSubHp.Text, out int t11) ? t11 : 0;
             int effHitTier = int.TryParse(txtSubEffHit.Text, out int t12) ? t12 : 0;
             int effResTier = int.TryParse(txtSubEffRes.Text, out int t13) ? t13 : 0;
+            int spdTier = int.TryParse(txtSubSpd.Text, out int t14) ? t14 : 0;
         
             // 티어당 스탯 적용
             if (atkRateTier > 0) result.Atk_Rate = 5 * atkRateTier;
@@ -1327,6 +1415,7 @@ namespace GameDamageCalculator.UI
             if (hpTier > 0) result.Hp = 200 * hpTier;
             if (effHitTier > 0) result.Eff_Hit = 5 * effHitTier;
             if (effResTier > 0) result.Eff_Res = 5 * effResTier;
+            if (spdTier > 0) result.Spd = 4 * spdTier;
         
             return result;
         }

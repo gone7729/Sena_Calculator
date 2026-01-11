@@ -32,11 +32,11 @@ namespace GameDamageCalculator.Database
                 },
                 // 피해 감쇄
                 PhysicalReduction = 0, //물리피해감소
-                MagicReduction = 0.90, //마법피해감소
-                SingleTargetReduction = 0.70, //1인기감소
+                MagicReduction = 90, //마법피해감소
+                SingleTargetReduction = 70, //1인기감소
                 TripleTargetReduction = 0, //3인기감소
-                MultiTargetReduction = 0.90, //5인기감소
-                DamageReduction = 0,      // 보스 고유 받피감 30%
+                MultiTargetReduction = 90, //5인기감소
+                DamageReduction = 0,      // 보스 고유 받피감
                 DamageTakenIncrease = 0, //받는피해증가
                 Vulnerability = 0 // 취약%
             },

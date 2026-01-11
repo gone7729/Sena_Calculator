@@ -53,6 +53,7 @@ namespace GameDamageCalculator.Models
         public int MaxStacks { get; set; } = 1;     // 최대 중첩
         public int TriggerCount { get; set; }       // 발동 횟수 (수정 결정 등)
         
+        
         // 피해 관련
         public double AtkRatio { get; set; }        // 공격력 비례% (화상 80%, 석화 120%)
         public double TargetMaxHpRatio { get; set; } // 대상 최대 HP 비례% (빙결 40%, 빙극 60%, 마력역류 12%)
@@ -75,6 +76,11 @@ namespace GameDamageCalculator.Models
         
         // 생명력 전환
         public double HpConversionAmount { get; set; } // 전환량
+
+        // 소모형 효과 (폭탄 폭파, 출혈 폭발 등)
+        public StatusEffectType? ConsumeType { get; set; }  // 소모할 상태이상 타입
+        public int MaxConsume { get; set; } = 0;            // 최대 소모 개수
+        public int DefaultRemainingTurns { get; set; } = 2;  // 남은 턴 기본값
     }
 
     /// <summary>
@@ -233,7 +239,9 @@ namespace GameDamageCalculator.Models
                 Name = "폭탄 폭파",
                 Description = "폭탄 폭파 시 공격력 150% 피해, 폭탄 개수만큼 피해 (최대 3개)",
                 AtkRatio = 150,
-                MaxStacks = 3
+                ConsumeType = StatusEffectType.Bomb,  // 폭탄을 소모
+                MaxConsume = 3,
+                ArmorPen = 40
             }},
 
             { StatusEffectType.BleedExplosion, new StatusEffect
@@ -241,8 +249,10 @@ namespace GameDamageCalculator.Models
                 Type = StatusEffectType.BleedExplosion,
                 Name = "출혈 폭발",
                 Description = "대상 출혈 효과를 폭발시켜 남은 턴과 개수에 비례해 대미지 증가(예: 3턴 남은 출혈이 3개 있다면 (AtkRatio*3)*3)",
-                AtkRatio = 480,
-                MaxStacks = 1
+                AtkRatio = 120,
+                ConsumeType = StatusEffectType.Bleeding,  //출혈 소모
+                MaxConsume = 3,
+                DefaultRemainingTurns = 2
             }},
 
             { StatusEffectType.ChainDamage, new StatusEffect

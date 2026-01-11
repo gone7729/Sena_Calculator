@@ -138,6 +138,7 @@ namespace GameDamageCalculator.Models
     public class SkillStatusEffect
     {
         public StatusEffectType Type { get; set; }
+        public int MaxConsume { get; set; } = 0;            // 최대 소모 개수
         public int Duration { get; set; }               // 지속 턴
         public int Stacks { get; set; } = 1;            // 부여 스택
         public double Chance { get; set; } = 100;       // 부여 확률%
@@ -179,7 +180,7 @@ namespace GameDamageCalculator.Models
         // 적에게 부여하는 디버프
         public DebuffSet DebuffEffect { get; set; }
         public int EffectDuration { get; set; }
-        public double EffectChance { get; set; } = 100;
+        public double EffectChance { get; set; } = 0;
 
         // 회복
         public double HealAtkRatio { get; set; }
@@ -197,6 +198,8 @@ namespace GameDamageCalculator.Models
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
 
         public string Effect { get; set; }
+        public int? TargetCountOverride { get; set; }
+        
     }
 
     /// <summary>
@@ -326,6 +329,18 @@ namespace GameDamageCalculator.Models
         // === 상태이상 부여 (NEW) ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
+        public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
+        public CoopAttack CoopAttack { get; set; }  // 협공 데이터
+    }
+
+    public class CoopAttack
+    {
+        public double TriggerChance { get; set; }   // 발동 확률%
+        public int TargetCount { get; set; }        // 대상 수
+        public int AtkCount { get; set; } = 1;      // 타수
+        public double Ratio { get; set; }           // 공격력 배율%
+        public double TargetMaxHpRatio { get; set; } // 대상 최대 HP%
+        public double AtkCap { get; set; }          // 공격력 제한%
     }
 
     /// <summary>
@@ -340,6 +355,10 @@ namespace GameDamageCalculator.Models
         // === 상태이상 부여 (NEW) ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
+        // 협공 강화
+        public double CoopChanceBonus { get; set; }  // 협공 확률 증가%
+        public double CoopRatioBonus { get; set; }   // 협공 배율 증가%
+        public double CoopHpRatioBonus { get; set; } // 협공 HP비례 증가%
     }
 
     #endregion
@@ -379,6 +398,7 @@ namespace GameDamageCalculator.Models
         // 기타
         public double Heal_Bonus { get; set; }      // 받는 회복량%
         public double Eff_Res { get; set; }         // 효과 저항%
+        public double Eff_Hit { get; set; }         // 효과 적중%
         public double Shield_HpRatio { get; set; }  // 보호막%
 
         public void Add(BuffSet other)
@@ -402,6 +422,7 @@ namespace GameDamageCalculator.Models
             Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
             Heal_Bonus += other.Heal_Bonus;
             Eff_Res += other.Eff_Res;
+            Eff_Hit += other.Eff_Hit;
             Shield_HpRatio += other.Shield_HpRatio;
         }
 
@@ -426,6 +447,7 @@ namespace GameDamageCalculator.Models
             Dmg_Rdc_Multi = Math.Max(Dmg_Rdc_Multi, other.Dmg_Rdc_Multi);
             Heal_Bonus = Math.Max(Heal_Bonus, other.Heal_Bonus);
             Eff_Res = Math.Max(Eff_Res, other.Eff_Res);
+            Eff_Hit = Math.Max(Eff_Hit, other.Eff_Hit);
             Shield_HpRatio = Math.Max(Shield_HpRatio, other.Shield_HpRatio);
         }
 
@@ -467,6 +489,7 @@ namespace GameDamageCalculator.Models
         public double Spd_Reduction { get; set; }       // 속도 감소%
         public double Dmg_Reduction { get; set; }       // 주는 피해량 감소%
         public double Heal_Reduction { get; set; }      // 회복량 감소%
+        public double Unrecover { get; set; }      // 회복불가
 
         public void Add(DebuffSet other)
         {
@@ -479,6 +502,7 @@ namespace GameDamageCalculator.Models
             Spd_Reduction += other.Spd_Reduction;
             Dmg_Reduction += other.Dmg_Reduction;
             Heal_Reduction += other.Heal_Reduction;
+            Unrecover += other.Unrecover;
         }
 
         public void MaxMerge(DebuffSet other)
@@ -492,6 +516,7 @@ namespace GameDamageCalculator.Models
             Spd_Reduction = Math.Max(Spd_Reduction, other.Spd_Reduction);
             Dmg_Reduction = Math.Max(Dmg_Reduction, other.Dmg_Reduction);
             Heal_Reduction = Math.Max(Heal_Reduction, other.Heal_Reduction);
+            Unrecover = Math.Max(Unrecover, other.Unrecover);
         }
 
         public DebuffSet Clone()
@@ -504,10 +529,33 @@ namespace GameDamageCalculator.Models
                 Atk_Reduction = Atk_Reduction,
                 Spd_Reduction = Spd_Reduction,
                 Dmg_Reduction = Dmg_Reduction,
-                Heal_Reduction = Heal_Reduction
+                Heal_Reduction = Heal_Reduction,
+                Unrecover = Unrecover,
             };
         }
     }
 
     #endregion
+
+    public class StatScaling
+    {
+        public StatType SourceStat { get; set; }    // 기준 스탯 (속공, 생명력 등)
+        public StatType TargetStat { get; set; }    // 증가할 스탯 (공격력, 치확 등)
+        public double PerUnit { get; set; }         // 단위당 증가량 (120)
+        public double SourceUnit { get; set; }      // 기준 스탯 단위 (7)
+        public double MaxValue { get; set; }        // 최대 증가량 (1080)
+    }
+
+    public enum StatType
+    {
+        None,
+        Atk,        // 공격력
+        Def,        // 방어력
+        Hp,         // 생명력
+        Spd,        // 속공
+        Cri,        // 치명타 확률
+        Cri_Dmg,    // 치명타 피해
+        Eff_Hit,    // 효과 적중
+        Eff_Res     // 효과 저항
+    }
 }
