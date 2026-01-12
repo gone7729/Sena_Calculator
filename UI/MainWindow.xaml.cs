@@ -454,14 +454,14 @@ namespace GameDamageCalculator.UI
             if (boss != null)
             {
                 txtBossDef.Text = boss.Stats.Def.ToString("N0");
-                txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                 txtBossDmgRdc.Text = "0";
                 txtBossHp.Text =  boss.Stats.Hp.ToString("N0");
 
                 // 인기별 피해감소 (소수 → 백분율)
-                txtBoss1TargetRdc.Text = (boss.SingleTargetReduction * 100).ToString("F0");
-                txtBoss3TargetRdc.Text = (boss.TripleTargetReduction * 100).ToString("F0");
-                txtBoss5TargetRdc.Text = (boss.MultiTargetReduction * 100).ToString("F0");
+                txtBoss1TargetRdc.Text = boss.SingleTargetReduction.ToString("F0");
+                txtBoss3TargetRdc.Text = boss.TripleTargetReduction.ToString("F0");
+                txtBoss5TargetRdc.Text = boss.MultiTargetReduction.ToString("F0");
 
                 // 조건부 방증 처리
                 if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
@@ -469,12 +469,12 @@ namespace GameDamageCalculator.UI
                     panelBossCondition.Visibility = Visibility.Visible;
                     txtBossCondition.Text = boss.DefenseIncreaseCondition;
                     chkBossCondition.IsChecked = false;  // 기본: 조건 미충족 (방증 적용)
-                    txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                 }
                 else
                 {
                     panelBossCondition.Visibility = Visibility.Collapsed;
-                    txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                 }
             }
         }
@@ -495,7 +495,7 @@ namespace GameDamageCalculator.UI
                 var boss = GetSelectedBoss();
                 if (boss != null)
                 {
-                    txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                     txtBossHp.Text = boss.Stats.Hp.ToString("N0");
                 }
             }
@@ -540,10 +540,9 @@ namespace GameDamageCalculator.UI
 
                 BattleMode mode = BattleMode.Boss;
                 if (rbMob.IsChecked == true) mode = BattleMode.Mob;
-                else if (rbPvP.IsChecked == true) mode = BattleMode.PvP;
 
                 // 버프% 계산 추가!
-                double buffAtkRate = GetPetAtkRate() 
+                double buffAtkRate = GetPetOptionAtkRate() 
                     + GetAllPassiveBuffs().Atk_Rate 
                     + GetAllActiveBuffs().Atk_Rate;
 
@@ -638,7 +637,7 @@ namespace GameDamageCalculator.UI
                     Name = "직접 입력",
                     BossType = BossType.Siege,
                     Stats = new BaseStatSet { Def = ParseDouble(txtBossDef.Text) },
-                    DefenseIncrease = ParseDouble(txtBossDefInc.Text) / 100
+                    DefenseIncrease = ParseDouble(txtBossDefInc.Text)
                 };
             }
 
@@ -1148,9 +1147,9 @@ namespace GameDamageCalculator.UI
                    + mainOptionStats.Hp_Rate;
 
             // ========== 버프% ==========
-            double buffAtkRate = GetPetAtkRate() + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
-            double buffDefRate = GetPetDefRate()+ totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
-            double buffHpRate = GetPetHpRate()+ totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
+            double buffAtkRate = petOptionAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
+            double buffDefRate = petOptionDefRate + totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
+            double buffHpRate = petOptionHpRate + totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
 
             // ========== 기본 스탯 (버프 적용 전) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
@@ -1354,27 +1353,6 @@ namespace GameDamageCalculator.UI
                 if (star == 0) return 0;
                 return pet.GetSkillBonus(star).Atk_Rate;
             }
-            return 0;
-        }
-
-        private double GetPetAtkRate()
-        {
-            if (double.TryParse(txtPetAtk.Text, out double val))
-                return val;
-            return 0;
-        }
-        
-        private double GetPetDefRate()
-        {
-            if (double.TryParse(txtPetDef.Text, out double val))
-                return val;
-            return 0;
-        }
-        
-        private double GetPetHpRate()
-        {
-            if (double.TryParse(txtPetHp.Text, out double val))
-                return val;
             return 0;
         }
 

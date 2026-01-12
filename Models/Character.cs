@@ -450,6 +450,7 @@ namespace GameDamageCalculator.Models
             Hp_Rate += other.Hp_Rate;
             Cri += other.Cri;
             Cri_Dmg += other.Cri_Dmg;
+            CriBonusDmg += other.CriBonusDmg;
             Wek += other.Wek;
             Wek_Dmg += other.Wek_Dmg;
             WekBonusDmg += other.WekBonusDmg;
@@ -476,6 +477,7 @@ namespace GameDamageCalculator.Models
             Hp_Rate = Math.Max(Hp_Rate, other.Hp_Rate);
             Cri = Math.Max(Cri, other.Cri);
             Cri_Dmg = Math.Max(Cri_Dmg, other.Cri_Dmg);
+            CriBonusDmg = Math.Max(CriBonusDmg, other.CriBonusDmg);
             Wek = Math.Max(Wek, other.Wek);
             Wek_Dmg = Math.Max(Wek_Dmg, other.Wek_Dmg);
             WekBonusDmg = Math.Max(WekBonusDmg, other.WekBonusDmg);
@@ -502,6 +504,7 @@ namespace GameDamageCalculator.Models
                 Hp_Rate = Hp_Rate,
                 Cri = Cri,
                 Cri_Dmg = Cri_Dmg,
+                CriBonusDmg = CriBonusDmg,
                 Wek = Wek,
                 Wek_Dmg = Wek_Dmg,
                 WekBonusDmg = WekBonusDmg,

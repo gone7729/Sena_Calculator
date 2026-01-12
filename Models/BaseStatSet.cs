@@ -155,13 +155,32 @@ namespace GameDamageCalculator.Models
         /// </summary>
         public void Clear()
         {
-            Atk = Def = Hp = Spd = 0;
-            Cri = Cri_Dmg = 0;
-            Wek = Wek_Dmg = 0;
-            Blk = Blk_Red = Dmg_Rdc = Heal_Rec = 0;
-            Eff_Hit = Eff_Res = Eff_Acc = 0;
-            Arm_Pen = Dmg_Dealt = Dmg_Dealt_Bos = 0;
-            Atk_Rate = Def_Rate = Hp_Rate = 0;
+            Atk = 0;
+            Def = 0;
+            Hp = 0;
+            Spd = 0;
+            Cri = 0;
+            Cri_Dmg = 0;
+            Wek = 0;
+            Wek_Dmg = 0;
+            Blk = 0;
+            Blk_Red = 0;
+            Dmg_Rdc = 0;
+            Heal_Rec = 0;
+            Eff_Hit = 0;
+            Eff_Res = 0;
+            Eff_Acc = 0;
+            Arm_Pen = 0;
+            Dmg_Dealt = 0;
+            Dmg_Dealt_Bos = 0;
+            Atk_Rate = 0;
+            Def_Rate = 0;
+            Hp_Rate = 0;
+            Dmg_Dealt_1to3 = 0;
+            Dmg_Dealt_4to5 = 0;
+            Dmg_Rdc_Single = 0;
+            Dmg_Rdc_Triple = 0;
+            Dmg_Rdc_Multi = 0;
         }
 
         public BaseStatSet Multiply(double multiplier)
