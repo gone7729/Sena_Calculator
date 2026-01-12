@@ -299,8 +299,8 @@ namespace GameDamageCalculator.Database
                 BossType = BossType.Mob,
                 Stats = new BaseStatSet
                 {
-                    Def = 491,
-                    Hp = 36373
+                    Def = 910,
+                    Hp = 33553
                 }
             },
         };

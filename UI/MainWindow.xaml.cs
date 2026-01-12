@@ -131,6 +131,8 @@ namespace GameDamageCalculator.UI
        private void InitializeMainOptionComboBoxes()
         {
             // 무기 메인옵션
+            cboWeapon1Main.Items.Clear();
+            cboWeapon2Main.Items.Clear();
             cboWeapon1Main.Items.Add("없음");
             cboWeapon2Main.Items.Add("없음");
             foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["무기"])
@@ -142,6 +144,8 @@ namespace GameDamageCalculator.UI
             cboWeapon2Main.SelectedIndex = 0;
 
             // 방어구 메인옵션
+            cboArmor1Main.Items.Clear();
+            cboArmor2Main.Items.Clear();
             cboArmor1Main.Items.Add("없음");
             cboArmor2Main.Items.Add("없음");
             foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["방어구"])
@@ -1680,15 +1684,25 @@ namespace GameDamageCalculator.UI
             foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName != null))
             {
                 if (config.CheckBox.IsChecked != true) continue;
+        
                 var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
                 var character = CharacterDb.GetByName(config.CharacterName);
                 var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
+                
                 if (skill != null)
                 {
                     var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.BuffEffect != null) total.MaxMerge(levelData.BuffEffect);
+                    
+                    // PartyBuff (아군 전체)
+                    if (levelData?.PartyBuff != null) 
+                        total.MaxMerge(levelData.PartyBuff);
+                    
+                    // SelfBuff (자신만) - 선택한 캐릭터일 때만?
+                    // 또는 버프 UI에서 별도 체크
+                    
                     var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.Bonus != null) total.MaxMerge(transcendBonus.Bonus);
+                    if (transcendBonus?.Bonus != null) 
+                        total.MaxMerge(transcendBonus.Bonus);
                 }
             }
             return total;

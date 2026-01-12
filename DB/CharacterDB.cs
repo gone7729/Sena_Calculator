@@ -1653,7 +1653,7 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                Ratio = 105, BuffEffect = new BuffSet{ CriBonusDmg = 40 },
+                                Ratio = 105, Bonus = new BuffSet{ CriBonusDmg = 40 },
                                 StatusEffects = new List<SkillStatusEffect>
                                 {
                                     new SkillStatusEffect 
@@ -1665,7 +1665,7 @@ namespace GameDamageCalculator.Database
                                 } 
                             } },
                             { 1, new SkillLevelData { 
-                                Ratio = 120, BuffEffect = new BuffSet{ CriBonusDmg = 50 },
+                                Ratio = 120, Bonus = new BuffSet{ CriBonusDmg = 50 },
                                 StatusEffects = new List<SkillStatusEffect>
                                 {
                                     new SkillStatusEffect 
@@ -1688,10 +1688,10 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                Ratio = 105, BuffEffect = new BuffSet{ CriBonusDmg = 55 }, DebuffEffect = new DebuffSet{ Vulnerability = 17 }
+                                Ratio = 105, Bonus = new BuffSet{ CriBonusDmg = 55 }, DebuffEffect = new DebuffSet{ Vulnerability = 17 }
                             } },
                             { 1, new SkillLevelData { 
-                                Ratio = 120, BuffEffect = new BuffSet{ CriBonusDmg = 55 }, DebuffEffect = new DebuffSet{ Vulnerability = 22 }
+                                Ratio = 120, Bonus = new BuffSet{ CriBonusDmg = 55 }, DebuffEffect = new DebuffSet{ Vulnerability = 22 }
                             } },
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -3707,11 +3707,11 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                BuffEffect = new BuffSet { Def_Rate = 31 },
+                                PartyBuff = new BuffSet { Def_Rate = 31 },
                                 HealHpRatio = 15
                             } },
                             { 1, new SkillLevelData { 
-                                BuffEffect = new BuffSet { Def_Rate = 39 },
+                                PartyBuff = new BuffSet { Def_Rate = 39 },
                                 HealHpRatio = 15
                             } }
                         },

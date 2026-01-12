@@ -159,6 +159,7 @@ namespace GameDamageCalculator.Models
 
     /// <summary>
     /// 스킬 레벨별 데이터 (0=기본, 1=강화)
+    /// ★ BuffEffect 제거됨 - PartyBuff/SelfBuff로 통합
     /// </summary>
     public class SkillLevelData
     {
@@ -174,13 +175,13 @@ namespace GameDamageCalculator.Models
         public string ConditionalDesc { get; set; }
         public bool ConditionalExtraDmgPerHit { get; set; }  // true면 타격당 적용
 
-        // 스탯 보너스 (방관, 치피, 약점 등 모두 여기로)
+        // 스킬 자체 보너스 (방관, 치피 등 - 스킬 발동 시 적용)
         public BuffSet Bonus { get; set; } = new BuffSet();
 
-        public BuffSet SelfBuff { get; set; } = new BuffSet();   // 본인 전용
-        public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
+        // ★ 버프 효과 (BuffEffect 대체!)
+        public BuffSet SelfBuff { get; set; }    // 본인 전용 버프
+        public BuffSet PartyBuff { get; set; }   // 아군 전체 버프
 
-        public BuffSet BuffEffect { get; set; } 
         // 적에게 부여하는 디버프
         public DebuffSet DebuffEffect { get; set; }
         public int EffectDuration { get; set; }
@@ -190,19 +191,21 @@ namespace GameDamageCalculator.Models
         public double HealAtkRatio { get; set; }
         public double HealDefRatio { get; set; }
         public double HealHpRatio { get; set; }
-        // === 생명력 비례 피해 (NEW) ===
+        
+        // === 생명력 비례 피해 ===
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP 비례% (8%)
         public double TargetCurrentHpRatio { get; set; } // 대상 현재 HP 비례%
         public double AtkCap { get; set; }    // 공격력 제한% (75%)
 
-        // === 잃은 HP 비례 피해 증가 (NEW) ===
+        // === 잃은 HP 비례 피해 증가 ===
         public double LostHpBonusDmgMax { get; set; }   // 잃은 HP 비례 최대 피해 증가% (50%)
 
-        // === 상태이상 부여 (NEW) ===
+        // === 상태이상 부여 ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
 
         public string Effect { get; set; }
         public int? TargetCountOverride { get; set; }
+        
         // 스택 소모형 추가 피해
         public ConsumeExtraDamage ConsumeExtra { get; set; }
         public double ConditionalDmgBonus { get; set; }
@@ -225,10 +228,12 @@ namespace GameDamageCalculator.Models
         // 조건부 효과 추가
         public double ConditionalDmgBonus { get; set; }     // 조건 충족 시 피해량 증가%
         public double ConditionalExtraDmg { get; set; }     // 조건 충족 시 피해량 증가%
-        // === 상태이상 부여 (NEW) ===
+        
+        // === 상태이상 부여 ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public ConsumeExtraDamage ConsumeExtra { get; set; }
-        // === 생명력 비례 피해 (NEW) ===
+        
+        // === 생명력 비례 피해 ===
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP 비례% (8%)
         public double TargetCurrentHpRatio { get; set; } // 대상 현재 HP 비례%
         public double AtkCap { get; set; }    // 공격력 제한% (75%)
@@ -351,7 +356,8 @@ namespace GameDamageCalculator.Models
         public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
         public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
-        // === 상태이상 부여 (NEW) ===
+        
+        // === 상태이상 부여 ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
         public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
@@ -379,9 +385,11 @@ namespace GameDamageCalculator.Models
         public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
         public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
-        // === 상태이상 부여 (NEW) ===
+        
+        // === 상태이상 부여 ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
+        
         // 협공 강화
         public double CoopChanceBonus { get; set; }  // 협공 확률 증가%
         public double CoopRatioBonus { get; set; }   // 협공 배율 증가%

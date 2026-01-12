@@ -908,6 +908,27 @@
                             <TextBox x:Name="txtBoss5TargetRdc" Grid.Row="1" Grid.Column="2" Text="0"/>
                         </Grid>
 
+                        <!-- 1인기 / 3인기 / 5인기 감소% -->
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="방깎" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelText}"/>
+                            <TextBlock Text="취약" Grid.Row="0" Grid.Column="1" Style="{StaticResource LabelText}"/>
+                            <TextBlock Text="받피증" Grid.Row="0" Grid.Column="2" Style="{StaticResource LabelText}"/>
+                            
+                            <TextBox x:Name="txtBossDefRed" Grid.Row="1" Grid.Column="0" Text="0" Margin="0,0,5,0"/>
+                            <TextBox x:Name="txtBossVulnerable" Grid.Row="1" Grid.Column="1" Text="0" Margin="0,0,5,0"/>
+                            <TextBox x:Name="txtBossDmgTaken" Grid.Row="1" Grid.Column="2" Text="0"/>
+                        </Grid>
+
                             <!-- 생명력 -->
                         <Grid Margin="0,0,0,5">
                             <Grid.ColumnDefinitions>
@@ -923,10 +944,6 @@
                             <TextBox x:Name="txtBossHp" Grid.Row="1" Grid.Column="0" Text="0" Margin="0,0,5,0"/>
                         </Grid>
                         
-                        <!-- 디버프 표시용 (숨김) -->
-                        <TextBlock x:Name="txtBossDefRed" Visibility="Collapsed"/>
-                        <TextBlock x:Name="txtBossDmgTaken" Visibility="Collapsed"/>
-                        <TextBlock x:Name="txtBossVulnerable" Visibility="Collapsed"/>
                         <StackPanel x:Name="panelBossCondition" Visibility="Collapsed">
                             <CheckBox x:Name="chkBossCondition" Checked="BossCondition_Changed" Unchecked="BossCondition_Changed"/>
                             <TextBlock x:Name="txtBossCondition"/>
