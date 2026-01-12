@@ -837,17 +837,21 @@
                 </StackPanel>
             </Border>
             
-            <!-- ==================== 3컬럼: 보스 + 계산결과 ==================== -->
+            <!-- ==================== 3컬럼: 대상 + 계산결과 ==================== -->
             <StackPanel Grid.Column="2">
                 
                 <!-- ===== 보스 ===== -->
                 <Border Style="{StaticResource SectionBorder}">
                     <StackPanel>
-                        <TextBlock Text="보스" Style="{StaticResource SectionTitle}"/>
-                        
-                        
-                            
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,5,8">
+                        <!-- 전투 모드 선택 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <RadioButton x:Name="rbBoss" Content="보스" IsChecked="True" GroupName="BattleMode" Checked="BattleMode_Changed"/>
+                            <RadioButton x:Name="rbMob" Content="잡몹" GroupName="BattleMode" Margin="10,0,0,0" Checked="BattleMode_Changed"/>
+                            <RadioButton x:Name="rbPvP" Content="PVP" GroupName="BattleMode" Margin="10,0,0,0" Checked="BattleMode_Changed"/>
+                        </StackPanel>
+
+                        <!-- 보스 타입 (보스 선택 시만 표시) -->
+                        <StackPanel x:Name="spBossType" Grid.Column="0" Orientation="Horizontal" Margin="0,0,5,8">
                             <RadioButton x:Name="rbSiege" Content="공성" GroupName="BossType" IsChecked="True" 
                                          Checked="BossType_Changed" Foreground="#272727" Margin="0,0,5,0"/>
                             <RadioButton x:Name="rbRaid" Content="레이드" GroupName="BossType" 
@@ -856,9 +860,10 @@
                                          Checked="BossType_Changed" Foreground="#272727"/>
                         </StackPanel>
 
-                        <!-- 리스트 드롭다운-->
+                        <!-- 보스/잡몹 리스트 드롭다운 -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,5,8">
-                            <ComboBox x:Name="cboBoss" SelectionChanged="CboBoss_SelectionChanged" Width="160"/>
+                            <ComboBox x:Name="cboBoss" SelectionChanged="CboBoss_SelectionChanged" Width="160" Visibility="Visible"/>
+                            <ComboBox x:Name="cboMob" SelectionChanged="CboMob_SelectionChanged" Width="160" Visibility="Collapsed"/>
                         </StackPanel>
 
                         <!-- 방어력 / 방증% / 피감 -->
@@ -901,6 +906,21 @@
                             <TextBox x:Name="txtBoss1TargetRdc" Grid.Row="1" Grid.Column="0" Text="0" Margin="0,0,5,0"/>
                             <TextBox x:Name="txtBoss3TargetRdc" Grid.Row="1" Grid.Column="1" Text="0" Margin="0,0,5,0"/>
                             <TextBox x:Name="txtBoss5TargetRdc" Grid.Row="1" Grid.Column="2" Text="0"/>
+                        </Grid>
+
+                            <!-- 생명력 -->
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="생명력" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelText}"/>
+                            
+                            <TextBox x:Name="txtBossHp" Grid.Row="1" Grid.Column="0" Text="0" Margin="0,0,5,0"/>
                         </Grid>
                         
                         <!-- 디버프 표시용 (숨김) -->

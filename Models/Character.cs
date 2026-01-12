@@ -152,6 +152,8 @@ namespace GameDamageCalculator.Models
         public double? CustomFixedDamage { get; set; }
         public double? CustomTargetMaxHpRatio { get; set; }  // NEW - 명확한 네이밍
         public double? CustomTargetCurrentHpRatio { get; set; } // NEW - 현재HP도 추가
+        public double? CustomHpConversionRatio { get; set; }  // HP 전환 비율%
+        public double? CustomTriggerCount { get; set; }  // HP 전환 비율%
         
     }
 
@@ -170,13 +172,15 @@ namespace GameDamageCalculator.Models
         public double ConditionalRatioBonus { get; set; }
         public double ConditionalExtraDmg { get; set; }
         public string ConditionalDesc { get; set; }
+        public bool ConditionalExtraDmgPerHit { get; set; }  // true면 타격당 적용
 
         // 스탯 보너스 (방관, 치피, 약점 등 모두 여기로)
         public BuffSet Bonus { get; set; } = new BuffSet();
 
-        // 아군에게 부여하는 버프 (비스킷 장비강화 등)
-        public BuffSet BuffEffect { get; set; }
+        public BuffSet SelfBuff { get; set; } = new BuffSet();   // 본인 전용
+        public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
 
+        public BuffSet BuffEffect { get; set; } 
         // 적에게 부여하는 디버프
         public DebuffSet DebuffEffect { get; set; }
         public int EffectDuration { get; set; }
@@ -199,7 +203,13 @@ namespace GameDamageCalculator.Models
 
         public string Effect { get; set; }
         public int? TargetCountOverride { get; set; }
-        
+        // 스택 소모형 추가 피해
+        public ConsumeExtraDamage ConsumeExtra { get; set; }
+        public double ConditionalDmgBonus { get; set; }
+        public double DispelDefReduction { get; set; }  // 버프 해제 연계 방깎% (풀스택 기준)
+        public BuffSet PreCastBuff { get; set; } // 스킬 발동 전 버프
+        public double HealDmgRatio { get; set; }  // 피해량 비례 회복%
+        public double FixedDamage { get; set; }  // 고정 피해
     }
 
     /// <summary>
@@ -208,6 +218,7 @@ namespace GameDamageCalculator.Models
     public class SkillTranscend
     {
         public BuffSet Bonus { get; set; } = new BuffSet();
+        public BuffSet PartyBuff { get; set; } = new BuffSet();  // 아군 전체
         public DebuffSet Debuff { get; set; } = new DebuffSet();
         public int? TargetCountOverride { get; set; }
         
@@ -216,6 +227,12 @@ namespace GameDamageCalculator.Models
         public double ConditionalExtraDmg { get; set; }     // 조건 충족 시 피해량 증가%
         // === 상태이상 부여 (NEW) ===
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
+        public ConsumeExtraDamage ConsumeExtra { get; set; }
+        // === 생명력 비례 피해 (NEW) ===
+        public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP 비례% (8%)
+        public double TargetCurrentHpRatio { get; set; } // 대상 현재 HP 비례%
+        public double AtkCap { get; set; }    // 공격력 제한% (75%)
+        public double HealHpRatio { get; set; }
 
         public string Effect { get; set; }
     }
@@ -226,6 +243,14 @@ namespace GameDamageCalculator.Models
         Skill1,
         Skill2,
         Ultimate
+    }
+
+    public class ConsumeExtraDamage
+    {
+        public int ConsumeCount { get; set; }              // 소모 개수
+        public double TargetMaxHpRatio { get; set; }       // 대상 최대 HP%
+        public double AtkRatio { get; set; }               // 공격력 비례%
+        public double AtkCap { get; set; }                 // 공격력 제한%
     }
 
     #endregion
@@ -331,6 +356,8 @@ namespace GameDamageCalculator.Models
         public string Effect { get; set; }
         public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
         public CoopAttack CoopAttack { get; set; }  // 협공 데이터
+        public BaseStatSet FlatBonus { get; set; }
+        
     }
 
     public class CoopAttack
@@ -378,6 +405,8 @@ namespace GameDamageCalculator.Models
         // 치명타
         public double Cri { get; set; }             // 치명타 확률
         public double Cri_Dmg { get; set; }         // 치명타 피해
+        public double CriBonusDmg { get; set; }     // 치명타 시 추가 피해 배율
+        public bool CriBonusDmgPerHit { get; set; }  // true면 타격당 적용
 
         // 약점
         public double Wek { get; set; }             // 약점 확률
@@ -400,6 +429,9 @@ namespace GameDamageCalculator.Models
         public double Eff_Res { get; set; }         // 효과 저항%
         public double Eff_Hit { get; set; }         // 효과 적중%
         public double Shield_HpRatio { get; set; }  // 보호막%
+
+        public double Blessing { get; set; }  // 축복 - 1회 피해 최대 HP% 제한
+        
 
         public void Add(BuffSet other)
         {
@@ -424,6 +456,7 @@ namespace GameDamageCalculator.Models
             Eff_Res += other.Eff_Res;
             Eff_Hit += other.Eff_Hit;
             Shield_HpRatio += other.Shield_HpRatio;
+            Blessing += other.Blessing;
         }
 
         public void MaxMerge(BuffSet other)
@@ -449,6 +482,7 @@ namespace GameDamageCalculator.Models
             Eff_Res = Math.Max(Eff_Res, other.Eff_Res);
             Eff_Hit = Math.Max(Eff_Hit, other.Eff_Hit);
             Shield_HpRatio = Math.Max(Shield_HpRatio, other.Shield_HpRatio);
+            Blessing = Math.Max(Blessing, other.Blessing);
         }
 
         public BuffSet Clone()
@@ -472,7 +506,8 @@ namespace GameDamageCalculator.Models
                 Dmg_Rdc_Multi = Dmg_Rdc_Multi,
                 Heal_Bonus = Heal_Bonus,
                 Eff_Res = Eff_Res,
-                Shield_HpRatio = Shield_HpRatio
+                Shield_HpRatio = Shield_HpRatio,
+                Blessing = Blessing,
             };
         }
     }
@@ -490,6 +525,8 @@ namespace GameDamageCalculator.Models
         public double Dmg_Reduction { get; set; }       // 주는 피해량 감소%
         public double Heal_Reduction { get; set; }      // 회복량 감소%
         public double Unrecover { get; set; }      // 회복불가
+        public double Eff_Red { get; set; }      // 효과 저항 감소%
+        public double Blk_Red { get; set; }  // 막기 확률 감소
 
         public void Add(DebuffSet other)
         {
@@ -503,6 +540,8 @@ namespace GameDamageCalculator.Models
             Dmg_Reduction += other.Dmg_Reduction;
             Heal_Reduction += other.Heal_Reduction;
             Unrecover += other.Unrecover;
+            Eff_Red += other.Eff_Red;
+            Blk_Red += other.Blk_Red;
         }
 
         public void MaxMerge(DebuffSet other)
@@ -517,6 +556,8 @@ namespace GameDamageCalculator.Models
             Dmg_Reduction = Math.Max(Dmg_Reduction, other.Dmg_Reduction);
             Heal_Reduction = Math.Max(Heal_Reduction, other.Heal_Reduction);
             Unrecover = Math.Max(Unrecover, other.Unrecover);
+            Eff_Red = Math.Max(Eff_Red, other.Eff_Red);
+            Blk_Red = Math.Max(Blk_Red, other.Blk_Red);
         }
 
         public DebuffSet Clone()
@@ -531,6 +572,8 @@ namespace GameDamageCalculator.Models
                 Dmg_Reduction = Dmg_Reduction,
                 Heal_Reduction = Heal_Reduction,
                 Unrecover = Unrecover,
+                Eff_Red = Eff_Red,
+                Blk_Red = Blk_Red,
             };
         }
     }

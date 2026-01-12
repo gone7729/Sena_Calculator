@@ -303,7 +303,8 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { ConditionalDmgBonus = 2, Effect = "디버프 1개당 피해량 증가(최대 4개)" } }
+                            { 2, new SkillTranscend { ConditionalDmgBonus = 80, Effect = "디버프당 피해량 증가 20%" } },
+                            { 6, new SkillTranscend { ConditionalDmgBonus = 200, Effect = "디버프 1개당 피해량 증가(최대 4개)" } }
                         }
                     }
                 },
@@ -318,11 +319,7 @@ namespace GameDamageCalculator.Database
                         { 1, new PassiveLevelData { 
                             SelfBuff = new BuffSet { Dmg_Rdc = 29, Cri = 41 }
                         }}
-                    },
-                        TranscendBonuses = new Dictionary<int, PassiveTranscend>
-                        {
-                            { 2, new PassiveTranscend { SelfBuff = new BuffSet{ Dmg_Dealt = 80 }, Effect = "디버프당 피해량 증가 20%" } }
-                        }
+                    }
                 },
                 TranscendBonuses = new List<TranscendBonus>
                 {
@@ -1621,36 +1618,1532 @@ namespace GameDamageCalculator.Database
             },
 
             // 벨리카
-
+            new Character
+            {
+                Id = 106,
+                Name = "벨리카",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "메테오",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 105, BuffEffect = new BuffSet{ CriBonusDmg = 40 },
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Burn,
+                                        Stacks = 1,
+                                        Chance = 60
+                                    }
+                                } 
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120, BuffEffect = new BuffSet{ CriBonusDmg = 50 },
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Burn,
+                                        Stacks = 1,
+                                        Chance = 60
+                                    }
+                                } 
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "어둠의 환영",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 105, BuffEffect = new BuffSet{ CriBonusDmg = 55 }, DebuffEffect = new DebuffSet{ Vulnerability = 17 }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120, BuffEffect = new BuffSet{ CriBonusDmg = 55 }, DebuffEffect = new DebuffSet{ Vulnerability = 22 }
+                            } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Silence,
+                                        Stacks = 1,
+                                        Chance = 60
+                                    }
+                                }
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "흑월의 축복",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Cri = 27 },
+                            Effect = "시탑, 무탑에서 마법피해량증가 28%"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Cri = 33 },
+                            Effect = "시탑, 무탑에서 마법피해량증가 31%"
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "보호막"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "침묵추가" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "보호막" }
+                }
+            },
 
             // 에스파다
-
+            new Character
+            {
+                Id = 107,
+                Name = "에스파다",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "정화탄",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 340, DebuffEffect = new DebuffSet{ Vulnerability = 26 },
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 340, DebuffEffect = new DebuffSet{ Vulnerability = 33 },
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "신의 심판",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 425,
+                                ConsumeExtra = new ConsumeExtraDamage
+                                {
+                                    ConsumeCount = 4,
+                                    TargetMaxHpRatio = 26,
+                                    AtkCap = 1300
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 515,
+                                ConsumeExtra = new ConsumeExtraDamage
+                                {
+                                    ConsumeCount = 4,
+                                    TargetMaxHpRatio = 26,
+                                    AtkCap = 1300
+                                }
+                            } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                ConsumeExtra = new ConsumeExtraDamage
+                                {
+                                    TargetMaxHpRatio = 6
+                                }
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "마력 정화",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Dmg_Dealt = 32, Cri = 40 },
+                            Effect = "마력 정화 중첩(4스택)"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Dmg_Dealt = 40, Cri = 40 },
+                            Effect = "마력 정화 중첩(4스택)"
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            SelfBuff = new BuffSet { Dmg_Dealt = 29 },
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "마법 감쇄" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "체력비례 6% 증가" }
+                }
+            },
 
             // 데이지
-
+            new Character
+            {
+                Id = 108,
+                Name = "데이지",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "비화선",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 270, TargetMaxHpRatio = 20, AtkCap = 350
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 330, TargetMaxHpRatio = 20, AtkCap = 350
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                TargetMaxHpRatio = 6, AtkCap = 350
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "불나비",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 130,
+                                PartyBuff = new BuffSet { Atk_Rate = 27 }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 155,
+                                PartyBuff = new BuffSet { Atk_Rate = 33 }
+                            } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "기민한 움직임",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Atk_Rate = 21 },
+                            Effect = "공격력 높은 아군 2명"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Atk_Rate = 27 },
+                            Effect = "공격력 높은 아군 2명"
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "아군 보호막"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "보호막" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "체력비례 6% 증가" }
+                }
+            },
 
             // 바네사
-
+            new Character
+            {
+                Id = 109,
+                Name = "바네사",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 130,
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "모래열풍",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 3,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 95, Effect = "70%확률 쿨타임 증가 19초",
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 110, Effect = "70%확률 쿨타임 증가 23초",
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Effect = "버프 해제 2개"
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "메마른 해일",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 4,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 70,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Petrify,
+                                        Stacks = 1,
+                                        Chance = 40
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 82,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Petrify,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    }
+                                }
+                            } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "사막의 마법사",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Def_Reduction = 20 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Def_Reduction = 24 },
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 6, new PassiveTranscend { 
+                            Debuff = new DebuffSet { Vulnerability = 24 },
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "버프해제" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "취약" }
+                }
+            },
 
             // 키리엘
-
+            new Character
+            {
+                Id = 110,
+                Name = "키리엘",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 35
+                                    }
+                                }
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "레굴루스",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 220, ConditionalDmgBonus = 160
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 267, ConditionalDmgBonus = 160
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Effect = "처치 시 100% 위력 한번 더"
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "유성우",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 57,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 30
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 67,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 35
+                                    }
+                                }
+                            } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "별의 축제",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Dmg_Dealt = 17 },
+                            StatScalings = new List<StatScaling>
+                            {
+                                new StatScaling
+                                {
+                                    SourceStat = StatType.Spd,      
+                                    TargetStat = StatType.Atk,      
+                                    PerUnit = 120,                  
+                                    SourceUnit = 7,                 
+                                    MaxValue = 1080                 
+                                }
+                            },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Dmg_Dealt = 20 },
+                            StatScalings = new List<StatScaling>
+                            {
+                                new StatScaling
+                                {
+                                    SourceStat = StatType.Spd,      
+                                    TargetStat = StatType.Atk,      
+                                    PerUnit = 120,                  
+                                    SourceUnit = 7,                 
+                                    MaxValue = 1320                 
+                                }
+                            },
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 6, new PassiveTranscend { 
+                            Effect = "행동 제어 면역, 보호막량 상승"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "처치 시 함더" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "행동제어면역3턴" }
+                }
+            },
 
             // 멜키르
-
+            new Character
+            {
+                Id = 111,
+                Name = "멜키르",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.ManaBackflow,
+                                        Stacks = 1,
+                                        Chance = 45
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.ManaBackflow,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    }
+                                }
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.ManaBackflow,
+                                        Stacks = 1,
+                                        Chance = 50,
+                                        CustomTargetMaxHpRatio = 15
+                                    }
+                                }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "어둠 강탈",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 60,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Stun,
+                                        Stacks = 1,
+                                        Chance = 45
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 70,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Stun,
+                                        Stacks = 1,
+                                        Chance = 55
+                                    }
+                                }
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "금지된 실험",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 52,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.ManaBackflow,
+                                        Stacks = 1,
+                                        Chance = 40
+                                    }
+                                },
+                                DebuffEffect = new DebuffSet { Heal_Reduction = 44 }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 60,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.ManaBackflow,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    }
+                                },
+                                DebuffEffect = new DebuffSet { Heal_Reduction = 44 }
+                            } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.ManaBackflow,
+                                        Stacks = 1,
+                                        Chance = 50,
+                                        CustomTargetMaxHpRatio = 15
+                                    }
+                                }
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "타락한 마법사",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Eff_Red = 28 },
+                            SelfBuff = new BuffSet { Blessing = 40 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Eff_Red = 28 },
+                            SelfBuff = new BuffSet { Blessing = 25 },
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "마법형 3명일 시 공격 3회 시 적군 3명 100% 마력 역류"
+                        }},
+                        { 6, new PassiveTranscend { 
+                            Effect = "마력 역류 15%로 변경"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "마법형 3명일 시 공격 3회 시 적군 3명 100% 마력 역류" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "마력 역류 15%로 변경" }
+                }
+            },
 
             // 실베스타
-
+            new Character
+            {
+                Id = 112,
+                Name = "실베스타",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 130,
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "정의의 단죄",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 3,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 72,
+                                Effect = "적군 처치 시 함 더"
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 85,
+                                Effect = "적군 처치 시 함 더"
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Bonus = new BuffSet { Arm_Pen = 40 }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "정화의 일격",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 60,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 75,
+                            } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Bonus = new BuffSet { Arm_Pen = 40 }
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "기사의 의지",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Blessing = 40 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Blessing = 25 },
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 6, new PassiveTranscend { 
+                            Effect = "권능 발동 시 모든 디버프 해제, 체력 100% 회복"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "방무 추가" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "권능 발동 시 모든 디버프 해제, 체력 100% 회복" }
+                }
+            },
 
             // 프레이야
-
+            new Character
+            {
+                Id = 113,
+                Name = "프레이야",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Bleeding,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    }
+                                }
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "고결한 금풍",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 57,
+                                DispelDefReduction = 44,
+                                PreCastBuff = new BuffSet { Atk_Rate = 10 },
+                                Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(4중첩)"
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 67,
+                                DispelDefReduction = 44,
+                                PreCastBuff = new BuffSet { Atk_Rate = 10 },
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Bleeding,
+                                        Stacks = 1,
+                                        Chance = 75
+                                    }
+                                },
+                                Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(4중첩)"
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                Effect = "처치 시 함 더"
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "금빛 검우",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 60,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.HpConversion,
+                                        Stacks = 1,
+                                        Chance = 100,
+                                        CustomHpConversionRatio = 52
+                                    }
+                                },
+                                Effect = "항상 4중첩 유지"
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 80,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.HpConversion,
+                                        Stacks = 1,
+                                        Chance = 100,
+                                        CustomHpConversionRatio = 39
+                                    }
+                                },
+                                Effect = "항상 4중첩 유지"
+                            } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "아름다운 지배자",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Blessing = 40 },
+                            PartyBuff = new BuffSet { Eff_Hit = 31 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            SelfBuff = new BuffSet { Blessing = 25 },
+                            PartyBuff = new BuffSet { Eff_Hit = 37 },
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "전투 시작 시 4중첩"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "전투 시작 시 4중첩" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "처치 시 함 더" }
+                }
+            },
 
             // 린
-
+            new Character
+            {
+                Id = 114,
+                Name = "린",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Confusion,
+                                        Stacks = 1,
+                                        Chance = 45
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Confusion,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    }
+                                }
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "용린성하",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 4,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 62,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 62,
+                                Bonus = new BuffSet { CriBonusDmg = 74, CriBonusDmgPerHit = true },
+                                
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                Effect = "처치 시 쿨초"
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "용제의 진노",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 4,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 70,
+                                ConditionalExtraDmg = 30,
+                                ConditionalExtraDmgPerHit = true,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Confusion,
+                                        Stacks = 1,
+                                        Chance = 100,
+                                    }
+                                },
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 90,
+                                ConditionalExtraDmg = 42,
+                                ConditionalExtraDmgPerHit = true,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Confusion,
+                                        Stacks = 1,
+                                        Chance = 100,
+                                    }
+                                },
+                            } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "홍린포",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            StatScalings = new List<StatScaling>
+                            {
+                                new StatScaling
+                                {
+                                    SourceStat = StatType.Atk,      
+                                    TargetStat = StatType.Cri,      
+                                    PerUnit = 350,                  
+                                    SourceUnit = 3,                 
+                                    MaxValue = 27                 
+                                }
+                            }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            StatScalings = new List<StatScaling>
+                            {
+                                new StatScaling
+                                {
+                                    SourceStat = StatType.Atk,      
+                                    TargetStat = StatType.Cri,      
+                                    PerUnit = 350,                  
+                                    SourceUnit = 3,                 
+                                    MaxValue = 33                 
+                                }
+                            }
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "부활 시 피해 무효 2회"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "부활 시 피해 무효 2회" }
+                }
+            },
 
             // 밀리아
-
+            new Character
+            {
+                Id = 115,
+                Name = "밀리아",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 2,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 30, DefRatio = 30,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        Stacks = 1,
+                                        Chance = 30
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 30, DefRatio = 30,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        Stacks = 1,
+                                        Chance = 35
+                                    }
+                                }
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        CustomTriggerCount = 5,
+                                    }
+                                }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "수정룡의 거울",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 30, DefRatio = 32,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    },
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.CrystalResonance,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 30, DefRatio = 32,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        Stacks = 1,
+                                        Chance = 65
+                                    },
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.CrystalResonance,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                }
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        CustomTriggerCount = 5,
+                                    }
+                                }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "수정의 숨결",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 30, DefRatio = 32,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        Stacks = 1,
+                                        Chance = 35
+                                    },
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Miss,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                },
+                                Effect = "빗나감 확률 36%"
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 30, DefRatio = 32,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Crystal,
+                                        Stacks = 1,
+                                        Chance = 45
+                                    },
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Miss,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                },
+                                Effect = "빗나감 확률 48%"
+                            } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Effect = "도발 2턴"
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "광채의 수정비늘",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Vulnerability = 17 },
+                            FlatBonus = new BaseStatSet { Def = 1009, Hp = 3929}
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Vulnerability = 20 },
+                            FlatBonus = new BaseStatSet { Def = 1009, Hp = 3929}
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "부활 시 피해 무효 2회" }
+                }
+            },
 
             // 유신
+            new Character
+            {
+                Id = 116,
+                Name = "유신",
+                Grade = "전설",
+                Type = "마법형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                                DebuffEffect = new DebuffSet { Eff_Red = 13 },
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                                DebuffEffect = new DebuffSet { Eff_Red = 16 },
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "뇌운 흑영랑",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 3,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 80,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 40
+                                    }
+                                },
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 92,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 40
+                                    }
+                                },
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Effect = "아군 디버프 2개 해제"
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "번뇌",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 115,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 45
+                                    }
+                                },
+                                DebuffEffect = new DebuffSet { Heal_Reduction = 44 },
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 135,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Paralysis,
+                                        Stacks = 1,
+                                        Chance = 55
+                                    }
+                                },
+                                DebuffEffect = new DebuffSet { Heal_Reduction = 44 },
+                            } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                Debuff = new DebuffSet { Heal_Reduction = 31 },
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "신선의 가르침",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Eff_Hit = 28 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Eff_Hit = 34 },
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "부활 시 피해 무효 2회" }
+                }
+            },
 
             #endregion
 
@@ -1687,11 +3180,11 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                BuffEffect = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 },
+                                PartyBuff = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 },
                                 EffectDuration = 5
                             }},
                             { 1, new SkillLevelData { 
-                                BuffEffect = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 },
+                                PartyBuff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 },
                                 EffectDuration = 5
                             }}
                         },
@@ -1789,11 +3282,11 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
-                                BuffEffect = new BuffSet { Dmg_Dealt = 23 }, 
+                                PartyBuff = new BuffSet { Dmg_Dealt = 23 }, 
                                 DebuffEffect = new DebuffSet { Def_Reduction = 34 }
                             }},
                             { 1, new SkillLevelData { 
-                                BuffEffect = new BuffSet { Dmg_Dealt = 28 }, 
+                                PartyBuff = new BuffSet { Dmg_Dealt = 28 }, 
                                 DebuffEffect = new DebuffSet { Def_Reduction = 34 }
                             }}
                         },
@@ -1842,15 +3335,449 @@ namespace GameDamageCalculator.Database
             },
 
             // 오를리
-
+            new Character
+            {
+                Id = 203,
+                Name = "오를리",
+                Grade = "전설",
+                Type = "지원형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 50, HpRatio = 12 } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 50, HpRatio = 12,
+                                HealHpRatio = 15,
+                                Effect = "생명력 회복 15% 지속 1턴"
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "고결한 유성",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 3,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 60, HpRatio = 14 } },
+                            { 1, new SkillLevelData { Ratio = 60, HpRatio = 14, DebuffEffect = new DebuffSet { Def_Reduction = 36 } } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "빛의 일갈",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 20, HpRatio = 5
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 22, HpRatio = 6
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Effect = "디버프 해제 2개"
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "통찰의 빛",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Cri = 17, Cri_Dmg = 25 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Cri = 17, Cri_Dmg = 25 },
+                            Effect = "보호막량 증가"
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 6, new PassiveTranscend { 
+                            Effect = "스킬 발동 시 아군 마법형 모든 피해 무효화 1회"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Dmg_Rdc = 10 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" }
+                }
+            },
 
             // 플라튼
-
+            new Character
+            {
+                Id = 204,
+                Name = "플라튼",
+                Grade = "전설",
+                Type = "지원형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 50, DefRatio = 60, DebuffEffect = new DebuffSet { Atk_Reduction = 7 } } },
+                            { 1, new SkillLevelData { Ratio = 60, DefRatio = 75, DebuffEffect = new DebuffSet { Atk_Reduction = 9 } } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "심판대행",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 42, DefRatio = 47, HealDmgRatio = 32 } },
+                            { 1, new SkillLevelData { Ratio = 50, DefRatio = 55, HealDmgRatio = 43 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "이계의 빛",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 2,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.HpConversion,
+                                        Stacks = 1,
+                                        Chance = 100,
+                                        CustomHpConversionRatio = 32
+                                    }
+                                },
+                            }},
+                            { 1, new SkillLevelData { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.HpConversion,
+                                        Stacks = 1,
+                                        Chance = 100,
+                                        CustomHpConversionRatio = 25
+                                    }
+                                },
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "네스트라의 가호",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Effect = "방어력의 165% 회복, 생명력 회복 2회"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Effect = "방어력의 190% 회복"
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "생명력 회복 3회로 증가"
+                        }},
+                        { 6, new PassiveTranscend { 
+                            Effect = "고정피해1485"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Dmg_Rdc = 10 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" }
+                }
+            },
 
             // 로지
-
+            new Character
+            {
+                Id = 205,
+                Name = "로지",
+                Grade = "전설",
+                Type = "지원형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 2,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 30, HpRatio = 7 } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 30, HpRatio = 7,
+                                DebuffEffect = new DebuffSet { Eff_Red = 16 }
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "달빛의 심판",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 30, HpRatio = 7,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.InstantDeath,
+                                        Stacks = 1,
+                                        Chance = 25
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 37, HpRatio = 10,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.InstantDeath,
+                                        Stacks = 1,
+                                        Chance = 35
+                                    }
+                                } 
+                            } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "성령의 기도",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Effect = "아군 2명 부활, 적군 턴감 2턴",
+                            }},
+                            { 1, new SkillLevelData { 
+                                Effect = "아군 2명 부활, 적군 턴감 2턴, 부활 시 권능 2턴",
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                Effect = "권능 아군 전체"
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "망자의 축복",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Eff_Hit = 20 },
+                            StatScalings = new List<StatScaling>
+                            {
+                                new StatScaling
+                                {
+                                    SourceStat = StatType.Hp,      
+                                    TargetStat = StatType.Def,      
+                                    PerUnit = 100,                  
+                                    SourceUnit = 1000,                 
+                                    MaxValue = 900                 
+                                }
+                            },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Eff_Hit = 20 },
+                            StatScalings = new List<StatScaling>
+                            {
+                                new StatScaling
+                                {
+                                    SourceStat = StatType.Hp,      
+                                    TargetStat = StatType.Def,      
+                                    PerUnit = 100,                  
+                                    SourceUnit = 1000,                 
+                                    MaxValue = 900                 
+                                }
+                            },
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            PartyBuff = new BuffSet { Eff_Hit = 6 }
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Dmg_Rdc = 10 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" }
+                }
+            },
 
             // 엘리스
+            new Character
+            {
+                Id = 206,
+                Name = "엘리스",
+                Grade = "전설",
+                Type = "지원형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                HealHpRatio = 15
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "비밀의 문",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                BuffEffect = new BuffSet { Def_Rate = 31 },
+                                HealHpRatio = 15
+                            } },
+                            { 1, new SkillLevelData { 
+                                BuffEffect = new BuffSet { Def_Rate = 39 },
+                                HealHpRatio = 15
+                            } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                PartyBuff = new BuffSet { Heal_Bonus = 36 }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "내 카드 속엔?",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                HealHpRatio = 29
+                            }},
+                            { 1, new SkillLevelData { 
+                                HealHpRatio = 33
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 4,
+                        Name = "패시브- 턴제",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                PartyBuff = new BuffSet { Def_Rate = 31 }
+                            }},
+                            { 1, new SkillLevelData { 
+                                HealHpRatio = 33
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "나, 너, 로맨틱",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Effect = "방증 1턴간 증가, 피격 시 25% 확률로 힐 본인"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Effect = "방증 턴 증가, 피격 시 25% 확률로 힐 본인"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Dmg_Rdc = 10 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Def_Rate = 6 }, SpecialEffect = "" }
+                }
+            },
 
             #endregion
 
@@ -1961,16 +3888,477 @@ namespace GameDamageCalculator.Database
             },
 
             // 아일린
-
+            new Character
+            {
+                Id = 302,
+                Name = "아일린",
+                Grade = "전설",
+                Type = "만능형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 130 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "뇌제의 분노",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 3,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 113,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Shock,
+                                        Stacks = 1,
+                                        Chance = 35
+                                    }
+                                }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 136,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Shock,
+                                        Stacks = 1,
+                                        Chance = 45
+                                    }
+                                }
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Effect = "관통 추가"
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "청천벽력",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 70,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Shock,
+                                        Stacks = 1,
+                                        Chance = 30
+                                    }
+                                }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 87,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Shock,
+                                        Stacks = 1,
+                                        Chance = 30
+                                    }
+                                }
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { Effect = "관통 추가" } },
+                            { 6, new SkillTranscend { 
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Shock,
+                                        Chance = 10
+                                    }
+                                } } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "포디나의 분노",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Atk_Rate = 19 },
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new BuffSet { Atk_Rate = 25 },
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "턴 증가" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Wek = 20 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "대상 증가" }
+                }
+            },
 
             // 지크
-
+            new Character
+            {
+                Id = 303,
+                Name = "지크",
+                Grade = "전설",
+                Type = "만능형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "부숴버려!",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 375,
+                                DebuffEffect = new DebuffSet { Dmg_Reduction = 17 }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 375,
+                                DebuffEffect = new DebuffSet { Dmg_Reduction = 23 }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "봉인해제!",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 545,
+                                HealAtkRatio = 25
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 655,
+                                HealAtkRatio = 30
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { Bonus = new BuffSet { Arm_Pen = 40 } } },
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "패시브-턴제",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                PartyBuff = new BuffSet { Atk_Rate = 23 }
+                            }},
+                            { 1, new SkillLevelData { 
+                                PartyBuff = new BuffSet { Atk_Rate = 27 }
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { Effect = "턴 증가" } },
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "나만 믿어",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Effect = "물공증 2턴, 모든 공격 2회 시 물공증 2턴"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Effect = "물공증 증가"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "턴 증가" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Wek = 20 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "대상 증가" }
+                }
+            },
 
             // 에이스
-
+            new Character
+            {
+                Id = 304,
+                Name = "에이스",
+                Grade = "전설",
+                Type = "만능형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 130 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "달빛 베기",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 3,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 70,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 85,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 2, new SkillTranscend { 
+                                Debuff = new DebuffSet { Heal_Reduction = 56 },
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "일도천화엽",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 140,
+                                DebuffEffect = new DebuffSet { Vulnerability = 17, Blk_Red = 25 }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 140,
+                                DebuffEffect = new DebuffSet { Vulnerability = 17, Blk_Red = 33 },
+                                Effect = "아군 디버프 해제"
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "불굴의 지휘",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Def_Reduction = 20, Heal_Reduction = 44 }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Def_Reduction = 24, Heal_Reduction = 44 }
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 6, new PassiveTranscend { 
+                            SelfBuff = new BuffSet { Eff_Hit = 64 }
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "턴 증가" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Wek = 20 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "대상 증가" }
+                }
+            },
 
             // 엘리시아
-
+            new Character
+            {
+                Id = 305,
+                Name = "엘리시아",
+                Grade = "전설",
+                Type = "만능형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 130 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "천공의 빛",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 80, FixedDamage = 775,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Silence,
+                                        Stacks = 1,
+                                        Chance = 50
+                                    }
+                                }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 80, FixedDamage = 1285,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Silence,
+                                        Stacks = 1,
+                                        Chance = 60
+                                    }
+                                }
+                            }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "별빛 낙하",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Miss,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 115,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect 
+                                    { 
+                                        Type = StatusEffectType.Miss,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                }
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { 
+                                Effect = "턴제 감소 3턴으로 증가",
+                            }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "혁명단의 인도자",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Def_Reduction = 20 }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Debuff = new DebuffSet { Def_Reduction = 24 }
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            Effect = "생명력 50% 되면 공격력 비례 힐"
+                        }}
+                    }
+                },
+                TranscendBonuses = new List<TranscendBonus>
+                {
+                    new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "턴 증가" },
+                    new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                    new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Wek = 20 } },
+                    new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                    new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 }, SpecialEffect = "대상 증가" }
+                }
+            },
 
             // 크리스
 

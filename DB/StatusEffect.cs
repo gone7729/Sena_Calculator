@@ -34,6 +34,7 @@ namespace GameDamageCalculator.Models
         BombDetonation, // 폭탄 폭파
         BleedExplosion, // 출혈 폭발
         Crystal,        // 수정 결정
+        CrystalResonance,  // 수정 공명
         Miss,           // 빗나감
         HealBlock,      // 회복 불가
         HpConversion,   // 생명력 전환
@@ -81,6 +82,7 @@ namespace GameDamageCalculator.Models
         public StatusEffectType? ConsumeType { get; set; }  // 소모할 상태이상 타입
         public int MaxConsume { get; set; } = 0;            // 최대 소모 개수
         public int DefaultRemainingTurns { get; set; } = 2;  // 남은 턴 기본값
+        public bool IsHpConversion { get; set; }  // HP 전환 여부
     }
 
     /// <summary>
@@ -273,6 +275,14 @@ namespace GameDamageCalculator.Models
                 FixedDamage = 2435,
                 TriggerCount = 6
             }},
+
+            { StatusEffectType.CrystalResonance, new StatusEffect
+            {
+                Type = StatusEffectType.CrystalResonance,
+                Name = "수정 공명",
+                Description = "지정 횟수만큼 수정 결정 감소",
+                MaxConsume = 4
+            }},
             
             { StatusEffectType.Miss, new StatusEffect
             {
@@ -294,7 +304,8 @@ namespace GameDamageCalculator.Models
             {
                 Type = StatusEffectType.HpConversion,
                 Name = "생명력 전환",
-                Description = "대상의 생명력을 표시된 수치만큼 전환 (현재 생명력 초과 불가)"
+                Description = "대상의 생명력을 표시된 수치만큼 전환 (현재 생명력 초과 불가)",
+                IsHpConversion = true
             }},
         };
 

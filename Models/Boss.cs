@@ -62,6 +62,7 @@ namespace GameDamageCalculator.Models
         Siege,      // 공성전
         Raid,       // 레이드
         Forest,      // 강림
-        Other
+        Other,
+        Mob
     }
 }

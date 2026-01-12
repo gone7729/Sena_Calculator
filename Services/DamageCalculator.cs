@@ -37,12 +37,14 @@ namespace GameDamageCalculator.Services
             public double DefReduction { get; set; }      // 방깎%
             public double DmgTakenIncrease { get; set; }  // 받피증%
             public double Vulnerability { get; set; }     // 취약%
+            public double EffResReduction { get; set; }  // 대상 효과 저항 감소%
 
             // 보스 정보
             public double BossDef { get; set; }
             public double BossDefIncrease { get; set; }   // 보스 방증%
             public double BossDmgReduction { get; set; }  // 보스 받피감%
             public double BossTargetReduction { get; set; } // n인기별 감소%
+            public double BossHp { get; set; } // 보스 생명력
 
             // HP 비례 피해용
             public double TargetHp { get; set; }          // 대상 최대 체력
@@ -62,6 +64,11 @@ namespace GameDamageCalculator.Services
             public bool ForceStatusEffect { get; set; } // 상태이상 100% 적용 체크
             public int TargetStackCount { get; set; } = 0;
             public bool IsLostHpConditionMet { get; set; }  // 체력조건 체크
+            public double BlessingCap { get; set; }  // 축복 피해 제한 (최대 HP%)
+            public double SelfMaxHp { get; set; }    // 자신 최대 HP
+            public double TargetBlessing { get; set; }  // 대상 축복 피해 제한%
+            public double AtkBuff { get; set; } // 현재 적용 중인 공격력 버프%
+            public BattleMode Mode { get; set; } = BattleMode.Boss;
         }
 
         public class DamageResult
@@ -85,8 +92,10 @@ namespace GameDamageCalculator.Services
             public double BaseDamage { get; set; }
             public double ExtraDamage { get; set; }       // 조건부 추가 피해
             public double WekBonusDmg { get; set; }       // 약점 추가 피해
+            public double CriBonusDmg { get; set; }       // 치명타 추가 피해
             public double DamagePerHit { get; set; }      // 1타당 데미지
             public double FinalDamage { get; set; }       // 총 데미지 (타수 적용)
+            public double ConsumeExtraDmg { get; set; }       // 총 데미지 (타수 적용)
 
             // 회복
             public double HealAmount { get; set; }
@@ -109,6 +118,14 @@ namespace GameDamageCalculator.Services
             public double CoopHpDamage { get; set; }     // 협공 HP비례 피해
             public bool CoopTriggered { get; set; }      // 협공 발동 여부
             public double CoopChance { get; set; }       // 협공 확률
+            public double DamageBeforeBlessing { get; set; }  // 축복 적용 전 피해
+            public bool BlessingApplied { get; set; }         // 축복 적용 여부
+
+            public double HpConversionValue { get; set; }  // 전환 후 HP
+            public double HpConversionLoss { get; set; }   // HP 감소량
+            public bool HasHpConversion { get; set; }
+            public double HealFromDamage { get; set; }  // 피해량 비례 회복량
+            
         }
 
         public class StatusEffectResult
@@ -132,6 +149,19 @@ namespace GameDamageCalculator.Services
             // 스킬 데이터 가져오기
             var levelData = input.Skill?.GetLevelData(input.IsSkillEnhanced);
             var skillBonus = input.Skill?.GetTotalBonus(input.IsSkillEnhanced, input.TranscendLevel) ?? new BuffSet();
+
+            // 스킬 발동 전 버프 (기존 버프보다 높을 때만)
+            double preCastAtkBonus = levelData?.PreCastBuff?.Atk_Rate ?? 0;
+            if (preCastAtkBonus > input.AtkBuff)
+            {
+                double additionalBonus = preCastAtkBonus - input.AtkBuff;
+                result.FinalAtk = input.FinalAtk * (1 + additionalBonus / 100.0);
+            }
+            else
+            {
+                result.FinalAtk = input.FinalAtk;
+            }
+
             result.AtkCount = input.Skill?.Atk_Count ?? 1;
 
             // 1. 스킬 배율 (정수% → 소수 변환)
@@ -140,9 +170,19 @@ namespace GameDamageCalculator.Services
             // 2. 방어 관통 (캐릭터 스탯 + 스킬 보너스, 최대 100%)
             result.TotalArmorPen = Math.Min((input.ArmorPen + skillBonus.Arm_Pen) / 100.0, 1.0);
 
-            // 3. 방어 계수
+            // 3. 방어 계수 계산 - 스킬 방깎 vs 기존 방깎 비교 후 더 높은 값 적용
+            double skillDefReduction = levelData?.DispelDefReduction ?? 0;
+            double effectiveDefReduction = Math.Max(input.DefReduction, skillDefReduction);
+
+            // 임시로 DefReduction 교체
+            double originalDefReduction = input.DefReduction;
+            input.DefReduction = effectiveDefReduction;
+
             result.DefCoefficient = CalcDefCoefficient(input, result.TotalArmorPen, out double effectiveDef);
             result.EffectiveBossDef = effectiveDef;
+
+            // 원래 값 복원
+            input.DefReduction = originalDefReduction;
 
             // 4. 치명타 계수
             result.CritMultiplier = input.IsCritical 
@@ -166,17 +206,46 @@ namespace GameDamageCalculator.Services
 
             // 7. 기본 데미지 (1타)
             double atkOverDef = result.FinalAtk / result.DefCoefficient;
-            result.BaseDamage = atkOverDef
-                              * result.SkillRatio
+
+            // 공격력 비례 피해
+            double atkDamage = atkOverDef * result.SkillRatio;
+            double fixedDamage = levelData?.FixedDamage ?? 0;  // 고정 피해
+
+            // 방어력 비례 피해
+            double defDamage = 0;
+            if (levelData?.DefRatio > 0 && input.FinalDef > 0)
+            {
+                double defOverDef = input.FinalDef / result.DefCoefficient;
+                defDamage = defOverDef * (levelData.DefRatio / 100.0);
+            }
+
+            // 생명력 비례 피해
+            double hpDamage = 0;
+            if (levelData?.HpRatio > 0 && input.FinalHp > 0)
+            {
+                double hpOverDef = input.FinalHp / result.DefCoefficient;
+                hpDamage = hpOverDef * (levelData.HpRatio / 100.0);
+            }
+
+            result.BaseDamage = (atkDamage + defDamage + hpDamage)
                               * result.CritMultiplier
                               * result.WeakpointMultiplier
                               * result.DamageMultiplier;
+            
+            result.BaseDamage += fixedDamage;
 
             // 8. 조건부 추가 피해 (1타, 정수% 변환)
             result.ExtraDamage = 0;
             if (input.IsSkillConditionMet && levelData?.ConditionalExtraDmg > 0)
             {
-                result.ExtraDamage = atkOverDef * (levelData.ConditionalExtraDmg / 100.0) * result.DamageMultiplier;
+                double extraDmg = atkOverDef * (levelData.ConditionalExtraDmg / 100.0) * result.DamageMultiplier;
+
+                if (levelData.ConditionalExtraDmgPerHit)
+                {
+                    extraDmg *= result.AtkCount;
+                }
+
+                result.ExtraDamage = extraDmg;
             }
 
             // 9. 약점 추가 피해 (1타, 치명/약점 계수 미적용, 정수% 변환)
@@ -186,16 +255,60 @@ namespace GameDamageCalculator.Services
                 result.WekBonusDmg = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.DamageMultiplier;
             }
 
-            // 10. HP 비례 피해
+            // 10. 치명타 추가 피해 (NEW)
+            result.CriBonusDmg = 0;
+            if (input.IsCritical && skillBonus.CriBonusDmg > 0)
+            {
+                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) * result.DamageMultiplier;
+
+                // 타격당 적용 여부
+                if (skillBonus.CriBonusDmgPerHit)
+                {
+                    criBonus *= result.AtkCount;
+                }
+
+                result.CriBonusDmg = criBonus;
+            }
+
+            // 11. HP 비례 피해
             result.HpRatioDamage = CalcHpRatioDamage(input, levelData, result.DamageMultiplier);
 
-            // 11. 1타당 데미지
-            result.DamagePerHit = result.BaseDamage + result.ExtraDamage + result.WekBonusDmg;
+            // 12. 스택 소모형 추가 피해
+            result.ConsumeExtraDmg = 0;
+            if (levelData?.ConsumeExtra != null)
+            {
+                var consumeExtra = levelData.ConsumeExtra;
+                double damage = 0;
 
-            // 12. 별도 피해 (HP비례 + 상태이상, 치명타/약점 미적용)
+                // HP 비례 피해
+                if (consumeExtra.TargetMaxHpRatio > 0 && input.TargetHp > 0)
+                {
+                    damage = input.TargetHp * (consumeExtra.TargetMaxHpRatio / 100.0);
+
+                    // 공격력 제한
+                    if (consumeExtra.AtkCap > 0)
+                    {
+                        double cap = input.FinalAtk * (consumeExtra.AtkCap / 100.0);
+                        damage = Math.Min(damage, cap);
+                    }
+                }
+
+                // 공격력 비례 피해
+                if (consumeExtra.AtkRatio > 0)
+                {
+                    damage += atkOverDef * (consumeExtra.AtkRatio / 100.0);
+                }
+
+                result.ConsumeExtraDmg = damage * result.DamageMultiplier;
+            }
+
+            // 13. 1타당 데미지
+            result.DamagePerHit = result.BaseDamage + result.ExtraDamage + result.WekBonusDmg + result.CriBonusDmg + result.ConsumeExtraDmg;
+
+            // 14. 별도 피해 (HP비례 + 상태이상, 치명타/약점 미적용)
             CalcBonusDamage(input, levelData, atkOverDef, result);
 
-            // 13. 막기 시 50% 감소
+            // 15. 막기 시 50% 감소
             if (input.IsBlocked)
             {
                 result.DamagePerHit *= 0.5;
@@ -213,18 +326,27 @@ namespace GameDamageCalculator.Services
                 }
             }
 
-            // 14. 총 데미지 (타수 적용) - 상태이상 제외!
+            // 16. 축복 적용
+            result.DamagePerHit = ApplyBlessing(result.DamagePerHit, input, result);
+
+            // 17. 총 데미지 (타수 적용) - 상태이상 제외!
             result.SkillDamage = result.DamagePerHit * result.AtkCount;  // 스킬 피해만
             result.StatusDamage = result.BonusDamage * result.AtkCount;  // 상태이상 피해
             result.FinalDamage = result.SkillDamage + result.StatusDamage;  // 총합
 
-            // 15. 회복량 계산
+            // 18. 회복량 계산
             CalcHeal(input, levelData, result);
 
-            // 16. 협공 피해 계산
+            result.HealFromDamage = 0;
+            if (levelData?.HealDmgRatio > 0)
+            {
+                result.HealFromDamage = result.FinalDamage * (levelData.HealDmgRatio / 100.0);
+            }
+
+            // 19. 협공 피해 계산
             CalcCoopDamage(input, result);
 
-            // 17. 상세 정보
+            // 20. 상세 정보
             result.Details = GenerateDetails(input, result);
 
             return result;
@@ -283,6 +405,26 @@ namespace GameDamageCalculator.Services
                    });
 
                    if (expectedStacks <= 0) continue;  // 피해 계산은 스킵
+
+                   // ★ HP 전환 처리 (피해 아님)
+                    if (baseEffect.IsHpConversion)
+                    {
+                        double conversionRatio = (effectToUse.CustomHpConversionRatio ?? 0) / 100.0;
+
+                        if (conversionRatio > 0 && input.TargetCurrentHp > 0)
+                        {
+                            double newHp = input.TargetCurrentHp * conversionRatio;
+                            double hpLoss = input.TargetCurrentHp - newHp;
+
+                            result.HpConversionValue = newHp;
+                            result.HpConversionLoss = hpLoss;
+                            result.HasHpConversion = true;
+
+                            result.BonusDamageDetails["HP전환"] = hpLoss;
+                        }
+
+                        continue;  // 피해 계산 스킵
+                    }
 
                     // 커스텀 값 또는 기본값
                     double atkRatio = (effectToUse.CustomAtkRatio ?? baseEffect.AtkRatio) / 100.0;
@@ -393,9 +535,12 @@ namespace GameDamageCalculator.Services
             // 기본 확률 (SkillStatusEffect.Chance 사용)
             double baseChance = effect.Chance / 100.0;
             
+            // 효과 저항 = 기본 저항 - 저항 감소
+            double effectiveEffRes = Math.Max(0, input.TargetEffRes - input.EffResReduction);
+
             // 효과 적중/저항 반영
-            double effModifier = 1 + (input.EffHit - input.TargetEffRes) / 100.0;
-            
+            double effModifier = 1 + (input.EffHit - effectiveEffRes) / 100.0;
+
             double actualChance = baseChance * effModifier;
             return Math.Clamp(actualChance, 0, 1);
         }
@@ -551,8 +696,9 @@ namespace GameDamageCalculator.Services
 
         /// <summary>
         /// 피해 증가 계수 계산
-        /// PVE: 1 + (주는피해 + 보스피해 + 받피증 + 취약 - 받피감 - 인기감소) / 100
-        /// PVP: 1 + (주는피해 + 받피증 + 취약 - 받피감 - 인기감소) / 100 (보스피해 제외)
+        /// Boss: 보스피해 포함
+        /// Mob: 보스피해 제외
+        /// PvP: 보스피해 제외
         /// </summary>
         private double CalcDamageMultiplier(DamageInput input)
         {
@@ -579,8 +725,11 @@ namespace GameDamageCalculator.Services
                 }
             }
 
-            // 피해 증가 합계 (PVE: 보스피해 포함)
-            double increase = input.DmgDealt + input.DmgDealtBoss + input.DmgTakenIncrease 
+            // 보스 피해 (보스전만 적용)
+            double bossDmg = input.Mode == BattleMode.Boss ? input.DmgDealtBoss : 0;
+
+            // 피해 증가 합계
+            double increase = input.DmgDealt + bossDmg + input.DmgTakenIncrease 
                             + input.Vulnerability + conditionalDmgBonus + targetTypeDmg;
 
             double reduction = input.BossDmgReduction + input.BossTargetReduction;
@@ -663,6 +812,28 @@ namespace GameDamageCalculator.Services
             result.CoopHpDamage *= coopAttack.AtkCount;
         }
 
+        /// <summary>
+        /// 축복 피해 제한 적용
+        /// </summary>
+        private double ApplyBlessing(double damage, DamageInput input, DamageResult result)
+        {
+            result.DamageBeforeBlessing = damage;
+            result.BlessingApplied = false;
+
+            if (input.TargetBlessing <= 0 || input.TargetHp <= 0)
+                return damage;
+
+            double maxDamage = input.TargetHp * (input.TargetBlessing / 100.0);
+
+            if (damage > maxDamage)
+            {
+                result.BlessingApplied = true;
+                return maxDamage;
+            }
+
+            return damage;
+        }
+
         #endregion
 
         #region 출력
@@ -738,12 +909,30 @@ namespace GameDamageCalculator.Services
                 ? $"\n  ├ 약점 추가: {result.WekBonusDmg:N0}"
                 : "";
 
+            string criBonusInfo = result.CriBonusDmg > 0
+                ? $"\n  ├ 치명타 추가: {result.CriBonusDmg:N0}"
+                : "";
+
             string atkCountInfo = result.AtkCount > 1
                 ? $"\n  └ {result.AtkCount}타 = {result.DamagePerHit:N0} × {result.AtkCount}"
                 : "";
 
             string healInfo = result.HealAmount > 0
                 ? $"\n\n💚 회복량: {result.HealAmount:N0} ({result.HealSource} 기준)"
+                : "";
+
+            string consumeExtraInfo = result.ConsumeExtraDmg > 0
+                ? $"\n  ├ 스택 소모 추가: {result.ConsumeExtraDmg:N0}"
+                : "";
+            
+            string blessingInfo = "";
+                if (result.BlessingApplied)
+                {
+                    blessingInfo = $"\n\n🛡️ 축복: {result.DamageBeforeBlessing:N0} → {result.DamagePerHit:N0} (HP {input.TargetBlessing}% 제한)";
+                }
+
+            string healFromDmgInfo = result.HealFromDamage > 0
+                ? $"\n\n💚 피해 흡수: {result.HealFromDamage:N0}"
                 : "";
             
             // 협공 결과
@@ -761,6 +950,8 @@ namespace GameDamageCalculator.Services
     return $@"═══════════════════════════════════════════════════
 🎯 PVE (보스전)
 ═══════════════════════════════════════════════════
+💥 스킬 데미지: {result.SkillDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{criBonusInfo}{consumeExtraInfo}{atkCountInfo}{coopInfo}{blessingInfo}{healFromDmgInfo}
+═══════════════════════════════════════════════════
 
 📊 스탯 정보
 ───────────────────────────────────────────────────
@@ -775,10 +966,6 @@ namespace GameDamageCalculator.Services
   치명 계수: {result.CritMultiplier:F2}x {critInfo}
   약공 계수: {result.WeakpointMultiplier:F2}x {wekInfo}
   피증 계수: {result.DamageMultiplier:F2}x{conditionalInfo}
-
-═══════════════════════════════════════════════════
-💥 스킬 데미지: {result.SkillDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{atkCountInfo}
-{statusInfo}{healInfo}{coopInfo}
 ═══════════════════════════════════════════════════
 
 ---디버깅용---

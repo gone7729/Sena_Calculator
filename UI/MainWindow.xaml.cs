@@ -117,6 +117,15 @@ namespace GameDamageCalculator.UI
                 cboPet.Items.Add(pet.Name);
             }
             cboPet.SelectedIndex = 0;
+
+            // 잡몹 리스트
+            cboMob.Items.Clear();
+            cboMob.Items.Add("선택");
+            foreach (var mob in BossDb.Mobs)
+            {
+                cboMob.Items.Add(mob.Name);
+            }
+            cboMob.SelectedIndex = 0;
         }
 
        private void InitializeMainOptionComboBoxes()
@@ -420,6 +429,7 @@ namespace GameDamageCalculator.UI
                 txtBoss1TargetRdc.Text = "0";
                 txtBoss3TargetRdc.Text = "0";
                 txtBoss5TargetRdc.Text = "0";
+                txtBossHp.Text = "0";
                 return;
             }
 
@@ -442,6 +452,7 @@ namespace GameDamageCalculator.UI
                 txtBossDef.Text = boss.Stats.Def.ToString("N0");
                 txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
                 txtBossDmgRdc.Text = "0";
+                txtBossHp.Text =  boss.Stats.Hp.ToString("N0");
 
                 // 인기별 피해감소 (소수 → 백분율)
                 txtBoss1TargetRdc.Text = (boss.SingleTargetReduction * 100).ToString("F0");
@@ -472,6 +483,7 @@ namespace GameDamageCalculator.UI
             if (chkBossCondition.IsChecked == true)
             {
                 txtBossDefInc.Text = "0";
+                txtBossHp.Text = (ParseDouble(txtBossHp.Text) * 0.29).ToString("N0");
             }
             else
             {
@@ -480,6 +492,7 @@ namespace GameDamageCalculator.UI
                 if (boss != null)
                 {
                     txtBossDefInc.Text = (boss.DefenseIncrease * 100).ToString("F0");
+                    txtBossHp.Text = boss.Stats.Hp.ToString("N0");
                 }
             }
         }
@@ -521,6 +534,31 @@ namespace GameDamageCalculator.UI
                 BuffSet activeBuffs = GetAllActiveBuffs();
                 double weakDmgBuff = passiveBuffs.Wek_Dmg + activeBuffs.Wek_Dmg;
 
+                BattleMode mode = BattleMode.Boss;
+                if (rbMob.IsChecked == true) mode = BattleMode.Mob;
+                else if (rbPvP.IsChecked == true) mode = BattleMode.PvP;
+
+                // 버프% 계산 추가!
+                double buffAtkRate = GetPetAtkRate() 
+                    + GetAllPassiveBuffs().Atk_Rate 
+                    + GetAllActiveBuffs().Atk_Rate;
+
+                if (cboCharacter.SelectedIndex > 0)
+                {
+                    var charForBuff = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                    if (charForBuff?.Passive != null)
+                    {
+                        bool isConditionMet = chkPassiveCondition.IsChecked == true;
+                        bool isEnhanced = chkSkillEnhanced.IsChecked == true;
+                        int transcendLevel = cboTranscend.SelectedIndex;
+                        var buff = charForBuff.Passive.GetTotalSelfBuff(isEnhanced, transcendLevel, isConditionMet);
+                        if (buff != null)
+                        {
+                            buffAtkRate += buff.Atk_Rate;
+                        }
+                    }
+                }
+
                 // DamageInput 생성
                 var input = new DamageCalculator.DamageInput
                 {
@@ -548,6 +586,7 @@ namespace GameDamageCalculator.UI
                     DmgTakenIncrease = _currentDebuffs.Dmg_Taken_Increase,
                     Vulnerability = _currentDebuffs.Vulnerability,
                     HealReduction = _currentDebuffs.Heal_Reduction,
+                    EffResReduction = _currentDebuffs.Eff_Red,
 
                     // 보스 정보
                     BossDef = ParseDouble(txtBossDef.Text),
@@ -565,6 +604,9 @@ namespace GameDamageCalculator.UI
 
                     // 조건
                     IsSkillConditionMet = chkSkillCondition.IsChecked == true,
+                    AtkBuff = buffAtkRate,  // 버프% 합계,
+
+                    Mode = mode
                 };
 
                 // 계산 및 출력
@@ -712,6 +754,7 @@ namespace GameDamageCalculator.UI
             txtBossDefRed.Text = "0";
             txtBossDmgTaken.Text = "0";
             txtBossVulnerable.Text = "0";
+            txtBossHp.Text = "0";
             // 보스 인기감소 초기화
             txtBoss1TargetRdc.Text = "0";
             txtBoss3TargetRdc.Text = "0";
@@ -910,6 +953,52 @@ namespace GameDamageCalculator.UI
             RecalculateStats();
         }
 
+        private void BattleMode_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            if (rbBoss.IsChecked == true)
+            {
+                // 보스 모드
+                spBossType.Visibility = Visibility.Visible;
+                cboBoss.Visibility = Visibility.Visible;
+                cboMob.Visibility = Visibility.Collapsed;
+            }
+            else if (rbMob.IsChecked == true)
+            {
+                // 잡몹 모드
+                spBossType.Visibility = Visibility.Collapsed;
+                cboBoss.Visibility = Visibility.Collapsed;
+                cboMob.Visibility = Visibility.Visible;
+            }
+            else if (rbPvP.IsChecked == true)
+            {
+                // PVP 모드
+                spBossType.Visibility = Visibility.Collapsed;
+                cboBoss.Visibility = Visibility.Collapsed;
+                cboMob.Visibility = Visibility.Collapsed;
+            }
+
+            RecalculateStats();
+        }
+
+        private void CboMob_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            if (cboMob.SelectedIndex > 0)
+            {
+                var mob = BossDb.GetMobByName(cboMob.SelectedItem.ToString());
+                if (mob != null)
+                {
+                    txtBossDef.Text = mob.Stats.Def.ToString();
+                    txtBossHp.Text = mob.Stats.Hp.ToString("N0");
+                }
+            }
+
+            RecalculateStats();
+        }
+
         #endregion
 
         #region 스탯 계산 (UI 표시용)
@@ -998,6 +1087,19 @@ namespace GameDamageCalculator.UI
             {
                 string setName = cboEquipSet2.SelectedItem.ToString();
                 setBonus.Add(GetSetBonus(setName, 2));
+            }
+
+            // 패시브 깡스탯 보너스
+            BaseStatSet passiveFlatBonus = new BaseStatSet();
+            if (cboCharacter.SelectedIndex > 0)
+            {
+                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                if (character?.Passive != null)
+                {
+                    bool isEnhanced = chkSkillEnhanced.IsChecked == true;
+                    var passiveData = character.Passive.GetLevelData(isEnhanced);
+                    passiveFlatBonus = passiveData?.FlatBonus ?? new BaseStatSet();
+                }
             }
 
             // ========== 깡스탯 합계 ==========
