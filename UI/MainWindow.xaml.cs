@@ -1214,9 +1214,13 @@ namespace GameDamageCalculator.UI
             double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
 
             // 순수 기본 = 캐릭터 기본 + 장비 + 초월 + 장신구
-            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + flatAtk;
-            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + flatDef;
-            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
+            double pureFlatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + mainOptionStats.Atk;
+            double pureFlatDef = equipFlatDef + potentialStats.Def + subStats.Def + mainOptionStats.Def;
+            double pureFlatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + mainOptionStats.Hp;
+
+            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + pureFlatAtk;
+            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + pureFlatDef;
+            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + pureFlatHp;
 
             // ========== UI 표시 ==========
             txtMyStatAtkBase.Text = pureBaseAtk.ToString("N0");
