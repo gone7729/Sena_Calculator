@@ -53,24 +53,24 @@ namespace GameDamageCalculator.UI
             _buffConfigs = new List<BuffConfig>
             {
                 // 버프 패시브
-                new BuffConfig { Key = "BuffPassiveLion", CheckBox = chkBuffPassiveLion, Button = btnBuffPassiveLion, BaseName = "라이언", CharacterName = "라이언", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveLina", CheckBox = chkBuffPassiveLina, Button = btnBuffPassiveLina, BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveRachel", CheckBox = chkBuffPassiveRachel, Button = btnBuffPassiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveDelonz", CheckBox = chkBuffPassiveDelonz, Button = btnBuffPassiveDelonz, BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveMiho", CheckBox = chkBuffPassiveMiho, Button = btnBuffPassiveMiho, BaseName = "미호", CharacterName = "미호", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLion", CheckBox = chkMyBuffPassiveLion, Button = btnMyBuffPassiveLion, BaseName = "라이언", CharacterName = "라이언", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLina", CheckBox = chkMyBuffPassiveLina, Button = btnMyBuffPassiveLina, BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRachel", CheckBox = chkMyBuffPassiveRachel, Button = btnMyBuffPassiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveDelonz", CheckBox = chkMyBuffPassiveDelonz, Button = btnMyBuffPassiveDelonz, BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveMiho", CheckBox = chkMyBuffPassiveMiho, Button = btnMyBuffPassiveMiho, BaseName = "미호", CharacterName = "미호", SkillName = null, IsBuff = true },
 
                 // 버프 액티브
-                new BuffConfig { Key = "BuffActiveBiscuit", CheckBox = chkBuffActiveBiscuit, Button = btnBuffActiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveLina", CheckBox = chkBuffActiveLina, Button = btnBuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveBiscuit", CheckBox = chkMyBuffActiveBiscuit, Button = btnMyBuffActiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveLina", CheckBox = chkMyBuffActiveLina, Button = btnMyBuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
 
                 // 디버프 패시브
-                new BuffConfig { Key = "DebuffPassiveTaka", CheckBox = chkDebuffPassiveTaka, Button = btnDebuffPassiveTaka, BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveBiscuit", CheckBox = chkDebuffPassiveBiscuit, Button = btnDebuffPassiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveTaka", CheckBox = chkMyDebuffPassiveTaka, Button = btnMyDebuffPassiveTaka, BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveBiscuit", CheckBox = chkMyDebuffPassiveBiscuit, Button = btnMyDebuffPassiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
 
                 // 디버프 액티브
-                new BuffConfig { Key = "DebuffActiveLina", CheckBox = chkDebuffActiveLina, Button = btnDebuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRachelFlame", CheckBox = chkDebuffActiveRachelFlame, Button = btnDebuffActiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRachelPhoenix", CheckBox = chkDebuffActiveRachelPhoenix, Button = null, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", IsBuff = false }
+                new BuffConfig { Key = "DebuffActiveLina", CheckBox = chkMyDebuffActiveLina, Button = btnMyDebuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelFlame", CheckBox = chkMyDebuffActiveRachelFlame, Button = btnMyDebuffActiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelPhoenix", CheckBox = chkMyDebuffActiveRachelPhoenix, Button = null, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", IsBuff = false }
             };
         }
 
@@ -85,28 +85,28 @@ namespace GameDamageCalculator.UI
             // 초월 단계
             for (int i = 0; i <= 12; i++)
             {
-                cboTranscend.Items.Add($"{i}초월");
+                cboMyTranscend.Items.Add($"{i}초월");
             }
-            cboTranscend.SelectedIndex = 0;
+            cboMyTranscend.SelectedIndex = 0;
 
             // 장비 세트
-            cboEquipSet1.Items.Add("없음");
-            cboEquipSet2.Items.Add("없음");
+            cboMyEquipSet1.Items.Add("없음");
+            cboMyEquipSet2.Items.Add("없음");
             foreach (var setName in EquipmentDb.SetEffects.Keys)
             {
-                cboEquipSet1.Items.Add(setName);
-                cboEquipSet2.Items.Add(setName);
+                cboMyEquipSet1.Items.Add(setName);
+                cboMyEquipSet2.Items.Add(setName);
             }
-            cboEquipSet1.SelectedIndex = 0;
-            cboEquipSet2.SelectedIndex = 0;
+            cboMyEquipSet1.SelectedIndex = 0;
+            cboMyEquipSet2.SelectedIndex = 0;
 
             // 진형 목록
-            cboFormation.Items.Add("없음");
+            cboMyFormation.Items.Add("없음");
             foreach (var formationName in StatTable.FormationDb.Formations.Keys)
             {
-                cboFormation.Items.Add(formationName);
+                cboMyFormation.Items.Add(formationName);
             }
-            cboFormation.SelectedIndex = 0;
+            cboMyFormation.SelectedIndex = 0;
 
             InitializeMainOptionComboBoxes(); 
 
@@ -116,12 +116,12 @@ namespace GameDamageCalculator.UI
             UpdateBossList();
 
             // 펫 목록
-            cboPet.Items.Add("없음");
+            cboMyPet.Items.Add("없음");
             foreach (var pet in PetDb.Pets)
             {
-                cboPet.Items.Add(pet.Name);
+                cboMyPet.Items.Add(pet.Name);
             }
-            cboPet.SelectedIndex = 0;
+            cboMyPet.SelectedIndex = 0;
 
             // 잡몹 리스트
             cboMob.Items.Clear();
@@ -136,37 +136,37 @@ namespace GameDamageCalculator.UI
        private void InitializeMainOptionComboBoxes()
         {
             // 무기 메인옵션
-            cboWeapon1Main.Items.Clear();
-            cboWeapon2Main.Items.Clear();
-            cboWeapon1Main.Items.Add("없음");
-            cboWeapon2Main.Items.Add("없음");
+            cboMyWeapon1Main.Items.Clear();
+            cboMyWeapon2Main.Items.Clear();
+            cboMyWeapon1Main.Items.Add("없음");
+            cboMyWeapon2Main.Items.Add("없음");
             foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["무기"])
             {
-                cboWeapon1Main.Items.Add(opt);
-                cboWeapon2Main.Items.Add(opt);
+                cboMyWeapon1Main.Items.Add(opt);
+                cboMyWeapon2Main.Items.Add(opt);
             }
-            cboWeapon1Main.SelectedIndex = 0;
-            cboWeapon2Main.SelectedIndex = 0;
+            cboMyWeapon1Main.SelectedIndex = 0;
+            cboMyWeapon2Main.SelectedIndex = 0;
 
             // 방어구 메인옵션
-            cboArmor1Main.Items.Clear();
-            cboArmor2Main.Items.Clear();
-            cboArmor1Main.Items.Add("없음");
-            cboArmor2Main.Items.Add("없음");
+            cboMyArmor1Main.Items.Clear();
+            cboMyArmor2Main.Items.Clear();
+            cboMyArmor1Main.Items.Add("없음");
+            cboMyArmor2Main.Items.Add("없음");
             foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["방어구"])
             {
-                cboArmor1Main.Items.Add(opt);
-                cboArmor2Main.Items.Add(opt);
+                cboMyArmor1Main.Items.Add(opt);
+                cboMyArmor2Main.Items.Add(opt);
             }
-            cboArmor1Main.SelectedIndex = 0;
-            cboArmor2Main.SelectedIndex = 0;
+            cboMyArmor1Main.SelectedIndex = 0;
+            cboMyArmor2Main.SelectedIndex = 0;
         }
 
         private BaseStatSet GetMainOptionStats()
         {
             BaseStatSet stats = new BaseStatSet();
 
-            var combos = new[] { cboWeapon1Main, cboWeapon2Main, cboArmor1Main, cboArmor2Main };
+            var combos = new[] { cboMyWeapon1Main, cboMyWeapon2Main, cboMyArmor1Main, cboMyArmor2Main };
 
             foreach (var cbo in combos)
             {
@@ -191,27 +191,27 @@ namespace GameDamageCalculator.UI
         private void InitializeAccessoryComboBoxes()
         {
             // 성급
-            cboAccessoryGrade.Items.Add("없음");
-            cboAccessoryGrade.Items.Add("4성");
-            cboAccessoryGrade.Items.Add("5성");
-            cboAccessoryGrade.Items.Add("6성");
-            cboAccessoryGrade.SelectedIndex = 0;
+            cboMyAccessoryGrade.Items.Add("없음");
+            cboMyAccessoryGrade.Items.Add("4성");
+            cboMyAccessoryGrade.Items.Add("5성");
+            cboMyAccessoryGrade.Items.Add("6성");
+            cboMyAccessoryGrade.SelectedIndex = 0;
 
             // 메인옵션
             var mainOptions = new[] { "없음", "피증%", "방어력%", "생명력%", "치명타확률%", "막기%",
                                       "약점공격확률%", "효과적중%", "효과저항%", "보피증%",
                                       "1-3인기%", "4-5인기%" };
             foreach (var opt in mainOptions)
-                cboAccessoryMain.Items.Add(opt);
-            cboAccessoryMain.SelectedIndex = 0;
+                cboMyAccessoryMain.Items.Add(opt);
+            cboMyAccessoryMain.SelectedIndex = 0;
 
             // 부옵션 (6성만)
             var subOptions = new[] { "없음", "피증%", "방어력%", "생명력%", "치명타확률%", "막기%",
                                      "약점공격확률%", "효과적중%", "효과저항%", "보피증%",
                                      "1-3인기%", "4-5인기%" };
             foreach (var opt in subOptions)
-                cboAccessorySub.Items.Add(opt);
-            cboAccessorySub.SelectedIndex = 0;
+                cboMyAccessorySub.Items.Add(opt);
+            cboMyAccessorySub.SelectedIndex = 0;
         }
 
         private void FormationPosition_Click(object sender, RoutedEventArgs e)
@@ -223,15 +223,15 @@ namespace GameDamageCalculator.UI
             {
                 btn.Tag = "Front";
                 btn.Content = "전열";
-                rbBack.IsChecked = false;
-                rbFront.IsChecked = true;
+                rbMyBack.IsChecked = false;
+                rbMyFront.IsChecked = true;
             }
             else
             {
                 btn.Tag = "Back";
                 btn.Content = "후열";
-                rbBack.IsChecked = true;
-                rbFront.IsChecked = false;
+                rbMyBack.IsChecked = true;
+                rbMyFront.IsChecked = false;
             }
 
             RecalculateStats();
@@ -251,28 +251,28 @@ namespace GameDamageCalculator.UI
         {
             if (!_isInitialized) return;
 
-            if (cboCharacter.SelectedIndex <= 0) 
+            if (cboMyCharacter.SelectedIndex <= 0) 
             {
-                cboSkill.Items.Clear();
-                cboSkill.Items.Add("직접 입력하거나 골라주세요");
-                cboSkill.SelectedIndex = 0;
+                cboMySkill.Items.Clear();
+                cboMySkill.Items.Add("직접 입력하거나 골라주세요");
+                cboMySkill.SelectedIndex = 0;
                 RecalculateStats();
                 return;
             }
 
-            string charName = cboCharacter.SelectedItem.ToString();
+            string charName = cboMyCharacter.SelectedItem.ToString();
             var character = CharacterDb.GetByName(charName);
             
             if (character != null)
             {
-                cboSkill.Items.Clear();
+                cboMySkill.Items.Clear();
                 foreach (var skill in character.Skills)
                 {
-                    cboSkill.Items.Add(skill.Name);
+                    cboMySkill.Items.Add(skill.Name);
                 }
-                if (cboSkill.Items.Count > 0)
+                if (cboMySkill.Items.Count > 0)
                 {
-                    cboSkill.SelectedIndex = 0;
+                    cboMySkill.SelectedIndex = 0;
                 }
                 
                 RecalculateStats();
@@ -300,14 +300,14 @@ namespace GameDamageCalculator.UI
         {
             if (!_isInitialized) return;
             
-            if (cboSetCount1.SelectedIndex == 0)
+            if (cboMySetCount1.SelectedIndex == 0)
             {
-                gridEquipSet2.Visibility = Visibility.Visible;
+                gridMyEquipSet2.Visibility = Visibility.Visible;
             }
             else
             {
-                gridEquipSet2.Visibility = Visibility.Collapsed;
-                cboEquipSet2.SelectedIndex = 0;
+                gridMyEquipSet2.Visibility = Visibility.Collapsed;
+                cboMyEquipSet2.SelectedIndex = 0;
             }
             
             RecalculateStats();
@@ -318,14 +318,14 @@ namespace GameDamageCalculator.UI
             if (!_isInitialized) return;
         
             // 6성이면 부옵션 표시, 아니면 숨김
-            if (cboAccessoryGrade.SelectedIndex == 3)  // 6성
+            if (cboMyAccessoryGrade.SelectedIndex == 3)  // 6성
             {
-                panelAccessorySub.Visibility = Visibility.Visible;
+                panelMyAccessorySub.Visibility = Visibility.Visible;
             }
             else
             {
-                panelAccessorySub.Visibility = Visibility.Collapsed;
-                cboAccessorySub.SelectedIndex = 0;  // 부옵션 초기화
+                panelMyAccessorySub.Visibility = Visibility.Collapsed;
+                cboMyAccessorySub.SelectedIndex = 0;  // 부옵션 초기화
             }
         
             UpdateAccessoryDisplay();
@@ -341,26 +341,26 @@ namespace GameDamageCalculator.UI
         
         private void UpdateAccessoryDisplay()
         {
-            if (cboAccessoryGrade.SelectedIndex <= 0)
+            if (cboMyAccessoryGrade.SelectedIndex <= 0)
             {
-                txtAccessoryMainValue.Text = "";
-                txtAccessorySubValue.Text = "";
+                txtMyAccessoryMainValue.Text = "";
+                txtMyAccessorySubValue.Text = "";
                 return;
             }
         
-            int grade = cboAccessoryGrade.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
+            int grade = cboMyAccessoryGrade.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
         
             // 메인옵션 값 표시
-            txtAccessoryMainValue.Text = GetAccessoryOptionValue(grade, cboAccessoryMain, AccessoryDb.MainOptions);
+            txtMyAccessoryMainValue.Text = GetAccessoryOptionValue(grade, cboMyAccessoryMain, AccessoryDb.MainOptions);
         
             // 부옵션 값 표시 (6성만)
             if (grade == 6)
             {
-                txtAccessorySubValue.Text = GetAccessoryOptionValue(grade, cboAccessorySub, AccessoryDb.SubOptions);
+                txtMyAccessorySubValue.Text = GetAccessoryOptionValue(grade, cboMyAccessorySub, AccessoryDb.SubOptions);
             }
             else
             {
-                txtAccessorySubValue.Text = "";
+                txtMyAccessorySubValue.Text = "";
             }
         }
         
@@ -511,13 +511,13 @@ namespace GameDamageCalculator.UI
             try
             {
                 // 캐릭터 확인
-                if (cboCharacter.SelectedIndex <= 0)
+                if (cboMyCharacter.SelectedIndex <= 0)
                 {
                     txtResult.Text = "캐릭터를 선택해주세요.";
                     return;
                 }
 
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character == null)
                 {
                     txtResult.Text = "캐릭터 정보를 찾을 수 없습니다.";
@@ -526,9 +526,9 @@ namespace GameDamageCalculator.UI
 
                 // 스킬 확인
                 Skill selectedSkill = null;
-                if (cboSkill.SelectedIndex >= 0 && cboSkill.Items.Count > 0)
+                if (cboMySkill.SelectedIndex >= 0 && cboMySkill.Items.Count > 0)
                 {
-                    string skillName = cboSkill.SelectedItem?.ToString();
+                    string skillName = cboMySkill.SelectedItem?.ToString();
                     selectedSkill = character.Skills.FirstOrDefault(s => s.Name == skillName);
                 }
 
@@ -551,14 +551,14 @@ namespace GameDamageCalculator.UI
                     + GetAllPassiveBuffs().Atk_Rate 
                     + GetAllActiveBuffs().Atk_Rate;
 
-                if (cboCharacter.SelectedIndex > 0)
+                if (cboMyCharacter.SelectedIndex > 0)
                 {
-                    var charForBuff = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                    var charForBuff = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                     if (charForBuff?.Passive != null)
                     {
-                        bool isConditionMet = chkPassiveCondition.IsChecked == true;
-                        bool isEnhanced = chkSkillEnhanced.IsChecked == true;
-                        int transcendLevel = cboTranscend.SelectedIndex;
+                        bool isConditionMet = chkMyPassiveCondition.IsChecked == true;
+                        bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
+                        int transcendLevel = cboMyTranscend.SelectedIndex;
                         var buff = charForBuff.Passive.GetTotalSelfBuff(isEnhanced, transcendLevel, isConditionMet);
                         if (buff != null)
                         {
@@ -573,21 +573,21 @@ namespace GameDamageCalculator.UI
                     // 캐릭터/스킬
                     Character = character,
                     Skill = selectedSkill,
-                    IsSkillEnhanced = chkSkillEnhanced.IsChecked == true,
-                    TranscendLevel = cboTranscend.SelectedIndex,
+                    IsSkillEnhanced = chkMySkillEnhanced.IsChecked == true,
+                    TranscendLevel = cboMyTranscend.SelectedIndex,
 
                     // UI에서 계산된 최종 스탯
-                    FinalAtk = ParseStatValue(txtStatAtk.Text),
-                    FinalDef = ParseStatValue(txtStatDef.Text),
-                    FinalHp = ParseStatValue(txtStatHp.Text),
-                    CritDamage = ParseStatValue(txtStatCriDmg.Text),
-                    DmgDealt = ParseStatValue(txtStatDmgDealt.Text),
-                    DmgDealtBoss = ParseStatValue(txtStatBossDmg.Text),
-                    ArmorPen = ParseStatValue(txtStatArmPen.Text),
-                    WeakpointDmg = ParseStatValue(txtStatWekDmg.Text),
+                    FinalAtk = ParseStatValue(txtMyStatAtk.Text),
+                    FinalDef = ParseStatValue(txtMyStatDef.Text),
+                    FinalHp = ParseStatValue(txtMyStatHp.Text),
+                    CritDamage = ParseStatValue(txtMyStatCriDmg.Text),
+                    DmgDealt = ParseStatValue(txtMyStatDmgDealt.Text),
+                    DmgDealtBoss = ParseStatValue(txtMyStatBossDmg.Text),
+                    ArmorPen = ParseStatValue(txtMyStatArmPen.Text),
+                    WeakpointDmg = ParseStatValue(txtMyStatWekDmg.Text),
                     WeakpointDmgBuff = weakDmgBuff,
-                    Dmg1to3 = ParseStatValue(txtStatDmg1to3.Text),
-                    Dmg4to5 = ParseStatValue(txtStatDmg4to5.Text),
+                    Dmg1to3 = ParseStatValue(txtMyStatDmg1to3.Text),
+                    Dmg4to5 = ParseStatValue(txtMyStatDmg4to5.Text),
 
                     // 디버프
                     DefReduction = _currentDebuffs.Def_Reduction,
@@ -603,15 +603,15 @@ namespace GameDamageCalculator.UI
                     BossTargetReduction = GetSelectedTargetReduction(),
 
                     // 전투 옵션
-                    IsCritical = chkCritical.IsChecked == true,
-                    IsWeakpoint = chkWeakpoint.IsChecked == true,
-                    IsBlocked = chkBlock.IsChecked == true,
-                    TargetStackCount = int.TryParse(txtTargetStackCount.Text, out int stacks) ? stacks : 0,
-                    ForceStatusEffect = chkStatusEffect.IsChecked == true,
-                    IsLostHpConditionMet = chkLostHpCondition.IsChecked == true,
+                    IsCritical = chkMyCritical.IsChecked == true,
+                    IsWeakpoint = chkMyWeakpoint.IsChecked == true,
+                    IsBlocked = chkMyBlock.IsChecked == true,
+                    TargetStackCount = int.TryParse(txtMyTargetStackCount.Text, out int stacks) ? stacks : 0,
+                    ForceStatusEffect = chkMyStatusEffect.IsChecked == true,
+                    IsLostHpConditionMet = chkMyLostHpCondition.IsChecked == true,
 
                     // 조건
-                    IsSkillConditionMet = chkSkillCondition.IsChecked == true,
+                    IsSkillConditionMet = chkMySkillCondition.IsChecked == true,
                     AtkBuff = buffAtkRate,  // 버프% 합계,
 
                     Mode = mode
@@ -693,15 +693,15 @@ namespace GameDamageCalculator.UI
         {
             BaseStatSet setBonus = new BaseStatSet();
 
-            if (cboEquipSet1.SelectedIndex > 0)
+            if (cboMyEquipSet1.SelectedIndex > 0)
             {
-                string setName = cboEquipSet1.SelectedItem.ToString();
-                int setCount = cboSetCount1.SelectedIndex == 0 ? 2 : 4;
+                string setName = cboMyEquipSet1.SelectedItem.ToString();
+                int setCount = cboMySetCount1.SelectedIndex == 0 ? 2 : 4;
                 setBonus.Add(GetSetBonus(setName, setCount));
             }
-            if (cboSetCount1.SelectedIndex == 0 && cboEquipSet2.SelectedIndex > 0)
+            if (cboMySetCount1.SelectedIndex == 0 && cboMyEquipSet2.SelectedIndex > 0)
             {
-                string setName = cboEquipSet2.SelectedItem.ToString();
+                string setName = cboMyEquipSet2.SelectedItem.ToString();
                 setBonus.Add(GetSetBonus(setName, 2));
             }
 
@@ -711,49 +711,49 @@ namespace GameDamageCalculator.UI
         private void BtnReset_Click(object sender, RoutedEventArgs e)
         {
             // 캐릭터
-            cboCharacter.SelectedIndex = 0;
-            cboTranscend.SelectedIndex = 0;
-            chkSkillEnhanced.IsChecked = false;
+            cboMyCharacter.SelectedIndex = 0;
+            cboMyTranscend.SelectedIndex = 0;
+            chkMySkillEnhanced.IsChecked = false;
 
             // 잠재능력
-            cboPotentialAtk.SelectedIndex = 0;
-            cboPotentialDef.SelectedIndex = 0;
-            cboPotentialHp.SelectedIndex = 0;
+            cboMyPotentialAtk.SelectedIndex = 0;
+            cboMyPotentialDef.SelectedIndex = 0;
+            cboMyPotentialHp.SelectedIndex = 0;
 
             // 세트
-            cboEquipSet1.SelectedIndex = 0;
-            cboEquipSet2.SelectedIndex = 0;
-            cboSetCount1.SelectedIndex = 1;
+            cboMyEquipSet1.SelectedIndex = 0;
+            cboMyEquipSet2.SelectedIndex = 0;
+            cboMySetCount1.SelectedIndex = 1;
 
             // 장신구
-            cboAccessoryGrade.SelectedIndex = 0;
+            cboMyAccessoryGrade.SelectedIndex = 0;
 
             // 서브옵션 초기화
-            txtSubAtkRate.Text = "0";
-            txtSubAtk.Text = "0";
-            txtSubCri.Text = "0";
-            txtSubCriDmg.Text = "0";
-            txtSubWek.Text = "0";
-            txtSubBlk.Text = "0";
-            txtSubDmgRdc.Text = "0";
-            txtSubDefRate.Text = "0";
-            txtSubDef.Text = "0";
-            txtSubHpRate.Text = "0";
-            txtSubHp.Text = "0";
-            txtSubEffHit.Text = "0";
-            txtSubEffRes.Text = "0";
-            txtSubSpd.Text = "0";
+            txtMySubAtkRate.Text = "0";
+            txtMySubAtk.Text = "0";
+            txtMySubCri.Text = "0";
+            txtMySubCriDmg.Text = "0";
+            txtMySubWek.Text = "0";
+            txtMySubBlk.Text = "0";
+            txtMySubDmgRdc.Text = "0";
+            txtMySubDefRate.Text = "0";
+            txtMySubDef.Text = "0";
+            txtMySubHpRate.Text = "0";
+            txtMySubHp.Text = "0";
+            txtMySubEffHit.Text = "0";
+            txtMySubEffRes.Text = "0";
+            txtMySubSpd.Text = "0";
 
             // 진형
-            cboFormation.SelectedIndex = 0;
-            rbBack.IsChecked = true;
+            cboMyFormation.SelectedIndex = 0;
+            rbMyBack.IsChecked = true;
 
             // 펫
-            cboPet.SelectedIndex = 0;
-            cboPetStar.SelectedIndex = 2;
-            txtPetOpt1.Text = "0";
-            txtPetOpt2.Text = "0";
-            txtPetOpt3.Text = "0";
+            cboMyPet.SelectedIndex = 0;
+            cboMyPetStar.SelectedIndex = 2;
+            txtMyPetOpt1.Text = "0";
+            txtMyPetOpt2.Text = "0";
+            txtMyPetOpt3.Text = "0";
 
             // 보스 스탯 초기화
             txtBossDef.Text = "0";
@@ -809,10 +809,10 @@ namespace GameDamageCalculator.UI
         
         private void UpdateMainOptionDisplay()
         {
-            txtWeapon1MainValue.Text = GetMainOptionDisplayValue(cboWeapon1Main);
-            txtWeapon2MainValue.Text = GetMainOptionDisplayValue(cboWeapon2Main);
-            txtArmor1MainValue.Text = GetMainOptionDisplayValue(cboArmor1Main);
-            txtArmor2MainValue.Text = GetMainOptionDisplayValue(cboArmor2Main);
+            txtMyWeapon1MainValue.Text = GetMainOptionDisplayValue(cboMyWeapon1Main);
+            txtMyWeapon2MainValue.Text = GetMainOptionDisplayValue(cboMyWeapon2Main);
+            txtMyArmor1MainValue.Text = GetMainOptionDisplayValue(cboMyArmor1Main);
+            txtMyArmor2MainValue.Text = GetMainOptionDisplayValue(cboMyArmor2Main);
         }
         
         private string GetMainOptionDisplayValue(ComboBox cbo)
@@ -848,13 +848,13 @@ namespace GameDamageCalculator.UI
         
         private void UpdateCharacterList()
         {
-            string previousSelection = cboCharacter.SelectedItem?.ToString();
+            string previousSelection = cboMyCharacter.SelectedItem?.ToString();
             
-            cboCharacter.Items.Clear();
-            cboCharacter.Items.Add("선택하세요");
+            cboMyCharacter.Items.Clear();
+            cboMyCharacter.Items.Add("선택하세요");
             
-            string gradeFilter = (cboGrade.SelectedItem as ComboBoxItem)?.Content.ToString();
-            string typeFilter = (cboType.SelectedItem as ComboBoxItem)?.Content.ToString();
+            string gradeFilter = (cboMyGrade.SelectedItem as ComboBoxItem)?.Content.ToString();
+            string typeFilter = (cboMyType.SelectedItem as ComboBoxItem)?.Content.ToString();
             
             foreach (var character in CharacterDb.Characters)
             {
@@ -864,13 +864,13 @@ namespace GameDamageCalculator.UI
                 if (typeFilter != "전체" && character.Type != typeFilter)
                     continue;
                 
-                cboCharacter.Items.Add(character.Name);
+                cboMyCharacter.Items.Add(character.Name);
             }
             
-            if (previousSelection != null && cboCharacter.Items.Contains(previousSelection))
-                cboCharacter.SelectedItem = previousSelection;
+            if (previousSelection != null && cboMyCharacter.Items.Contains(previousSelection))
+                cboMyCharacter.SelectedItem = previousSelection;
             else
-                cboCharacter.SelectedIndex = 0;
+                cboMyCharacter.SelectedIndex = 0;
         }
 
         private void AccessoryGrade_Click(object sender, RoutedEventArgs e)
@@ -887,18 +887,18 @@ namespace GameDamageCalculator.UI
             btn.Content = grades[nextTag];
             
             // 기존 콤보박스도 동기화 (다른 코드 호환용)
-            cboAccessoryGrade.SelectedIndex = nextTag;
+            cboMyAccessoryGrade.SelectedIndex = nextTag;
             
             // 6성이면 부옵션 표시
             if (nextTag == 3)
             {
-                cboAccessorySub.Visibility = Visibility.Visible;
-                txtAccessorySubValue.Visibility = Visibility.Visible;
+                cboMyAccessorySub.Visibility = Visibility.Visible;
+                txtMyAccessorySubValue.Visibility = Visibility.Visible;
             }
             else
             {
-                cboAccessorySub.Visibility = Visibility.Collapsed;
-                txtAccessorySubValue.Visibility = Visibility.Collapsed;
+                cboMyAccessorySub.Visibility = Visibility.Collapsed;
+                txtMyAccessorySubValue.Visibility = Visibility.Collapsed;
             }
             
             RecalculateStats();
@@ -925,13 +925,13 @@ namespace GameDamageCalculator.UI
 
         private void UpdatePetList()
         {
-            if (cboPet == null) return;
+            if (cboMyPet == null) return;
 
-            cboPet.Items.Clear();
-            cboPet.Items.Add("직접 입력하거나 골라주세요");
+            cboMyPet.Items.Clear();
+            cboMyPet.Items.Add("직접 입력하거나 골라주세요");
 
-            string starFilter = (cboPetStar.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "전체";
-            string rarityFilter = (cboPetRarity.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "전체";
+            string starFilter = (cboMyPetStar.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "전체";
+            string rarityFilter = (cboMyPetRarity.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "전체";
 
             // 성급 문자열 → 숫자 변환
             int starValue = 0;
@@ -949,11 +949,11 @@ namespace GameDamageCalculator.UI
 
                 if (matchRarity && matchStar)
                 {
-                    cboPet.Items.Add(pet.Name);
+                    cboMyPet.Items.Add(pet.Name);
                 }
             }
 
-            cboPet.SelectedIndex = 0;
+            cboMyPet.SelectedIndex = 0;
         }
         private void BossOption_Changed(object sender, TextChangedEventArgs e)
         {
@@ -1014,9 +1014,9 @@ namespace GameDamageCalculator.UI
             double baseHp = 0;
             BaseStatSet characterStats = new BaseStatSet();
 
-            if (cboCharacter.SelectedIndex > 0)
+            if (cboMyCharacter.SelectedIndex > 0)
             {
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character != null)
                 {
                     characterStats = character.GetBaseStats();
@@ -1028,14 +1028,14 @@ namespace GameDamageCalculator.UI
 
             // ========== 선택한 캐릭터의 패시브 버프 (자신에게 적용) ==========
             BuffSet characterPassiveBuff = new BuffSet();
-            if (cboCharacter.SelectedIndex > 0)
+            if (cboMyCharacter.SelectedIndex > 0)
             {
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character?.Passive != null)
                 {
-                    bool isConditionMet = chkPassiveCondition.IsChecked == true;
-                    bool isEnhanced = chkSkillEnhanced.IsChecked == true;
-                    int transcendLevel = cboTranscend.SelectedIndex;
+                    bool isConditionMet = chkMyPassiveCondition.IsChecked == true;
+                    bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
+                    int transcendLevel = cboMyTranscend.SelectedIndex;
                     var buff = character.Passive.GetTotalSelfBuff(isEnhanced, transcendLevel, isConditionMet);
                     if (buff != null)
                     {
@@ -1067,37 +1067,37 @@ namespace GameDamageCalculator.UI
             // ========== 합연산% ==========
             BaseStatSet transcendStats = new BaseStatSet();
         
-            if (cboCharacter.SelectedIndex > 0)
+            if (cboMyCharacter.SelectedIndex > 0)
             {
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character != null)
                 {
-                    int transcendLevel = cboTranscend.SelectedIndex;
+                    int transcendLevel = cboMyTranscend.SelectedIndex;
                     transcendStats = character.GetTranscendStats(transcendLevel);
                 }
             }
 
             BaseStatSet setBonus = new BaseStatSet();
-            if (cboEquipSet1.SelectedIndex > 0)
+            if (cboMyEquipSet1.SelectedIndex > 0)
             {
-                string setName = cboEquipSet1.SelectedItem.ToString();
-                int setCount = cboSetCount1.SelectedIndex == 0 ? 2 : 4;
+                string setName = cboMyEquipSet1.SelectedItem.ToString();
+                int setCount = cboMySetCount1.SelectedIndex == 0 ? 2 : 4;
                 setBonus.Add(GetSetBonus(setName, setCount));
             }
-            if (cboSetCount1.SelectedIndex == 0 && cboEquipSet2.SelectedIndex > 0)
+            if (cboMySetCount1.SelectedIndex == 0 && cboMyEquipSet2.SelectedIndex > 0)
             {
-                string setName = cboEquipSet2.SelectedItem.ToString();
+                string setName = cboMyEquipSet2.SelectedItem.ToString();
                 setBonus.Add(GetSetBonus(setName, 2));
             }
 
             // 패시브 깡스탯 보너스
             BaseStatSet passiveFlatBonus = new BaseStatSet();
-            if (cboCharacter.SelectedIndex > 0)
+            if (cboMyCharacter.SelectedIndex > 0)
             {
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character?.Passive != null)
                 {
-                    bool isEnhanced = chkSkillEnhanced.IsChecked == true;
+                    bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
                     var passiveData = character.Passive.GetLevelData(isEnhanced);
                     passiveFlatBonus = passiveData?.FlatBonus ?? new BaseStatSet();
                 }
@@ -1160,12 +1160,12 @@ namespace GameDamageCalculator.UI
             double scalingFlatHp = 0;
             double scalingCri = 0;
 
-            if (cboCharacter.SelectedIndex > 0)
+            if (cboMyCharacter.SelectedIndex > 0)
             {
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character?.Passive != null)
                 {
-                    bool isEnhanced = chkSkillEnhanced.IsChecked == true;
+                    bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
                     var passiveData = character.Passive.GetLevelData(isEnhanced);
 
                     if (passiveData?.StatScalings != null)
@@ -1219,14 +1219,14 @@ namespace GameDamageCalculator.UI
             double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
 
             // ========== UI 표시 ==========
-            txtStatAtkBase.Text = pureBaseAtk.ToString("N0");
-            txtStatDefBase.Text = pureBaseDef.ToString("N0");
-            txtStatHpBase.Text = pureBaseHp.ToString("N0");
+            txtMyStatAtkBase.Text = pureBaseAtk.ToString("N0");
+            txtMyStatDefBase.Text = pureBaseDef.ToString("N0");
+            txtMyStatHpBase.Text = pureBaseHp.ToString("N0");
 
-            txtStatAtk.Text = totalAtk.ToString("N0");
-            txtStatDef.Text = totalDef.ToString("N0");
-            txtStatHp.Text = totalHp.ToString("N0");
-            txtStatSpd.Text = totalSpd.ToString("N0");
+            txtMyStatAtk.Text = totalAtk.ToString("N0");
+            txtMyStatDef.Text = totalDef.ToString("N0");
+            txtMyStatHp.Text = totalHp.ToString("N0");
+            txtMyStatSpd.Text = totalSpd.ToString("N0");
 
             // ========== 기타 스탯 ==========
             BaseStatSet displayStats = new BaseStatSet
@@ -1254,21 +1254,21 @@ namespace GameDamageCalculator.UI
 
         private void UpdateStatDisplay(BaseStatSet stats)
         {
-            txtStatCri.Text = $"{stats.Cri}%";
-            txtStatCriDmg.Text = $"{stats.Cri_Dmg}%";
-            txtStatWek.Text = $"{stats.Wek}%";
-            txtStatWekDmg.Text = $"{stats.Wek_Dmg}%";
-            txtStatDmgDealt.Text = $"{stats.Dmg_Dealt}%";
-            txtStatBossDmg.Text = $"{stats.Dmg_Dealt_Bos}%";
-            txtStatDmg1to3.Text = $"{stats.Dmg_Dealt_1to3}%";
-            txtStatDmg4to5.Text = $"{stats.Dmg_Dealt_4to5}%";
-            txtStatArmPen.Text = $"{stats.Arm_Pen}%";
-            txtStatBlk.Text = $"{stats.Blk}%";
-            txtStatEffHit.Text = $"{stats.Eff_Hit}%";
-            txtStatEffRes.Text = $"{stats.Eff_Res}%";
-            txtStatEffAcc.Text = $"{stats.Eff_Acc}%";
-            txtStatDmgRdc.Text = $"{stats.Dmg_Rdc}%";
-            txtStatAtkRate.Text = $"{stats.Atk_Rate}%";
+            txtMyStatCri.Text = $"{stats.Cri}%";
+            txtMyStatCriDmg.Text = $"{stats.Cri_Dmg}%";
+            txtMyStatWek.Text = $"{stats.Wek}%";
+            txtMyStatWekDmg.Text = $"{stats.Wek_Dmg}%";
+            txtMyStatDmgDealt.Text = $"{stats.Dmg_Dealt}%";
+            txtMyStatBossDmg.Text = $"{stats.Dmg_Dealt_Bos}%";
+            txtMyStatDmg1to3.Text = $"{stats.Dmg_Dealt_1to3}%";
+            txtMyStatDmg4to5.Text = $"{stats.Dmg_Dealt_4to5}%";
+            txtMyStatArmPen.Text = $"{stats.Arm_Pen}%";
+            txtMyStatBlk.Text = $"{stats.Blk}%";
+            txtMyStatEffHit.Text = $"{stats.Eff_Hit}%";
+            txtMyStatEffRes.Text = $"{stats.Eff_Res}%";
+            txtMyStatEffAcc.Text = $"{stats.Eff_Acc}%";
+            txtMyStatDmgRdc.Text = $"{stats.Dmg_Rdc}%";
+            txtMyStatAtkRate.Text = $"{stats.Atk_Rate}%";
         }
 
         /// <summary>
@@ -1294,7 +1294,7 @@ namespace GameDamageCalculator.UI
 
         private int GetPetStar()
         {
-            string starStr = (cboPetStar.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "6성";
+            string starStr = (cboMyPetStar.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "6성";
 
             if (starStr == "4성") return 4;
             else if (starStr == "5성") return 5;
@@ -1304,9 +1304,9 @@ namespace GameDamageCalculator.UI
 
         private double GetPetFlatAtk()
         {
-            if (cboPet.SelectedIndex <= 0) return 0;
+            if (cboMyPet.SelectedIndex <= 0) return 0;
 
-            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            var pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
             if (pet != null)
             {
                 int star = GetPetStar();
@@ -1317,9 +1317,9 @@ namespace GameDamageCalculator.UI
 
         private double GetPetFlatDef()
         {
-            if (cboPet.SelectedIndex <= 0) return 0;
+            if (cboMyPet.SelectedIndex <= 0) return 0;
 
-            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            var pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
             if (pet != null)
             {
                 int star = GetPetStar();
@@ -1330,9 +1330,9 @@ namespace GameDamageCalculator.UI
 
         private double GetPetFlatHp()
         {
-            if (cboPet.SelectedIndex <= 0) return 0;
+            if (cboMyPet.SelectedIndex <= 0) return 0;
 
-            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            var pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
             if (pet != null)
             {
                 int star = GetPetStar();
@@ -1343,8 +1343,8 @@ namespace GameDamageCalculator.UI
 
         private double GetPetSkillAtkRate()
         {
-            if (cboPet.SelectedIndex <= 0) return 0;
-            var pet = PetDb.GetByName(cboPet.SelectedItem.ToString());
+            if (cboMyPet.SelectedIndex <= 0) return 0;
+            var pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
             if (pet != null)
             {
                 int star = GetPetStar();
@@ -1356,21 +1356,21 @@ namespace GameDamageCalculator.UI
 
         private double GetPetOptionAtkRate()
         {
-            if (double.TryParse(txtPetAtk.Text, out double val))
+            if (double.TryParse(txtMyPetAtk.Text, out double val))
                 return val;
             return 0;
         }
 
         private double GetPetOptionDefRate()
         {
-            if (double.TryParse(txtPetDef.Text, out double val))
+            if (double.TryParse(txtMyPetDef.Text, out double val))
                 return val;
             return 0;
         }
 
         private double GetPetOptionHpRate()
         {
-            if (double.TryParse(txtPetHp.Text, out double val))
+            if (double.TryParse(txtMyPetHp.Text, out double val))
                 return val;
             return 0;
         }
@@ -1381,11 +1381,11 @@ namespace GameDamageCalculator.UI
 
         private double GetFormationAtkRate()
         {
-            if (cboFormation.SelectedIndex <= 0) return 0;
+            if (cboMyFormation.SelectedIndex <= 0) return 0;
             
-            if (rbFront.IsChecked == true) return 0;
+            if (rbMyFront.IsChecked == true) return 0;
             
-            string formationName = cboFormation.SelectedItem.ToString();
+            string formationName = cboMyFormation.SelectedItem.ToString();
             if (StatTable.FormationDb.Formations.TryGetValue(formationName, out var bonus))
             {
                 return bonus.Atk_Rate_Back;
@@ -1395,11 +1395,11 @@ namespace GameDamageCalculator.UI
 
         private double GetFormationDefRate()
         {
-            if (cboFormation.SelectedIndex <= 0) return 0;
+            if (cboMyFormation.SelectedIndex <= 0) return 0;
             
-            if (rbBack.IsChecked == true) return 0;
+            if (rbMyBack.IsChecked == true) return 0;
             
-            string formationName = cboFormation.SelectedItem.ToString();
+            string formationName = cboMyFormation.SelectedItem.ToString();
             if (StatTable.FormationDb.Formations.TryGetValue(formationName, out var bonus))
             {
                 return bonus.Def_Rate_Front;
@@ -1468,20 +1468,20 @@ namespace GameDamageCalculator.UI
             BaseStatSet result = new BaseStatSet();
         
             // 티어 값 파싱
-            int atkRateTier = int.TryParse(txtSubAtkRate.Text, out int t1) ? t1 : 0;
-            int atkTier = int.TryParse(txtSubAtk.Text, out int t2) ? t2 : 0;
-            int criTier = int.TryParse(txtSubCri.Text, out int t3) ? t3 : 0;
-            int criDmgTier = int.TryParse(txtSubCriDmg.Text, out int t4) ? t4 : 0;
-            int wekTier = int.TryParse(txtSubWek.Text, out int t5) ? t5 : 0;
-            int blkTier = int.TryParse(txtSubBlk.Text, out int t6) ? t6 : 0;
-            int dmgRdcTier = int.TryParse(txtSubDmgRdc.Text, out int t7) ? t7 : 0;
-            int defRateTier = int.TryParse(txtSubDefRate.Text, out int t8) ? t8 : 0;
-            int defTier = int.TryParse(txtSubDef.Text, out int t9) ? t9 : 0;
-            int hpRateTier = int.TryParse(txtSubHpRate.Text, out int t10) ? t10 : 0;
-            int hpTier = int.TryParse(txtSubHp.Text, out int t11) ? t11 : 0;
-            int effHitTier = int.TryParse(txtSubEffHit.Text, out int t12) ? t12 : 0;
-            int effResTier = int.TryParse(txtSubEffRes.Text, out int t13) ? t13 : 0;
-            int spdTier = int.TryParse(txtSubSpd.Text, out int t14) ? t14 : 0;
+            int atkRateTier = int.TryParse(txtMySubAtkRate.Text, out int t1) ? t1 : 0;
+            int atkTier = int.TryParse(txtMySubAtk.Text, out int t2) ? t2 : 0;
+            int criTier = int.TryParse(txtMySubCri.Text, out int t3) ? t3 : 0;
+            int criDmgTier = int.TryParse(txtMySubCriDmg.Text, out int t4) ? t4 : 0;
+            int wekTier = int.TryParse(txtMySubWek.Text, out int t5) ? t5 : 0;
+            int blkTier = int.TryParse(txtMySubBlk.Text, out int t6) ? t6 : 0;
+            int dmgRdcTier = int.TryParse(txtMySubDmgRdc.Text, out int t7) ? t7 : 0;
+            int defRateTier = int.TryParse(txtMySubDefRate.Text, out int t8) ? t8 : 0;
+            int defTier = int.TryParse(txtMySubDef.Text, out int t9) ? t9 : 0;
+            int hpRateTier = int.TryParse(txtMySubHpRate.Text, out int t10) ? t10 : 0;
+            int hpTier = int.TryParse(txtMySubHp.Text, out int t11) ? t11 : 0;
+            int effHitTier = int.TryParse(txtMySubEffHit.Text, out int t12) ? t12 : 0;
+            int effResTier = int.TryParse(txtMySubEffRes.Text, out int t13) ? t13 : 0;
+            int spdTier = int.TryParse(txtMySubSpd.Text, out int t14) ? t14 : 0;
         
             // 티어당 스탯 적용
             if (atkRateTier > 0) result.Atk_Rate = 5 * atkRateTier;
@@ -1506,16 +1506,16 @@ namespace GameDamageCalculator.UI
         {
             BaseStatSet stats = new BaseStatSet();
 
-            if (cboAccessoryGrade.SelectedIndex <= 0) return stats;
+            if (cboMyAccessoryGrade.SelectedIndex <= 0) return stats;
 
-            int grade = cboAccessoryGrade.SelectedIndex + 3;
+            int grade = cboMyAccessoryGrade.SelectedIndex + 3;
 
             if (AccessoryDb.GradeBonus.TryGetValue(grade, out var gradeBonus))
                 stats.Add(gradeBonus);
 
-            if (cboAccessoryMain.SelectedIndex > 0)
+            if (cboMyAccessoryMain.SelectedIndex > 0)
             {
-                string mainOpt = cboAccessoryMain.SelectedItem.ToString();
+                string mainOpt = cboMyAccessoryMain.SelectedItem.ToString();
                 if (AccessoryDb.MainOptions.TryGetValue(grade, out var mainOptions))
                 {
                     if (mainOptions.TryGetValue(mainOpt, out var mainBonus))
@@ -1523,9 +1523,9 @@ namespace GameDamageCalculator.UI
                 }
             }
 
-            if (grade == 6 && cboAccessorySub.SelectedIndex > 0)
+            if (grade == 6 && cboMyAccessorySub.SelectedIndex > 0)
             {
-                string subOpt = cboAccessorySub.SelectedItem.ToString();
+                string subOpt = cboMyAccessorySub.SelectedItem.ToString();
                 if (AccessoryDb.SubOptions.TryGetValue(grade, out var subOptions))
                 {
                     if (subOptions.TryGetValue(subOpt, out var subBonus))
@@ -1540,9 +1540,9 @@ namespace GameDamageCalculator.UI
         {
             BaseStatSet stats = new BaseStatSet();
             
-            int atkLevel = cboPotentialAtk.SelectedIndex;
-            int defLevel = cboPotentialDef.SelectedIndex;
-            int hpLevel = cboPotentialHp.SelectedIndex;
+            int atkLevel = cboMyPotentialAtk.SelectedIndex;
+            int defLevel = cboMyPotentialDef.SelectedIndex;
+            int hpLevel = cboMyPotentialHp.SelectedIndex;
             
             if (atkLevel > 0)
                 stats.Atk = StatTable.PotentialDb.Stats["공격력"][atkLevel - 1];
@@ -1744,33 +1744,33 @@ namespace GameDamageCalculator.UI
         {
             var preset = new Preset
             {
-                CharacterName = cboCharacter.SelectedIndex > 0 ? cboCharacter.SelectedItem.ToString() : "",
-                SkillName = cboSkill.SelectedIndex >= 0 ? cboSkill.SelectedItem?.ToString() : "",
-                TranscendLevel = cboTranscend.SelectedIndex,
-                IsSkillEnhanced = chkSkillEnhanced.IsChecked == true,
+                CharacterName = cboMyCharacter.SelectedIndex > 0 ? cboMyCharacter.SelectedItem.ToString() : "",
+                SkillName = cboMySkill.SelectedIndex >= 0 ? cboMySkill.SelectedItem?.ToString() : "",
+                TranscendLevel = cboMyTranscend.SelectedIndex,
+                IsSkillEnhanced = chkMySkillEnhanced.IsChecked == true,
 
-                PotentialAtk = cboPotentialAtk.SelectedIndex,
-                PotentialDef = cboPotentialDef.SelectedIndex,
-                PotentialHp = cboPotentialHp.SelectedIndex,
+                PotentialAtk = cboMyPotentialAtk.SelectedIndex,
+                PotentialDef = cboMyPotentialDef.SelectedIndex,
+                PotentialHp = cboMyPotentialHp.SelectedIndex,
 
-                EquipSet1 = cboEquipSet1.SelectedIndex > 0 ? cboEquipSet1.SelectedItem.ToString() : "",
-                EquipSet2 = cboEquipSet2.SelectedIndex > 0 ? cboEquipSet2.SelectedItem.ToString() : "",
-                SetCount1 = cboSetCount1.SelectedIndex,
+                EquipSet1 = cboMyEquipSet1.SelectedIndex > 0 ? cboMyEquipSet1.SelectedItem.ToString() : "",
+                EquipSet2 = cboMyEquipSet2.SelectedIndex > 0 ? cboMyEquipSet2.SelectedItem.ToString() : "",
+                SetCount1 = cboMySetCount1.SelectedIndex,
 
-                MainWeapon1 = cboWeapon1Main.SelectedIndex > 0 ? cboWeapon1Main.SelectedItem.ToString() : "",
-                MainWeapon2 = cboWeapon2Main.SelectedIndex > 0 ? cboWeapon2Main.SelectedItem.ToString() : "",
-                MainArmor1 = cboArmor1Main.SelectedIndex > 0 ? cboArmor1Main.SelectedItem.ToString() : "",
-                MainArmor2 = cboArmor2Main.SelectedIndex > 0 ? cboArmor2Main.SelectedItem.ToString() : "",
+                MainWeapon1 = cboMyWeapon1Main.SelectedIndex > 0 ? cboMyWeapon1Main.SelectedItem.ToString() : "",
+                MainWeapon2 = cboMyWeapon2Main.SelectedIndex > 0 ? cboMyWeapon2Main.SelectedItem.ToString() : "",
+                MainArmor1 = cboMyArmor1Main.SelectedIndex > 0 ? cboMyArmor1Main.SelectedItem.ToString() : "",
+                MainArmor2 = cboMyArmor2Main.SelectedIndex > 0 ? cboMyArmor2Main.SelectedItem.ToString() : "",
 
-                AccessoryGrade = cboAccessoryGrade.SelectedIndex,
-                AccessoryOption = cboAccessoryMain.SelectedIndex > 0 ? cboAccessoryMain.SelectedItem.ToString() : "",
-                AccessorySubOption = cboAccessorySub.SelectedIndex > 0 ? cboAccessorySub.SelectedItem.ToString() : "",
+                AccessoryGrade = cboMyAccessoryGrade.SelectedIndex,
+                AccessoryOption = cboMyAccessoryMain.SelectedIndex > 0 ? cboMyAccessoryMain.SelectedItem.ToString() : "",
+                AccessorySubOption = cboMyAccessorySub.SelectedIndex > 0 ? cboMyAccessorySub.SelectedItem.ToString() : "",
 
-                Formation = cboFormation.SelectedIndex > 0 ? cboFormation.SelectedItem.ToString() : "",
-                IsBackPosition = rbBack.IsChecked == true,
+                Formation = cboMyFormation.SelectedIndex > 0 ? cboMyFormation.SelectedItem.ToString() : "",
+                IsBackPosition = rbMyBack.IsChecked == true,
 
-                PetName = cboPet.SelectedIndex > 0 ? cboPet.SelectedItem.ToString() : "",
-                PetStar = cboPetStar.SelectedIndex,
+                PetName = cboMyPet.SelectedIndex > 0 ? cboMyPet.SelectedItem.ToString() : "",
+                PetStar = cboMyPetStar.SelectedIndex,
 
                 BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : "Descend"),
                 BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
@@ -1779,24 +1779,24 @@ namespace GameDamageCalculator.UI
             // 프리셋 저장 (CreatePresetFromUI)
             preset.SubOptions = new Dictionary<string, int>
             {
-                { "AtkRate", int.TryParse(txtSubAtkRate.Text, out int t1) ? t1 : 0 },
-                { "Atk", int.TryParse(txtSubAtk.Text, out int t2) ? t2 : 0 },
-                { "Cri", int.TryParse(txtSubCri.Text, out int t3) ? t3 : 0 },
-                { "CriDmg", int.TryParse(txtSubCriDmg.Text, out int t4) ? t4 : 0 },
-                { "Wek", int.TryParse(txtSubWek.Text, out int t5) ? t5 : 0 },
-                { "Blk", int.TryParse(txtSubBlk.Text, out int t6) ? t6 : 0 },
-                { "DmgRdc", int.TryParse(txtSubDmgRdc.Text, out int t7) ? t7 : 0 },
-                { "DefRate", int.TryParse(txtSubDefRate.Text, out int t8) ? t8 : 0 },
-                { "Def", int.TryParse(txtSubDef.Text, out int t9) ? t9 : 0 },
-                { "HpRate", int.TryParse(txtSubHpRate.Text, out int t10) ? t10 : 0 },
-                { "Hp", int.TryParse(txtSubHp.Text, out int t11) ? t11 : 0 },
-                { "EffHit", int.TryParse(txtSubEffHit.Text, out int t12) ? t12 : 0 },
-                { "EffRes", int.TryParse(txtSubEffRes.Text, out int t13) ? t13 : 0 }
+                { "AtkRate", int.TryParse(txtMySubAtkRate.Text, out int t1) ? t1 : 0 },
+                { "Atk", int.TryParse(txtMySubAtk.Text, out int t2) ? t2 : 0 },
+                { "Cri", int.TryParse(txtMySubCri.Text, out int t3) ? t3 : 0 },
+                { "CriDmg", int.TryParse(txtMySubCriDmg.Text, out int t4) ? t4 : 0 },
+                { "Wek", int.TryParse(txtMySubWek.Text, out int t5) ? t5 : 0 },
+                { "Blk", int.TryParse(txtMySubBlk.Text, out int t6) ? t6 : 0 },
+                { "DmgRdc", int.TryParse(txtMySubDmgRdc.Text, out int t7) ? t7 : 0 },
+                { "DefRate", int.TryParse(txtMySubDefRate.Text, out int t8) ? t8 : 0 },
+                { "Def", int.TryParse(txtMySubDef.Text, out int t9) ? t9 : 0 },
+                { "HpRate", int.TryParse(txtMySubHpRate.Text, out int t10) ? t10 : 0 },
+                { "Hp", int.TryParse(txtMySubHp.Text, out int t11) ? t11 : 0 },
+                { "EffHit", int.TryParse(txtMySubEffHit.Text, out int t12) ? t12 : 0 },
+                { "EffRes", int.TryParse(txtMySubEffRes.Text, out int t13) ? t13 : 0 }
             };
 
-            preset.PetAtkRate = ParseDouble(txtPetAtk.Text);
-            preset.PetDefRate = ParseDouble(txtPetDef.Text);
-            preset.PetHpRate = ParseDouble(txtPetHp.Text);
+            preset.PetAtkRate = ParseDouble(txtMyPetAtk.Text);
+            preset.PetDefRate = ParseDouble(txtMyPetDef.Text);
+            preset.PetHpRate = ParseDouble(txtMyPetHp.Text);
 
             preset.BuffChecks = new Dictionary<string, bool>();
             preset.BuffStates = new Dictionary<string, int>();
@@ -1816,71 +1816,71 @@ namespace GameDamageCalculator.UI
 
             _isInitialized = false;
 
-            SelectComboBoxItem(cboCharacter, preset.CharacterName);
-            cboTranscend.SelectedIndex = preset.TranscendLevel;
-            chkSkillEnhanced.IsChecked = preset.IsSkillEnhanced;
+            SelectComboBoxItem(cboMyCharacter, preset.CharacterName);
+            cboMyTranscend.SelectedIndex = preset.TranscendLevel;
+            chkMySkillEnhanced.IsChecked = preset.IsSkillEnhanced;
 
-            if (cboCharacter.SelectedIndex > 0)
+            if (cboMyCharacter.SelectedIndex > 0)
             {
-                var character = CharacterDb.GetByName(cboCharacter.SelectedItem.ToString());
+                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
                 if (character != null)
                 {
-                    cboSkill.Items.Clear();
+                    cboMySkill.Items.Clear();
                     foreach (var skill in character.Skills)
                     {
-                        cboSkill.Items.Add(skill.Name);
+                        cboMySkill.Items.Add(skill.Name);
                     }
                 }
             }
-            SelectComboBoxItem(cboSkill, preset.SkillName);
+            SelectComboBoxItem(cboMySkill, preset.SkillName);
 
-            cboPotentialAtk.SelectedIndex = preset.PotentialAtk;
-            cboPotentialDef.SelectedIndex = preset.PotentialDef;
-            cboPotentialHp.SelectedIndex = preset.PotentialHp;
+            cboMyPotentialAtk.SelectedIndex = preset.PotentialAtk;
+            cboMyPotentialDef.SelectedIndex = preset.PotentialDef;
+            cboMyPotentialHp.SelectedIndex = preset.PotentialHp;
 
-            SelectComboBoxItem(cboEquipSet1, preset.EquipSet1);
-            SelectComboBoxItem(cboEquipSet2, preset.EquipSet2);
-            cboSetCount1.SelectedIndex = preset.SetCount1;
+            SelectComboBoxItem(cboMyEquipSet1, preset.EquipSet1);
+            SelectComboBoxItem(cboMyEquipSet2, preset.EquipSet2);
+            cboMySetCount1.SelectedIndex = preset.SetCount1;
 
-            SelectComboBoxItem(cboWeapon1Main, preset.MainWeapon1);
-            SelectComboBoxItem(cboWeapon2Main, preset.MainWeapon2);
-            SelectComboBoxItem(cboArmor1Main, preset.MainArmor1);
-            SelectComboBoxItem(cboArmor2Main, preset.MainArmor2);
+            SelectComboBoxItem(cboMyWeapon1Main, preset.MainWeapon1);
+            SelectComboBoxItem(cboMyWeapon2Main, preset.MainWeapon2);
+            SelectComboBoxItem(cboMyArmor1Main, preset.MainArmor1);
+            SelectComboBoxItem(cboMyArmor2Main, preset.MainArmor2);
 
-            cboAccessoryGrade.SelectedIndex = preset.AccessoryGrade;
-            SelectComboBoxItem(cboAccessoryMain, preset.AccessoryOption);
-            SelectComboBoxItem(cboAccessorySub, preset.AccessorySubOption);
+            cboMyAccessoryGrade.SelectedIndex = preset.AccessoryGrade;
+            SelectComboBoxItem(cboMyAccessoryMain, preset.AccessoryOption);
+            SelectComboBoxItem(cboMyAccessorySub, preset.AccessorySubOption);
 
-            SelectComboBoxItem(cboFormation, preset.Formation);
+            SelectComboBoxItem(cboMyFormation, preset.Formation);
             if (preset.IsBackPosition)
-                rbBack.IsChecked = true;
+                rbMyBack.IsChecked = true;
             else
-                rbFront.IsChecked = true;
+                rbMyFront.IsChecked = true;
 
-            SelectComboBoxItem(cboPet, preset.PetName);
-            cboPetStar.SelectedIndex = preset.PetStar;
+            SelectComboBoxItem(cboMyPet, preset.PetName);
+            cboMyPetStar.SelectedIndex = preset.PetStar;
             
             // 프리셋 불러오기 (ApplyPresetToUI)
             if (preset.SubOptions != null)
             {
-                txtSubAtkRate.Text = preset.SubOptions.GetValueOrDefault("AtkRate", 0).ToString();
-                txtSubAtk.Text = preset.SubOptions.GetValueOrDefault("Atk", 0).ToString();
-                txtSubCri.Text = preset.SubOptions.GetValueOrDefault("Cri", 0).ToString();
-                txtSubCriDmg.Text = preset.SubOptions.GetValueOrDefault("CriDmg", 0).ToString();
-                txtSubWek.Text = preset.SubOptions.GetValueOrDefault("Wek", 0).ToString();
-                txtSubBlk.Text = preset.SubOptions.GetValueOrDefault("Blk", 0).ToString();
-                txtSubDmgRdc.Text = preset.SubOptions.GetValueOrDefault("DmgRdc", 0).ToString();
-                txtSubDefRate.Text = preset.SubOptions.GetValueOrDefault("DefRate", 0).ToString();
-                txtSubDef.Text = preset.SubOptions.GetValueOrDefault("Def", 0).ToString();
-                txtSubHpRate.Text = preset.SubOptions.GetValueOrDefault("HpRate", 0).ToString();
-                txtSubHp.Text = preset.SubOptions.GetValueOrDefault("Hp", 0).ToString();
-                txtSubEffHit.Text = preset.SubOptions.GetValueOrDefault("EffHit", 0).ToString();
-                txtSubEffRes.Text = preset.SubOptions.GetValueOrDefault("EffRes", 0).ToString();
+                txtMySubAtkRate.Text = preset.SubOptions.GetValueOrDefault("AtkRate", 0).ToString();
+                txtMySubAtk.Text = preset.SubOptions.GetValueOrDefault("Atk", 0).ToString();
+                txtMySubCri.Text = preset.SubOptions.GetValueOrDefault("Cri", 0).ToString();
+                txtMySubCriDmg.Text = preset.SubOptions.GetValueOrDefault("CriDmg", 0).ToString();
+                txtMySubWek.Text = preset.SubOptions.GetValueOrDefault("Wek", 0).ToString();
+                txtMySubBlk.Text = preset.SubOptions.GetValueOrDefault("Blk", 0).ToString();
+                txtMySubDmgRdc.Text = preset.SubOptions.GetValueOrDefault("DmgRdc", 0).ToString();
+                txtMySubDefRate.Text = preset.SubOptions.GetValueOrDefault("DefRate", 0).ToString();
+                txtMySubDef.Text = preset.SubOptions.GetValueOrDefault("Def", 0).ToString();
+                txtMySubHpRate.Text = preset.SubOptions.GetValueOrDefault("HpRate", 0).ToString();
+                txtMySubHp.Text = preset.SubOptions.GetValueOrDefault("Hp", 0).ToString();
+                txtMySubEffHit.Text = preset.SubOptions.GetValueOrDefault("EffHit", 0).ToString();
+                txtMySubEffRes.Text = preset.SubOptions.GetValueOrDefault("EffRes", 0).ToString();
             }
 
-            txtPetAtk.Text = preset.PetAtkRate.ToString();
-            txtPetDef.Text = preset.PetDefRate.ToString();
-            txtPetHp.Text = preset.PetHpRate.ToString();
+            txtMyPetAtk.Text = preset.PetAtkRate.ToString();
+            txtMyPetDef.Text = preset.PetDefRate.ToString();
+            txtMyPetHp.Text = preset.PetHpRate.ToString();
 
             if (preset.BossType == "Siege") rbSiege.IsChecked = true;
             else if (preset.BossType == "Raid") rbRaid.IsChecked = true;

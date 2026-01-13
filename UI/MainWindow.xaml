@@ -174,13 +174,13 @@
                                 
                                 <!-- 등급 -->
                                 <TextBlock Text="등급" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboGrade" Grid.Row="0" Grid.Column="1" Style="{StaticResource ComboStyle}"
+                                <ComboBox x:Name="cboMyGrade" Grid.Row="0" Grid.Column="1" Style="{StaticResource ComboStyle}"
                                           SelectionChanged="CboFilter_SelectionChanged" Margin="0,2,5,2">
                                     <ComboBoxItem Content="전체" IsSelected="True"/>
                                     <ComboBoxItem Content="전설"/>
                                     <ComboBoxItem Content="영웅"/>
                                 </ComboBox>
-                                <ComboBox x:Name="cboType" Grid.Row="0" Grid.Column="2" Style="{StaticResource ComboStyle}"
+                                <ComboBox x:Name="cboMyType" Grid.Row="0" Grid.Column="2" Style="{StaticResource ComboStyle}"
                                           SelectionChanged="CboFilter_SelectionChanged" Margin="5,2,0,2">
                                     <ComboBoxItem Content="전체" IsSelected="True"/>
                                     <ComboBoxItem Content="공격형"/>
@@ -192,13 +192,13 @@
                                 
                                 <!-- 캐릭터 -->
                                 <TextBlock Text="캐릭터" Grid.Row="1" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboCharacter" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
+                                <ComboBox x:Name="cboMyCharacter" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
                                           Style="{StaticResource ComboStyle}" Margin="0,2"
                                           SelectionChanged="CboCharacter_SelectionChanged"/>
                                 
                                 <!-- 스킬 -->
                                 <TextBlock Text="스킬" Grid.Row="2" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboSkill" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
+                                <ComboBox x:Name="cboMySkill" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
                                           Style="{StaticResource ComboStyle}" Margin="0,2"
                                           SelectionChanged="CboSkill_SelectionChanged"/>
                                 
@@ -206,7 +206,7 @@
                                 <TextBlock Text="잠재능력" Grid.Row="3" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
                                     <TextBlock Text="공" Width="20" VerticalAlignment="Center" Foreground="#666"/>
-                                    <ComboBox x:Name="cboPotentialAtk" Style="{StaticResource ComboStyle}" Width="45" Margin="0,2,10,2"
+                                    <ComboBox x:Name="cboMyPotentialAtk" Style="{StaticResource ComboStyle}" Width="45" Margin="0,2,10,2"
                                               SelectionChanged="Potential_SelectionChanged">
                                         <ComboBoxItem Content="0" IsSelected="True"/>
                                         <ComboBoxItem Content="1"/>
@@ -214,7 +214,7 @@
                                         <ComboBoxItem Content="3"/>
                                     </ComboBox>
                                     <TextBlock Text="방" Width="20" VerticalAlignment="Center" Foreground="#666"/>
-                                    <ComboBox x:Name="cboPotentialDef" Style="{StaticResource ComboStyle}" Width="45" Margin="0,2,10,2"
+                                    <ComboBox x:Name="cboMyPotentialDef" Style="{StaticResource ComboStyle}" Width="45" Margin="0,2,10,2"
                                               SelectionChanged="Potential_SelectionChanged">
                                         <ComboBoxItem Content="0" IsSelected="True"/>
                                         <ComboBoxItem Content="1"/>
@@ -222,7 +222,7 @@
                                         <ComboBoxItem Content="3"/>
                                     </ComboBox>
                                     <TextBlock Text="생" Width="20" VerticalAlignment="Center" Foreground="#666"/>
-                                    <ComboBox x:Name="cboPotentialHp" Style="{StaticResource ComboStyle}" Width="45" Margin="0,2,0,2"
+                                    <ComboBox x:Name="cboMyPotentialHp" Style="{StaticResource ComboStyle}" Width="45" Margin="0,2,0,2"
                                               SelectionChanged="Potential_SelectionChanged">
                                         <ComboBoxItem Content="0" IsSelected="True"/>
                                         <ComboBoxItem Content="1"/>
@@ -234,12 +234,12 @@
                                 <!-- 초월 -->
                                 <TextBlock Text="초월" Grid.Row="4" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
-                                    <ComboBox x:Name="cboTranscend" Style="{StaticResource ComboStyle}" Width="70" Margin="0,2,10,2"
+                                    <ComboBox x:Name="cboMyTranscend" Style="{StaticResource ComboStyle}" Width="70" Margin="0,2,10,2"
                                               SelectionChanged="CboTranscend_SelectionChanged"/>
                                     <TextBlock Text="스강" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#666"/>
-                                    <CheckBox x:Name="chkSkillEnhanced" Style="{StaticResource CheckBoxStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <CheckBox x:Name="chkMySkillEnhanced" Style="{StaticResource CheckBoxStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="조건" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#666"/>
-                                    <CheckBox x:Name="chkPassiveCondition" Style="{StaticResource CheckBoxStyle}" VerticalAlignment="Center" Margin="0,0,10,0" 
+                                    <CheckBox x:Name="chkMyPassiveCondition" Style="{StaticResource CheckBoxStyle}" VerticalAlignment="Center" Margin="0,0,10,0" 
                                         Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                 </StackPanel>
                             </Grid>
@@ -260,9 +260,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="세트" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboEquipSet1" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="0,2,5,2"
+                                <ComboBox x:Name="cboMyEquipSet1" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="0,2,5,2"
                                           SelectionChanged="CboEquipSet_SelectionChanged"/>
-                                <ComboBox x:Name="cboSetCount1" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2,0,2"
+                                <ComboBox x:Name="cboMySetCount1" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2,0,2"
                                           SelectionChanged="CboSetCount1_SelectionChanged">
                                     <ComboBoxItem Content="2세트"/>
                                     <ComboBoxItem Content="4세트" IsSelected="True"/>
@@ -270,14 +270,14 @@
                             </Grid>
 
                             <!-- 세트2 (2세트 선택 시에만 표시) -->
-                            <Grid x:Name="gridEquipSet2" Visibility="Collapsed" Margin="0,0,0,8">
+                            <Grid x:Name="gridMyEquipSet2" Visibility="Collapsed" Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="40"/>
                                     <ColumnDefinition Width="160"/>
                                     <ColumnDefinition Width="80"/>
                                 </Grid.ColumnDefinitions>
 
-                                <ComboBox x:Name="cboEquipSet2" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="0,2,5,2"
+                                <ComboBox x:Name="cboMyEquipSet2" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="0,2,5,2"
                                           SelectionChanged="CboEquipSet_SelectionChanged"/>
                                 <TextBlock Text="2세트" Grid.Column="2" Foreground="#666" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             </Grid>
@@ -293,10 +293,10 @@
                                 </Grid.ColumnDefinitions>
                                 
                                 <TextBlock Text="무기" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboWeapon1Main" Grid.Column="1" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
-                                <TextBlock x:Name="txtWeapon1MainValue" Grid.Column="2" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
-                                <ComboBox x:Name="cboWeapon2Main" Grid.Column="3" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
-                                <TextBlock x:Name="txtWeapon2MainValue" Grid.Column="4" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
+                                <ComboBox x:Name="cboMyWeapon1Main" Grid.Column="1" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
+                                <TextBlock x:Name="txtMyWeapon1MainValue" Grid.Column="2" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
+                                <ComboBox x:Name="cboMyWeapon2Main" Grid.Column="3" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
+                                <TextBlock x:Name="txtMyWeapon2MainValue" Grid.Column="4" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
                             </Grid>
                             
                             <!-- 방어구 -->
@@ -310,10 +310,10 @@
                                 </Grid.ColumnDefinitions>
                                 
                                 <TextBlock Text="방어구" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboArmor1Main" Grid.Column="1" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
-                                <TextBlock x:Name="txtArmor1MainValue" Grid.Column="2" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
-                                <ComboBox x:Name="cboArmor2Main" Grid.Column="3" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
-                                <TextBlock x:Name="txtArmor2MainValue" Grid.Column="4" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
+                                <ComboBox x:Name="cboMyArmor1Main" Grid.Column="1" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
+                                <TextBlock x:Name="txtMyArmor1MainValue" Grid.Column="2" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
+                                <ComboBox x:Name="cboMyArmor2Main" Grid.Column="3" Margin="0,2,5,2" SelectionChanged="MainOption_Changed"/>
+                                <TextBlock x:Name="txtMyArmor2MainValue" Grid.Column="4" Text="" VerticalAlignment="Center" TextAlignment="Center"/>
                             </Grid>
                             
                             <!-- 서브옵션 1행 -->
@@ -330,42 +330,42 @@
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock Text="공%" Width="36" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubAtkRate" Cursor="Hand">
-                                        <TextBox x:Name="txtSubAtkRate" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubAtkRate" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <TextBlock Text="치확%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubCri" Cursor="Hand">
-                                        <TextBox x:Name="txtSubCri" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubCri" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <TextBlock Text="막기%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubBlk" Cursor="Hand">
-                                        <TextBox x:Name="txtSubBlk" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubBlk" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                                     <TextBlock Text="방%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubDefRate" Cursor="Hand">
-                                        <TextBox x:Name="txtSubDefRate" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubDefRate" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="4" Orientation="Horizontal">
                                     <TextBlock Text="생%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubHpRate" Cursor="Hand">
-                                        <TextBox x:Name="txtSubHpRate" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubHpRate" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="5" Orientation="Horizontal">
                                     <TextBlock Text="효적%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubEffHit" Cursor="Hand">
-                                        <TextBox x:Name="txtSubEffHit" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubEffHit" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                             </Grid>
@@ -384,42 +384,42 @@
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock Text="공" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubAtk" Cursor="Hand">
-                                        <TextBox x:Name="txtSubAtk" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubAtk" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <TextBlock Text="치피%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubCriDmg" Cursor="Hand">
-                                        <TextBox x:Name="txtSubCriDmg" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubCriDmg" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <TextBlock Text="약공%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubWek" Cursor="Hand">
-                                        <TextBox x:Name="txtSubWek" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubWek" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                                     <TextBlock Text="방" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubDef" Cursor="Hand">
-                                        <TextBox x:Name="txtSubDef" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubDef" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="4" Orientation="Horizontal">
                                     <TextBlock Text="생" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubHp" Cursor="Hand">
-                                        <TextBox x:Name="txtSubHp" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubHp" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="5" Orientation="Horizontal">
                                     <TextBlock Text="효저%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubEffRes" Cursor="Hand">
-                                        <TextBox x:Name="txtSubEffRes" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubEffRes" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                             </Grid>
@@ -438,13 +438,13 @@
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock Text="받피감%" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubDmgRdc" Cursor="Hand">
-                                        <TextBox x:Name="txtSubDmgRdc" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubDmgRdc" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <TextBlock Text="속공" Width="36" VerticalAlignment="Center" Foreground="#272727"/>
                                     <Border Background="#3A3A3A" Width="30" Height="22" MouseLeftButtonDown="Tier_MouseLeft" MouseRightButtonDown="Tier_MouseRight" Tag="txtSubSpd" Cursor="Hand">
-                                        <TextBox x:Name="txtSubSpd" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                        <TextBox x:Name="txtMySubSpd" Text="0" Background="Transparent" Foreground="White" BorderThickness="0" IsReadOnly="True" TextAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     </Border>
                                 </StackPanel>
                             </Grid>
@@ -461,20 +461,20 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="장신구" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <Button x:Name="btnAccessoryGrade" Grid.Column="1" Content="없음" Tag="0" 
+                                <Button x:Name="btnMyAccessoryGrade" Grid.Column="1" Content="없음" Tag="0" 
                                         Click="AccessoryGrade_Click" Margin="0,2,5,2"
                                         Style="{StaticResource BuffOptionButtonStyle}"/>
-                                <ComboBox x:Name="cboAccessoryMain" Grid.Column="2" Margin="0,2,5,2" SelectionChanged="CboAccessoryOption_SelectionChanged"/>
-                                <TextBlock x:Name="txtAccessoryMainValue" Grid.Column="3" VerticalAlignment="Center" TextAlignment="Center"/>
+                                <ComboBox x:Name="cboMyAccessoryMain" Grid.Column="2" Margin="0,2,5,2" SelectionChanged="CboAccessoryOption_SelectionChanged"/>
+                                <TextBlock x:Name="txtMyAccessoryMainValue" Grid.Column="3" VerticalAlignment="Center" TextAlignment="Center"/>
                             
                                 <!-- 6성 부옵션 -->
-                                <ComboBox x:Name="cboAccessorySub" Grid.Column="4" Margin="0,2,5,2" SelectionChanged="CboAccessoryOption_SelectionChanged" Visibility="Collapsed"/>
-                                <TextBlock x:Name="txtAccessorySubValue" Grid.Column="5" VerticalAlignment="Center" TextAlignment="Center" Visibility="Collapsed"/>
+                                <ComboBox x:Name="cboMyAccessorySub" Grid.Column="4" Margin="0,2,5,2" SelectionChanged="CboAccessoryOption_SelectionChanged" Visibility="Collapsed"/>
+                                <TextBlock x:Name="txtMyAccessorySubValue" Grid.Column="5" VerticalAlignment="Center" TextAlignment="Center" Visibility="Collapsed"/>
                             </Grid>
                             
                                 <!-- C# 호환용 (기존 코드 호환) -->
-                                <ComboBox x:Name="cboAccessoryGrade" Visibility="Collapsed" SelectionChanged="CboAccessoryGrade_SelectionChanged"/>
-                                <StackPanel x:Name="panelAccessorySub" Visibility="Collapsed"/>
+                                <ComboBox x:Name="cboMyAccessoryGrade" Visibility="Collapsed" SelectionChanged="CboAccessoryGrade_SelectionChanged"/>
+                                <StackPanel x:Name="panelMyAccessorySub" Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
                     
@@ -496,14 +496,14 @@
                                 
                                 <!-- 등급 필터 (성급 + 희귀도) -->
                                 <TextBlock Text="등급" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboPetStar" Grid.Row="0" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="0,2,16,2"
+                                <ComboBox x:Name="cboMyPetStar" Grid.Row="0" Grid.Column="1" Style="{StaticResource ComboStyle}" Margin="0,2,16,2"
                                           SelectionChanged="CboPetFilter_SelectionChanged">
                                     <ComboBoxItem Content="전체" IsSelected="True"/>
                                     <ComboBoxItem Content="4성"/>
                                     <ComboBoxItem Content="5성"/>
                                     <ComboBoxItem Content="6성"/>
                                 </ComboBox>
-                                <ComboBox x:Name="cboPetRarity" Grid.Row="0" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2,0,2"
+                                <ComboBox x:Name="cboMyPetRarity" Grid.Row="0" Grid.Column="2" Style="{StaticResource ComboStyle}" Margin="0,2,0,2"
                                           SelectionChanged="CboPetFilter_SelectionChanged">
                                     <ComboBoxItem Content="전체" IsSelected="True"/>
                                     <ComboBoxItem Content="희귀"/>
@@ -512,7 +512,7 @@
                                 
                                 <!-- 펫 선택 -->
                                 <TextBlock Text="펫" Grid.Row="1" Grid.Column="0" Style="{StaticResource LabelText}" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="cboPet" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource ComboStyle}" Margin="0,2"
+                                <ComboBox x:Name="cboMyPet" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource ComboStyle}" Margin="0,2"
                                           SelectionChanged="CboPet_SelectionChanged"/>
                             </Grid>
                             
@@ -531,18 +531,18 @@
                                 <TextBlock Text="방어력%" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#666"/>
                                 <TextBlock Text="생명력%" Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#666"/>
 
-                                <TextBox x:Name="txtPetAtk" Grid.Column="1" Text="0" Style="{StaticResource InputBox}" Margin="5,0" TextChanged="PetOption_Changed"/>
-                                <TextBox x:Name="txtPetDef" Grid.Column="3" Text="0" Style="{StaticResource InputBox}" Margin="5,0" TextChanged="PetOption_Changed"/>
-                                <TextBox x:Name="txtPetHp" Grid.Column="5" Text="0" Style="{StaticResource InputBox}" Margin="5,0" TextChanged="PetOption_Changed"/>
+                                <TextBox x:Name="txtMyPetAtk" Grid.Column="1" Text="0" Style="{StaticResource InputBox}" Margin="5,0" TextChanged="PetOption_Changed"/>
+                                <TextBox x:Name="txtMyPetDef" Grid.Column="3" Text="0" Style="{StaticResource InputBox}" Margin="5,0" TextChanged="PetOption_Changed"/>
+                                <TextBox x:Name="txtMyPetHp" Grid.Column="5" Text="0" Style="{StaticResource InputBox}" Margin="5,0" TextChanged="PetOption_Changed"/>
                             </Grid>
 
                             <!-- 기존 코드 호환용 숨김 -->
                             <ComboBox Visibility="Collapsed"/>
-                            <ComboBox x:Name="cboPetOpt2" Visibility="Collapsed"/>
-                            <ComboBox x:Name="cboPetOpt3" Visibility="Collapsed"/>
-                            <TextBox x:Name="txtPetOpt1" Visibility="Collapsed"/>
-                            <TextBox x:Name="txtPetOpt2" Visibility="Collapsed"/>
-                            <TextBox x:Name="txtPetOpt3" Visibility="Collapsed"/>
+                            <ComboBox x:Name="cboMyPetOpt2" Visibility="Collapsed"/>
+                            <ComboBox x:Name="cboMyPetOpt3" Visibility="Collapsed"/>
+                            <TextBox x:Name="txtMyPetOpt1" Visibility="Collapsed"/>
+                            <TextBox x:Name="txtMyPetOpt2" Visibility="Collapsed"/>
+                            <TextBox x:Name="txtMyPetOpt3" Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
                     
@@ -552,16 +552,16 @@
                             <TextBlock Text="진형" Style="{StaticResource SectionTitle}"/>
 
                             <StackPanel Orientation="Horizontal">
-                                <ComboBox x:Name="cboFormation" Style="{StaticResource ComboStyle}" Width="150" Margin="0,0,20,0"
+                                <ComboBox x:Name="cboMyFormation" Style="{StaticResource ComboStyle}" Width="150" Margin="0,0,20,0"
                                           SelectionChanged="CboFormation_SelectionChanged"/>
-                                <Button x:Name="btnFormationPosition" Content="후열" Tag="Back" 
+                                <Button x:Name="btnMyFormationPosition" Content="후열" Tag="Back" 
                                         Click="FormationPosition_Click" Margin="0,0,0,0"
                                         Style="{StaticResource BuffOptionButtonStyle}" Width="50"/>
                             </StackPanel>
 
                             <!-- 기존 코드 호환용 숨김 -->
-                            <RadioButton x:Name="rbBack" IsChecked="True" Visibility="Collapsed"/>
-                            <RadioButton x:Name="rbFront" Visibility="Collapsed"/>
+                            <RadioButton x:Name="rbMyBack" IsChecked="True" Visibility="Collapsed"/>
+                            <RadioButton x:Name="rbMyFront" Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
                     
@@ -574,9 +574,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(1-3인기 피증)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffPassiveLion" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffPassiveLion" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffPassiveLion" Content="라이언" Tag="0" 
+                                        <Button x:Name="btnMyBuffPassiveLion" Content="라이언" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -585,9 +585,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(치피 @2초)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffPassiveLina" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffPassiveLina" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffPassiveLina" Content="리나" Tag="0" 
+                                        <Button x:Name="btnMyBuffPassiveLina" Content="리나" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -596,9 +596,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(약공확)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffPassiveRachel" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffPassiveRachel" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffPassiveRachel" Content="레이첼" Tag="0" 
+                                        <Button x:Name="btnMyBuffPassiveRachel" Content="레이첼" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -607,9 +607,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(물리피해증가)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffPassiveDelonz" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffPassiveDelonz" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffPassiveDelonz" Content="델론즈" Tag="0" 
+                                        <Button x:Name="btnMyBuffPassiveDelonz" Content="델론즈" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -618,9 +618,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(약공증)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffPassiveMiho" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffPassiveMiho" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffPassiveMiho" Content="미호" Tag="0" 
+                                        <Button x:Name="btnMyBuffPassiveMiho" Content="미호" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -638,9 +638,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(보피증, 약공확)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffActiveBiscuit" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffActiveBiscuit" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffActiveBiscuit" Content="비스킷" Tag="0" 
+                                        <Button x:Name="btnMyBuffActiveBiscuit" Content="비스킷" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -649,9 +649,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(피증)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkBuffActiveLina" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyBuffActiveLina" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnBuffActiveLina" Content="리나" Tag="0" 
+                                        <Button x:Name="btnMyBuffActiveLina" Content="리나" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -669,9 +669,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(받피증, 취약)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkDebuffPassiveTaka" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyDebuffPassiveTaka" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnDebuffPassiveTaka" Content="타카" Tag="0" 
+                                        <Button x:Name="btnMyDebuffPassiveTaka" Content="타카" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -680,9 +680,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(방깎)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkDebuffPassiveBiscuit" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyDebuffPassiveBiscuit" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnDebuffPassiveBiscuit" Content="비스킷" Tag="0" 
+                                        <Button x:Name="btnMyDebuffPassiveBiscuit" Content="비스킷" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -700,9 +700,9 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(방깎)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkDebuffActiveLina" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyDebuffActiveLina" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnDebuffActiveLina" Content="리나" Tag="0" 
+                                        <Button x:Name="btnMyDebuffActiveLina" Content="리나" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -711,11 +711,11 @@
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(염화/불새)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="chkDebuffActiveRachelFlame" Content="염화" VerticalAlignment="Center"
+                                        <CheckBox x:Name="chkMyDebuffActiveRachelFlame" Content="염화" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <CheckBox x:Name="chkDebuffActiveRachelPhoenix" Content="불새" VerticalAlignment="Center" Margin="8,0,0,0"
+                                        <CheckBox x:Name="chkMyDebuffActiveRachelPhoenix" Content="불새" VerticalAlignment="Center" Margin="8,0,0,0"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
-                                        <Button x:Name="btnDebuffActiveRachel" Content="레이첼" Tag="0" 
+                                        <Button x:Name="btnMyDebuffActiveRachel" Content="레이첼" Tag="0" 
                                                 Click="BuffOption_Click" Margin="8,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -735,21 +735,21 @@
                     <!-- 기본 공/방/생 -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                         <TextBlock Text="기본 공" Foreground="#666" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtStatAtkBase" Text="0" Margin="5,0,15,0" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="txtMyStatAtkBase" Text="0" Margin="5,0,15,0" FontWeight="SemiBold"/>
                         <TextBlock Text="기본 방" Foreground="#666" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtStatDefBase" Text="0" Margin="5,0,15,0" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="txtMyStatDefBase" Text="0" Margin="5,0,15,0" FontWeight="SemiBold"/>
                         <TextBlock Text="기본 생" Foreground="#666" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtStatHpBase" Text="0" Margin="5,0,0,0" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="txtMyStatHpBase" Text="0" Margin="5,0,0,0" FontWeight="SemiBold"/>
                     </StackPanel>
 
                     <!-- 최종 공/방/생 -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
                         <TextBlock Text="최종 공" Foreground="#666" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtStatAtk" Text="0" Margin="5,0,15,0" FontWeight="Bold" Foreground="#E74C3C"/>
+                        <TextBlock x:Name="txtMyStatAtk" Text="0" Margin="5,0,15,0" FontWeight="Bold" Foreground="#E74C3C"/>
                         <TextBlock Text="최종 방" Foreground="#666" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtStatDef" Text="0" Margin="5,0,15,0" FontWeight="Bold" Foreground="#3498DB"/>
+                        <TextBlock x:Name="txtMyStatDef" Text="0" Margin="5,0,15,0" FontWeight="Bold" Foreground="#3498DB"/>
                         <TextBlock Text="최종 생" Foreground="#666" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtStatHp" Text="0" Margin="5,0,0,0" FontWeight="Bold" Foreground="#27AE60"/>
+                        <TextBlock x:Name="txtMyStatHp" Text="0" Margin="5,0,0,0" FontWeight="Bold" Foreground="#27AE60"/>
                     </StackPanel>
                     
                     <Grid>
@@ -785,54 +785,54 @@
                         <!-- 치명타 확률 / 치명타 피해 -->
                         <TextBlock Text="치명타 확률" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="치명타 피해" Grid.Row="0" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatCri" Grid.Row="1" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
-                        <TextBox x:Name="txtStatCriDmg" Grid.Row="1" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatCri" Grid.Row="1" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatCriDmg" Grid.Row="1" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 약점 확률 / 약점 피해 -->
                         <TextBlock Text="약점 확률" Grid.Row="2" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="약점공격 피해" Grid.Row="2" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatWek" Grid.Row="3" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
-                        <TextBox x:Name="txtStatWekDmg" Grid.Row="3" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatWek" Grid.Row="3" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatWekDmg" Grid.Row="3" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 공격력 증가 / 피해 증가 -->
                         <TextBlock Text="공격력 증가" Grid.Row="4" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="피해 증가" Grid.Row="4" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatAtkRate" Grid.Row="5" Grid.Column="0" Text="0" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
-                        <TextBox x:Name="txtStatDmgDealt" Grid.Row="5" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatAtkRate" Grid.Row="5" Grid.Column="0" Text="0" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatDmgDealt" Grid.Row="5" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 방어 관통 / 보스 피해 증가 -->
                         <TextBlock Text="방어 관통" Grid.Row="6" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="보스 피해 증가" Grid.Row="6" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatArmPen" Grid.Row="7" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
-                        <TextBox x:Name="txtStatBossDmg" Grid.Row="7" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatArmPen" Grid.Row="7" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatBossDmg" Grid.Row="7" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 1-3인기 / 4-5인기 -->
                         <TextBlock Text="1-3인기 피해 증가" Grid.Row="8" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="4-5인기 피해 증가" Grid.Row="8" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatDmg1to3" Grid.Row="9" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
-                        <TextBox x:Name="txtStatDmg4to5" Grid.Row="9" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatDmg1to3" Grid.Row="9" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatDmg4to5" Grid.Row="9" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 효과 적중 / 효과 저항 -->
                         <TextBlock Text="효과 적중" Grid.Row="10" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="효과 저항" Grid.Row="10" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatEffHit" Grid.Row="11" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
-                        <TextBox x:Name="txtStatEffRes" Grid.Row="11" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatEffHit" Grid.Row="11" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatEffRes" Grid.Row="11" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 효과 적중 확률 / 회복량 증가 -->
                         <TextBlock Text="효과 적중 확률" Grid.Row="12" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="회복량 증가" Grid.Row="12" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatEffAcc" Grid.Row="13" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
+                        <TextBox x:Name="txtMyStatEffAcc" Grid.Row="13" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
                         <TextBox Grid.Row="13" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 받는 피해 감소 -->
                         <TextBlock Text="받는 피해 감소" Grid.Row="14" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="막기 확률" Grid.Row="14" Grid.Column="1" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatDmgRdc" Grid.Row="15" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtStatBlk" Grid.Row="15" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
+                        <TextBox x:Name="txtMyStatDmgRdc" Grid.Row="15" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="txtMyStatBlk" Grid.Row="15" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
 
                         <!-- 속공 -->
                         <TextBlock Text="속공" Grid.Row="16" Grid.Column="0" Style="{StaticResource LabelText}"/>
-                        <TextBox x:Name="txtStatSpd" Grid.Row="17" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="txtMyStatSpd" Grid.Row="17" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,0,5"/>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -955,23 +955,23 @@
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <CheckBox x:Name="chkCritical" Content="치명타" IsChecked="True" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#272727"/>
-                            <CheckBox x:Name="chkWeakpoint" Content="약공" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#272727"/>
-                            <CheckBox x:Name="chkBlock" Content="막기" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#272727"/>
+                            <CheckBox x:Name="chkMyCritical" Content="치명타" IsChecked="True" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#272727"/>
+                            <CheckBox x:Name="chkMyWeakpoint" Content="약공" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#272727"/>
+                            <CheckBox x:Name="chkMyBlock" Content="막기" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#272727"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <CheckBox x:Name="chkLostHpCondition" Content="체력조건" VerticalAlignment="Center" Foreground="#272727"/>
-                            <CheckBox x:Name="chkSkillCondition" Content="특정조건" VerticalAlignment="Center" Foreground="#272727"/>
+                            <CheckBox x:Name="chkMyLostHpCondition" Content="체력조건" VerticalAlignment="Center" Foreground="#272727"/>
+                            <CheckBox x:Name="chkMySkillCondition" Content="특정조건" VerticalAlignment="Center" Foreground="#272727"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <CheckBox x:Name="chkStatusEffect" Content="상태이상 확정" />
+                            <CheckBox x:Name="chkMyStatusEffect" Content="상태이상 확정" />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal"  Margin="0,5,0,0">
                             <TextBlock Text="상태이상 스택" Width="80"  VerticalAlignment="Center" Style="{StaticResource LabelText}"/>
-                            <TextBox x:Name="txtTargetStackCount" Width="50" Text="0" VerticalAlignment="Center" TextChanged="BossOption_Changed"/>
+                            <TextBox x:Name="txtMyTargetStackCount" Width="50" Text="0" VerticalAlignment="Center" TextChanged="BossOption_Changed"/>
                         </StackPanel>
                         
                         <!-- 버튼 -->
