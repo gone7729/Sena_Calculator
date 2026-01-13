@@ -3742,7 +3742,7 @@ namespace GameDamageCalculator.Database
                     {
                         Id = 4,
                         Name = "패시브- 턴제",
-                        SkillType = SkillType.Skill2,
+                        SkillType = SkillType.Skill3,
                         TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
@@ -4089,9 +4089,9 @@ namespace GameDamageCalculator.Database
                     },
                     new Skill
                     {
-                        Id = 3,
+                        Id = 4,
                         Name = "패시브-턴제",
-                        SkillType = SkillType.Skill2,
+                        SkillType = SkillType.Skill3,
                         TargetCount = 1,
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>

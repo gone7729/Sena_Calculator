@@ -4,6 +4,7 @@ namespace GameDamageCalculator.Models
     {
         Boss,   // 보스전
         Mob,    // 잡몹전
+        PvP,
     }
     
 }
