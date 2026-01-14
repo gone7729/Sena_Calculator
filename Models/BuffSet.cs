@@ -25,6 +25,7 @@ namespace GameDamageCalculator.Models
 
         // ===== 피해량 =====
         public double Dmg_Dealt { get; set; }       // 피해량%
+        public double Dmg_Dealt_Type { get; set; }  // 물리/마법 피해량% (유저가 타입에 맞게 적용)
         public double Dmg_Dealt_Bos { get; set; }   // 보스 피해량%
         public double Dmg_Dealt_1to3 { get; set; }  // 1-3인기 피해량%
         public double Dmg_Dealt_4to5 { get; set; }  // 4-5인기 피해량%
@@ -58,6 +59,7 @@ namespace GameDamageCalculator.Models
             Wek_Dmg += other.Wek_Dmg;
             WekBonusDmg += other.WekBonusDmg;
             Dmg_Dealt += other.Dmg_Dealt;
+            Dmg_Dealt_Type += other.Dmg_Dealt_Type;
             Dmg_Dealt_Bos += other.Dmg_Dealt_Bos;
             Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
             Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
@@ -88,6 +90,7 @@ namespace GameDamageCalculator.Models
             Wek_Dmg = Math.Max(Wek_Dmg, other.Wek_Dmg);
             WekBonusDmg = Math.Max(WekBonusDmg, other.WekBonusDmg);
             Dmg_Dealt = Math.Max(Dmg_Dealt, other.Dmg_Dealt);
+            Dmg_Dealt_Type = Math.Max(Dmg_Dealt_Type, other.Dmg_Dealt_Type);
             Dmg_Dealt_Bos = Math.Max(Dmg_Dealt_Bos, other.Dmg_Dealt_Bos);
             Dmg_Dealt_1to3 = Math.Max(Dmg_Dealt_1to3, other.Dmg_Dealt_1to3);
             Dmg_Dealt_4to5 = Math.Max(Dmg_Dealt_4to5, other.Dmg_Dealt_4to5);
@@ -118,6 +121,7 @@ namespace GameDamageCalculator.Models
                 Wek_Dmg = Wek_Dmg,
                 WekBonusDmg = WekBonusDmg,
                 Dmg_Dealt = Dmg_Dealt,
+                Dmg_Dealt_Type = Dmg_Dealt_Type,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
@@ -148,6 +152,7 @@ namespace GameDamageCalculator.Models
             Wek_Dmg = 0;
             WekBonusDmg = 0;
             Dmg_Dealt = 0;
+            Dmg_Dealt_Type = 0;
             Dmg_Dealt_Bos = 0;
             Dmg_Dealt_1to3 = 0;
             Dmg_Dealt_4to5 = 0;

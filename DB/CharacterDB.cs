@@ -245,10 +245,10 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData { 
-                            PartyBuff = new BuffSet { Dmg_Dealt = 17 }
+                            PartyBuff = new BuffSet { Dmg_Dealt_Type = 17 }
                         }},
                         { 1, new PassiveLevelData { 
-                            PartyBuff = new BuffSet { Dmg_Dealt = 20 }
+                            PartyBuff = new BuffSet { Dmg_Dealt_Type = 20 }
                         }}
                     },
                         TranscendBonuses = new Dictionary<int, PassiveTranscend>
@@ -491,6 +491,10 @@ namespace GameDamageCalculator.Database
                         {
                             { 0, new SkillLevelData { Ratio = 62, DebuffEffect = new DebuffSet { Heal_Reduction = 52 } } },
                             { 1, new SkillLevelData { Ratio = 62, DebuffEffect = new DebuffSet { Heal_Reduction = 68 } } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { Debuff = new DebuffSet{ Vulnerability = 24 } } }
                         }
                     },
                     new Skill
@@ -504,6 +508,10 @@ namespace GameDamageCalculator.Database
                         {
                             { 0, new SkillLevelData { Ratio = 57 }},
                             { 1, new SkillLevelData { Ratio = 57 }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            { 6, new SkillTranscend { Debuff = new DebuffSet{ Vulnerability = 24 } } }
                         }
                     }
                 },
@@ -514,17 +522,17 @@ namespace GameDamageCalculator.Database
                     {
                         { 0, new PassiveLevelData { 
                             PartyBuff = new BuffSet { Cri_Dmg = 28 },
-                            SelfBuff = new BuffSet { Dmg_Dealt = 20 }
+                            SelfBuff = new BuffSet { Dmg_Dealt_Type = 20 }
                         }},
                         { 1, new PassiveLevelData { 
                             PartyBuff = new BuffSet { Cri_Dmg = 34 },
-                            SelfBuff = new BuffSet { Dmg_Dealt = 20 }
+                            SelfBuff = new BuffSet { Dmg_Dealt_Type = 20 }
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend { Effect = "뒤지면 파티 힐" } },
-                        { 6, new PassiveTranscend { Debuff = new DebuffSet { Vulnerability = 24 }, Effect = "스킬 발동 시 취약" } }
+                        { 6, new PassiveTranscend { Effect = "스킬 발동 시 취약" } }
                     }
                 },
                 TranscendBonuses = new List<TranscendBonus>
@@ -695,7 +703,7 @@ namespace GameDamageCalculator.Database
                     },
                         TranscendBonuses = new Dictionary<int, PassiveTranscend>
                         {
-                            { 2, new PassiveTranscend { SelfBuff = new BuffSet{ Dmg_Dealt = 33 }, Effect = "피증" } }
+                            { 2, new PassiveTranscend { SelfBuff = new BuffSet{ Dmg_Dealt_Type = 33 }, Effect = "피증" } }
                         }
                 },
                 TranscendBonuses = new List<TranscendBonus>
@@ -856,7 +864,7 @@ namespace GameDamageCalculator.Database
                     new Skill
                     {
                         Id = 3,
-                        Name = "어떄, 화려하지?",
+                        Name = "어때, 화려하지?",
                         SkillType = SkillType.Skill1,
                         TargetCount = 5,
                         Atk_Count = 1,
@@ -1496,7 +1504,7 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 6, new PassiveTranscend { 
-                            SelfBuff = new BuffSet { Dmg_Dealt = 35 }
+                            SelfBuff = new BuffSet { Dmg_Dealt_Type = 35 }
                         }}
                     }
                 },
@@ -1830,18 +1838,18 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData { 
-                            SelfBuff = new BuffSet { Dmg_Dealt = 32, Cri = 40 },
+                            SelfBuff = new BuffSet { Dmg_Dealt_Type = 32, Cri = 40 },
                             Effect = "마력 정화 중첩(4스택)"
                         }},
                         { 1, new PassiveLevelData { 
-                            SelfBuff = new BuffSet { Dmg_Dealt = 40, Cri = 40 },
+                            SelfBuff = new BuffSet { Dmg_Dealt_Type = 40, Cri = 40 },
                             Effect = "마력 정화 중첩(4스택)"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend { 
-                            SelfBuff = new BuffSet { Dmg_Dealt = 29 },
+                            SelfBuff = new BuffSet { Dmg_Rdc = 29 },
                         }}
                     }
                 },
@@ -2003,7 +2011,8 @@ namespace GameDamageCalculator.Database
                         {
                             { 2, new SkillTranscend { 
                                 Effect = "버프 해제 2개"
-                            }}
+                            }},
+                            {6, new SkillTranscend{ Debuff = new DebuffSet{ Vulnerability = 24 } } }
                         }
                     },
                     new Skill
@@ -2039,6 +2048,10 @@ namespace GameDamageCalculator.Database
                                     }
                                 }
                             } },
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                           {6, new SkillTranscend{ Debuff = new DebuffSet{ Vulnerability = 24 } } }
                         }
                     }
                 },
@@ -2057,7 +2070,7 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 6, new PassiveTranscend { 
-                            Debuff = new DebuffSet { Vulnerability = 24 },
+                            Effect = "스킬 시 취약",
                         }}
                     }
                 },
@@ -2172,7 +2185,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData { 
-                            PartyBuff = new BuffSet { Dmg_Dealt = 17 },
+                            PartyBuff = new BuffSet { Dmg_Dealt_Type = 17 },
                             StatScalings = new List<StatScaling>
                             {
                                 new StatScaling
@@ -2186,7 +2199,7 @@ namespace GameDamageCalculator.Database
                             },
                         }},
                         { 1, new PassiveLevelData { 
-                            PartyBuff = new BuffSet { Dmg_Dealt = 20 },
+                            PartyBuff = new BuffSet { Dmg_Dealt_Type = 20 },
                             StatScalings = new List<StatScaling>
                             {
                                 new StatScaling

@@ -24,12 +24,21 @@ namespace GameDamageCalculator.UI
         private class BuffConfig
         {
             public string Key { get; set; }
-            public CheckBox CheckBox { get; set; }
-            public Button Button { get; set; }
             public string BaseName { get; set; }
             public string CharacterName { get; set; }
             public string SkillName { get; set; }
             public bool IsBuff { get; set; }
+        }
+
+        // 버프 컨트롤 동적 접근 헬퍼
+        private CheckBox GetBuffCheckBox(BuffConfig config, string prefix = "My")
+        {
+            return FindName($"chk{prefix}{config.Key}") as CheckBox;
+        }
+
+        private Button GetBuffButton(BuffConfig config, string prefix = "My")
+        {
+            return FindName($"btn{prefix}{config.Key}") as Button;
         }
 
         public MainWindow()
@@ -53,24 +62,59 @@ namespace GameDamageCalculator.UI
             _buffConfigs = new List<BuffConfig>
             {
                 // 버프 패시브
-                new BuffConfig { Key = "BuffPassiveLion", CheckBox = chkMyBuffPassiveLion, Button = btnMyBuffPassiveLion, BaseName = "라이언", CharacterName = "라이언", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveLina", CheckBox = chkMyBuffPassiveLina, Button = btnMyBuffPassiveLina, BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveRachel", CheckBox = chkMyBuffPassiveRachel, Button = btnMyBuffPassiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveDelonz", CheckBox = chkMyBuffPassiveDelonz, Button = btnMyBuffPassiveDelonz, BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveMiho", CheckBox = chkMyBuffPassiveMiho, Button = btnMyBuffPassiveMiho, BaseName = "미호", CharacterName = "미호", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveYeonhee", BaseName = "연희", CharacterName = "연희", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveKiriel", BaseName = "키리엘", CharacterName = "키리엘", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveAilin", BaseName = "아일린", CharacterName = "아일린", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveDelonz", BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLina", BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveKagura", BaseName = "카구라", CharacterName = "카구라", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveOrly", BaseName = "오를리", CharacterName = "오를리", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveMiho", BaseName = "미호", CharacterName = "미호", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLion", BaseName = "라이언", CharacterName = "라이언", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRachel", BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveColt", BaseName = "콜트", CharacterName = "콜트", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassivePreiya", BaseName = "프레이야", CharacterName = "프레이야", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveYushin", BaseName = "유신", CharacterName = "유신", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRozy", BaseName = "로지", CharacterName = "로지", SkillName = null, IsBuff = true },
 
                 // 버프 액티브
-                new BuffConfig { Key = "BuffActiveBiscuit", CheckBox = chkMyBuffActiveBiscuit, Button = btnMyBuffActiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveLina", CheckBox = chkMyBuffActiveLina, Button = btnMyBuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveAlice", BaseName = "엘리스", CharacterName = "엘리스", SkillName = "비밀의 문", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveeZik", BaseName = "지크", CharacterName = "지크", SkillName = "패시브-턴제", IsBuff = true },
 
                 // 디버프 패시브
-                new BuffConfig { Key = "DebuffPassiveTaka", CheckBox = chkMyDebuffPassiveTaka, Button = btnMyDebuffPassiveTaka, BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveBiscuit", CheckBox = chkMyDebuffPassiveBiscuit, Button = btnMyDebuffPassiveBiscuit, BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveTaka", BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveMilia", BaseName = "밀리아", CharacterName = "밀리아", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveBanesa", BaseName = "바네사", CharacterName = "바네사", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveAce", BaseName = "에이스", CharacterName = "에이스", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveElisia", BaseName = "엘리시아", CharacterName = "엘리시아", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = null, IsBuff = false },
 
                 // 디버프 액티브
-                new BuffConfig { Key = "DebuffActiveLina", CheckBox = chkMyDebuffActiveLina, Button = btnMyDebuffActiveLina, BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRachelFlame", CheckBox = chkMyDebuffActiveRachelFlame, Button = btnMyDebuffActiveRachel, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRachelPhoenix", CheckBox = chkMyDebuffActiveRachelPhoenix, Button = null, BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", IsBuff = false }
+                new BuffConfig { Key = "DebuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveJuri", BaseName = "쥬리", CharacterName = "쥬리", SkillName = "천상의 심판", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveOrly", BaseName = "오를리", CharacterName = "오를리", SkillName = "고결한 유성", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveKagura", BaseName = "카구라", CharacterName = "카구라", SkillName = "해방-팔사검", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveMiho", BaseName = "미호", CharacterName = "미호", SkillName = "살율의 춤", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveVellica", BaseName = "벨리카", CharacterName = "벨리카", SkillName = "어둠의 환영", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveEspada", BaseName = "에스파다", CharacterName = "에스파다", SkillName = "정화탄", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveBanesa", BaseName = "바네사", CharacterName = "바네사", SkillName = "메마른 해일", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelFlame", BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelPhoenix", BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveColt", BaseName = "콜트", CharacterName = "콜트", SkillName = "어때, 화려하지?", IsBuff = false },
+                new BuffConfig { Key = "DebuffActivePlaton", BaseName = "플라튼", CharacterName = "플라튼", SkillName = "평타", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "부숴버려!", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "평타", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRozy", BaseName = "로지", CharacterName = "로지", SkillName = "평타", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveYushinFlat", BaseName = "유신", CharacterName = "유신", SkillName = "평타", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveYushinS2", BaseName = "유신", CharacterName = "유신", SkillName = "번뇌", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = "금지된 실험", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveAceS1", BaseName = "에이스", CharacterName = "에이스", SkillName = "달빛 베기", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveAceS2", BaseName = "에이스", CharacterName = "에이스", SkillName = "일도천화엽", IsBuff = false },
             };
         }
 
@@ -774,9 +818,10 @@ namespace GameDamageCalculator.UI
             // 버프/디버프 초기화
             foreach (var config in _buffConfigs)
             {
-                config.CheckBox.IsChecked = false;
-                if (config.Button != null)
-                    ResetBuffOptionButton(config.Button, config.BaseName);
+                var chk = GetBuffCheckBox(config);
+                var btn = GetBuffButton(config);
+                if (chk != null) chk.IsChecked = false;
+                if (btn != null) ResetBuffOptionButton(btn, config.BaseName);
             }
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
@@ -981,6 +1026,12 @@ namespace GameDamageCalculator.UI
             }
 
             RecalculateStats();
+        }
+
+        private void BtnOpenPvp_Click(object sender, RoutedEventArgs e)
+        {
+            var pvpWindow = new PvpWindow();
+            pvpWindow.Show();
         }
 
         private void CboMob_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1214,13 +1265,9 @@ namespace GameDamageCalculator.UI
             double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
 
             // 순수 기본 = 캐릭터 기본 + 장비 + 초월 + 장신구
-            double pureFlatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + mainOptionStats.Atk;
-            double pureFlatDef = equipFlatDef + potentialStats.Def + subStats.Def + mainOptionStats.Def;
-            double pureFlatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + mainOptionStats.Hp;
-
-            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + pureFlatAtk;
-            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + pureFlatDef;
-            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + pureFlatHp;
+            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + flatAtk;
+            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + flatDef;
+            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
 
             // ========== UI 표시 ==========
             txtMyStatAtkBase.Text = pureBaseAtk.ToString("N0");
@@ -1235,21 +1282,21 @@ namespace GameDamageCalculator.UI
             // ========== 기타 스탯 ==========
             BaseStatSet displayStats = new BaseStatSet
             {
-                Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri + characterPassiveBuff.Cri,
+                Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri + characterPassiveBuff.Cri + totalBuffs.Cri,
                 Cri_Dmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg + characterPassiveBuff.Cri_Dmg,
                 Wek = characterStats.Wek + transcendStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek + totalBuffs.Wek + characterPassiveBuff.Wek,
-                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
+                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
                 Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt,
                 Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
                 Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,
                 Blk = characterStats.Blk + transcendStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,
-                Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit,
-                Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res + characterPassiveBuff.Eff_Res,
+                Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit + totalBuffs.Eff_Hit + characterPassiveBuff.Eff_Hit,
+                Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res + totalBuffs.Eff_Res + characterPassiveBuff.Eff_Res,
                 Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
                 Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc,
                 Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5,
-                Atk_Rate = totalAtkRate
+                Atk_Rate = totalAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate
             };
 
             UpdateStatDisplay(displayStats);
@@ -1649,8 +1696,10 @@ namespace GameDamageCalculator.UI
             BuffSet total = new BuffSet();
             foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName == null))
             {
-                if (config.CheckBox.IsChecked != true) continue;
-                var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
+                var chk = GetBuffCheckBox(config);
+                if (chk?.IsChecked != true) continue;
+                var btn = GetBuffButton(config);
+                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
                 var character = CharacterDb.GetByName(config.CharacterName);
                 var buff = character?.Passive?.GetPartyBuff(isEnhanced, transcendLevel);
                 if (buff != null) total.MaxMerge(buff);
@@ -1663,9 +1712,11 @@ namespace GameDamageCalculator.UI
             BuffSet total = new BuffSet();
             foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName != null))
             {
-                if (config.CheckBox.IsChecked != true) continue;
+                var chk = GetBuffCheckBox(config);
+                if (chk?.IsChecked != true) continue;
         
-                var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
+                var btn = GetBuffButton(config);
+                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
                 var character = CharacterDb.GetByName(config.CharacterName);
                 var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
                 
@@ -1693,8 +1744,10 @@ namespace GameDamageCalculator.UI
             DebuffSet total = new DebuffSet();
             foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName == null))
             {
-                if (config.CheckBox.IsChecked != true) continue;
-                var (isEnhanced, transcendLevel) = GetBuffOption(config.Button);
+                var chk = GetBuffCheckBox(config);
+                if (chk?.IsChecked != true) continue;
+                var btn = GetBuffButton(config);
+                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
                 var character = CharacterDb.GetByName(config.CharacterName);
                 var debuff = character?.Passive?.GetTotalDebuff(isEnhanced, transcendLevel);
                 if (debuff != null) total.MaxMerge(debuff);
@@ -1707,8 +1760,15 @@ namespace GameDamageCalculator.UI
             DebuffSet total = new DebuffSet();
             foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName != null))
             {
-                if (config.CheckBox.IsChecked != true) continue;
-                Button btn = config.Button ?? _buffConfigs.FirstOrDefault(c => c.CharacterName == config.CharacterName && c.Button != null)?.Button;
+                var chk = GetBuffCheckBox(config);
+                if (chk?.IsChecked != true) continue;
+                var btn = GetBuffButton(config);
+                if (btn == null)
+                {
+                    // 버튼이 없으면 같은 캐릭터의 다른 config에서 찾기
+                    var otherConfig = _buffConfigs.FirstOrDefault(c => c.CharacterName == config.CharacterName && GetBuffButton(c) != null);
+                    if (otherConfig != null) btn = GetBuffButton(otherConfig);
+                }
                 var (isEnhanced, transcendLevel) = GetBuffOption(btn);
                 var character = CharacterDb.GetByName(config.CharacterName);
                 var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
@@ -1806,9 +1866,11 @@ namespace GameDamageCalculator.UI
             preset.BuffStates = new Dictionary<string, int>();
             foreach (var config in _buffConfigs)
             {
-                preset.BuffChecks[config.Key] = config.CheckBox.IsChecked == true;
-                if (config.Button != null)
-                    preset.BuffStates[config.Key] = int.Parse(config.Button.Tag?.ToString() ?? "0");
+                var chk = GetBuffCheckBox(config);
+                var btn = GetBuffButton(config);
+                preset.BuffChecks[config.Key] = chk?.IsChecked == true;
+                if (btn != null)
+                    preset.BuffStates[config.Key] = int.Parse(btn.Tag?.ToString() ?? "0");
             }
 
             return preset;
@@ -1896,11 +1958,13 @@ namespace GameDamageCalculator.UI
             {
                 foreach (var config in _buffConfigs)
                 {
-                    config.CheckBox.IsChecked = preset.BuffChecks.GetValueOrDefault(config.Key, false);
-                    if (config.Button != null && preset.BuffStates != null)
+                    var chk = GetBuffCheckBox(config);
+                    var btn = GetBuffButton(config);
+                    if (chk != null) chk.IsChecked = preset.BuffChecks.GetValueOrDefault(config.Key, false);
+                    if (btn != null && preset.BuffStates != null)
                     {
                         int state = preset.BuffStates.GetValueOrDefault(config.Key, 0);
-                        ApplyBuffButtonState(config.Button, config.BaseName, state);
+                        ApplyBuffButtonState(btn, config.BaseName, state);
                     }
                 }
             }
