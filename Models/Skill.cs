@@ -191,9 +191,11 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class ConsumeExtraDamage
     {
-        public int ConsumeCount { get; set; }           // 소모 개수
+        public int ConsumeCount { get; set; }           // 소모 개수 (4)
+        public double AtkRatio { get; set; }            // 공격력 비례% (39)
+        public double DefRatio { get; set; }            // 방어력 비례% (45) ← 추가
+        public double Arm_Pen { get; set; }         // 관통 여부 ← 추가
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP%
-        public double AtkRatio { get; set; }            // 공격력 비례%
-        public double AtkCap { get; set; }              // 공격력 제한%
+        public double AtkCap { get; set; }                // 공격력 제한%
     }
 }

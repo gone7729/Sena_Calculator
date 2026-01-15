@@ -121,12 +121,55 @@ namespace GameDamageCalculator.Services
             result.DamagePerHit = damagePerHit;
 
             // 11. 최종 피해 (타수 적용)
-            result.FinalDamage = damagePerHit * result.AtkCount;
+            double totalDamage = damagePerHit * result.AtkCount;
 
-            // 12. 상세 정보 생성
+            // 12. 축복 적용
+            if (defender.Blessing > 0)
+            {
+                result.BlessingAbsorbed = Math.Min(defender.Blessing, totalDamage);
+                totalDamage = Math.Max(0, totalDamage - defender.Blessing);
+            }
+
+            // 13. 고통 감내 적용
+            ApplyPainEndurance(totalDamage, defender, result);
+
+            // 14. 상세 정보 생성
             result.Details = GenerateDetails(attacker, defender, debuffs, skill, options, result);
 
             return result;
+        }
+
+        /// <summary>
+        /// 고통 감내 적용
+        /// </summary>
+        private void ApplyPainEndurance(double damage, PvpCharacterStats defender, PvpDamageResult result)
+        {
+            result.FinalDamage = damage;
+            result.ImmediateDamage = damage;
+            
+            if (defender.PainEndurance == null || defender.Hp <= 0)
+                return;
+
+            var pe = defender.PainEndurance;
+            double threshold = defender.Hp * (pe.Threshold / 100.0);
+
+            // 피해가 기준 이상일 때만 발동
+            if (damage >= threshold && pe.ReductionRate > 0 && pe.Duration > 0)
+            {
+                result.PainEnduranceTriggered = true;
+                
+                // 즉시 받는 피해 = (100 - 분산비율)%
+                double immediateRate = 1 - (pe.ReductionRate / 100.0);
+                result.ImmediateDamage = damage * immediateRate;
+                
+                // 분산 피해 = 분산비율% / 턴수
+                double deferredDamage = damage * (pe.ReductionRate / 100.0);
+                result.DotDamagePerTurn = deferredDamage / pe.Duration;
+                result.DotDuration = pe.Duration;
+                
+                // 최종 피해는 총합 (즉시 + 분산 전체)
+                result.FinalDamage = damage;  // 총 피해량은 동일
+            }
         }
 
         /// <summary>
@@ -203,7 +246,26 @@ namespace GameDamageCalculator.Services
             sb.AppendLine();
             
             sb.AppendLine($"[1타 피해: {result.DamagePerHit:N0}]");
-            sb.AppendLine($"[최종 피해: {result.FinalDamage:N0}] ({result.AtkCount}타)");
+            sb.AppendLine($"[스킬 피해: {result.DamagePerHit * result.AtkCount:N0}] ({result.AtkCount}타)");
+            
+            // 축복 정보
+            if (result.BlessingAbsorbed > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"[축복 흡수: {result.BlessingAbsorbed:N0}]");
+            }
+            
+            // 고통 감내 정보
+            if (result.PainEnduranceTriggered)
+            {
+                sb.AppendLine();
+                sb.AppendLine("[고통 감내 발동]");
+                sb.AppendLine($"즉시 피해: {result.ImmediateDamage:N0}");
+                sb.AppendLine($"분산 피해: {result.DotDamagePerTurn:N0}/턴 × {result.DotDuration}턴");
+            }
+            
+            sb.AppendLine();
+            sb.AppendLine($"[최종 피해: {result.FinalDamage:N0}]");
 
             return sb.ToString();
         }
@@ -262,10 +324,24 @@ namespace GameDamageCalculator.Services
         public double DefIncrease { get; set; }
         public double DamageReduction { get; set; }
         public double BlockRate { get; set; }
+        
+        // 특수 방어
+        public double Blessing { get; set; }                    // 축복량
+        public PainEndurance PainEndurance { get; set; }        // 고통 감내
 
         // 효과
         public double EffHit { get; set; }
         public double EffRes { get; set; }
+    }
+
+    /// <summary>
+    /// 고통 감내 (큰 피해를 분산해서 받음)
+    /// </summary>
+    public class PainEndurance
+    {
+        public double Threshold { get; set; }      // 발동 기준 (최대 HP의 %)
+        public double ReductionRate { get; set; }  // 분산 비율%
+        public int Duration { get; set; }          // 분산 턴 수
     }
 
     /// <summary>
@@ -319,6 +395,13 @@ namespace GameDamageCalculator.Services
         public double CritMultiplier { get; set; }     // 치명타 배율
         public double WeakpointMultiplier { get; set; } // 약점 배율
         public double DamageMultiplier { get; set; }   // 피해 증가 배율
+        
+        // 축복/고통 감내
+        public double BlessingAbsorbed { get; set; }   // 축복으로 흡수된 피해
+        public double ImmediateDamage { get; set; }    // 즉시 받는 피해 (고통 감내 적용 후)
+        public double DotDamagePerTurn { get; set; }   // 턴당 분산 피해
+        public int DotDuration { get; set; }           // 분산 턴 수
+        public bool PainEnduranceTriggered { get; set; } // 고통 감내 발동 여부
         
         // 상세 정보
         public string Details { get; set; }

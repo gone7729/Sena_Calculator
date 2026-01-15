@@ -34,6 +34,7 @@ namespace GameDamageCalculator.Models
         public double Arm_Pen { get; set; }         // 방어 관통%
         public double Dmg_Rdc { get; set; }         // 받는 피해 감소%
         public double Dmg_Rdc_Multi { get; set; }   // 5인기 받피감%
+        public double Blk { get; set; }   // 막기 확률%
 
         // ===== 기타 =====
         public double Heal_Bonus { get; set; }      // 받는 회복량%
