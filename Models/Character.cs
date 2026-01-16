@@ -5,6 +5,20 @@ using GameDamageCalculator.Database;
 namespace GameDamageCalculator.Models
 {
     /// <summary>
+    /// 초월 타입
+    /// </summary>
+    public enum TranscendType
+    {
+        AtkCri,      // 공격 + 치확
+        AtkCriDmg,   // 공격 + 치피
+        AtkWek,      // 공격 + 약점
+        AtkEff,      // 공격 + 효적
+        AtkDmgRdc,      // 공격 + 피감
+        DefBlk,      // 방어 + 막기
+        DefDmgRdc    // 방어 + 피감
+    }
+
+    /// <summary>
     /// 캐릭터
     /// </summary>
     public class Character
@@ -16,7 +30,9 @@ namespace GameDamageCalculator.Models
 
         public List<Skill> Skills { get; set; } = new List<Skill>();
         public Passive Passive { get; set; }
-        public List<TranscendBonus> TranscendBonuses { get; set; } = new List<TranscendBonus>();
+        
+        // 초월 타입 (TranscendDb에서 보너스 가져옴)
+        public TranscendType TranscendType { get; set; } = TranscendType.AtkCri;
 
         // 런타임 상태
         public int TranscendLevel { get; set; } = 0;
@@ -38,6 +54,25 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
+        /// 초월 타입에 따른 전체 보너스 리스트 (1~12)
+        /// </summary>
+        public List<TranscendBonus> GetTranscendBonuses()
+        {
+            var uniqueBonuses = TranscendType switch
+            {
+                TranscendType.AtkCri => StatTable.TranscendDb.AtkCriBonuses,
+                TranscendType.AtkCriDmg => StatTable.TranscendDb.AtkCriDmgBonuses,
+                TranscendType.AtkWek => StatTable.TranscendDb.AtkWekBonuses,
+                TranscendType.AtkEff => StatTable.TranscendDb.AtkEffBonuses,
+                TranscendType.AtkDmgRdc => StatTable.TranscendDb.AtkDmgRdcBonuses,
+                TranscendType.DefBlk => StatTable.TranscendDb.DefBlkBonuses,
+                TranscendType.DefDmgRdc => StatTable.TranscendDb.DefDmgRdcBonuses,
+                _ => StatTable.TranscendDb.AtkCriBonuses
+            };
+            return StatTable.TranscendDb.GetFullBonuses(uniqueBonuses);
+        }
+
+        /// <summary>
         /// 초월 레벨에 따른 스탯 보너스 가져오기
         /// </summary>
         public BaseStatSet GetTranscendStats(int level)
@@ -45,14 +80,8 @@ namespace GameDamageCalculator.Models
             var result = new BaseStatSet();
             if (level <= 0) return result;
 
-            // 캐릭터 고유 초월 (1~6)
-            foreach (var bonus in TranscendBonuses.Where(b => b.Level <= level))
-            {
-                result.Add(bonus.BonusStats);
-            }
-
-            // 공통 초월 (7~12)
-            foreach (var bonus in StatTable.TranscendDb.CommonBonuses.Where(b => b.Level <= level))
+            var allBonuses = GetTranscendBonuses();
+            foreach (var bonus in allBonuses.Where(b => b.Level <= level))
             {
                 result.Add(bonus.BonusStats);
             }

@@ -9,9 +9,11 @@ namespace GameDamageCalculator.Models
     public enum SkillType
     {
         Normal,     // 평타
+        Normal2,    // 평타 2
         Skill1,     // 스킬 1
         Skill2,     // 스킬 2
-        Skill3,     // 스킬 5
+        Skill3,     // 스킬 3
+        Skill4,     // 스킬 4
         Ultimate    // 궁극기
     }
 
@@ -119,6 +121,7 @@ namespace GameDamageCalculator.Models
         // ===== 조건부 효과 =====
         public double ConditionalRatioBonus { get; set; }
         public double ConditionalExtraDmg { get; set; }
+        public double ConditionalExtraDmgSelfHpRatio { get; set; }
         public string ConditionalDesc { get; set; }
         public bool ConditionalExtraDmgPerHit { get; set; }
         public double ConditionalDmgBonus { get; set; }
@@ -172,6 +175,7 @@ namespace GameDamageCalculator.Models
         // 조건부 효과
         public double ConditionalDmgBonus { get; set; }
         public double ConditionalExtraDmg { get; set; }
+        public double ConditionalExtraDmgSelfHpRatio { get; set; }
 
         // 상태이상
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();

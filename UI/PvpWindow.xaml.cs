@@ -64,7 +64,6 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "BuffPassiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveKiriel", BaseName = "키리엘", CharacterName = "키리엘", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveAilin", BaseName = "아일린", CharacterName = "아일린", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveZik", BaseName = "지크", CharacterName = "지크", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveDelonz", BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveLina", BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveKagura", BaseName = "카구라", CharacterName = "카구라", SkillName = null, IsBuff = true },
@@ -76,12 +75,20 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "BuffPassivePreiya", BaseName = "프레이야", CharacterName = "프레이야", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveYushin", BaseName = "유신", CharacterName = "유신", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveRozy", BaseName = "로지", CharacterName = "로지", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveKarma", BaseName = "카르마", CharacterName = "카르마", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRook", BaseName = "룩", CharacterName = "룩", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveSpike", BaseName = "스파이크", CharacterName = "스파이크", SkillName = null, IsBuff = true },
 
                 // 버프 액티브
                 new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveAlice", BaseName = "엘리스", CharacterName = "엘리스", SkillName = "비밀의 문", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "패시브-턴제", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "여의참난무", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = "방어 준비", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = "칠흑의 장막", IsBuff = true },
 
                 // 디버프 패시브
                 new BuffConfig { Key = "DebuffPassiveTaka", BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
@@ -91,6 +98,10 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "DebuffPassiveAce", BaseName = "에이스", CharacterName = "에이스", SkillName = null, IsBuff = false },
                 new BuffConfig { Key = "DebuffPassiveElisia", BaseName = "엘리시아", CharacterName = "엘리시아", SkillName = null, IsBuff = false },
                 new BuffConfig { Key = "DebuffPassiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveAragon", BaseName = "아라곤", CharacterName = "아라곤", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveChancellor", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = null, IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = null, IsBuff = false },
 
                 // 디버프 액티브
                 new BuffConfig { Key = "DebuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
@@ -113,6 +124,12 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "DebuffActiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = "금지된 실험", IsBuff = false },
                 new BuffConfig { Key = "DebuffActiveAceS1", BaseName = "에이스", CharacterName = "에이스", SkillName = "달빛 베기", IsBuff = false },
                 new BuffConfig { Key = "DebuffActiveAceS2", BaseName = "에이스", CharacterName = "에이스", SkillName = "일도천화엽", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveChancellorS1", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = "분쇄", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveChancellorS2", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = "대지 파괴", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveAragon", BaseName = "아라곤", CharacterName = "아라곤", SkillName = "포격 지원", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveKarma", BaseName = "카르마", CharacterName = "카르마", SkillName = "평타", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = "지옥의 일격", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "환.여의난참무", IsBuff = false },
             };
         }
 
@@ -219,18 +236,28 @@ namespace GameDamageCalculator.UI
 
         private void InitializePetComboBox(ComboBox cbo)
         {
-            if (cbo == null) return;
+            if (cbo == null) 
+            {
+                System.Diagnostics.Debug.WriteLine("InitializePetComboBox: cbo is null");
+                return;
+            }
             
-            cbo.Items.Clear();  // 혹시 모를 중복 방지
+            cbo.Items.Clear();
             cbo.Items.Add("없음");
             
-            if (PetDb.Pets != null)
+            // PetDb.Pets 직접 확인 후 로드
+            var pets = PetDb.Pets;
+            System.Diagnostics.Debug.WriteLine($"InitializePetComboBox: PetDb.Pets count = {pets?.Count ?? 0}");
+            
+            if (pets != null && pets.Count > 0)
             {
-                foreach (var pet in PetDb.Pets)
+                foreach (var pet in pets)
                 {
                     cbo.Items.Add(pet.Name);
                 }
             }
+            
+            System.Diagnostics.Debug.WriteLine($"InitializePetComboBox: {cbo.Name} items count = {cbo.Items.Count}");
             cbo.SelectedIndex = 0;
         }
 
@@ -506,6 +533,22 @@ namespace GameDamageCalculator.UI
             return total;
         }
 
+        /// <summary>
+        /// 펫 스킬 버프 가져오기
+        /// </summary>
+        private BuffSet GetPetSkillBuff(string prefix)
+        {
+            return _statHelper.GetPetSkillBuff(prefix);
+        }
+
+        /// <summary>
+        /// 펫 스킬 디버프 가져오기
+        /// </summary>
+        private DebuffSet GetPetSkillDebuff(string prefix)
+        {
+            return _statHelper.GetPetSkillDebuff(prefix);
+        }
+
         #endregion
 
         #region 스탯 계산
@@ -534,6 +577,7 @@ namespace GameDamageCalculator.UI
             BuffSet totalBuffs = new BuffSet();
             totalBuffs.Add(passiveBuffs);
             totalBuffs.Add(activeBuffs);
+            totalBuffs.Add(GetPetSkillBuff(prefix));
 
             // 펫 옵션
             var petRates = _statHelper.GetPetOptionRates(prefix);
@@ -644,16 +688,20 @@ namespace GameDamageCalculator.UI
             // 디버프 합산 (내가 적에게 건 디버프)
             DebuffSet myPassiveDebuffs = GetAllPassiveDebuffs("My");
             DebuffSet myActiveDebuffs = GetAllActiveDebuffs("My");
+            DebuffSet myPetDebuffs = GetPetSkillDebuff("My");
             DebuffSet myTotalDebuffs = new DebuffSet();
             myTotalDebuffs.MaxMerge(myPassiveDebuffs);
             myTotalDebuffs.MaxMerge(myActiveDebuffs);
+            myTotalDebuffs.Add(myPetDebuffs);  // 펫은 영웅과 중첩 가능
 
             // 디버프 합산 (적이 나에게 건 디버프)
             DebuffSet enemyPassiveDebuffs = GetAllPassiveDebuffs("Enemy");
             DebuffSet enemyActiveDebuffs = GetAllActiveDebuffs("Enemy");
+            DebuffSet enemyPetDebuffs = GetPetSkillDebuff("Enemy");
             DebuffSet enemyTotalDebuffs = new DebuffSet();
             enemyTotalDebuffs.MaxMerge(enemyPassiveDebuffs);
             enemyTotalDebuffs.MaxMerge(enemyActiveDebuffs);
+            enemyTotalDebuffs.Add(enemyPetDebuffs);  // 펫은 영웅과 중첩 가능
 
             // 스탯 조합
             var myStats = BuildPvpStats("My", myCalcStats, myTotalBuffs, myCharPassiveBuff);
@@ -695,14 +743,16 @@ namespace GameDamageCalculator.UI
                     DefReduction = myTotalDebuffs.Def_Reduction,
                     DmgTakenIncrease = myTotalDebuffs.Dmg_Taken_Increase,
                     Vulnerability = myTotalDebuffs.Vulnerability,
-                    EffResReduction = myTotalDebuffs.Eff_Red
+                    EffResReduction = myTotalDebuffs.Eff_Red,
+                    CriDmgReduction = myTotalDebuffs.Cri_Dmg_Reduction
                 },
                 EnemyDebuffsOnMe = new PvpDebuffs
                 {
                     DefReduction = enemyTotalDebuffs.Def_Reduction,
                     DmgTakenIncrease = enemyTotalDebuffs.Dmg_Taken_Increase,
                     Vulnerability = enemyTotalDebuffs.Vulnerability,
-                    EffResReduction = enemyTotalDebuffs.Eff_Red
+                    EffResReduction = enemyTotalDebuffs.Eff_Red,
+                    CriDmgReduction = enemyTotalDebuffs.Cri_Dmg_Reduction
                 }
             };
 

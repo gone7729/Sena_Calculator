@@ -93,10 +93,17 @@ namespace GameDamageCalculator.Services
             // 5. 타수
             result.AtkCount = skill.Atk_Count;
 
-            // 6. 치명타 배율 (스킬 보너스 포함)
-            result.CritMultiplier = options.IsCritical
-                ? (attacker.CritDamage + skillBonus.Cri_Dmg) / 100.0
-                : 1.0;
+            // 6. 치명타 배율 (스킬 보너스 포함, 치피감 적용)
+            if (options.IsCritical)
+            {
+                double baseCritDmg = (attacker.CritDamage + skillBonus.Cri_Dmg) / 100.0;
+                double critReduction = (debuffs?.CriDmgReduction ?? 0) / 100.0;
+                result.CritMultiplier = Math.Max(1.0, baseCritDmg - critReduction);  // 최소 100%
+            }
+            else
+            {
+                result.CritMultiplier = 1.0;
+            }
 
             // 7. 약점 배율 (약점 피해 증가 버프 적용)
             result.WeakpointMultiplier = options.IsWeakpoint
@@ -353,6 +360,7 @@ namespace GameDamageCalculator.Services
         public double DmgTakenIncrease { get; set; }  // 받피증
         public double Vulnerability { get; set; }     // 취약
         public double EffResReduction { get; set; }   // 효저깎
+        public double CriDmgReduction { get; set; }   // 치명타 피해 감소
     }
 
     /// <summary>

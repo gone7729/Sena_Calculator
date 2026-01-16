@@ -38,6 +38,7 @@ namespace GameDamageCalculator.Services
             public double DefReduction { get; set; }
             public double DmgTakenIncrease { get; set; }
             public double Vulnerability { get; set; }
+            public double BossVulnerability { get; set; }   // 보스 취약
             public double EffResReduction { get; set; }
             public double HealReduction { get; set; }
 
@@ -311,8 +312,9 @@ namespace GameDamageCalculator.Services
             }
 
             double bossDmg = input.Mode == BattleMode.Boss ? input.DmgDealtBoss : 0;
+            double bossVuln = input.Mode == BattleMode.Boss ? input.BossVulnerability : 0;
             double increase = input.DmgDealt + bossDmg + input.DmgTakenIncrease
-                            + input.Vulnerability + conditionalDmgBonus + targetTypeDmg;
+                            + input.Vulnerability + bossVuln + conditionalDmgBonus + targetTypeDmg;
             double reduction = input.BossDmgReduction + input.BossTargetReduction;
 
             return 1 + (increase - reduction) / 100.0;
@@ -379,6 +381,13 @@ namespace GameDamageCalculator.Services
                 if (levelData.ConditionalExtraDmgPerHit)
                     extraDmg *= result.AtkCount;
                 result.ExtraDamage = extraDmg;
+            }
+
+            // 시전자 생명력 비례 추가 피해
+            if (levelData.ConditionalExtraDmgSelfHpRatio > 0)
+            {
+                double selfHpExtraDmg = input.SelfMaxHp * (levelData.ConditionalExtraDmgSelfHpRatio / 100.0);
+                result.ExtraDamage += selfHpExtraDmg;
             }
 
             // 약점 추가 피해

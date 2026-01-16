@@ -650,6 +650,39 @@
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
                                 </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(피증,댐감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffPassiveKarma" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffPassiveKarma" Content="카르마" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(방증)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffPassiveRudi" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffPassiveRudi" Content="루디" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(막기확률)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffPassiveRook" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffPassiveRook" Content="룩" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
                                 
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(효과적중)" FontSize="10" Foreground="#888"/>
@@ -687,6 +720,16 @@
                                         <CheckBox x:Name="chkMyBuffPassiveRozy" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyBuffPassiveRozy" Content="로지" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효적,효저)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffPassiveSpike" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffPassiveSpike" Content="스파이크" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -739,6 +782,37 @@
                                         <CheckBox x:Name="chkMyBuffActiveLina" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyBuffActiveLina" Content="리나" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(댐감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffActiveGoku" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffActiveGoku" Content="손오공" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(댐감@스강)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffActiveRudi" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffActiveRudi" Content="루디" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(댐감@스강)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffActiveAkila" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffActiveAkila" Content="아킬라" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -828,11 +902,53 @@
                                 </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(공깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffPassiveAragon" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffPassiveAragon" Content="아라곤" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(피감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffPassiveChancellor" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffPassiveChancellor" Content="챈슬러" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(효저깎)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox x:Name="chkMyDebuffPassiveMelkir" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyDebuffPassiveMelkir" Content="멜키르" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효저깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffPassiveAkila" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffPassiveAkila" Content="아킬라" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효저깎@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffPassiveNox" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffPassiveNox" Content="녹스" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -873,6 +989,18 @@
                                         <CheckBox x:Name="chkMyDebuffActiveOrly" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyDebuffActiveOrly" Content="오를리" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(방깎/공깎@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveChancellorS1" Content="방깎" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <CheckBox x:Name="chkMyDebuffActiveChancellorS2" Content="공깎" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActiveChancellor" Content="챈슬러" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -944,6 +1072,17 @@
                                 </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(치피감@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveAragon" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActiveAragon" Content="아라곤" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(공깎@스강)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox x:Name="chkMyDebuffActiveColt" VerticalAlignment="Center"
@@ -987,11 +1126,32 @@
                                 </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(뎀감@평타)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveKarma" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActiveKarma" Content="카르마" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(효저깎@평타)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox x:Name="chkMyDebuffActiveRozy" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>         
                                         <Button x:Name="btnMyDebuffActiveRozy" Content="로지" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효저깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveNox" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>         
+                                        <Button x:Name="btnMyDebuffActiveNox" Content="녹스" Tag="0" 
                                                 Click="BuffOption_Click" Margin="8,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -1028,6 +1188,17 @@
                                         <CheckBox x:Name="chkMyDebuffActiveAceS2" Content="2스" VerticalAlignment="Center" Margin="8,0,0,0"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyDebuffActiveAce" Content="에이스" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(막감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveGoku" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActiveGoku" Content="손오공" Tag="0" 
                                                 Click="BuffOption_Click" Margin="8,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -1714,6 +1885,39 @@
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
                                 </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(피증,댐감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffPassiveKarma" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffPassiveKarma" Content="카르마" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(방증)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffPassiveRudi" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffPassiveRudi" Content="루디" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(막기확률)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffPassiveRook" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffPassiveRook" Content="룩" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
                                 
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(효과적중)" FontSize="10" Foreground="#888"/>
@@ -1751,6 +1955,16 @@
                                         <CheckBox x:Name="chkEnemyBuffPassiveRozy" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnEnemyBuffPassiveRozy" Content="로지" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효적,효저)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffPassiveSpike" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffPassiveSpike" Content="스파이크" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -1803,6 +2017,37 @@
                                         <CheckBox x:Name="chkEnemyBuffActiveLina" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnEnemyBuffActiveLina" Content="리나" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(댐감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffActiveGoku" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffActiveGoku" Content="손오공" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(댐감@스강)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffActiveRudi" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffActiveRudi" Content="루디" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(댐감@스강)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyBuffActiveAkila" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyBuffActiveAkila" Content="아킬라" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -1892,11 +2137,53 @@
                                 </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(공깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffPassiveAragon" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffPassiveAragon" Content="아라곤" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(피감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffPassiveChancellor" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffPassiveChancellor" Content="챈슬러" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(효저깎)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox x:Name="chkEnemyDebuffPassiveMelkir" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnEnemyDebuffPassiveMelkir" Content="멜키르" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효저깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffPassiveAkila" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffPassiveAkila" Content="아킬라" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효저깎@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffPassiveNox" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffPassiveNox" Content="녹스" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -1937,6 +2224,18 @@
                                         <CheckBox x:Name="chkEnemyDebuffActiveOrly" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnEnemyDebuffActiveOrly" Content="오를리" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(방깎/공깎@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffActiveChancellorS1" Content="방깎" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <CheckBox x:Name="chkEnemyDebuffActiveChancellorS2" Content="공깎" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffActiveChancellor" Content="챈슬러" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -2008,6 +2307,17 @@
                                 </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(치피감@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffActiveAragon" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffActiveAragon" Content="아라곤" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(공깎@스강)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox x:Name="chkEnemyDebuffActiveColt" VerticalAlignment="Center"
@@ -2051,11 +2361,32 @@
                                 </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(뎀감@평타)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffActiveKarma" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffActiveKarma" Content="카르마" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(효저깎@평타)" FontSize="10" Foreground="#888"/>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox x:Name="chkEnemyDebuffActiveRozy" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>         
                                         <Button x:Name="btnEnemyDebuffActiveRozy" Content="로지" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(효저깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffActiveNox" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>         
+                                        <Button x:Name="btnEnemyDebuffActiveNox" Content="녹스" Tag="0" 
                                                 Click="BuffOption_Click" Margin="8,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -2092,6 +2423,17 @@
                                         <CheckBox x:Name="chkEnemyDebuffActiveAceS2" Content="2스" VerticalAlignment="Center" Margin="8,0,0,0"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnEnemyDebuffActiveAce" Content="에이스" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(막감)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnemyDebuffActiveGoku" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnEnemyDebuffActiveGoku" Content="손오공" Tag="0" 
                                                 Click="BuffOption_Click" Margin="8,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>

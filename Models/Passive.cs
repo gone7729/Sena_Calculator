@@ -106,6 +106,7 @@ namespace GameDamageCalculator.Models
         public string Effect { get; set; }
         public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
         public CoopAttack CoopAttack { get; set; }
+        public PainEndurance PainEndurance { get; set; }
         public BaseStatSet FlatBonus { get; set; }
     }
 
@@ -123,6 +124,16 @@ namespace GameDamageCalculator.Models
     }
 
     /// <summary>
+    /// 고통 감내 데이터
+    /// </summary>
+    public class PainEndurance
+    {
+        public double Threshold { get; set; }      // 발동 기준 (최대 HP의 %)
+        public double ReductionRate { get; set; }  // 분산 비율%
+        public int Duration { get; set; }          // 분산 턴 수
+    }
+
+    /// <summary>
     /// 패시브 초월 보너스
     /// </summary>
     public class PassiveTranscend
@@ -131,6 +142,7 @@ namespace GameDamageCalculator.Models
         public BuffSet PartyBuff { get; set; } = new BuffSet();         // 아군 전체
         public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
         public DebuffSet Debuff { get; set; } = new DebuffSet();
+        public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
 
         // 상태이상 부여
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
@@ -167,6 +179,7 @@ namespace GameDamageCalculator.Models
         Cri,        // 치명타 확률
         Cri_Dmg,    // 치명타 피해
         Eff_Hit,    // 효과 적중
-        Eff_Res     // 효과 저항
+        Eff_Res,     // 효과 저항
+        Blk     // 막기
     }
 }

@@ -115,6 +115,70 @@ namespace GameDamageCalculator.Database
 
         public static class TranscendDb
         {
+            public static readonly List<TranscendBonus> AtkCriBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri = 18 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 } }
+            };
+            public static readonly List<TranscendBonus> AtkCriDmgBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Cri_Dmg = 24 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 } }
+            };
+            public static readonly List<TranscendBonus> AtkWekBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Wek = 20 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 } }
+            };
+            public static readonly List<TranscendBonus> AtkEffBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Eff_Hit = 24 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 } }
+            };
+            public static readonly List<TranscendBonus> AtkDmgRdcBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Atk_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Dmg_Rdc = 10 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Atk_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Atk_Rate = 6 } }
+            };
+            public static readonly List<TranscendBonus> DefBlkBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Def_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Blk = 18 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Def_Rate = 6 } }
+            };
+            public static readonly List<TranscendBonus> DefDmgRdcBonuses = new List<TranscendBonus>
+            {
+                new TranscendBonus { Level = 1, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                new TranscendBonus { Level = 2, BonusStats = new BaseStatSet { Def_Rate = 6 } },
+                new TranscendBonus { Level = 3, BonusStats = new BaseStatSet { Hp_Rate = 18 } },
+                new TranscendBonus { Level = 4, BonusStats = new BaseStatSet { Dmg_Rdc = 10 } },
+                new TranscendBonus { Level = 5, BonusStats = new BaseStatSet { Def_Rate = 12 } },
+                new TranscendBonus { Level = 6, BonusStats = new BaseStatSet { Def_Rate = 6 } }
+            };
+
             public static readonly List<TranscendBonus> CommonBonuses = new List<TranscendBonus>
             {
                 new TranscendBonus { Level = 7, BonusStats = new BaseStatSet { Atk_Rate = 2, Def_Rate = 2, Hp_Rate = 2 } },

@@ -254,22 +254,41 @@ namespace GameDamageCalculator.Services
         }
 
         /// <summary>
-        /// 펫 스킬 공격력% 가져오기
+        /// 펫 스킬 버프 전체 가져오기
         /// </summary>
-        public double GetPetSkillAtkRate(string prefix)
+        public BuffSet GetPetSkillBuff(string prefix)
         {
             var cboPet = GetComboBox(prefix, "Pet");
             var cboPetStar = GetComboBox(prefix, "PetStar");
 
             if (cboPet == null || cboPet.SelectedIndex <= 0)
-                return 0;
+                return new BuffSet();
 
             string petName = cboPet.SelectedItem.ToString();
             var pet = PetDb.GetByName(petName);
-            if (pet == null) return 0;
+            if (pet == null) return new BuffSet();
 
             int star = GetPetStarValue(cboPetStar);
-            return pet.GetSkillBonus(star).Atk_Rate;
+            return pet.GetSkillBuff(star);
+        }
+
+        /// <summary>
+        /// 펫 스킬 디버프 전체 가져오기
+        /// </summary>
+        public DebuffSet GetPetSkillDebuff(string prefix)
+        {
+            var cboPet = GetComboBox(prefix, "Pet");
+            var cboPetStar = GetComboBox(prefix, "PetStar");
+
+            if (cboPet == null || cboPet.SelectedIndex <= 0)
+                return new DebuffSet();
+
+            string petName = cboPet.SelectedItem.ToString();
+            var pet = PetDb.GetByName(petName);
+            if (pet == null) return new DebuffSet();
+
+            int star = GetPetStarValue(cboPetStar);
+            return pet.GetSkillDebuff(star);
         }
 
         private int GetPetStarValue(ComboBox cboPetStar)
@@ -392,7 +411,6 @@ namespace GameDamageCalculator.Services
             // 펫 스탯
             var petFlat = GetPetFlatStats(prefix);
             var petRates = GetPetOptionRates(prefix);
-            double petSkillAtkRate = GetPetSkillAtkRate(prefix);
 
             // 진형 보너스
             var formationRates = GetFormationRates(prefix);
@@ -415,10 +433,11 @@ namespace GameDamageCalculator.Services
             double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlat.Def + mainOptionStats.Def;
             double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlat.Hp + mainOptionStats.Hp;
 
+            // 펫 스킬 공격력%는 버프로 분류되어 totalBuffs에서 합산되므로 여기서 제외
             double totalAtkRate = transcendStats.Atk_Rate + formationRates.AtkRate
                     + setBonus.Atk_Rate + subStats.Atk_Rate
                     + accessoryStats.Atk_Rate + petRates.AtkRate
-                    + mainOptionStats.Atk_Rate + petSkillAtkRate;
+                    + mainOptionStats.Atk_Rate;
 
             double totalDefRate = transcendStats.Def_Rate + formationRates.DefRate
                     + setBonus.Def_Rate + subStats.Def_Rate
@@ -452,6 +471,7 @@ namespace GameDamageCalculator.Services
                             StatType.Hp => baseStatHp,
                             StatType.Def => baseStatDef,
                             StatType.Atk => baseStatAtk,
+                            StatType.Blk => result.ScalingBlk,
                             _ => 0
                         };
 
@@ -463,6 +483,7 @@ namespace GameDamageCalculator.Services
                             case StatType.Def: baseStatDef += bonus; break;
                             case StatType.Hp: baseStatHp += bonus; break;
                             case StatType.Cri: result.ScalingCri += bonus; break;
+                            case StatType.Blk: result.ScalingBlk += bonus; break;
                         }
                     }
                 }
@@ -540,6 +561,7 @@ namespace GameDamageCalculator.Services
 
         // 스탯 비례 보너스
         public double ScalingCri { get; set; }
+        public double ScalingBlk { get; set; }
 
         // 원본 스탯 세트 (기타 스탯 계산용)
         public BaseStatSet CharacterStats { get; set; } = new BaseStatSet();

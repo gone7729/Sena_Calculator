@@ -14,7 +14,9 @@ namespace GameDamageCalculator.Models
         // ===== 피해 관련 =====
         public double Dmg_Taken_Increase { get; set; }  // 받는 피해 증가%
         public double Vulnerability { get; set; }       // 취약%
+        public double Boss_Vulnerability { get; set; }  // 보스 취약%
         public double Dmg_Reduction { get; set; }       // 주는 피해량 감소%
+        public double Cri_Dmg_Reduction { get; set; }   // 치명타 피해 감소%
 
         // ===== 스탯 감소 =====
         public double Atk_Reduction { get; set; }       // 공격력 감소%
@@ -37,9 +39,11 @@ namespace GameDamageCalculator.Models
             Def_Reduction += other.Def_Reduction;
             Dmg_Taken_Increase += other.Dmg_Taken_Increase;
             Vulnerability += other.Vulnerability;
+            Boss_Vulnerability += other.Boss_Vulnerability;
             Atk_Reduction += other.Atk_Reduction;
             Spd_Reduction += other.Spd_Reduction;
             Dmg_Reduction += other.Dmg_Reduction;
+            Cri_Dmg_Reduction += other.Cri_Dmg_Reduction;
             Heal_Reduction += other.Heal_Reduction;
             Unrecover += other.Unrecover;
             Eff_Red += other.Eff_Red;
@@ -56,9 +60,11 @@ namespace GameDamageCalculator.Models
             Def_Reduction = Math.Max(Def_Reduction, other.Def_Reduction);
             Dmg_Taken_Increase = Math.Max(Dmg_Taken_Increase, other.Dmg_Taken_Increase);
             Vulnerability = Math.Max(Vulnerability, other.Vulnerability);
+            Boss_Vulnerability = Math.Max(Boss_Vulnerability, other.Boss_Vulnerability);
             Atk_Reduction = Math.Max(Atk_Reduction, other.Atk_Reduction);
             Spd_Reduction = Math.Max(Spd_Reduction, other.Spd_Reduction);
             Dmg_Reduction = Math.Max(Dmg_Reduction, other.Dmg_Reduction);
+            Cri_Dmg_Reduction = Math.Max(Cri_Dmg_Reduction, other.Cri_Dmg_Reduction);
             Heal_Reduction = Math.Max(Heal_Reduction, other.Heal_Reduction);
             Unrecover = Math.Max(Unrecover, other.Unrecover);
             Eff_Red = Math.Max(Eff_Red, other.Eff_Red);
@@ -75,9 +81,11 @@ namespace GameDamageCalculator.Models
                 Def_Reduction = Def_Reduction,
                 Dmg_Taken_Increase = Dmg_Taken_Increase,
                 Vulnerability = Vulnerability,
+                Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,
                 Spd_Reduction = Spd_Reduction,
                 Dmg_Reduction = Dmg_Reduction,
+                Cri_Dmg_Reduction = Cri_Dmg_Reduction,
                 Heal_Reduction = Heal_Reduction,
                 Unrecover = Unrecover,
                 Eff_Red = Eff_Red,
@@ -93,9 +101,11 @@ namespace GameDamageCalculator.Models
             Def_Reduction = 0;
             Dmg_Taken_Increase = 0;
             Vulnerability = 0;
+            Boss_Vulnerability = 0;
             Atk_Reduction = 0;
             Spd_Reduction = 0;
             Dmg_Reduction = 0;
+            Cri_Dmg_Reduction = 0;
             Heal_Reduction = 0;
             Unrecover = 0;
             Eff_Red = 0;

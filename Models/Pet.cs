@@ -4,6 +4,15 @@ using GameDamageCalculator.Database;
 namespace GameDamageCalculator.Models
 {
     /// <summary>
+    /// 펫 스킬 (버프 + 디버프)
+    /// </summary>
+    public class PetSkill
+    {
+        public BuffSet Buff { get; set; }     // BaseStatSet → BuffSet
+        public DebuffSet Debuff { get; set; }
+    }
+
+    /// <summary>
     /// 펫 모델
     /// </summary>
     public class Pet
@@ -11,7 +20,7 @@ namespace GameDamageCalculator.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string Rarity { get; set; }
-        public Dictionary<int, BaseStatSet> Skills { get; set; }
+        public Dictionary<int, PetSkill> Skills { get; set; }
 
         /// <summary>
         /// 성급별 기본 스탯 가져오기
@@ -30,25 +39,33 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 성급별 스킬 보너스 가져오기
+        /// 성급별 스킬 버프 가져오기
         /// </summary>
-        public BaseStatSet GetSkillBonus(int star)
+        public BuffSet GetSkillBuff(int star)
         {
-            if (Skills != null && Skills.TryGetValue(star, out var bonus))
+            if (Skills != null && Skills.TryGetValue(star, out var skill))
             {
-                return bonus.Clone();
+                return skill.Buff?.Clone() ?? new BuffSet();
             }
-            return new BaseStatSet();
+            return new BuffSet();
         }
 
         /// <summary>
-        /// 전체 스탯 (기본 + 스킬 보너스)
+        /// 성급별 스킬 디버프 가져오기
         /// </summary>
+        public DebuffSet GetSkillDebuff(int star)
+        {
+            if (Skills != null && Skills.TryGetValue(star, out var skill))
+            {
+                return skill.Debuff?.Clone() ?? new DebuffSet();
+            }
+            return new DebuffSet();
+        }
+
+        // ✅ 새 버전
         public BaseStatSet GetTotalStats(int star)
         {
-            var total = GetBaseStats(star);
-            total.Add(GetSkillBonus(star));
-            return total;
+            return GetBaseStats(star);  // 기본 스탯만 반환
         }
     }
 }
