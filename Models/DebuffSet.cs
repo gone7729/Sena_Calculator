@@ -74,7 +74,7 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 복사본 생성
         /// </summary>
-        public DebuffSet Clone()
+        public virtual DebuffSet Clone()
         {
             return new DebuffSet
             {
@@ -110,6 +110,56 @@ namespace GameDamageCalculator.Models
             Unrecover = 0;
             Eff_Red = 0;
             Blk_Red = 0;
+        }
+    }
+
+    /// <summary>
+    /// 상시 디버프 (패시브 등 - 같은 타입끼리 MaxMerge)
+    /// </summary>
+    public class PermanentDebuff : DebuffSet
+    {
+        public override DebuffSet Clone()
+        {
+            return new PermanentDebuff
+            {
+                Def_Reduction = Def_Reduction,
+                Dmg_Taken_Increase = Dmg_Taken_Increase,
+                Vulnerability = Vulnerability,
+                Boss_Vulnerability = Boss_Vulnerability,
+                Atk_Reduction = Atk_Reduction,
+                Spd_Reduction = Spd_Reduction,
+                Dmg_Reduction = Dmg_Reduction,
+                Cri_Dmg_Reduction = Cri_Dmg_Reduction,
+                Heal_Reduction = Heal_Reduction,
+                Unrecover = Unrecover,
+                Eff_Red = Eff_Red,
+                Blk_Red = Blk_Red,
+            };
+        }
+    }
+
+    /// <summary>
+    /// 턴제 디버프 (스킬 등 - 같은 타입끼리 MaxMerge)
+    /// </summary>
+    public class TimedDebuff : DebuffSet
+    {
+        public override DebuffSet Clone()
+        {
+            return new TimedDebuff
+            {
+                Def_Reduction = Def_Reduction,
+                Dmg_Taken_Increase = Dmg_Taken_Increase,
+                Vulnerability = Vulnerability,
+                Boss_Vulnerability = Boss_Vulnerability,
+                Atk_Reduction = Atk_Reduction,
+                Spd_Reduction = Spd_Reduction,
+                Dmg_Reduction = Dmg_Reduction,
+                Cri_Dmg_Reduction = Cri_Dmg_Reduction,
+                Heal_Reduction = Heal_Reduction,
+                Unrecover = Unrecover,
+                Eff_Red = Eff_Red,
+                Blk_Red = Blk_Red,
+            };
         }
     }
 }

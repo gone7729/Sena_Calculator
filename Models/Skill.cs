@@ -67,7 +67,7 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 스킬 레벨 + 초월 보너스 합산된 BuffSet 반환
+        /// 스킬 레벨 + 초월 보너스 합산된 BuffSet 반환 (스킬 계산 전용)
         /// </summary>
         public BuffSet GetTotalBonus(bool isEnhanced, int transcendLevel)
         {
@@ -126,14 +126,16 @@ namespace GameDamageCalculator.Models
         public bool ConditionalExtraDmgPerHit { get; set; }
         public double ConditionalDmgBonus { get; set; }
 
-        // ===== 스킬 자체 보너스 =====
+        // ===== 스킬 자체 보너스 (해당 스킬 계산에만 적용) =====
         public BuffSet Bonus { get; set; } = new BuffSet();
-        public BuffSet SelfBuff { get; set; }           // 본인 전용 버프
-        public BuffSet PartyBuff { get; set; }          // 아군 전체 버프
-        public BuffSet PreCastBuff { get; set; }        // 스킬 발동 전 버프
+        public BuffSet PreCastBuff { get; set; }        // 스킬 발동 전 적용, 스킬 끝나면 소멸
 
-        // ===== 디버프 =====
-        public DebuffSet DebuffEffect { get; set; }
+        // ===== 턴제 버프 (파티/본인에게 부여) =====
+        public TimedBuff SelfBuff { get; set; }           // 본인 전용 버프
+        public TimedBuff PartyBuff { get; set; }          // 아군 전체 버프
+
+        // ===== 턴제 디버프 =====
+        public TimedDebuff DebuffEffect { get; set; }
         public int EffectDuration { get; set; }
         public double EffectChance { get; set; } = 0;
         public double DispelDefReduction { get; set; }  // 버프 해제 연계 방깎%
@@ -167,9 +169,12 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class SkillTranscend
     {
+        // 스킬 자체 보너스 (해당 스킬 계산에만 적용)
         public BuffSet Bonus { get; set; } = new BuffSet();
-        public BuffSet PartyBuff { get; set; } = new BuffSet();
-        public DebuffSet Debuff { get; set; } = new DebuffSet();
+        
+        // 턴제 버프/디버프
+        public TimedBuff PartyBuff { get; set; } = new TimedBuff();
+        public TimedDebuff Debuff { get; set; } = new TimedDebuff();
         public int? TargetCountOverride { get; set; }
 
         // 조건부 효과
@@ -197,9 +202,9 @@ namespace GameDamageCalculator.Models
     {
         public int ConsumeCount { get; set; }           // 소모 개수 (4)
         public double AtkRatio { get; set; }            // 공격력 비례% (39)
-        public double DefRatio { get; set; }            // 방어력 비례% (45) ← 추가
-        public double Arm_Pen { get; set; }         // 관통 여부 ← 추가
+        public double DefRatio { get; set; }            // 방어력 비례% (45)
+        public double Arm_Pen { get; set; }             // 관통 여부
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP%
-        public double AtkCap { get; set; }                // 공격력 제한%
+        public double AtkCap { get; set; }              // 공격력 제한%
     }
 }

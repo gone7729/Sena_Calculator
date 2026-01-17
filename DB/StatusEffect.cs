@@ -27,6 +27,7 @@ namespace GameDamageCalculator.Models
         InstantDeath,   // 즉사
         ManaBackflow,   // 마력 역류
         Bleeding, // 출혈
+        Poison, // 중독
         ChainDamage, // 카일꺼
         
         // === 특수 ===
@@ -221,6 +222,15 @@ namespace GameDamageCalculator.Models
                 Name = "출혈",
                 Description = "매턴마다 시전자 공격력의 60%, 최대 5중첩",
                 AtkRatio = 60
+            }},
+
+            { StatusEffectType.Poison, new StatusEffect
+            {
+                Type = StatusEffectType.Poison,
+                Name = "중독",
+                Description = "매턴마다 대상 최대 생명력 6%",
+                TargetMaxHpRatio = 6,
+                AtkCap = 150,
             }},
             
             // === 특수 ===

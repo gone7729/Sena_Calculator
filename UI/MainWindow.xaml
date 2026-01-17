@@ -610,6 +610,16 @@
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
                                 </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(마피증)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffPassiveAriel" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffPassiveAriel" Content="아리엘" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(물공증)" FontSize="10" Foreground="#888"/>
@@ -807,6 +817,16 @@
                                         <CheckBox x:Name="chkMyBuffActiveZik" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyBuffActiveZik" Content="지크" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(물피증)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyBuffActiveYui" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyBuffActiveYui" Content="유이" Tag="0" 
                                                 Click="BuffOption_Click" Margin="4,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
@@ -1051,6 +1071,26 @@
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>
                                 </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(방깎@2초)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActivePungyeon" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActivePungyeon" Content="풍연" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(방깎)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveAriel" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActiveAriel" Content="아리엘" Tag="0" 
+                                                Click="BuffOption_Click" Margin="4,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
 
                                 <StackPanel Margin="0,0,10,5">
                                     <TextBlock Text="(받회감/물취약@6초)" FontSize="10" Foreground="#888"/>
@@ -1144,6 +1184,16 @@
                                         <CheckBox x:Name="chkMyDebuffActivePlaton" VerticalAlignment="Center"
                                                   Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                         <Button x:Name="btnMyDebuffActivePlaton" Content="플라튼" Tag="0" 
+                                                Click="BuffOption_Click" Margin="8,0,0,0"
+                                                Style="{StaticResource BuffOptionButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,5">
+                                    <TextBlock Text="(공깎@2초월)" FontSize="10" Foreground="#888"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkMyDebuffActiveNoho" VerticalAlignment="Center"
+                                                  Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
+                                        <Button x:Name="btnMyDebuffActiveNoho" Content="노호" Tag="0" 
                                                 Click="BuffOption_Click" Margin="8,0,0,0"
                                                 Style="{StaticResource BuffOptionButtonStyle}"/>
                                     </StackPanel>

@@ -13,7 +13,7 @@ namespace GameDamageCalculator.Models
         AtkCriDmg,   // 공격 + 치피
         AtkWek,      // 공격 + 약점
         AtkEff,      // 공격 + 효적
-        AtkDmgRdc,      // 공격 + 피감
+        AtkDmgRdc,   // 공격 + 피감
         DefBlk,      // 방어 + 막기
         DefDmgRdc    // 방어 + 피감
     }
@@ -54,22 +54,65 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
+        /// 초월 타입에 따른 고유 보너스 리스트 (1~6) - 등급별 분기
+        /// </summary>
+        private List<TranscendBonus> GetUniqueBonuses()
+        {
+            // 전설 등급
+            if (Grade == "전설")
+            {
+                return TranscendType switch
+                {
+                    TranscendType.AtkCri => StatTable.TranscendDb.Legendary.AtkCriBonuses,
+                    TranscendType.AtkCriDmg => StatTable.TranscendDb.Legendary.AtkCriDmgBonuses,
+                    TranscendType.AtkWek => StatTable.TranscendDb.Legendary.AtkWekBonuses,
+                    TranscendType.AtkEff => StatTable.TranscendDb.Legendary.AtkEffBonuses,
+                    TranscendType.AtkDmgRdc => StatTable.TranscendDb.Legendary.AtkDmgRdcBonuses,
+                    TranscendType.DefBlk => StatTable.TranscendDb.Legendary.DefBlkBonuses,
+                    TranscendType.DefDmgRdc => StatTable.TranscendDb.Legendary.DefDmgRdcBonuses,
+                    _ => StatTable.TranscendDb.Legendary.AtkCriBonuses
+                };
+            }
+            // 영웅 등급
+            else if (Grade == "영웅")
+            {
+                return TranscendType switch
+                {
+                    TranscendType.AtkCri => StatTable.TranscendDb.Hero.AtkCriBonuses,
+                    TranscendType.AtkCriDmg => StatTable.TranscendDb.Hero.AtkCriDmgBonuses,
+                    TranscendType.AtkWek => StatTable.TranscendDb.Hero.AtkWekBonuses,
+                    TranscendType.AtkEff => StatTable.TranscendDb.Hero.AtkEffBonuses,
+                    TranscendType.AtkDmgRdc => StatTable.TranscendDb.Hero.AtkDmgRdcBonuses,
+                    TranscendType.DefBlk => StatTable.TranscendDb.Hero.DefBlkBonuses,
+                    TranscendType.DefDmgRdc => StatTable.TranscendDb.Hero.DefDmgRdcBonuses,
+                    _ => StatTable.TranscendDb.Hero.AtkCriBonuses
+                };
+            }
+            // 기본값 (전설)
+            return StatTable.TranscendDb.Legendary.AtkCriBonuses;
+        }
+
+        /// <summary>
+        /// 공통 보너스 리스트 (7~12) - 등급별 분기
+        /// </summary>
+        private List<TranscendBonus> GetCommonBonuses()
+        {
+            if (Grade == "영웅")
+                return StatTable.TranscendDb.Hero.CommonBonuses;
+            return StatTable.TranscendDb.Legendary.CommonBonuses;
+        }
+
+        /// <summary>
         /// 초월 타입에 따른 전체 보너스 리스트 (1~12)
         /// </summary>
         public List<TranscendBonus> GetTranscendBonuses()
         {
-            var uniqueBonuses = TranscendType switch
-            {
-                TranscendType.AtkCri => StatTable.TranscendDb.AtkCriBonuses,
-                TranscendType.AtkCriDmg => StatTable.TranscendDb.AtkCriDmgBonuses,
-                TranscendType.AtkWek => StatTable.TranscendDb.AtkWekBonuses,
-                TranscendType.AtkEff => StatTable.TranscendDb.AtkEffBonuses,
-                TranscendType.AtkDmgRdc => StatTable.TranscendDb.AtkDmgRdcBonuses,
-                TranscendType.DefBlk => StatTable.TranscendDb.DefBlkBonuses,
-                TranscendType.DefDmgRdc => StatTable.TranscendDb.DefDmgRdcBonuses,
-                _ => StatTable.TranscendDb.AtkCriBonuses
-            };
-            return StatTable.TranscendDb.GetFullBonuses(uniqueBonuses);
+            var uniqueBonuses = GetUniqueBonuses();
+            var commonBonuses = GetCommonBonuses();
+            
+            var full = new List<TranscendBonus>(uniqueBonuses);
+            full.AddRange(commonBonuses);
+            return full;
         }
 
         /// <summary>

@@ -38,7 +38,7 @@ namespace GameDamageCalculator.Services
         /// <summary>
         /// 잠재능력 스탯 가져오기
         /// </summary>
-        public BaseStatSet GetPotentialStats(string prefix)
+        public BaseStatSet GetPotentialStats(string prefix, string grade = "전설")
         {
             BaseStatSet stats = new BaseStatSet();
 
@@ -53,12 +53,15 @@ namespace GameDamageCalculator.Services
             int defLevel = cboPotentialDef.SelectedIndex;
             int hpLevel = cboPotentialHp.SelectedIndex;
 
+            // 등급에 따른 잠재능력 테이블 선택
+            var potentialStats = StatTable.PotentialDb.GetStats(grade);
+
             if (atkLevel > 0)
-                stats.Atk = StatTable.PotentialDb.Stats["공격력"][atkLevel - 1];
+                stats.Atk = potentialStats["공격력"][atkLevel - 1];
             if (defLevel > 0)
-                stats.Def = StatTable.PotentialDb.Stats["방어력"][defLevel - 1];
+                stats.Def = potentialStats["방어력"][defLevel - 1];
             if (hpLevel > 0)
-                stats.Hp = StatTable.PotentialDb.Stats["생명력"][hpLevel - 1];
+                stats.Hp = potentialStats["생명력"][hpLevel - 1];
 
             return stats;
         }
@@ -380,6 +383,7 @@ namespace GameDamageCalculator.Services
             // 캐릭터 기본 스탯
             BaseStatSet characterStats = new BaseStatSet();
             double baseAtk = 0, baseDef = 0, baseHp = 0;
+            string grade = "전설"; // 기본값
 
             if (charInfo != null)
             {
@@ -387,10 +391,11 @@ namespace GameDamageCalculator.Services
                 baseAtk = characterStats.Atk;
                 baseDef = characterStats.Def;
                 baseHp = characterStats.Hp;
+                grade = charInfo.Character.Grade ?? "전설";
             }
 
             // 각종 스탯 소스
-            var potentialStats = GetPotentialStats(prefix);
+            var potentialStats = GetPotentialStats(prefix, grade);
             var subStats = GetSubOptionStats(prefix);
             var mainOptionStats = GetMainOptionStats(prefix);
             var accessoryStats = GetAccessoryStats(prefix);

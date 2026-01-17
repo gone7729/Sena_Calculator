@@ -34,7 +34,7 @@ namespace GameDamageCalculator.Models
         public double Arm_Pen { get; set; }         // 방어 관통%
         public double Dmg_Rdc { get; set; }         // 받는 피해 감소%
         public double Dmg_Rdc_Multi { get; set; }   // 5인기 받피감%
-        public double Blk { get; set; }   // 막기 확률%
+        public double Blk { get; set; }             // 막기 확률%
 
         // ===== 기타 =====
         public double Heal_Bonus { get; set; }      // 받는 회복량%
@@ -67,6 +67,7 @@ namespace GameDamageCalculator.Models
             Arm_Pen += other.Arm_Pen;
             Dmg_Rdc += other.Dmg_Rdc;
             Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
+            Blk += other.Blk;
             Heal_Bonus += other.Heal_Bonus;
             Eff_Res += other.Eff_Res;
             Eff_Hit += other.Eff_Hit;
@@ -98,6 +99,7 @@ namespace GameDamageCalculator.Models
             Arm_Pen = Math.Max(Arm_Pen, other.Arm_Pen);
             Dmg_Rdc = Math.Max(Dmg_Rdc, other.Dmg_Rdc);
             Dmg_Rdc_Multi = Math.Max(Dmg_Rdc_Multi, other.Dmg_Rdc_Multi);
+            Blk = Math.Max(Blk, other.Blk);
             Heal_Bonus = Math.Max(Heal_Bonus, other.Heal_Bonus);
             Eff_Res = Math.Max(Eff_Res, other.Eff_Res);
             Eff_Hit = Math.Max(Eff_Hit, other.Eff_Hit);
@@ -108,7 +110,7 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 복사본 생성
         /// </summary>
-        public BuffSet Clone()
+        public virtual BuffSet Clone()
         {
             return new BuffSet
             {
@@ -118,6 +120,7 @@ namespace GameDamageCalculator.Models
                 Cri = Cri,
                 Cri_Dmg = Cri_Dmg,
                 CriBonusDmg = CriBonusDmg,
+                CriBonusDmgPerHit = CriBonusDmgPerHit,
                 Wek = Wek,
                 Wek_Dmg = Wek_Dmg,
                 WekBonusDmg = WekBonusDmg,
@@ -129,6 +132,7 @@ namespace GameDamageCalculator.Models
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,
                 Dmg_Rdc_Multi = Dmg_Rdc_Multi,
+                Blk = Blk,
                 Heal_Bonus = Heal_Bonus,
                 Eff_Res = Eff_Res,
                 Eff_Hit = Eff_Hit,
@@ -160,11 +164,91 @@ namespace GameDamageCalculator.Models
             Arm_Pen = 0;
             Dmg_Rdc = 0;
             Dmg_Rdc_Multi = 0;
+            Blk = 0;
             Heal_Bonus = 0;
             Eff_Res = 0;
             Eff_Hit = 0;
             Shield_HpRatio = 0;
             Blessing = 0;
+        }
+    }
+
+    /// <summary>
+    /// 상시 버프 (파티버프, 자버프 등 - 같은 타입끼리 MaxMerge)
+    /// </summary>
+    public class PermanentBuff : BuffSet
+    {
+        public override BuffSet Clone()
+        {
+            return new PermanentBuff
+            {
+                Atk_Rate = Atk_Rate,
+                Def_Rate = Def_Rate,
+                Hp_Rate = Hp_Rate,
+                Cri = Cri,
+                Cri_Dmg = Cri_Dmg,
+                CriBonusDmg = CriBonusDmg,
+                CriBonusDmgPerHit = CriBonusDmgPerHit,
+                Wek = Wek,
+                Wek_Dmg = Wek_Dmg,
+                WekBonusDmg = WekBonusDmg,
+                Dmg_Dealt = Dmg_Dealt,
+                Dmg_Dealt_Type = Dmg_Dealt_Type,
+                Dmg_Dealt_Bos = Dmg_Dealt_Bos,
+                Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
+                Arm_Pen = Arm_Pen,
+                Dmg_Rdc = Dmg_Rdc,
+                Dmg_Rdc_Multi = Dmg_Rdc_Multi,
+                Blk = Blk,
+                Heal_Bonus = Heal_Bonus,
+                Eff_Res = Eff_Res,
+                Eff_Hit = Eff_Hit,
+                Shield_HpRatio = Shield_HpRatio,
+                Blessing = Blessing,
+            };
+        }
+
+        public static implicit operator PermanentBuff(TimedBuff v)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// 턴제 버프 (액티브 스킬, 조건부 패시브 등 - 같은 타입끼리 MaxMerge)
+    /// </summary>
+    public class TimedBuff : BuffSet
+    {
+        public override BuffSet Clone()
+        {
+            return new TimedBuff
+            {
+                Atk_Rate = Atk_Rate,
+                Def_Rate = Def_Rate,
+                Hp_Rate = Hp_Rate,
+                Cri = Cri,
+                Cri_Dmg = Cri_Dmg,
+                CriBonusDmg = CriBonusDmg,
+                CriBonusDmgPerHit = CriBonusDmgPerHit,
+                Wek = Wek,
+                Wek_Dmg = Wek_Dmg,
+                WekBonusDmg = WekBonusDmg,
+                Dmg_Dealt = Dmg_Dealt,
+                Dmg_Dealt_Type = Dmg_Dealt_Type,
+                Dmg_Dealt_Bos = Dmg_Dealt_Bos,
+                Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
+                Arm_Pen = Arm_Pen,
+                Dmg_Rdc = Dmg_Rdc,
+                Dmg_Rdc_Multi = Dmg_Rdc_Multi,
+                Blk = Blk,
+                Heal_Bonus = Heal_Bonus,
+                Eff_Res = Eff_Res,
+                Eff_Hit = Eff_Hit,
+                Shield_HpRatio = Shield_HpRatio,
+                Blessing = Blessing,
+            };
         }
     }
 }

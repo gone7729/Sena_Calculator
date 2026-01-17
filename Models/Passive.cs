@@ -31,39 +31,56 @@ namespace GameDamageCalculator.Models
                 result.SelfBuff.Add(kvp.Value.SelfBuff);
                 result.PartyBuff.Add(kvp.Value.PartyBuff);
                 result.Debuff.Add(kvp.Value.Debuff);
+                result.ConditionalSelfBuff.Add(kvp.Value.ConditionalSelfBuff);
+                result.ConditionalPartyBuff.Add(kvp.Value.ConditionalPartyBuff);
+                result.ConditionalDebuff.Add(kvp.Value.ConditionalDebuff);
                 result.Effect = kvp.Value.Effect;
             }
             return result;
         }
 
         /// <summary>
-        /// 본인 전용 버프 (SelfBuff + PartyBuff 둘 다)
+        /// 본인 전용 상시 버프 (SelfBuff + PartyBuff 둘 다)
         /// </summary>
-        public BuffSet GetTotalSelfBuff(bool isEnhanced, int transcendLevel, bool isConditionMet = false)
+        public PermanentBuff GetTotalSelfBuff(bool isEnhanced, int transcendLevel)
         {
-            var result = new BuffSet();
+            var result = new PermanentBuff();
 
             var levelData = GetLevelData(isEnhanced);
             if (levelData.SelfBuff != null) result.Add(levelData.SelfBuff);
             if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
-            if (isConditionMet && levelData.ConditionalSelfBuff != null)
-                result.Add(levelData.ConditionalSelfBuff);
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.SelfBuff != null) result.Add(transcend.SelfBuff);
             if (transcend.PartyBuff != null) result.Add(transcend.PartyBuff);
-            if (isConditionMet && transcend.ConditionalSelfBuff != null)
-                result.Add(transcend.ConditionalSelfBuff);
 
             return result;
         }
 
         /// <summary>
-        /// 아군용 버프 (PartyBuff만)
+        /// 본인 전용 턴제 버프 (조건부)
         /// </summary>
-        public BuffSet GetPartyBuff(bool isEnhanced, int transcendLevel)
+        public TimedBuff GetConditionalSelfBuff(bool isEnhanced, int transcendLevel)
         {
-            var result = new BuffSet();
+            var result = new TimedBuff();
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.ConditionalSelfBuff != null) result.Add(levelData.ConditionalSelfBuff);
+            if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
+
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.ConditionalSelfBuff != null) result.Add(transcend.ConditionalSelfBuff);
+            if (transcend.ConditionalPartyBuff != null) result.Add(transcend.ConditionalPartyBuff);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 아군용 상시 버프 (PartyBuff만)
+        /// </summary>
+        public PermanentBuff GetPartyBuff(bool isEnhanced, int transcendLevel)
+        {
+            var result = new PermanentBuff();
 
             var levelData = GetLevelData(isEnhanced);
             if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
@@ -75,17 +92,49 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 패시브 레벨 + 초월 합산 디버프
+        /// 아군용 턴제 버프 (조건부 PartyBuff)
         /// </summary>
-        public DebuffSet GetTotalDebuff(bool isEnhanced, int transcendLevel)
+        public TimedBuff GetConditionalPartyBuff(bool isEnhanced, int transcendLevel)
         {
-            var result = new DebuffSet();
+            var result = new TimedBuff();
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
+
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.ConditionalPartyBuff != null) result.Add(transcend.ConditionalPartyBuff);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 상시 디버프
+        /// </summary>
+        public PermanentDebuff GetDebuff(bool isEnhanced, int transcendLevel)
+        {
+            var result = new PermanentDebuff();
 
             var levelData = GetLevelData(isEnhanced);
             if (levelData.Debuff != null) result.Add(levelData.Debuff);
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.Debuff != null) result.Add(transcend.Debuff);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 턴제 디버프 (조건부)
+        /// </summary>
+        public TimedDebuff GetConditionalDebuff(bool isEnhanced, int transcendLevel)
+        {
+            var result = new TimedDebuff();
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.ConditionalDebuff != null) result.Add(levelData.ConditionalDebuff);
+
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.ConditionalDebuff != null) result.Add(transcend.ConditionalDebuff);
 
             return result;
         }
@@ -96,10 +145,15 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveLevelData
     {
-        public BuffSet SelfBuff { get; set; } = new BuffSet();          // 본인 전용
-        public BuffSet PartyBuff { get; set; } = new BuffSet();         // 아군 전체
-        public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
-        public DebuffSet Debuff { get; set; } = new DebuffSet();
+        // ===== 상시 버프/디버프 =====
+        public PermanentBuff SelfBuff { get; set; } = new PermanentBuff();       // 본인 전용 상시
+        public PermanentBuff PartyBuff { get; set; } = new PermanentBuff();      // 아군 전체 상시
+        public PermanentDebuff Debuff { get; set; } = new PermanentDebuff();     // 상시 디버프
+
+        // ===== 턴제 버프/디버프 (조건부) =====
+        public TimedBuff ConditionalSelfBuff { get; set; } = new TimedBuff();    // 본인 전용 조건부
+        public TimedBuff ConditionalPartyBuff { get; set; } = new TimedBuff();   // 아군 전체 조건부
+        public TimedDebuff ConditionalDebuff { get; set; } = new TimedDebuff();  // 조건부 디버프
 
         // 상태이상 부여
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
@@ -138,10 +192,16 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveTranscend
     {
-        public BuffSet SelfBuff { get; set; } = new BuffSet();          // 본인 전용
-        public BuffSet PartyBuff { get; set; } = new BuffSet();         // 아군 전체
-        public BuffSet ConditionalSelfBuff { get; set; } = new BuffSet(); // 본인 전용 (조건부)
-        public DebuffSet Debuff { get; set; } = new DebuffSet();
+        // ===== 상시 버프/디버프 =====
+        public PermanentBuff SelfBuff { get; set; } = new PermanentBuff();       // 본인 전용 상시
+        public PermanentBuff PartyBuff { get; set; } = new PermanentBuff();      // 아군 전체 상시
+        public PermanentDebuff Debuff { get; set; } = new PermanentDebuff();     // 상시 디버프
+
+        // ===== 턴제 버프/디버프 (조건부) =====
+        public TimedBuff ConditionalSelfBuff { get; set; } = new TimedBuff();    // 본인 전용 조건부
+        public TimedBuff ConditionalPartyBuff { get; set; } = new TimedBuff();   // 아군 전체 조건부
+        public TimedDebuff ConditionalDebuff { get; set; } = new TimedDebuff();  // 조건부 디버프
+
         public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
 
         // 상태이상 부여
@@ -179,7 +239,7 @@ namespace GameDamageCalculator.Models
         Cri,        // 치명타 확률
         Cri_Dmg,    // 치명타 피해
         Eff_Hit,    // 효과 적중
-        Eff_Res,     // 효과 저항
-        Blk     // 막기
+        Eff_Res,    // 효과 저항
+        Blk         // 막기
     }
 }

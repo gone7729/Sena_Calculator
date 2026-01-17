@@ -59,7 +59,7 @@ namespace GameDamageCalculator.UI
         {
             _buffConfigs = new List<BuffConfig>
             {
-                // 버프 패시브
+                // 버프 지속
                 new BuffConfig { Key = "BuffPassiveYeonhee", BaseName = "연희", CharacterName = "연희", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveKiriel", BaseName = "키리엘", CharacterName = "키리엘", SkillName = null, IsBuff = true },
@@ -79,18 +79,21 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "BuffPassiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveRook", BaseName = "룩", CharacterName = "룩", SkillName = null, IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveSpike", BaseName = "스파이크", CharacterName = "스파이크", SkillName = null, IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveAriel", BaseName = "아리엘", CharacterName = "아리엘", SkillName = null, IsBuff = true },
 
-                // 버프 액티브
+                // 버프 턴제
                 new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveAlice", BaseName = "엘리스", CharacterName = "엘리스", SkillName = "비밀의 문", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "패시브-턴제", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "나만 믿어", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "여의참난무", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = "방어 준비", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = "칠흑의 장막", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveNoho", BaseName = "노호", CharacterName = "노호", SkillName = "칼보다 강한 펜", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveYui", BaseName = "유이", CharacterName = "유이", SkillName = "축복의 선율", IsBuff = true },
 
-                // 디버프 패시브
+                // 디버프 지속
                 new BuffConfig { Key = "DebuffPassiveTaka", BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
                 new BuffConfig { Key = "DebuffPassiveMilia", BaseName = "밀리아", CharacterName = "밀리아", SkillName = null, IsBuff = false },
                 new BuffConfig { Key = "DebuffPassiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
@@ -103,7 +106,7 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "DebuffPassiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = null, IsBuff = false },
                 new BuffConfig { Key = "DebuffPassiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = null, IsBuff = false },
 
-                // 디버프 액티브
+                // 디버프 턴제
                 new BuffConfig { Key = "DebuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
                 new BuffConfig { Key = "DebuffActiveJuri", BaseName = "쥬리", CharacterName = "쥬리", SkillName = "천상의 심판", IsBuff = false },
                 new BuffConfig { Key = "DebuffActiveOrly", BaseName = "오를리", CharacterName = "오를리", SkillName = "고결한 유성", IsBuff = false },
@@ -130,6 +133,9 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "DebuffActiveKarma", BaseName = "카르마", CharacterName = "카르마", SkillName = "평타", IsBuff = false },
                 new BuffConfig { Key = "DebuffActiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = "지옥의 일격", IsBuff = false },
                 new BuffConfig { Key = "DebuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "환.여의난참무", IsBuff = false },
+                new BuffConfig { Key = "DebuffActivePungyeon", BaseName = "풍연", CharacterName = "풍연", SkillName = "구음검격", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveAriel", BaseName = "아리엘", CharacterName = "아리엘", SkillName = "눈부신 빛", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveNoho", BaseName = "노호", CharacterName = "노호", SkillName = "파멸의 고서", IsBuff = true },
             };
         }
 
@@ -448,9 +454,12 @@ namespace GameDamageCalculator.UI
             return (isEnhanced, transcendLevel);
         }
 
-        private BuffSet GetAllPassiveBuffs(string prefix)
+        /// <summary>
+        /// 상시 패시브 버프 수집 (PermanentBuff끼리 MaxMerge)
+        /// </summary>
+        private PermanentBuff GetAllPermanentPassiveBuffs(string prefix)
         {
-            BuffSet total = new BuffSet();
+            PermanentBuff total = new PermanentBuff();
             foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName == null))
             {
                 var chk = GetBuffCheckBox(config, prefix);
@@ -464,9 +473,32 @@ namespace GameDamageCalculator.UI
             return total;
         }
 
-        private BuffSet GetAllActiveBuffs(string prefix)
+        /// <summary>
+        /// 턴제 패시브 버프 수집 (조건부 - TimedBuff끼리 MaxMerge)
+        /// </summary>
+        private TimedBuff GetAllTimedPassiveBuffs(string prefix)
         {
-            BuffSet total = new BuffSet();
+            TimedBuff total = new TimedBuff();
+            foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName == null))
+            {
+                var chk = GetBuffCheckBox(config, prefix);
+                if (chk?.IsChecked != true) continue;
+                var btn = GetBuffButton(config, prefix);
+                var (isEnhanced, transcendLevel) = GetBuffOption(btn, prefix);
+                var character = CharacterDb.GetByName(config.CharacterName);
+                // 조건부 버프는 턴제
+                var buff = character?.Passive?.GetConditionalPartyBuff(isEnhanced, transcendLevel);
+                if (buff != null) total.MaxMerge(buff);
+            }
+            return total;
+        }
+
+        /// <summary>
+        /// 액티브 스킬 버프 수집 (TimedBuff끼리 MaxMerge)
+        /// </summary>
+        private TimedBuff GetAllActiveBuffs(string prefix)
+        {
+            TimedBuff total = new TimedBuff();
             foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName != null))
             {
                 var chk = GetBuffCheckBox(config, prefix);
@@ -483,16 +515,51 @@ namespace GameDamageCalculator.UI
                     if (levelData?.PartyBuff != null)
                         total.MaxMerge(levelData.PartyBuff);
                     var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.Bonus != null)
-                        total.MaxMerge(transcendBonus.Bonus);
+                    if (transcendBonus?.PartyBuff != null)
+                        total.MaxMerge(transcendBonus.PartyBuff);
                 }
             }
             return total;
         }
 
-        private DebuffSet GetAllPassiveDebuffs(string prefix)
+        /// <summary>
+        /// 전체 버프 합산 (상시 + 턴제 + 펫)
+        /// 상시끼리 MaxMerge, 턴제끼리 MaxMerge, 그 결과를 Add
+        /// </summary>
+        private BuffSet GetTotalBuffs(string prefix)
         {
-            DebuffSet total = new DebuffSet();
+            // 상시 버프 (패시브 상시끼리 MaxMerge)
+            PermanentBuff permanentBuffs = GetAllPermanentPassiveBuffs(prefix);
+
+            // 턴제 버프 (패시브 조건부 + 액티브 스킬 끼리 MaxMerge)
+            TimedBuff timedBuffs = new TimedBuff();
+            timedBuffs.MaxMerge(GetAllTimedPassiveBuffs(prefix));
+            timedBuffs.MaxMerge(GetAllActiveBuffs(prefix));
+
+            // 펫 버프 (별도 합산 - 영웅 버프와 중첩 가능)
+            BuffSet petBuffs = GetPetSkillBuff(prefix);
+
+            // 최종 합산
+            BuffSet total = new BuffSet();
+            total.Add(permanentBuffs);  // 상시 (이미 MaxMerge됨)
+            total.Add(timedBuffs);       // 턴제 (이미 MaxMerge됨)
+            total.Add(petBuffs);         // 펫 (별도 합산)
+
+            return total;
+        }
+
+        // 기존 메서드 유지 (하위 호환)
+        private BuffSet GetAllPassiveBuffs(string prefix)
+        {
+            return GetAllPermanentPassiveBuffs(prefix);
+        }
+
+        /// <summary>
+        /// 상시 패시브 디버프 수집 (PermanentDebuff끼리 MaxMerge)
+        /// </summary>
+        private PermanentDebuff GetAllPermanentPassiveDebuffs(string prefix)
+        {
+            PermanentDebuff total = new PermanentDebuff();
             foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName == null))
             {
                 var chk = GetBuffCheckBox(config, prefix);
@@ -500,15 +567,38 @@ namespace GameDamageCalculator.UI
                 var btn = GetBuffButton(config, prefix);
                 var (isEnhanced, transcendLevel) = GetBuffOption(btn, prefix);
                 var character = CharacterDb.GetByName(config.CharacterName);
-                var debuff = character?.Passive?.GetTotalDebuff(isEnhanced, transcendLevel);
+                var debuff = character?.Passive?.GetDebuff(isEnhanced, transcendLevel);
                 if (debuff != null) total.MaxMerge(debuff);
             }
             return total;
         }
 
-        private DebuffSet GetAllActiveDebuffs(string prefix)
+        /// <summary>
+        /// 턴제 패시브 디버프 수집 (조건부 - TimedDebuff끼리 MaxMerge)
+        /// </summary>
+        private TimedDebuff GetAllTimedPassiveDebuffs(string prefix)
         {
-            DebuffSet total = new DebuffSet();
+            TimedDebuff total = new TimedDebuff();
+            foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName == null))
+            {
+                var chk = GetBuffCheckBox(config, prefix);
+                if (chk?.IsChecked != true) continue;
+                var btn = GetBuffButton(config, prefix);
+                var (isEnhanced, transcendLevel) = GetBuffOption(btn, prefix);
+                var character = CharacterDb.GetByName(config.CharacterName);
+                // 조건부 디버프는 턴제
+                var debuff = character?.Passive?.GetConditionalDebuff(isEnhanced, transcendLevel);
+                if (debuff != null) total.MaxMerge(debuff);
+            }
+            return total;
+        }
+
+        /// <summary>
+        /// 액티브 스킬 디버프 수집 (TimedDebuff끼리 MaxMerge)
+        /// </summary>
+        private TimedDebuff GetAllActiveDebuffs(string prefix)
+        {
+            TimedDebuff total = new TimedDebuff();
             foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName != null))
             {
                 var chk = GetBuffCheckBox(config, prefix);
@@ -531,6 +621,38 @@ namespace GameDamageCalculator.UI
                 }
             }
             return total;
+        }
+
+        /// <summary>
+        /// 전체 디버프 합산 (상시 + 턴제 + 펫)
+        /// 상시끼리 MaxMerge, 턴제끼리 MaxMerge, 그 결과를 Add
+        /// </summary>
+        private DebuffSet GetTotalDebuffs(string prefix)
+        {
+            // 상시 디버프 (패시브 상시끼리 MaxMerge)
+            PermanentDebuff permanentDebuffs = GetAllPermanentPassiveDebuffs(prefix);
+
+            // 턴제 디버프 (패시브 조건부 + 액티브 스킬 끼리 MaxMerge)
+            TimedDebuff timedDebuffs = new TimedDebuff();
+            timedDebuffs.MaxMerge(GetAllTimedPassiveDebuffs(prefix));
+            timedDebuffs.MaxMerge(GetAllActiveDebuffs(prefix));
+
+            // 펫 디버프 (별도 합산 - 영웅 디버프와 중첩 가능)
+            DebuffSet petDebuffs = GetPetSkillDebuff(prefix);
+
+            // 최종 합산
+            DebuffSet total = new DebuffSet();
+            total.Add(permanentDebuffs);  // 상시 (이미 MaxMerge됨)
+            total.Add(timedDebuffs);       // 턴제 (이미 MaxMerge됨)
+            total.Add(petDebuffs);         // 펫 (별도 합산)
+
+            return total;
+        }
+
+        // 기존 메서드 유지 (하위 호환)
+        private DebuffSet GetAllPassiveDebuffs(string prefix)
+        {
+            return GetAllPermanentPassiveDebuffs(prefix);
         }
 
         /// <summary>
@@ -560,24 +682,26 @@ namespace GameDamageCalculator.UI
             var stats = _statHelper.CalculateAllStats(prefix);
             var charInfo = _statHelper.GetCharacterInfo(prefix);
 
-            // 본인 패시브 버프
+            // 본인 패시브 버프 - 새 로직: 상시/턴제 분리
             BuffSet characterPassiveBuff = new BuffSet();
             if (charInfo?.Character?.Passive != null)
             {
-                var buff = charInfo.Character.Passive.GetTotalSelfBuff(
-                    charInfo.IsSkillEnhanced,
-                    charInfo.TranscendLevel,
-                    charInfo.IsPassiveConditionMet);
-                if (buff != null) characterPassiveBuff.Add(buff);
+                // 상시 자버프
+                var permanentBuff = charInfo.Character.Passive.GetTotalSelfBuff(
+                    charInfo.IsSkillEnhanced, charInfo.TranscendLevel);
+                if (permanentBuff != null) characterPassiveBuff.Add(permanentBuff);
+                
+                // 턴제 자버프 (조건 충족 시)
+                if (charInfo.IsPassiveConditionMet)
+                {
+                    var timedBuff = charInfo.Character.Passive.GetConditionalSelfBuff(
+                        charInfo.IsSkillEnhanced, charInfo.TranscendLevel);
+                    if (timedBuff != null) characterPassiveBuff.Add(timedBuff);
+                }
             }
 
-            // 파티 버프
-            BuffSet passiveBuffs = GetAllPassiveBuffs(prefix);
-            BuffSet activeBuffs = GetAllActiveBuffs(prefix);
-            BuffSet totalBuffs = new BuffSet();
-            totalBuffs.Add(passiveBuffs);
-            totalBuffs.Add(activeBuffs);
-            totalBuffs.Add(GetPetSkillBuff(prefix));
+            // 파티 버프 - 새 로직: 상시/턴제 타입별 MaxMerge
+            BuffSet totalBuffs = GetTotalBuffs(prefix);
 
             // 펫 옵션
             var petRates = _statHelper.GetPetOptionRates(prefix);
@@ -657,51 +781,49 @@ namespace GameDamageCalculator.UI
             var myCharInfo = _statHelper.GetCharacterInfo("My");
             var enemyCharInfo = _statHelper.GetCharacterInfo("Enemy");
 
-            // 버프 합산 (내 쪽)
-            BuffSet myPassiveBuffs = GetAllPassiveBuffs("My");
-            BuffSet myActiveBuffs = GetAllActiveBuffs("My");
-            BuffSet myTotalBuffs = new BuffSet();
-            myTotalBuffs.Add(myPassiveBuffs);
-            myTotalBuffs.Add(myActiveBuffs);
+            // 버프 합산 (내 쪽) - 새 로직: 상시/턴제 타입별 MaxMerge
+            BuffSet myTotalBuffs = GetTotalBuffs("My");
             BuffSet myCharPassiveBuff = new BuffSet();
             if (myCharInfo?.Character?.Passive != null)
             {
-                var buff = myCharInfo.Character.Passive.GetTotalSelfBuff(
-                    myCharInfo.IsSkillEnhanced, myCharInfo.TranscendLevel, myCharInfo.IsPassiveConditionMet);
-                if (buff != null) myCharPassiveBuff.Add(buff);
+                // 상시 자버프
+                var permanentBuff = myCharInfo.Character.Passive.GetTotalSelfBuff(
+                    myCharInfo.IsSkillEnhanced, myCharInfo.TranscendLevel);
+                if (permanentBuff != null) myCharPassiveBuff.Add(permanentBuff);
+                
+                // 턴제 자버프 (조건 충족 시)
+                if (myCharInfo.IsPassiveConditionMet)
+                {
+                    var timedBuff = myCharInfo.Character.Passive.GetConditionalSelfBuff(
+                        myCharInfo.IsSkillEnhanced, myCharInfo.TranscendLevel);
+                    if (timedBuff != null) myCharPassiveBuff.Add(timedBuff);
+                }
             }
 
-            // 버프 합산 (적 쪽)
-            BuffSet enemyPassiveBuffs = GetAllPassiveBuffs("Enemy");
-            BuffSet enemyActiveBuffs = GetAllActiveBuffs("Enemy");
-            BuffSet enemyTotalBuffs = new BuffSet();
-            enemyTotalBuffs.Add(enemyPassiveBuffs);
-            enemyTotalBuffs.Add(enemyActiveBuffs);
+            // 버프 합산 (적 쪽) - 새 로직: 상시/턴제 타입별 MaxMerge
+            BuffSet enemyTotalBuffs = GetTotalBuffs("Enemy");
             BuffSet enemyCharPassiveBuff = new BuffSet();
             if (enemyCharInfo?.Character?.Passive != null)
             {
-                var buff = enemyCharInfo.Character.Passive.GetTotalSelfBuff(
-                    enemyCharInfo.IsSkillEnhanced, enemyCharInfo.TranscendLevel, enemyCharInfo.IsPassiveConditionMet);
-                if (buff != null) enemyCharPassiveBuff.Add(buff);
+                // 상시 자버프
+                var permanentBuff = enemyCharInfo.Character.Passive.GetTotalSelfBuff(
+                    enemyCharInfo.IsSkillEnhanced, enemyCharInfo.TranscendLevel);
+                if (permanentBuff != null) enemyCharPassiveBuff.Add(permanentBuff);
+                
+                // 턴제 자버프 (조건 충족 시)
+                if (enemyCharInfo.IsPassiveConditionMet)
+                {
+                    var timedBuff = enemyCharInfo.Character.Passive.GetConditionalSelfBuff(
+                        enemyCharInfo.IsSkillEnhanced, enemyCharInfo.TranscendLevel);
+                    if (timedBuff != null) enemyCharPassiveBuff.Add(timedBuff);
+                }
             }
 
-            // 디버프 합산 (내가 적에게 건 디버프)
-            DebuffSet myPassiveDebuffs = GetAllPassiveDebuffs("My");
-            DebuffSet myActiveDebuffs = GetAllActiveDebuffs("My");
-            DebuffSet myPetDebuffs = GetPetSkillDebuff("My");
-            DebuffSet myTotalDebuffs = new DebuffSet();
-            myTotalDebuffs.MaxMerge(myPassiveDebuffs);
-            myTotalDebuffs.MaxMerge(myActiveDebuffs);
-            myTotalDebuffs.Add(myPetDebuffs);  // 펫은 영웅과 중첩 가능
+            // 디버프 합산 (내가 적에게 건 디버프) - 새 로직
+            DebuffSet myTotalDebuffs = GetTotalDebuffs("My");
 
-            // 디버프 합산 (적이 나에게 건 디버프)
-            DebuffSet enemyPassiveDebuffs = GetAllPassiveDebuffs("Enemy");
-            DebuffSet enemyActiveDebuffs = GetAllActiveDebuffs("Enemy");
-            DebuffSet enemyPetDebuffs = GetPetSkillDebuff("Enemy");
-            DebuffSet enemyTotalDebuffs = new DebuffSet();
-            enemyTotalDebuffs.MaxMerge(enemyPassiveDebuffs);
-            enemyTotalDebuffs.MaxMerge(enemyActiveDebuffs);
-            enemyTotalDebuffs.Add(enemyPetDebuffs);  // 펫은 영웅과 중첩 가능
+            // 디버프 합산 (적이 나에게 건 디버프) - 새 로직
+            DebuffSet enemyTotalDebuffs = GetTotalDebuffs("Enemy");
 
             // 스탯 조합
             var myStats = BuildPvpStats("My", myCalcStats, myTotalBuffs, myCharPassiveBuff);
