@@ -3177,7 +3177,7 @@ namespace GameDamageCalculator.Database
                                     }
                                 } 
                             } },
-                            { 0, new SkillLevelData { 
+                            { 1, new SkillLevelData { 
                                 Ratio = 340,
                                 StatusEffects = new List<SkillStatusEffect>
                                 {
@@ -3276,7 +3276,7 @@ namespace GameDamageCalculator.Database
                                     }
                                 } 
                             } },
-                            { 0, new SkillLevelData { 
+                            { 1, new SkillLevelData { 
                                 Ratio = 145,
                                 StatusEffects = new List<SkillStatusEffect>
                                 {
@@ -3386,7 +3386,7 @@ namespace GameDamageCalculator.Database
                                     }
                                 } 
                             } },
-                            { 0, new SkillLevelData { 
+                            { 1, new SkillLevelData { 
                                 StatusEffects = new List<SkillStatusEffect>
                                 {
                                     new SkillStatusEffect

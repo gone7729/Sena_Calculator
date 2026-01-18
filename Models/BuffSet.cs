@@ -209,9 +209,40 @@ namespace GameDamageCalculator.Models
             };
         }
 
-        public static implicit operator PermanentBuff(TimedBuff v)
+        /// <summary>
+        /// TimedBuff를 PermanentBuff로 암시적 변환
+        /// </summary>
+        public static implicit operator PermanentBuff(TimedBuff timedBuff)
         {
-            throw new NotImplementedException();
+            if (timedBuff == null) return null;
+
+            return new PermanentBuff
+            {
+                Atk_Rate = timedBuff.Atk_Rate,
+                Def_Rate = timedBuff.Def_Rate,
+                Hp_Rate = timedBuff.Hp_Rate,
+                Cri = timedBuff.Cri,
+                Cri_Dmg = timedBuff.Cri_Dmg,
+                CriBonusDmg = timedBuff.CriBonusDmg,
+                CriBonusDmgPerHit = timedBuff.CriBonusDmgPerHit,
+                Wek = timedBuff.Wek,
+                Wek_Dmg = timedBuff.Wek_Dmg,
+                WekBonusDmg = timedBuff.WekBonusDmg,
+                Dmg_Dealt = timedBuff.Dmg_Dealt,
+                Dmg_Dealt_Type = timedBuff.Dmg_Dealt_Type,
+                Dmg_Dealt_Bos = timedBuff.Dmg_Dealt_Bos,
+                Dmg_Dealt_1to3 = timedBuff.Dmg_Dealt_1to3,
+                Dmg_Dealt_4to5 = timedBuff.Dmg_Dealt_4to5,
+                Arm_Pen = timedBuff.Arm_Pen,
+                Dmg_Rdc = timedBuff.Dmg_Rdc,
+                Dmg_Rdc_Multi = timedBuff.Dmg_Rdc_Multi,
+                Blk = timedBuff.Blk,
+                Heal_Bonus = timedBuff.Heal_Bonus,
+                Eff_Res = timedBuff.Eff_Res,
+                Eff_Hit = timedBuff.Eff_Hit,
+                Shield_HpRatio = timedBuff.Shield_HpRatio,
+                Blessing = timedBuff.Blessing,
+            };
         }
     }
 
