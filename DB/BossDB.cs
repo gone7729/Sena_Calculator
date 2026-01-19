@@ -268,7 +268,7 @@ namespace GameDamageCalculator.Database
         };
 
         /// <summary>
-        /// 레이드 보스 목록
+        /// 강림 보스 목록
         /// </summary>
         public static readonly List<Boss> ForestBosses = new List<Boss>
         {
@@ -277,7 +277,6 @@ namespace GameDamageCalculator.Database
                 Id = 201,
                 Name = "카르마",
                 BossType = BossType.Raid,
-                Difficulty = 15,
                 Stats = new BaseStatSet
                 {
                     Atk = 3085,

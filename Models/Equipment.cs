@@ -1,4 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using GameDamageCalculator.Database;
 
 namespace GameDamageCalculator.Models
@@ -6,20 +11,84 @@ namespace GameDamageCalculator.Models
     /// <summary>
     /// 장비 모델
     /// </summary>
-    public class Equipment
+    public class Equipment : INotifyPropertyChanged
     {
-        public string Name { get; set; }            // 장비 이름
+        public string Name { get; set; }            // 장비 이름 ("무기1", "무기2", "갑옷1", "갑옷2")
         public string SetName { get; set; }         // 세트 이름 (선봉장, 암살자 등)
         public string Slot { get; set; }            // 부위 (무기, 방어구)
 
         // 메인 옵션
-        public string MainStatName { get; set; }    // 메인 옵션 종류 ("공격력%", "치명타확률%" 등)
-        
-        // 부옵션 슬롯 (최대 4개)
-        public List<SubStatSlot> SubSlots { get; set; } = new List<SubStatSlot>();
+        private string _mainStatName;
+        public string MainStatName
+        {
+            get => _mainStatName;
+            set
+            {
+                if (_mainStatName != value)
+                {
+                    _mainStatName = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(MainStatValue));
+                    EquipmentChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        // 메인 옵션 값 표시용
+        public string MainStatValue
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(MainStatName)) return "";
+                if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(MainStatName, out var stats))
+                {
+                    if (stats.Atk_Rate > 0) return $"{stats.Atk_Rate}%";
+                    if (stats.Atk > 0) return $"{stats.Atk}";
+                    if (stats.Def_Rate > 0) return $"{stats.Def_Rate}%";
+                    if (stats.Def > 0) return $"{stats.Def}";
+                    if (stats.Hp_Rate > 0) return $"{stats.Hp_Rate}%";
+                    if (stats.Hp > 0) return $"{stats.Hp}";
+                    if (stats.Cri > 0) return $"{stats.Cri}%";
+                    if (stats.Cri_Dmg > 0) return $"{stats.Cri_Dmg}%";
+                    if (stats.Wek > 0) return $"{stats.Wek}%";
+                    if (stats.Eff_Hit > 0) return $"{stats.Eff_Hit}%";
+                    if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
+                    if (stats.Dmg_Rdc > 0) return $"{stats.Dmg_Rdc}%";
+                    if (stats.Blk > 0) return $"{stats.Blk}%";
+                }
+                return "";
+            }
+        }
+
+        // 부옵션 슬롯 (최대 4개) - ObservableCollection으로 변경
+        public ObservableCollection<SubStatSlot> SubSlots { get; set; }
 
         // 장비 강화 단계 (0~5)
         public int EnhanceLevel { get; set; } = 5;
+
+        public Equipment()
+        {
+            SubSlots = new ObservableCollection<SubStatSlot>
+            {
+                new SubStatSlot(),
+                new SubStatSlot(),
+                new SubStatSlot(),
+                new SubStatSlot()
+            };
+
+            // 서브슬롯 변경 시 이벤트 발생
+            foreach (var slot in SubSlots)
+            {
+                slot.SlotChanged += (s, e) => EquipmentChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        // 변경 이벤트
+        public event EventHandler EquipmentChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         /// <summary>
         /// 장비 기본 스탯 가져오기
@@ -39,11 +108,37 @@ namespace GameDamageCalculator.Models
         /// </summary>
         public BaseStatSet GetMainStats()
         {
+            // null 체크 추가!
+            if (string.IsNullOrEmpty(MainStatName))
+                return new BaseStatSet();
+
             if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(MainStatName, out var mainStat))
             {
                 return mainStat.Clone();
             }
             return new BaseStatSet();
+        }
+
+        /// <summary>
+        /// 해당 장비 슬롯에서 선택 가능한 메인옵션 목록
+        /// </summary>
+        public List<string> AvailableMainOptions
+        {
+            get
+            {
+                var options = new List<string> { "" };  // 빈 값 (없음)
+                
+                if (Slot == "무기" && EquipmentDb.MainStatDb.AvailableOptions.ContainsKey("무기"))
+                {
+                    options.AddRange(EquipmentDb.MainStatDb.AvailableOptions["무기"]);
+                }
+                else if (Slot == "방어구" && EquipmentDb.MainStatDb.AvailableOptions.ContainsKey("방어구"))
+                {
+                    options.AddRange(EquipmentDb.MainStatDb.AvailableOptions["방어구"]);
+                }
+                
+                return options;
+            }
         }
 
         /// <summary>
@@ -61,7 +156,6 @@ namespace GameDamageCalculator.Models
 
         /// <summary>
         /// 장비의 전체 스탯 계산 (기본 + 메인 + 부옵션)
-        /// 세트 효과는 별도로 계산
         /// </summary>
         public BaseStatSet GetTotalStats()
         {
@@ -70,22 +164,88 @@ namespace GameDamageCalculator.Models
             total.Add(GetSubStats());
             return total;
         }
+
+        /// <summary>
+        /// 초기화
+        /// </summary>
+        public void Reset()
+        {
+            MainStatName = null;
+            foreach (var slot in SubSlots)
+            {
+                slot.Reset();
+            }
+        }
     }
 
     /// <summary>
     /// 부옵션 슬롯
     /// </summary>
-    public class SubStatSlot
+    public class SubStatSlot : INotifyPropertyChanged
     {
-        public string StatName { get; set; }    // 스탯 종류 ("공격력%", "치명타확률%" 등)
-        public int Tier { get; set; }           // 단계 (1~5)
+        private string _statName;
+        private int _tier;
+
+        public string StatName
+        {
+            get => _statName;
+            set
+            {
+                if (_statName != value)
+                {
+                    _statName = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(DisplayValue));
+                    SlotChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public int Tier
+        {
+            get => _tier;
+            set
+            {
+                int newValue = Math.Clamp(value, 0, 6);
+                if (_tier != newValue)
+                {
+                    _tier = newValue;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(DisplayValue));
+                    SlotChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        // 계산된 값 표시
+        public string DisplayValue
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(StatName) || Tier <= 0) return "0";
+                if (SubOptionDb.TierValues.TryGetValue(StatName, out int perTier))
+                {
+                    return (perTier * Tier).ToString();
+                }
+                return "0";
+            }
+        }
+
+        // 변경 이벤트
+        public event EventHandler SlotChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         /// <summary>
         /// 티어에 따른 실제 값 계산
         /// </summary>
         public BaseStatSet GetStats()
         {
-            if (Tier <= 0) return new BaseStatSet();
+            // null 체크 추가!
+            if (Tier <= 0 || string.IsNullOrEmpty(StatName)) 
+                return new BaseStatSet();
 
             if (EquipmentDb.SubStatDb.SubStatBase.TryGetValue(StatName, out var baseStats))
             {
@@ -94,26 +254,48 @@ namespace GameDamageCalculator.Models
             return new BaseStatSet();
         }
 
-        private double GetValueFromStatSet(BaseStatSet stat, string statName)
+        /// <summary>
+        /// 초기화
+        /// </summary>
+        public void Reset()
         {
-            return statName switch
-            {
-                "공격력%" => stat.Atk_Rate,
-                "공격력" => stat.Atk,
-                "방어력%" => stat.Def_Rate,
-                "방어력" => stat.Def,
-                "생명력%" => stat.Hp_Rate,
-                "생명력" => stat.Hp,
-                "속공" => stat.Spd,
-                "치명타확률%" => stat.Cri,
-                "치명타피해%" => stat.Cri_Dmg,
-                "약점공격확률%" => stat.Wek,
-                "막기확률%" => stat.Blk,
-                "효과적중%" => stat.Eff_Hit,
-                "효과저항%" => stat.Eff_Res,
-                _ => 0
-            };
+            StatName = null;
+            Tier = 0;
         }
+    }
+
+    /// <summary>
+    /// 서브옵션 데이터
+    /// </summary>
+    public static class SubOptionDb
+    {
+        // 서브옵션 목록 (드롭다운용)
+        public static List<string> AllStatNames { get; } = new()
+        {
+            "",
+            "공격력%", "공격력", "방어력%", "방어력", "생명력%", "생명력",
+            "치명타확률%", "치명타피해%", "약점공격확률%", "막기확률%",
+            "효과적중%", "효과저항%", "받피감%", "속공"
+        };
+
+        // 티어당 값
+        public static Dictionary<string, int> TierValues { get; } = new()
+        {
+            { "공격력%", 5 },
+            { "공격력", 30 },
+            { "방어력%", 5 },
+            { "방어력", 30 },
+            { "생명력%", 5 },
+            { "생명력", 200 },
+            { "치명타확률%", 4 },
+            { "치명타피해%", 5 },
+            { "약점공격확률%", 4 },
+            { "막기확률%", 5 },
+            { "효과적중%", 5 },
+            { "효과저항%", 5 },
+            { "받피감%", 3 },
+            { "속공", 4 }
+        };
     }
 
     /// <summary>
@@ -122,16 +304,12 @@ namespace GameDamageCalculator.Models
     public class EquipmentSet
     {
         public string SetName { get; set; }
-        public int PieceCount { get; set; }     // 착용 개수 (2 또는 4)
+        public int PieceCount { get; set; }
 
-        /// <summary>
-        /// 세트 효과 스탯 가져오기
-        /// </summary>
         public BaseStatSet GetSetBonus()
         {
             if (EquipmentDb.SetEffects.TryGetValue(SetName, out var setData))
             {
-                // 4세트면 2세트 + 4세트 효과 모두 적용
                 BaseStatSet total = new BaseStatSet();
                 
                 if (PieceCount >= 2 && setData.TryGetValue(2, out var bonus2))

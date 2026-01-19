@@ -79,11 +79,11 @@ namespace GameDamageCalculator.Database
                      } },
                 }
             },
-            // 크리
+            // 델로
             new Pet
             {
                 Id = 5,
-                Name = "크리",
+                Name = "델로",
                 Rarity = "전설",
                 Skills = new Dictionary<int, PetSkill>
                 {
@@ -91,10 +91,10 @@ namespace GameDamageCalculator.Database
                         Buff = new BuffSet{ Cri_Dmg = 10, Cri = 17 },
                      } },
                     { 5, new PetSkill { 
-                        Buff = new BuffSet{ Wek_Dmg = 13, Wek = 19 },
+                        Buff = new BuffSet{ Cri_Dmg = 13, Cri = 19 },
                      } },
                     { 6, new PetSkill { 
-                        Buff = new BuffSet{ Wek_Dmg = 15, Wek = 21 },
+                        Buff = new BuffSet{ Cri_Dmg = 15, Cri = 21 },
                      } },
                 }
             },

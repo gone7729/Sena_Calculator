@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,18 +18,33 @@ namespace GameDamageCalculator.UI
 
         private bool _isInitialized = false;
         private readonly DamageCalculator _calculator;
+        private readonly StatCalculator _statCalculator;      
+        private readonly BuffCalculator _buffCalculator;
+        private Formation _currentFormation = new Formation();
         private PresetManager _presetManager;
         private DebuffSet _currentDebuffs = new DebuffSet();
-        private List<BuffConfig> _buffConfigs;
+        private Accessory _currentAccessory = new Accessory(); 
 
-        private class BuffConfig
-        {
-            public string Key { get; set; }
-            public string BaseName { get; set; }
-            public string CharacterName { get; set; }
-            public string SkillName { get; set; }
-            public bool IsBuff { get; set; }
-        }
+        // MainWindow.xaml.cs
+        public ObservableCollection<BuffConfig> BuffConfigs { get; private set; }
+
+        public IEnumerable<BuffConfig> PassiveBuffs => 
+            BuffConfigs.Where(c => c.IsBuff && c.SkillName == null);
+
+        public IEnumerable<BuffConfig> ActiveBuffs => 
+            BuffConfigs.Where(c => c.IsBuff && c.SkillName != null);
+
+        public IEnumerable<BuffConfig> PassiveDebuffs => 
+            BuffConfigs.Where(c => !c.IsBuff && c.SkillName == null);
+
+        public IEnumerable<BuffConfig> ActiveDebuffs => 
+            BuffConfigs.Where(c => !c.IsBuff && c.SkillName != null);
+
+        
+
+        public ObservableCollection<Equipment> Equipments { get; private set; }
+        public List<string> AllSubStatNames => SubOptionDb.AllStatNames;
+    
 
         // 버프 컨트롤 동적 접근 헬퍼
         private CheckBox GetBuffCheckBox(BuffConfig config, string prefix = "My")
@@ -43,10 +59,14 @@ namespace GameDamageCalculator.UI
 
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent();  // ✅ 반드시 첫 번째!
+            InitializeEquipments();
             _calculator = new DamageCalculator();
-            InitializeComboBoxes();
+            _statCalculator = new StatCalculator();
+            _buffCalculator = new BuffCalculator();
+            InitializeComboBoxes();  // 이 시점에 컨트롤들이 준비되어 있어야 함
             InitializeBuffConfigs();
+            DataContext = this;
             _presetManager = new PresetManager();
             RefreshPresetList();
             _isInitialized = true;
@@ -59,88 +79,121 @@ namespace GameDamageCalculator.UI
 
         private void InitializeBuffConfigs()
         {
-            _buffConfigs = new List<BuffConfig>
+            BuffConfigs = new ObservableCollection<BuffConfig>
             {
-                // 버프 지속
-                new BuffConfig { Key = "BuffPassiveYeonhee", BaseName = "연희", CharacterName = "연희", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveKiriel", BaseName = "키리엘", CharacterName = "키리엘", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveAilin", BaseName = "아일린", CharacterName = "아일린", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveDelonz", BaseName = "델론즈", CharacterName = "델론즈", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveLina", BaseName = "리나", CharacterName = "리나", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveKagura", BaseName = "카구라", CharacterName = "카구라", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveOrly", BaseName = "오를리", CharacterName = "오를리", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveMiho", BaseName = "미호", CharacterName = "미호", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveLion", BaseName = "라이언", CharacterName = "라이언", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveRachel", BaseName = "레이첼", CharacterName = "레이첼", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveColt", BaseName = "콜트", CharacterName = "콜트", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassivePreiya", BaseName = "프레이야", CharacterName = "프레이야", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveYushin", BaseName = "유신", CharacterName = "유신", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveRozy", BaseName = "로지", CharacterName = "로지", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveKarma", BaseName = "카르마", CharacterName = "카르마", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveRook", BaseName = "룩", CharacterName = "룩", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveSpike", BaseName = "스파이크", CharacterName = "스파이크", SkillName = null, IsBuff = true },
-                new BuffConfig { Key = "BuffPassiveAriel", BaseName = "아리엘", CharacterName = "아리엘", SkillName = null, IsBuff = true },
+                // ==================== 지속 버프 ====================
+                new BuffConfig { Key = "BuffPassiveYeonhee", BaseName = "연희", CharacterName = "연희", Label = "(마공증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveDazy", BaseName = "데이지", CharacterName = "데이지", Label = "(마공증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveKiriel", BaseName = "키리엘", CharacterName = "키리엘", Label = "(마피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveAriel", BaseName = "아리엘", CharacterName = "아리엘", Label = "(마피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveAilin", BaseName = "아일린", CharacterName = "아일린", Label = "(물공증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveDelonz", BaseName = "델론즈", CharacterName = "델론즈", Label = "(물피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLina", BaseName = "리나", CharacterName = "리나", Label = "(치피 @2초)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveKagura", BaseName = "카구라", CharacterName = "카구라", Label = "(치피증/물피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveOrly", BaseName = "오를리", CharacterName = "오를리", Label = "(치확/치피)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveMiho", BaseName = "미호", CharacterName = "미호", Label = "(약피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveLion", BaseName = "라이언", CharacterName = "라이언", Label = "(1-3인기 피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRachel", BaseName = "레이첼", CharacterName = "레이첼", Label = "(약공확)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveKarma", BaseName = "카르마", CharacterName = "카르마", Label = "(피증,댐감)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRudi", BaseName = "루디", CharacterName = "루디", Label = "(방증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRook", BaseName = "룩", CharacterName = "룩", Label = "(막기확률)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveColt", BaseName = "콜트", CharacterName = "콜트", Label = "(효과적중)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassivePreiya", BaseName = "프레이야", CharacterName = "프레이야", Label = "(효과적중)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveYushin", BaseName = "유신", CharacterName = "유신", Label = "(효과적중)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveRozy", BaseName = "로지", CharacterName = "로지", Label = "(효과적중(만/방))", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveSpike", BaseName = "스파이크", CharacterName = "스파이크", Label = "(효적,효저)", IsBuff = true },
 
-                // 버프 턴제
-                new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveAlice", BaseName = "엘리스", CharacterName = "엘리스", SkillName = "비밀의 문", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "나만 믿어", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "여의참난무", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = "방어 준비", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = "칠흑의 장막", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveNoho", BaseName = "노호", CharacterName = "노호", SkillName = "칼보다 강한 펜", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveYui", BaseName = "유이", CharacterName = "유이", SkillName = "축복의 선율", IsBuff = true },
+                // ==================== 턴제 버프 ====================
+                new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", Label = "(마공증)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "나만 믿어", Label = "(물공증)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveYui", BaseName = "유이", CharacterName = "유이", SkillName = "축복의 선율", Label = "(물피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", Label = "(보피증, 약공확)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", Label = "(피증)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "여의참난무", Label = "(댐감)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = "방어 준비", Label = "(댐감@스강)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = "칠흑의 장막", Label = "(댐감@스강)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveAlice", BaseName = "엘리스", CharacterName = "엘리스", SkillName = "비밀의 문", Label = "(방증)", IsBuff = true },
 
-                // 디버프 지속
-                new BuffConfig { Key = "DebuffPassiveTaka", BaseName = "타카", CharacterName = "타카", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveMilia", BaseName = "밀리아", CharacterName = "밀리아", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveBanesa", BaseName = "바네사", CharacterName = "바네사", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveAce", BaseName = "에이스", CharacterName = "에이스", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveElisia", BaseName = "엘리시아", CharacterName = "엘리시아", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveAragon", BaseName = "아라곤", CharacterName = "아라곤", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveChancellor", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = null, IsBuff = false },
-                new BuffConfig { Key = "DebuffPassiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = null, IsBuff = false },
+                // ==================== 지속 디버프 ====================
+                new BuffConfig { Key = "DebuffPassiveTaka", BaseName = "타카", CharacterName = "타카", Label = "(받피증, 취약)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveMilia", BaseName = "밀리아", CharacterName = "밀리아", Label = "(마취약)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveBanesa", BaseName = "바네사", CharacterName = "바네사", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveAce", BaseName = "에이스", CharacterName = "에이스", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveElisia", BaseName = "엘리시아", CharacterName = "엘리시아", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveAragon", BaseName = "아라곤", CharacterName = "아라곤", Label = "(공깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveChancellor", BaseName = "챈슬러", CharacterName = "챈슬러", Label = "(피감)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", Label = "(효저깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveAkila", BaseName = "아킬라", CharacterName = "아킬라", Label = "(효저깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffPassiveNox", BaseName = "녹스", CharacterName = "녹스", Label = "(효저깎@2초)", IsBuff = false },
 
-                // 디버프 턴제
-                new BuffConfig { Key = "DebuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveJuri", BaseName = "쥬리", CharacterName = "쥬리", SkillName = "천상의 심판", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveOrly", BaseName = "오를리", CharacterName = "오를리", SkillName = "고결한 유성", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveKagura", BaseName = "카구라", CharacterName = "카구라", SkillName = "해방-팔사검", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveMiho", BaseName = "미호", CharacterName = "미호", SkillName = "살율의 춤", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveVellica", BaseName = "벨리카", CharacterName = "벨리카", SkillName = "어둠의 환영", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveEspada", BaseName = "에스파다", CharacterName = "에스파다", SkillName = "정화탄", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveBanesa", BaseName = "바네사", CharacterName = "바네사", SkillName = "메마른 해일", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRachelFlame", BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRachelPhoenix", BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveColt", BaseName = "콜트", CharacterName = "콜트", SkillName = "어때, 화려하지?", IsBuff = false },
-                new BuffConfig { Key = "DebuffActivePlaton", BaseName = "플라튼", CharacterName = "플라튼", SkillName = "평타", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "부숴버려!", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "평타", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveRozy", BaseName = "로지", CharacterName = "로지", SkillName = "평타", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveYushinFlat", BaseName = "유신", CharacterName = "유신", SkillName = "평타", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveYushinS2", BaseName = "유신", CharacterName = "유신", SkillName = "번뇌", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = "금지된 실험", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveAceS1", BaseName = "에이스", CharacterName = "에이스", SkillName = "달빛 베기", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveAceS2", BaseName = "에이스", CharacterName = "에이스", SkillName = "일도천화엽", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveChancellorS1", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = "분쇄", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveChancellorS2", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = "대지 파괴", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveAragon", BaseName = "아라곤", CharacterName = "아라곤", SkillName = "포격 지원", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveKarma", BaseName = "카르마", CharacterName = "카르마", SkillName = "평타", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = "지옥의 일격", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "환.여의난참무", IsBuff = false },
-                new BuffConfig { Key = "DebuffActivePungyeon", BaseName = "풍연", CharacterName = "풍연", SkillName = "구음검격", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveAriel", BaseName = "아리엘", CharacterName = "아리엘", SkillName = "눈부신 빛", IsBuff = false },
-                new BuffConfig { Key = "DebuffActiveNoho", BaseName = "노호", CharacterName = "노호", SkillName = "파멸의 고서", IsBuff = true },
+                // ==================== 턴제 디버프 ====================
+                new BuffConfig { Key = "DebuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveJuri", BaseName = "쥬리", CharacterName = "쥬리", SkillName = "천상의 심판", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveOrly", BaseName = "오를리", CharacterName = "오를리", SkillName = "고결한 유성", Label = "(방깎@스강)", IsBuff = false },
+
+                // 챈슬러 - 그룹 (버튼 1개 공유)
+                new BuffConfig { Key = "DebuffActiveChancellorS1", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = "분쇄", Label = "(방깎)", GroupKey = "Chancellor", ShowButton = true, IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveChancellorS2", BaseName = "챈슬러", CharacterName = "챈슬러", SkillName = "대지 파괴", Label = "(공깎)", GroupKey = "Chancellor", ShowButton = false, IsBuff = false },
+
+                new BuffConfig { Key = "DebuffActivePungyeon", BaseName = "풍연", CharacterName = "풍연", SkillName = "구음검격", Label = "(방깎@2초)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveAriel", BaseName = "아리엘", CharacterName = "아리엘", SkillName = "눈부신 빛", Label = "(방깎)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveKagura", BaseName = "카구라", CharacterName = "카구라", SkillName = "해방-팔사검", Label = "(받회감/물취약@6초)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveMiho", BaseName = "미호", CharacterName = "미호", SkillName = "살율의 춤", Label = "(마취약)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveVellica", BaseName = "벨리카", CharacterName = "벨리카", SkillName = "어둠의 환영", Label = "(마취약)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveEspada", BaseName = "에스파다", CharacterName = "에스파다", SkillName = "정화탄", Label = "(마취약)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveBanesa", BaseName = "바네사", CharacterName = "바네사", SkillName = "메마른 해일", Label = "(마취약@6초)", IsBuff = false },
+
+                // 레이첼 - 그룹 (버튼 1개 공유)
+                new BuffConfig { Key = "DebuffActiveRachelFlame", BaseName = "레이첼", CharacterName = "레이첼", SkillName = "염화", Label = "(염화)", GroupKey = "Rachel", ShowButton = true, IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRachelPhoenix", BaseName = "레이첼", CharacterName = "레이첼", SkillName = "불새", Label = "(불새)", GroupKey = "Rachel", ShowButton = false, IsBuff = false },
+
+                new BuffConfig { Key = "DebuffActiveAragon", BaseName = "아라곤", CharacterName = "아라곤", SkillName = "포격 지원", Label = "(치피감@2초)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveColt", BaseName = "콜트", CharacterName = "콜트", SkillName = "어때, 화려하지?", Label = "(공깎@스강)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActivePlaton", BaseName = "플라튼", CharacterName = "플라튼", SkillName = "평타", Label = "(공깎@평타)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveNoho", BaseName = "노호", CharacterName = "노호", SkillName = "파멸의 고서", Label = "(공깎@2초월)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "부숴버려!", Label = "(뎀감)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "평타", Label = "(뎀감@평타)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveKarma", BaseName = "카르마", CharacterName = "카르마", SkillName = "평타", Label = "(뎀감@평타)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveRozy", BaseName = "로지", CharacterName = "로지", SkillName = "평타", Label = "(효저깎@평타)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveNox", BaseName = "녹스", CharacterName = "녹스", SkillName = "지옥의 일격", Label = "(효저깎)", IsBuff = false },
+
+                // 유신 - 그룹 (버튼 1개 공유)
+                new BuffConfig { Key = "DebuffActiveYushinFlat", BaseName = "유신", CharacterName = "유신", SkillName = "평타", Label = "(효저깎@평타)", GroupKey = "Yushin", ShowButton = true, IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveYushinS2", BaseName = "유신", CharacterName = "유신", SkillName = "번뇌", Label = "(받회감)", GroupKey = "Yushin", ShowButton = false, IsBuff = false },
+
+                new BuffConfig { Key = "DebuffActiveMelkir", BaseName = "멜키르", CharacterName = "멜키르", SkillName = "금지된 실험", Label = "(받회감)", IsBuff = false },
+
+                // 에이스 - 그룹 (버튼 1개 공유)
+                new BuffConfig { Key = "DebuffActiveAceS1", BaseName = "에이스", CharacterName = "에이스", SkillName = "달빛 베기", Label = "(받회감@2초)", GroupKey = "Ace", ShowButton = true, IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveAceS2", BaseName = "에이스", CharacterName = "에이스", SkillName = "일도천화엽", Label = "(취약,막감)", GroupKey = "Ace", ShowButton = false, IsBuff = false },
+
+                new BuffConfig { Key = "DebuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "환.여의난참무", Label = "(막감)", IsBuff = false },
             };
+
+            // 체크 변경 이벤트 연결
+            foreach (var config in BuffConfigs)
+            {
+                config.CheckedChanged += (s, e) =>
+                {
+                    if (_isInitialized) RecalculateStats();
+                };
+            }
+
+            // 그룹 Level 변경 시 같은 그룹 UI 업데이트
+            BuffConfig.GroupLevelChanged += (groupKey, level) =>
+            {
+                foreach (var config in BuffConfigs.Where(c => c.GroupKey == groupKey))
+                {
+                    config.NotifyLevelChanged();
+                }
+                if (_isInitialized) RecalculateStats();
+            };
+
+            DataContext = this;
         }
 
+        
         #endregion
 
         #region 콤보박스 초기화
@@ -158,14 +211,11 @@ namespace GameDamageCalculator.UI
 
             // 장비 세트
             cboMyEquipSet1.Items.Add("없음");
-            cboMyEquipSet2.Items.Add("없음");
             foreach (var setName in EquipmentDb.SetEffects.Keys)
             {
                 cboMyEquipSet1.Items.Add(setName);
-                cboMyEquipSet2.Items.Add(setName);
             }
             cboMyEquipSet1.SelectedIndex = 0;
-            cboMyEquipSet2.SelectedIndex = 0;
 
             // 진형 목록
             cboMyFormation.Items.Add("없음");
@@ -174,8 +224,6 @@ namespace GameDamageCalculator.UI
                 cboMyFormation.Items.Add(formationName);
             }
             cboMyFormation.SelectedIndex = 0;
-
-            InitializeMainOptionComboBoxes(); 
 
             InitializeAccessoryComboBoxes();
 
@@ -199,62 +247,6 @@ namespace GameDamageCalculator.UI
             }
             cboMob.SelectedIndex = 0;
         }
-
-       private void InitializeMainOptionComboBoxes()
-        {
-            // 무기 메인옵션
-            cboMyWeapon1Main.Items.Clear();
-            cboMyWeapon2Main.Items.Clear();
-            cboMyWeapon1Main.Items.Add("없음");
-            cboMyWeapon2Main.Items.Add("없음");
-            foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["무기"])
-            {
-                cboMyWeapon1Main.Items.Add(opt);
-                cboMyWeapon2Main.Items.Add(opt);
-            }
-            cboMyWeapon1Main.SelectedIndex = 0;
-            cboMyWeapon2Main.SelectedIndex = 0;
-
-            // 방어구 메인옵션
-            cboMyArmor1Main.Items.Clear();
-            cboMyArmor2Main.Items.Clear();
-            cboMyArmor1Main.Items.Add("없음");
-            cboMyArmor2Main.Items.Add("없음");
-            foreach (var opt in EquipmentDb.MainStatDb.AvailableOptions["방어구"])
-            {
-                cboMyArmor1Main.Items.Add(opt);
-                cboMyArmor2Main.Items.Add(opt);
-            }
-            cboMyArmor1Main.SelectedIndex = 0;
-            cboMyArmor2Main.SelectedIndex = 0;
-        }
-
-        private BaseStatSet GetMainOptionStats()
-        {
-            BaseStatSet stats = new BaseStatSet();
-
-            var combos = new[] { cboMyWeapon1Main, cboMyWeapon2Main, cboMyArmor1Main, cboMyArmor2Main };
-
-            foreach (var cbo in combos)
-            {
-                if (cbo.SelectedIndex > 0)
-                {
-                    string option = cbo.SelectedItem.ToString();
-                    if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(option, out var bonus))
-                        stats.Add(bonus);
-                }
-            }
-
-            return stats;
-        }
-
-        private void MainOption_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (!_isInitialized) return;
-            UpdateMainOptionDisplay();
-            RecalculateStats();
-        }
-
         private void InitializeAccessoryComboBoxes()
         {
             // 성급
@@ -280,7 +272,6 @@ namespace GameDamageCalculator.UI
                 cboMyAccessorySub.Items.Add(opt);
             cboMyAccessorySub.SelectedIndex = 0;
         }
-
         private void FormationPosition_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button;
@@ -363,23 +354,6 @@ namespace GameDamageCalculator.UI
             RecalculateStats();
         }
 
-        private void CboSetCount1_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!_isInitialized) return;
-            
-            if (cboMySetCount1.SelectedIndex == 0)
-            {
-                gridMyEquipSet2.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                gridMyEquipSet2.Visibility = Visibility.Collapsed;
-                cboMyEquipSet2.SelectedIndex = 0;
-            }
-            
-            RecalculateStats();
-        }
-
         private void CboAccessoryGrade_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
@@ -408,54 +382,17 @@ namespace GameDamageCalculator.UI
         
         private void UpdateAccessoryDisplay()
         {
-            if (cboMyAccessoryGrade.SelectedIndex <= 0)
-            {
-                txtMyAccessoryMainValue.Text = "";
-                txtMyAccessorySubValue.Text = "";
-                return;
-            }
-        
-            int grade = cboMyAccessoryGrade.SelectedIndex + 3;  // 1→4성, 2→5성, 3→6성
-        
-            // 메인옵션 값 표시
-            txtMyAccessoryMainValue.Text = GetAccessoryOptionValue(grade, cboMyAccessoryMain, AccessoryDb.MainOptions);
-        
-            // 부옵션 값 표시 (6성만)
-            if (grade == 6)
-            {
-                txtMyAccessorySubValue.Text = GetAccessoryOptionValue(grade, cboMyAccessorySub, AccessoryDb.SubOptions);
-            }
-            else
-            {
-                txtMyAccessorySubValue.Text = "";
-            }
-        }
-        
-        private string GetAccessoryOptionValue(int grade, ComboBox cbo, Dictionary<int, Dictionary<string, BaseStatSet>> optionDb)
-        {
-            if (cbo.SelectedIndex <= 0) return "";
-        
-            string option = cbo.SelectedItem.ToString();
-            if (optionDb.TryGetValue(grade, out var options))
-            {
-                if (options.TryGetValue(option, out var stats))
-                {
-                    if (stats.Atk_Rate > 0) return $"{stats.Atk_Rate}%";
-                    if (stats.Def_Rate > 0) return $"{stats.Def_Rate}%";
-                    if (stats.Hp_Rate > 0) return $"{stats.Hp_Rate}%";
-                    if (stats.Cri > 0) return $"{stats.Cri}%";
-                    if (stats.Cri_Dmg > 0) return $"{stats.Cri_Dmg}%";
-                    if (stats.Wek > 0) return $"{stats.Wek}%";
-                    if (stats.Eff_Hit > 0) return $"{stats.Eff_Hit}%";
-                    if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
-                    if (stats.Blk > 0) return $"{stats.Blk}%";
-                    if (stats.Dmg_Dealt > 0) return $"{stats.Dmg_Dealt}%";
-                    if (stats.Dmg_Dealt_Bos > 0) return $"{stats.Dmg_Dealt_Bos}%";
-                    if (stats.Dmg_Dealt_1to3 > 0) return $"{stats.Dmg_Dealt_1to3}%";
-                    if (stats.Dmg_Dealt_4to5 > 0) return $"{stats.Dmg_Dealt_4to5}%";
-                }
-            }
-            return "";
+            int grade = cboMyAccessoryGrade.SelectedIndex > 0 
+                ? cboMyAccessoryGrade.SelectedIndex + 3 : 0;
+
+            string mainOpt = cboMyAccessoryMain.SelectedIndex > 0 
+                ? cboMyAccessoryMain.SelectedItem.ToString() : null;
+            string subOpt = cboMyAccessorySub.SelectedIndex > 0 
+                ? cboMyAccessorySub.SelectedItem.ToString() : null;
+
+            txtMyAccessoryMainValue.Text = Accessory.GetOptionDisplayValue(grade, mainOpt, true);
+            txtMyAccessorySubValue.Text = grade == 6 
+                ? Accessory.GetOptionDisplayValue(grade, subOpt, false) : "";
         }
 
         private void SubOption_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -508,12 +445,12 @@ namespace GameDamageCalculator.UI
                 txtBossHp.Text = "0";
                 return;
             }
-
+        
             string selected = cboBoss.SelectedItem?.ToString();
             if (string.IsNullOrEmpty(selected)) return;
-
+        
             Boss boss = null;
-
+        
             if (rbSiege.IsChecked == true)
             {
                 boss = BossDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
@@ -522,25 +459,28 @@ namespace GameDamageCalculator.UI
             {
                 boss = BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
             }
-
+            else if (rbDescend.IsChecked == true)  // ✅ 강림 추가
+            {
+                boss = BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+            }
+        
             if (boss != null)
             {
                 txtBossDef.Text = boss.Stats.Def.ToString("N0");
                 txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                 txtBossDmgRdc.Text = "0";
-                txtBossHp.Text =  boss.Stats.Hp.ToString("N0");
-
-                // 인기별 피해감소 (소수 → 백분율)
+                txtBossHp.Text = boss.Stats.Hp.ToString("N0");
+        
                 txtBoss1TargetRdc.Text = boss.SingleTargetReduction.ToString("F0");
                 txtBoss3TargetRdc.Text = boss.TripleTargetReduction.ToString("F0");
                 txtBoss5TargetRdc.Text = boss.MultiTargetReduction.ToString("F0");
-
+        
                 // 조건부 방증 처리
                 if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
                 {
                     panelBossCondition.Visibility = Visibility.Visible;
                     txtBossCondition.Text = boss.DefenseIncreaseCondition;
-                    chkBossCondition.IsChecked = false;  // 기본: 조건 미충족 (방증 적용)
+                    chkBossCondition.IsChecked = false;
                     txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                 }
                 else
@@ -606,7 +546,10 @@ namespace GameDamageCalculator.UI
                 }
 
                 // 버프 합산 - 새 로직
-                BuffSet totalBuffs = GetTotalBuffs();
+                Pet pet = cboMyPet.SelectedIndex > 0 
+                    ? PetDb.GetByName(cboMyPet.SelectedItem.ToString()) : null;
+                int petStar = GetPetStar();
+                BuffSet totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
                 double weakDmgBuff = totalBuffs.Wek_Dmg;
 
                 BattleMode mode = BattleMode.Boss;
@@ -736,55 +679,7 @@ namespace GameDamageCalculator.UI
 
             return new Boss { Name = "Unknown", Stats = new BaseStatSet { Def = 0 } };
         }
-
-        private BaseStatSet GetTotalEquipmentStats()
-        {
-            BaseStatSet total = new BaseStatSet();
-
-            // 장비 기본 스탯
-            total.Atk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
-            total.Def = EquipmentDb.EquipStatTable.CommonArmorStat.Def;
-            total.Hp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
-
-            // 잠재능력
-            total.Add(GetPotentialStats());
-
-            // 서브옵션
-            total.Add(GetSubOptionStats());
-
-            // 메인옵션
-            total.Add(GetMainOptionStats());
-
-            // 장신구
-            total.Add(GetAccessoryStats());
-
-            // 펫 옵션 (% 스탯)
-            total.Atk_Rate += GetPetOptionAtkRate();
-            total.Def_Rate += GetPetOptionDefRate();
-            total.Hp_Rate += GetPetOptionHpRate();
-
-            return total;
-        }
-
-        private BaseStatSet GetTotalSetBonus()
-        {
-            BaseStatSet setBonus = new BaseStatSet();
-
-            if (cboMyEquipSet1.SelectedIndex > 0)
-            {
-                string setName = cboMyEquipSet1.SelectedItem.ToString();
-                int setCount = cboMySetCount1.SelectedIndex == 0 ? 2 : 4;
-                setBonus.Add(GetSetBonus(setName, setCount));
-            }
-            if (cboMySetCount1.SelectedIndex == 0 && cboMyEquipSet2.SelectedIndex > 0)
-            {
-                string setName = cboMyEquipSet2.SelectedItem.ToString();
-                setBonus.Add(GetSetBonus(setName, 2));
-            }
-
-            return setBonus;
-        }
-
+  
         private void BtnReset_Click(object sender, RoutedEventArgs e)
         {
             // 캐릭터
@@ -799,27 +694,15 @@ namespace GameDamageCalculator.UI
 
             // 세트
             cboMyEquipSet1.SelectedIndex = 0;
-            cboMyEquipSet2.SelectedIndex = 0;
-            cboMySetCount1.SelectedIndex = 1;
 
             // 장신구
             cboMyAccessoryGrade.SelectedIndex = 0;
 
-            // 서브옵션 초기화
-            txtMySubAtkRate.Text = "0";
-            txtMySubAtk.Text = "0";
-            txtMySubCri.Text = "0";
-            txtMySubCriDmg.Text = "0";
-            txtMySubWek.Text = "0";
-            txtMySubBlk.Text = "0";
-            txtMySubDmgRdc.Text = "0";
-            txtMySubDefRate.Text = "0";
-            txtMySubDef.Text = "0";
-            txtMySubHpRate.Text = "0";
-            txtMySubHp.Text = "0";
-            txtMySubEffHit.Text = "0";
-            txtMySubEffRes.Text = "0";
-            txtMySubSpd.Text = "0";
+            // ⭐ 장비 초기화 (새 코드) - 기존 서브옵션 초기화 14줄 삭제하고 이걸로 교체
+            foreach (var equip in Equipments)
+            {
+                equip.Reset();
+            }
 
             // 진형
             cboMyFormation.SelectedIndex = 0;
@@ -849,12 +732,10 @@ namespace GameDamageCalculator.UI
             chkBossCondition.IsChecked = false;
 
             // 버프/디버프 초기화
-            foreach (var config in _buffConfigs)
+            foreach (var config in BuffConfigs)
             {
-                var chk = GetBuffCheckBox(config);
-                var btn = GetBuffButton(config);
-                if (chk != null) chk.IsChecked = false;
-                if (btn != null) ResetBuffOptionButton(btn, config.BaseName);
+                config.IsChecked = false;
+                config.Level = 0;
             }
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
@@ -883,39 +764,6 @@ namespace GameDamageCalculator.UI
                 RecalculateStats();
             }
             e.Handled = true;
-        }
-        
-        private void UpdateMainOptionDisplay()
-        {
-            txtMyWeapon1MainValue.Text = GetMainOptionDisplayValue(cboMyWeapon1Main);
-            txtMyWeapon2MainValue.Text = GetMainOptionDisplayValue(cboMyWeapon2Main);
-            txtMyArmor1MainValue.Text = GetMainOptionDisplayValue(cboMyArmor1Main);
-            txtMyArmor2MainValue.Text = GetMainOptionDisplayValue(cboMyArmor2Main);
-        }
-        
-        private string GetMainOptionDisplayValue(ComboBox cbo)
-        {
-            if (cbo.SelectedIndex <= 0) return "";
-            
-            string option = cbo.SelectedItem.ToString();
-
-            if (EquipmentDb.MainStatDb.MainOptions.TryGetValue(option, out var stats))
-            {
-                if (stats.Atk_Rate > 0) return $"{stats.Atk_Rate}%";
-                if (stats.Atk > 0) return $"{stats.Atk}";
-                if (stats.Def_Rate > 0) return $"{stats.Def_Rate}%";
-                if (stats.Def > 0) return $"{stats.Def}";
-                if (stats.Hp_Rate > 0) return $"{stats.Hp_Rate}%";
-                if (stats.Hp > 0) return $"{stats.Hp}";
-                if (stats.Cri > 0) return $"{stats.Cri}%";
-                if (stats.Cri_Dmg > 0) return $"{stats.Cri_Dmg}%";
-                if (stats.Wek > 0) return $"{stats.Wek}%";
-                if (stats.Eff_Hit > 0) return $"{stats.Eff_Hit}%";
-                if (stats.Eff_Res > 0) return $"{stats.Eff_Res}%";
-                if (stats.Dmg_Rdc > 0) return $"{stats.Dmg_Rdc}%";
-                if (stats.Blk > 0) return $"{stats.Blk}%";
-            }
-            return "";
         }
 
         private void CboFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1092,248 +940,78 @@ namespace GameDamageCalculator.UI
         {
             if (!_isInitialized) return;
 
-            // ========== 기본공격력 (캐릭터 DB 기초 스탯) ==========
-            double baseAtk = 0;
-            double baseDef = 0;
-            double baseHp = 0;
-            BaseStatSet characterStats = new BaseStatSet();
-
+            // ========== 입력 데이터 구성 ==========
+            Character character = null;
             if (cboMyCharacter.SelectedIndex > 0)
+                character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
+
+            // 장신구 상태 업데이트
+            _currentAccessory.Grade = cboMyAccessoryGrade.SelectedIndex > 0 
+                ? cboMyAccessoryGrade.SelectedIndex + 3 : 0;
+            _currentAccessory.MainOption = cboMyAccessoryMain.SelectedIndex > 0 
+                ? cboMyAccessoryMain.SelectedItem.ToString() : null;
+            _currentAccessory.SubOption = cboMyAccessorySub.SelectedIndex > 0 
+                ? cboMyAccessorySub.SelectedItem.ToString() : null;
+
+            // 진형 상태 업데이트
+            _currentFormation.Name = cboMyFormation.SelectedIndex > 0 
+                ? cboMyFormation.SelectedItem.ToString() : null;
+            _currentFormation.IsBackPosition = rbMyBack.IsChecked == true;
+
+            // 펫 정보
+            Pet pet = null;
+            int petStar = GetPetStar();
+            if (cboMyPet.SelectedIndex > 0)
+                pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
+
+            // 버프/디버프 계산
+            var totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
+            _currentDebuffs = _buffCalculator.CalculateTotalDebuffs(BuffConfigs, pet, petStar);
+
+            // 입력 데이터 생성
+            var input = new StatCalculationInput
             {
-                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
-                if (character != null)
-                {
-                    characterStats = character.GetBaseStats();
-                    baseAtk = characterStats.Atk;
-                    baseDef = characterStats.Def;
-                    baseHp = characterStats.Hp;
-                }
-            }
+                Character = character,
+                TranscendLevel = cboMyTranscend.SelectedIndex,
+                IsSkillEnhanced = chkMySkillEnhanced.IsChecked == true,
+                IsPassiveConditionMet = chkMyPassiveCondition.IsChecked == true,
 
-            // ========== 선택한 캐릭터의 패시브 버프 (자신에게 적용) ==========
-            BuffSet characterPassiveBuff = new BuffSet();
-            if (cboMyCharacter.SelectedIndex > 0)
-            {
-                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
-                if (character?.Passive != null)
-                {
-                    bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
-                    int transcendLevel = cboMyTranscend.SelectedIndex;
-                    
-                    // 상시 자버프
-                    var permanentBuff = character.Passive.GetTotalSelfBuff(isEnhanced, transcendLevel);
-                    if (permanentBuff != null) characterPassiveBuff.Add(permanentBuff);
-                    
-                    // 턴제 자버프 (조건 충족 시)
-                    bool isConditionMet = chkMyPassiveCondition.IsChecked == true;
-                    if (isConditionMet)
-                    {
-                        var timedBuff = character.Passive.GetConditionalSelfBuff(isEnhanced, transcendLevel);
-                        if (timedBuff != null) characterPassiveBuff.Add(timedBuff);
-                    }
-                }
-            }
+                Equipments = Equipments,
+                EquipSetName = cboMyEquipSet1.SelectedIndex > 0 
+                    ? cboMyEquipSet1.SelectedItem.ToString() : null,
+                EquipSetCount = 4,
 
-            // ========== 각종 스탯 소스 가져오기 ==========
-            var potentialStats = GetPotentialStats();
-            BaseStatSet subStats = GetSubOptionStats();
-            BaseStatSet mainOptionStats = GetMainOptionStats();
-            BaseStatSet accessoryStats = GetAccessoryStats();
+                PotentialAtkLevel = cboMyPotentialAtk.SelectedIndex,
+                PotentialDefLevel = cboMyPotentialDef.SelectedIndex,
+                PotentialHpLevel = cboMyPotentialHp.SelectedIndex,
 
-            // 버프/디버프 (UI 체크박스) - 새 로직: 상시/턴제 타입별 MaxMerge
-            BuffSet totalBuffs = GetTotalBuffs();
-            _currentDebuffs = GetTotalDebuffs();
+                Accessory = _currentAccessory,
+                Formation = _currentFormation,
 
-            // ========== 합연산% ==========
-            BaseStatSet transcendStats = new BaseStatSet();
-        
-            if (cboMyCharacter.SelectedIndex > 0)
-            {
-                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
-                if (character != null)
-                {
-                    int transcendLevel = cboMyTranscend.SelectedIndex;
-                    transcendStats = character.GetTranscendStats(transcendLevel);
-                }
-            }
+                Pet = pet,
+                PetStar = petStar,
+                PetOptionAtkRate = GetPetOptionAtkRate(),
+                PetOptionDefRate = GetPetOptionDefRate(),
+                PetOptionHpRate = GetPetOptionHpRate(),
 
-            BaseStatSet setBonus = new BaseStatSet();
-            if (cboMyEquipSet1.SelectedIndex > 0)
-            {
-                string setName = cboMyEquipSet1.SelectedItem.ToString();
-                int setCount = cboMySetCount1.SelectedIndex == 0 ? 2 : 4;
-                setBonus.Add(GetSetBonus(setName, setCount));
-            }
-            if (cboMySetCount1.SelectedIndex == 0 && cboMyEquipSet2.SelectedIndex > 0)
-            {
-                string setName = cboMyEquipSet2.SelectedItem.ToString();
-                setBonus.Add(GetSetBonus(setName, 2));
-            }
-
-            // 패시브 깡스탯 보너스
-            BaseStatSet passiveFlatBonus = new BaseStatSet();
-            if (cboMyCharacter.SelectedIndex > 0)
-            {
-                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
-                if (character?.Passive != null)
-                {
-                    bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
-                    var passiveData = character.Passive.GetLevelData(isEnhanced);
-                    passiveFlatBonus = passiveData?.FlatBonus ?? new BaseStatSet();
-                }
-            }
-
-            // ========== 깡스탯 합계 ==========
-            double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
-            double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
-            double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
-
-            double petFlatAtk = GetPetFlatAtk();
-            double petFlatDef = GetPetFlatDef();
-            double petFlatHp = GetPetFlatHp();
-
-            double flatAtk = equipFlatAtk + potentialStats.Atk + subStats.Atk + petFlatAtk + mainOptionStats.Atk;
-            double flatDef = equipFlatDef + potentialStats.Def + subStats.Def + petFlatDef + mainOptionStats.Def;
-            double flatHp = equipFlatHp + potentialStats.Hp + subStats.Hp + petFlatHp + mainOptionStats.Hp;
-            
-            // ========== 속공 계산 ==========
-            double baseSpd = characterStats.Spd;  // 캐릭터 기본 속공
-            double subSpd = subStats.Spd;         // GetSubOptionStats()에서 이미 4 * tier 계산됨
-            double totalSpd = baseSpd + subSpd;
-            
-
-            double formationAtkRate = GetFormationAtkRate();
-            double formationDefRate = GetFormationDefRate();
-
-            double petOptionAtkRate = GetPetOptionAtkRate();
-            double petOptionDefRate = GetPetOptionDefRate();
-            double petOptionHpRate = GetPetOptionHpRate();
-
-            double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
-                    + setBonus.Atk_Rate + subStats.Atk_Rate 
-                    + accessoryStats.Atk_Rate + petOptionAtkRate
-                    + mainOptionStats.Atk_Rate;
-
-            double totalDefRate = transcendStats.Def_Rate + formationDefRate
-                    + setBonus.Def_Rate + subStats.Def_Rate 
-                    + accessoryStats.Def_Rate + petOptionDefRate
-                    + mainOptionStats.Def_Rate;
-
-            double totalHpRate = transcendStats.Hp_Rate 
-                   + setBonus.Hp_Rate + subStats.Hp_Rate 
-                   + accessoryStats.Hp_Rate + petOptionHpRate
-                   + mainOptionStats.Hp_Rate;
-
-            // ========== 버프% ==========
-            double buffAtkRate = petOptionAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
-            double buffDefRate = petOptionDefRate + totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
-            double buffHpRate = petOptionHpRate + totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
-
-            // ========== 기본 스탯 (버프 적용 전) ==========
-            double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
-            double baseStatDef = baseDef * (1 + totalDefRate / 100.0) + flatDef;
-            double baseStatHp = baseHp * (1 + totalHpRate / 100.0) + flatHp;
-
-            // ========== 스탯 비례 증가 (속공 비례 공격력 등) ==========
-            double scalingFlatAtk = 0;
-            double scalingFlatDef = 0;
-            double scalingFlatHp = 0;
-            double scalingCri = 0;
-            double scalingBlk = 0;
-
-            if (cboMyCharacter.SelectedIndex > 0)
-            {
-                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
-                if (character?.Passive != null)
-                {
-                    bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
-                    var passiveData = character.Passive.GetLevelData(isEnhanced);
-
-                    if (passiveData?.StatScalings != null)
-                    {
-                        foreach (var scaling in passiveData.StatScalings)
-                        {
-                            double sourceValue = scaling.SourceStat switch
-                            {
-                                StatType.Spd => totalSpd,
-                                StatType.Hp => baseStatHp,
-                                StatType.Def => baseStatDef,
-                                StatType.Atk => baseStatAtk,
-                                StatType.Blk => scalingBlk,
-                                _ => 0
-                            };
-
-                            double bonus = CalcStatScaling(sourceValue, scaling);
-
-                            switch (scaling.TargetStat)
-                            {
-                                case StatType.Atk:
-                                    scalingFlatAtk += bonus;
-                                    break;
-                                case StatType.Def:
-                                    scalingFlatDef += bonus;
-                                    break;
-                                case StatType.Hp:
-                                    scalingFlatHp += bonus;
-                                    break;
-                                case StatType.Cri:
-                                    scalingCri += bonus;
-                                    break;
-                                case StatType.Blk:
-                                    scalingBlk += bonus;
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ========== 스탯 비례 보너스 적용 ==========
-            baseStatAtk += scalingFlatAtk;
-            baseStatDef += scalingFlatDef;
-            baseStatHp += scalingFlatHp;
-
-            // ========== 최종 스탯 (버프 적용 후) ==========
-            double totalAtk = baseStatAtk * (1 + buffAtkRate / 100.0);
-            double totalDef = baseStatDef * (1 + buffDefRate / 100.0);
-            double totalHp = baseStatHp * (1 + buffHpRate / 100.0);
-
-            // 순수 기본 = 캐릭터 기본 + 장비 + 초월 + 장신구
-            double pureBaseAtk = baseAtk * (1+ (mainOptionStats.Atk_Rate+subStats.Atk_Rate+transcendStats.Atk_Rate+accessoryStats.Atk_Rate+setBonus.Atk_Rate)/100) + flatAtk;
-            double pureBaseDef = baseDef * (1+ (mainOptionStats.Def_Rate+subStats.Def_Rate+transcendStats.Def_Rate+accessoryStats.Def_Rate+setBonus.Def_Rate)/100) + flatDef;
-            double pureBaseHp = baseHp * (1+ (mainOptionStats.Hp_Rate+subStats.Hp_Rate+transcendStats.Hp_Rate+accessoryStats.Hp_Rate+setBonus.Hp_Rate)/100) + flatHp;
-
-            // ========== UI 표시 ==========
-            txtMyStatAtkBase.Text = pureBaseAtk.ToString("N0");
-            txtMyStatDefBase.Text = pureBaseDef.ToString("N0");
-            txtMyStatHpBase.Text = pureBaseHp.ToString("N0");
-
-            txtMyStatAtk.Text = totalAtk.ToString("N0");
-            txtMyStatDef.Text = totalDef.ToString("N0");
-            txtMyStatHp.Text = totalHp.ToString("N0");
-            txtMyStatSpd.Text = totalSpd.ToString("N0");
-
-            // ========== 기타 스탯 ==========
-            BaseStatSet displayStats = new BaseStatSet
-            {
-                Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri + subStats.Cri + mainOptionStats.Cri + accessoryStats.Cri + characterPassiveBuff.Cri + totalBuffs.Cri,
-                Cri_Dmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg + subStats.Cri_Dmg + mainOptionStats.Cri_Dmg + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg + characterPassiveBuff.Cri_Dmg,
-                Wek = characterStats.Wek + transcendStats.Wek + setBonus.Wek + subStats.Wek + mainOptionStats.Wek + accessoryStats.Wek + totalBuffs.Wek + characterPassiveBuff.Wek,
-                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
-                Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt,
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
-                Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,
-                Blk = characterStats.Blk + transcendStats.Blk + setBonus.Blk + subStats.Blk + mainOptionStats.Blk + accessoryStats.Blk,
-                Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit + subStats.Eff_Hit + mainOptionStats.Eff_Hit + accessoryStats.Eff_Hit + totalBuffs.Eff_Hit + characterPassiveBuff.Eff_Hit,
-                Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res + subStats.Eff_Res + mainOptionStats.Eff_Res + accessoryStats.Eff_Res + totalBuffs.Eff_Res + characterPassiveBuff.Eff_Res,
-                Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
-                Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc + mainOptionStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc,
-                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3 + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3,
-                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5,
-                Atk_Rate = totalAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate
+                TotalBuffs = totalBuffs,
+                TotalDebuffs = _currentDebuffs
             };
 
-            UpdateStatDisplay(displayStats);
+            // ========== 계산 실행 ==========
+            var result = _statCalculator.Calculate(input);
+
+            // ========== UI 표시 ==========
+            txtMyStatAtkBase.Text = result.BaseAtk.ToString("N0");
+            txtMyStatDefBase.Text = result.BaseDef.ToString("N0");
+            txtMyStatHpBase.Text = result.BaseHp.ToString("N0");
+
+            txtMyStatAtk.Text = result.FinalAtk.ToString("N0");
+            txtMyStatDef.Text = result.FinalDef.ToString("N0");
+            txtMyStatHp.Text = result.FinalHp.ToString("N0");
+            txtMyStatSpd.Text = result.FinalSpd.ToString("N0");
+
+            UpdateStatDisplay(result.DisplayStats);
             UpdateBossDebuffDisplay();
         }
 
@@ -1356,23 +1034,7 @@ namespace GameDamageCalculator.UI
             txtMyStatAtkRate.Text = $"{stats.Atk_Rate}%";
         }
 
-        /// <summary>
-        /// 스탯 비례 증가 계산
-        /// </summary>
-        private double CalcStatScaling(double sourceValue, StatScaling scaling)
-        {
-            if (scaling == null || scaling.SourceUnit <= 0) return 0;
-
-            // 기준 스탯 / 단위 = 배수
-            double multiplier = Math.Floor(sourceValue / scaling.SourceUnit);
-
-            // 증가량
-            double bonus = multiplier * scaling.PerUnit;
-
-            // 최대치 제한
-            return Math.Min(bonus, scaling.MaxValue);
-        }
-
+        
         #endregion
 
         #region 펫 스탯 헬퍼
@@ -1481,38 +1143,6 @@ namespace GameDamageCalculator.UI
 
         #endregion
 
-        #region 진형 스탯 헬퍼
-
-        private double GetFormationAtkRate()
-        {
-            if (cboMyFormation.SelectedIndex <= 0) return 0;
-            
-            if (rbMyFront.IsChecked == true) return 0;
-            
-            string formationName = cboMyFormation.SelectedItem.ToString();
-            if (StatTable.FormationDb.Formations.TryGetValue(formationName, out var bonus))
-            {
-                return bonus.Atk_Rate_Back;
-            }
-            return 0;
-        }
-
-        private double GetFormationDefRate()
-        {
-            if (cboMyFormation.SelectedIndex <= 0) return 0;
-            
-            if (rbMyBack.IsChecked == true) return 0;
-            
-            string formationName = cboMyFormation.SelectedItem.ToString();
-            if (StatTable.FormationDb.Formations.TryGetValue(formationName, out var bonus))
-            {
-                return bonus.Def_Rate_Front;
-            }
-            return 0;
-        }
-
-        #endregion
-
         #region 보스 UI 헬퍼
 
         private void UpdateBossList()
@@ -1534,12 +1164,14 @@ namespace GameDamageCalculator.UI
                     cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
                 }
             }
-            else
+            else if (rbDescend.IsChecked == true)  // ✅ 강림 추가
             {
-                cboBoss.Items.Add("장원 보스");
+                foreach (var boss in BossDb.ForestBosses)
+                {
+                    cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
+                }
             }
-
-            cboBoss.SelectedIndex = 0;
+                    cboBoss.SelectedIndex = 0;
         }
 
         private void UpdateBossDebuffDisplay()
@@ -1549,124 +1181,6 @@ namespace GameDamageCalculator.UI
             // 취약 + 보스취약 합산 출력
             double totalVulnerability = _currentDebuffs.Vulnerability + _currentDebuffs.Boss_Vulnerability;
             txtBossVulnerable.Text = totalVulnerability.ToString("F0");
-        }
-
-        #endregion
-
-        #region DB 헬퍼
-
-        private BaseStatSet GetSetBonus(string setName, int setCount)
-        {
-            BaseStatSet total = new BaseStatSet();
-
-            if (EquipmentDb.SetEffects.TryGetValue(setName, out var setData))
-            {
-                if (setData.TryGetValue(setCount, out var bonus))
-                {
-                    total.Add(bonus);
-                }
-            }
-            return total;
-        }
-
-        private BaseStatSet GetSubOptionStats()
-        {
-            BaseStatSet result = new BaseStatSet();
-        
-            // 티어 값 파싱
-            int atkRateTier = int.TryParse(txtMySubAtkRate.Text, out int t1) ? t1 : 0;
-            int atkTier = int.TryParse(txtMySubAtk.Text, out int t2) ? t2 : 0;
-            int criTier = int.TryParse(txtMySubCri.Text, out int t3) ? t3 : 0;
-            int criDmgTier = int.TryParse(txtMySubCriDmg.Text, out int t4) ? t4 : 0;
-            int wekTier = int.TryParse(txtMySubWek.Text, out int t5) ? t5 : 0;
-            int blkTier = int.TryParse(txtMySubBlk.Text, out int t6) ? t6 : 0;
-            int dmgRdcTier = int.TryParse(txtMySubDmgRdc.Text, out int t7) ? t7 : 0;
-            int defRateTier = int.TryParse(txtMySubDefRate.Text, out int t8) ? t8 : 0;
-            int defTier = int.TryParse(txtMySubDef.Text, out int t9) ? t9 : 0;
-            int hpRateTier = int.TryParse(txtMySubHpRate.Text, out int t10) ? t10 : 0;
-            int hpTier = int.TryParse(txtMySubHp.Text, out int t11) ? t11 : 0;
-            int effHitTier = int.TryParse(txtMySubEffHit.Text, out int t12) ? t12 : 0;
-            int effResTier = int.TryParse(txtMySubEffRes.Text, out int t13) ? t13 : 0;
-            int spdTier = int.TryParse(txtMySubSpd.Text, out int t14) ? t14 : 0;
-        
-            // 티어당 스탯 적용
-            if (atkRateTier > 0) result.Atk_Rate = 5 * atkRateTier;
-            if (atkTier > 0) result.Atk = 30 * atkTier;
-            if (criTier > 0) result.Cri = 4 * criTier;
-            if (criDmgTier > 0) result.Cri_Dmg = 5 * criDmgTier;
-            if (wekTier > 0) result.Wek = 4 * wekTier;
-            if (blkTier > 0) result.Blk = 5 * blkTier;
-            if (dmgRdcTier > 0) result.Dmg_Rdc = 3 * dmgRdcTier;
-            if (defRateTier > 0) result.Def_Rate = 5 * defRateTier;
-            if (defTier > 0) result.Def = 30 * defTier;
-            if (hpRateTier > 0) result.Hp_Rate = 5 * hpRateTier;
-            if (hpTier > 0) result.Hp = 200 * hpTier;
-            if (effHitTier > 0) result.Eff_Hit = 5 * effHitTier;
-            if (effResTier > 0) result.Eff_Res = 5 * effResTier;
-            if (spdTier > 0) result.Spd = 4 * spdTier;
-        
-            return result;
-        }
-
-        private BaseStatSet GetAccessoryStats()
-        {
-            BaseStatSet stats = new BaseStatSet();
-
-            if (cboMyAccessoryGrade.SelectedIndex <= 0) return stats;
-
-            int grade = cboMyAccessoryGrade.SelectedIndex + 3;
-
-            if (AccessoryDb.GradeBonus.TryGetValue(grade, out var gradeBonus))
-                stats.Add(gradeBonus);
-
-            if (cboMyAccessoryMain.SelectedIndex > 0)
-            {
-                string mainOpt = cboMyAccessoryMain.SelectedItem.ToString();
-                if (AccessoryDb.MainOptions.TryGetValue(grade, out var mainOptions))
-                {
-                    if (mainOptions.TryGetValue(mainOpt, out var mainBonus))
-                        stats.Add(mainBonus);
-                }
-            }
-
-            if (grade == 6 && cboMyAccessorySub.SelectedIndex > 0)
-            {
-                string subOpt = cboMyAccessorySub.SelectedItem.ToString();
-                if (AccessoryDb.SubOptions.TryGetValue(grade, out var subOptions))
-                {
-                    if (subOptions.TryGetValue(subOpt, out var subBonus))
-                        stats.Add(subBonus);
-                }
-            }
-
-            return stats;
-        }
-
-        private BaseStatSet GetPotentialStats()
-        {
-            BaseStatSet stats = new BaseStatSet();
-            
-            int atkLevel = cboMyPotentialAtk.SelectedIndex;
-            int defLevel = cboMyPotentialDef.SelectedIndex;
-            int hpLevel = cboMyPotentialHp.SelectedIndex;
-            
-            // 캐릭터 등급에 따른 잠재능력 테이블 선택
-            string grade = "전설";
-            if (cboMyCharacter.SelectedIndex > 0)
-            {
-                var character = CharacterDb.GetByName(cboMyCharacter.SelectedItem.ToString());
-                grade = character?.Grade ?? "전설";
-            }
-            var potentialStats = StatTable.PotentialDb.GetStats(grade);
-            
-            if (atkLevel > 0)
-                stats.Atk = potentialStats["공격력"][atkLevel - 1];
-            if (defLevel > 0)
-                stats.Def = potentialStats["방어력"][defLevel - 1];
-            if (hpLevel > 0)
-                stats.Hp = potentialStats["생명력"][hpLevel - 1];
-            
-            return stats;
         }
 
         #endregion
@@ -1694,10 +1208,10 @@ namespace GameDamageCalculator.UI
 
         private static readonly Brush[] BuffBgColors = new Brush[]
         {
-            new SolidColorBrush(Color.FromRgb(58, 58, 58)),
-            new SolidColorBrush(Color.FromRgb(180, 150, 50)),
-            new SolidColorBrush(Color.FromRgb(70, 130, 180)),
-            new SolidColorBrush(Color.FromRgb(138, 43, 226))
+            new SolidColorBrush(Color.FromRgb(58, 58, 58)),    // 0: 기본
+            new SolidColorBrush(Color.FromRgb(180, 150, 50)),  // 1: 스강
+            new SolidColorBrush(Color.FromRgb(70, 130, 180)),  // 2: 초월
+            new SolidColorBrush(Color.FromRgb(138, 43, 226))   // 3: 풀
         };
 
         private static readonly Brush[] BuffFgColors = new Brush[]
@@ -1708,262 +1222,117 @@ namespace GameDamageCalculator.UI
             Brushes.White
         };
 
-        private static readonly string[] BuffOptionSuffix = { "", " 스강", " 초월", " 풀" };
-
         private void BuffOption_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn)
+            if (sender is Button btn && btn.Tag is BuffConfig config)
             {
-                int current = int.Parse(btn.Tag?.ToString() ?? "0");
-                int next = (current + 1) % 4;
-                btn.Tag = next;
+                // Level 순환: 0 → 1 → 2 → 3 → 0
+                config.Level = (config.Level + 1) % 4;
 
-                string baseName = btn.Content.ToString()
-                    .Replace(" 풀", "").Replace(" 스강", "").Replace(" 초월", "");
+                // 버튼 색상 업데이트
+                btn.Background = BuffBgColors[config.Level];
+                btn.Foreground = BuffFgColors[config.Level];
 
-                btn.Background = BuffBgColors[next];
-                btn.Foreground = BuffFgColors[next];
-                btn.Content = baseName + BuffOptionSuffix[next];
-
-                RecalculateStats();
+                if (_isInitialized) RecalculateStats();
             }
-        }
-
-        private (bool isEnhanced, int transcendLevel) GetBuffOption(Button btn)
-        {
-            if (btn == null) return (false, 0);
-            int state = int.Parse(btn.Tag?.ToString() ?? "0");
-            return state switch
-            {
-                0 => (false, 0),
-                1 => (true, 0),
-                2 => (false, 6),
-                3 => (true, 6),
-                _ => (false, 0)
-            };
-        }
-
-        private void ResetBuffOptionButton(Button btn, string baseName)
-        {
-            btn.Tag = 0;
-            btn.Background = BuffBgColors[0];
-            btn.Foreground = BuffFgColors[0];
-            btn.Content = baseName;
         }
 
         #endregion
 
         #region 버프/디버프 합산
 
-        /// <summary>
-        /// 상시 패시브 버프 수집 (PermanentBuff끼리 MaxMerge)
-        /// </summary>
-        private PermanentBuff GetAllPermanentPassiveBuffs()
-        {
-            PermanentBuff total = new PermanentBuff();
-            foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName == null))
-            {
-                var chk = GetBuffCheckBox(config);
-                if (chk?.IsChecked != true) continue;
-                var btn = GetBuffButton(config);
-                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
-                var character = CharacterDb.GetByName(config.CharacterName);
-                var buff = character?.Passive?.GetPartyBuff(isEnhanced, transcendLevel);
-                if (buff != null) total.MaxMerge(buff);
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 턴제 패시브 버프 수집 (조건부 - TimedBuff끼리 MaxMerge)
-        /// </summary>
-        private TimedBuff GetAllTimedPassiveBuffs()
-        {
-            TimedBuff total = new TimedBuff();
-            foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName == null))
-            {
-                var chk = GetBuffCheckBox(config);
-                if (chk?.IsChecked != true) continue;
-                var btn = GetBuffButton(config);
-                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
-                var character = CharacterDb.GetByName(config.CharacterName);
-                // 조건부 버프는 턴제
-                var buff = character?.Passive?.GetConditionalPartyBuff(isEnhanced, transcendLevel);
-                if (buff != null) total.MaxMerge(buff);
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 액티브 스킬 버프 수집 (TimedBuff끼리 MaxMerge)
-        /// </summary>
-        private TimedBuff GetAllActiveBuffs()
-        {
-            TimedBuff total = new TimedBuff();
-            foreach (var config in _buffConfigs.Where(c => c.IsBuff && c.SkillName != null))
-            {
-                var chk = GetBuffCheckBox(config);
-                if (chk?.IsChecked != true) continue;
-        
-                var btn = GetBuffButton(config);
-                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
-                var character = CharacterDb.GetByName(config.CharacterName);
-                var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
-                
-                if (skill != null)
-                {
-                    var levelData = skill.GetLevelData(isEnhanced);
-                    
-                    // PartyBuff (아군 전체)
-                    if (levelData?.PartyBuff != null) 
-                        total.MaxMerge(levelData.PartyBuff);
-                    
-                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.PartyBuff != null) 
-                        total.MaxMerge(transcendBonus.PartyBuff);
-                }
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 전체 버프 합산 (상시 + 턴제 + 펫)
-        /// 상시끼리 MaxMerge, 턴제끼리 MaxMerge, 그 결과를 Add
-        /// </summary>
-        private BuffSet GetTotalBuffs()
-        {
-            // 상시 버프 (패시브 상시끼리 MaxMerge)
-            PermanentBuff permanentBuffs = GetAllPermanentPassiveBuffs();
-
-            // 턴제 버프 (패시브 조건부 + 액티브 스킬 끼리 MaxMerge)
-            TimedBuff timedBuffs = new TimedBuff();
-            timedBuffs.MaxMerge(GetAllTimedPassiveBuffs());
-            timedBuffs.MaxMerge(GetAllActiveBuffs());
-
-            // 펫 버프 (별도 합산 - 영웅 버프와 중첩 가능)
-            BuffSet petBuffs = GetPetSkillBuff();
-
-            // 최종 합산
-            BuffSet total = new BuffSet();
-            total.Add(permanentBuffs);  // 상시 (이미 MaxMerge됨)
-            total.Add(timedBuffs);       // 턴제 (이미 MaxMerge됨)
-            total.Add(petBuffs);         // 펫 (별도 합산)
-
-            return total;
-        }
-
-        // 기존 메서드 유지 (하위 호환)
-        private BuffSet GetAllPassiveBuffs()
-        {
-            return GetAllPermanentPassiveBuffs();
-        }
-
-        /// <summary>
-        /// 상시 패시브 디버프 수집 (PermanentDebuff끼리 MaxMerge)
-        /// </summary>
-        private PermanentDebuff GetAllPermanentPassiveDebuffs()
-        {
-            PermanentDebuff total = new PermanentDebuff();
-            foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName == null))
-            {
-                var chk = GetBuffCheckBox(config);
-                if (chk?.IsChecked != true) continue;
-                var btn = GetBuffButton(config);
-                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
-                var character = CharacterDb.GetByName(config.CharacterName);
-                var debuff = character?.Passive?.GetDebuff(isEnhanced, transcendLevel);
-                if (debuff != null) total.MaxMerge(debuff);
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 턴제 패시브 디버프 수집 (조건부 - TimedDebuff끼리 MaxMerge)
-        /// </summary>
-        private TimedDebuff GetAllTimedPassiveDebuffs()
-        {
-            TimedDebuff total = new TimedDebuff();
-            foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName == null))
-            {
-                var chk = GetBuffCheckBox(config);
-                if (chk?.IsChecked != true) continue;
-                var btn = GetBuffButton(config);
-                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
-                var character = CharacterDb.GetByName(config.CharacterName);
-                // 조건부 디버프는 턴제
-                var debuff = character?.Passive?.GetConditionalDebuff(isEnhanced, transcendLevel);
-                if (debuff != null) total.MaxMerge(debuff);
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 액티브 스킬 디버프 수집 (TimedDebuff끼리 MaxMerge)
-        /// </summary>
-        private TimedDebuff GetAllActiveDebuffs()
-        {
-            TimedDebuff total = new TimedDebuff();
-            foreach (var config in _buffConfigs.Where(c => !c.IsBuff && c.SkillName != null))
-            {
-                var chk = GetBuffCheckBox(config);
-                if (chk?.IsChecked != true) continue;
-                var btn = GetBuffButton(config);
-                if (btn == null)
-                {
-                    // 버튼이 없으면 같은 캐릭터의 다른 config에서 찾기
-                    var otherConfig = _buffConfigs.FirstOrDefault(c => c.CharacterName == config.CharacterName && GetBuffButton(c) != null);
-                    if (otherConfig != null) btn = GetBuffButton(otherConfig);
-                }
-                var (isEnhanced, transcendLevel) = GetBuffOption(btn);
-                var character = CharacterDb.GetByName(config.CharacterName);
-                var skill = character?.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
-                if (skill != null)
-                {
-                    var levelData = skill.GetLevelData(isEnhanced);
-                    if (levelData?.DebuffEffect != null) total.MaxMerge(levelData.DebuffEffect);
-                    var transcendBonus = skill.GetTranscendBonus(transcendLevel);
-                    if (transcendBonus?.Debuff != null) total.MaxMerge(transcendBonus.Debuff);
-                }
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 전체 디버프 합산 (상시 + 턴제 + 펫)
-        /// 상시끼리 MaxMerge, 턴제끼리 MaxMerge, 그 결과를 Add
-        /// </summary>
-        private DebuffSet GetTotalDebuffs()
-        {
-            // 상시 디버프 (패시브 상시끼리 MaxMerge)
-            PermanentDebuff permanentDebuffs = GetAllPermanentPassiveDebuffs();
-
-            // 턴제 디버프 (패시브 조건부 + 액티브 스킬 끼리 MaxMerge)
-            TimedDebuff timedDebuffs = new TimedDebuff();
-            timedDebuffs.MaxMerge(GetAllTimedPassiveDebuffs());
-            timedDebuffs.MaxMerge(GetAllActiveDebuffs());
-
-            // 펫 디버프 (별도 합산 - 영웅 디버프와 중첩 가능)
-            DebuffSet petDebuffs = GetPetSkillDebuff();
-
-            // 최종 합산
-            DebuffSet total = new DebuffSet();
-            total.Add(permanentDebuffs);  // 상시 (이미 MaxMerge됨)
-            total.Add(timedDebuffs);       // 턴제 (이미 MaxMerge됨)
-            total.Add(petDebuffs);         // 펫 (별도 합산)
-
-            return total;
-        }
-
-        // 기존 메서드 유지 (하위 호환)
-        private DebuffSet GetAllPassiveDebuffs()
-        {
-            return GetAllPermanentPassiveDebuffs();
-        }
-
         private void PassiveBuff_Changed(object sender, RoutedEventArgs e)
         {
             if (!_isInitialized) return;
             RecalculateStats();
+        }
+
+        #endregion
+
+        #region 장비 시스템
+
+        private void InitializeEquipments()
+        {
+            Equipments = new ObservableCollection<Equipment>
+            {
+                new Equipment { Name = "무기1", Slot = "무기" },
+                new Equipment { Name = "무기2", Slot = "무기" },
+                new Equipment { Name = "갑옷1", Slot = "방어구" },
+                new Equipment { Name = "갑옷2", Slot = "방어구" },
+            };
+
+            foreach (var equip in Equipments)
+            {
+                equip.EquipmentChanged += (s, e) =>
+                {
+                    if (_isInitialized) RecalculateStats();
+                };
+            }
+        }
+
+        // 티어 버튼 클릭
+        private void SubOptionTier_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is SubStatSlot slot)
+            {
+                slot.Tier = (slot.Tier + 1) % 7;
+            }
+        }
+
+        // 티어 버튼 우클릭
+        private void SubOptionTier_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is SubStatSlot slot)
+            {
+                slot.Tier = slot.Tier > 0 ? slot.Tier - 1 : 6;
+                e.Handled = true;
+            }
+        }
+
+        private void EquipmentMainOption_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            if (sender is ComboBox cbo && cbo.Tag is Equipment equip)
+            {
+                equip.MainStatName = cbo.SelectedIndex > 0 ? cbo.SelectedItem?.ToString() : null;
+            }
+
+            RecalculateStats();
+        }
+
+        // 새 코드 (이것만 유지)
+        private BaseStatSet GetMainOptionStats()
+        {
+            BaseStatSet stats = new BaseStatSet();
+
+            foreach (var equip in Equipments)
+            {
+                stats.Add(equip.GetMainStats());
+            }
+
+            return stats;
+        }
+
+        private BaseStatSet GetSubOptionStats()
+        {
+            BaseStatSet result = new BaseStatSet();
+
+            foreach (var equip in Equipments)
+            {
+                result.Add(equip.GetSubStats());
+            }
+
+            return result;
+        }
+
+        // 리셋
+        private void ResetEquipments()
+        {
+            foreach (var equip in Equipments)
+            {
+                equip.Reset();
+            }
         }
 
         #endregion
@@ -1989,67 +1358,59 @@ namespace GameDamageCalculator.UI
                 SkillName = cboMySkill.SelectedIndex >= 0 ? cboMySkill.SelectedItem?.ToString() : "",
                 TranscendLevel = cboMyTranscend.SelectedIndex,
                 IsSkillEnhanced = chkMySkillEnhanced.IsChecked == true,
-
+        
                 PotentialAtk = cboMyPotentialAtk.SelectedIndex,
                 PotentialDef = cboMyPotentialDef.SelectedIndex,
                 PotentialHp = cboMyPotentialHp.SelectedIndex,
-
+        
                 EquipSet1 = cboMyEquipSet1.SelectedIndex > 0 ? cboMyEquipSet1.SelectedItem.ToString() : "",
-                EquipSet2 = cboMyEquipSet2.SelectedIndex > 0 ? cboMyEquipSet2.SelectedItem.ToString() : "",
-                SetCount1 = cboMySetCount1.SelectedIndex,
-
-                MainWeapon1 = cboMyWeapon1Main.SelectedIndex > 0 ? cboMyWeapon1Main.SelectedItem.ToString() : "",
-                MainWeapon2 = cboMyWeapon2Main.SelectedIndex > 0 ? cboMyWeapon2Main.SelectedItem.ToString() : "",
-                MainArmor1 = cboMyArmor1Main.SelectedIndex > 0 ? cboMyArmor1Main.SelectedItem.ToString() : "",
-                MainArmor2 = cboMyArmor2Main.SelectedIndex > 0 ? cboMyArmor2Main.SelectedItem.ToString() : "",
-
+        
                 AccessoryGrade = cboMyAccessoryGrade.SelectedIndex,
                 AccessoryOption = cboMyAccessoryMain.SelectedIndex > 0 ? cboMyAccessoryMain.SelectedItem.ToString() : "",
                 AccessorySubOption = cboMyAccessorySub.SelectedIndex > 0 ? cboMyAccessorySub.SelectedItem.ToString() : "",
-
+        
                 Formation = cboMyFormation.SelectedIndex > 0 ? cboMyFormation.SelectedItem.ToString() : "",
                 IsBackPosition = rbMyBack.IsChecked == true,
-
+        
                 PetName = cboMyPet.SelectedIndex > 0 ? cboMyPet.SelectedItem.ToString() : "",
                 PetStar = cboMyPetStar.SelectedIndex,
-
+        
                 BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : "Descend"),
                 BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
+                // ⬆️ 여기서 객체 초기화 끝! (마지막 항목이라 콤마 없음)
             };
-
-            // 프리셋 저장 (CreatePresetFromUI)
-            preset.SubOptions = new Dictionary<string, int>
+        
+            // ⬇️ 객체 초기화 '이후'에 Dictionary들을 할당
+            preset.EquipmentMainOptions = new Dictionary<string, string>();
+            preset.EquipmentSubOptions = new Dictionary<string, string>();
+            preset.EquipmentSubTiers = new Dictionary<string, int>();
+        
+            for (int i = 0; i < Equipments.Count; i++)
             {
-                { "AtkRate", int.TryParse(txtMySubAtkRate.Text, out int t1) ? t1 : 0 },
-                { "Atk", int.TryParse(txtMySubAtk.Text, out int t2) ? t2 : 0 },
-                { "Cri", int.TryParse(txtMySubCri.Text, out int t3) ? t3 : 0 },
-                { "CriDmg", int.TryParse(txtMySubCriDmg.Text, out int t4) ? t4 : 0 },
-                { "Wek", int.TryParse(txtMySubWek.Text, out int t5) ? t5 : 0 },
-                { "Blk", int.TryParse(txtMySubBlk.Text, out int t6) ? t6 : 0 },
-                { "DmgRdc", int.TryParse(txtMySubDmgRdc.Text, out int t7) ? t7 : 0 },
-                { "DefRate", int.TryParse(txtMySubDefRate.Text, out int t8) ? t8 : 0 },
-                { "Def", int.TryParse(txtMySubDef.Text, out int t9) ? t9 : 0 },
-                { "HpRate", int.TryParse(txtMySubHpRate.Text, out int t10) ? t10 : 0 },
-                { "Hp", int.TryParse(txtMySubHp.Text, out int t11) ? t11 : 0 },
-                { "EffHit", int.TryParse(txtMySubEffHit.Text, out int t12) ? t12 : 0 },
-                { "EffRes", int.TryParse(txtMySubEffRes.Text, out int t13) ? t13 : 0 }
-            };
-
-            preset.PetAtkRate = ParseDouble(txtMyPetAtk.Text);
-            preset.PetDefRate = ParseDouble(txtMyPetDef.Text);
-            preset.PetHpRate = ParseDouble(txtMyPetHp.Text);
-
+                var equip = Equipments[i];
+        
+                // 메인옵션
+                preset.EquipmentMainOptions[$"Equip{i}"] = equip.MainStatName ?? "";
+        
+                // 서브옵션 4개
+                for (int j = 0; j < equip.SubSlots.Count; j++)
+                {
+                    var slot = equip.SubSlots[j];
+                    string key = $"Equip{i}_Sub{j}";
+                    preset.EquipmentSubOptions[key] = slot.StatName ?? "";
+                    preset.EquipmentSubTiers[key] = slot.Tier;
+                }
+            }
+        
+            // 버프 저장
             preset.BuffChecks = new Dictionary<string, bool>();
             preset.BuffStates = new Dictionary<string, int>();
-            foreach (var config in _buffConfigs)
+            foreach (var config in BuffConfigs)
             {
-                var chk = GetBuffCheckBox(config);
-                var btn = GetBuffButton(config);
-                preset.BuffChecks[config.Key] = chk?.IsChecked == true;
-                if (btn != null)
-                    preset.BuffStates[config.Key] = int.Parse(btn.Tag?.ToString() ?? "0");
+                preset.BuffChecks[config.Key] = config.IsChecked;
+                preset.BuffStates[config.Key] = config.Level;
             }
-
+        
             return preset;
         }
 
@@ -2082,13 +1443,6 @@ namespace GameDamageCalculator.UI
             cboMyPotentialHp.SelectedIndex = preset.PotentialHp;
 
             SelectComboBoxItem(cboMyEquipSet1, preset.EquipSet1);
-            SelectComboBoxItem(cboMyEquipSet2, preset.EquipSet2);
-            cboMySetCount1.SelectedIndex = preset.SetCount1;
-
-            SelectComboBoxItem(cboMyWeapon1Main, preset.MainWeapon1);
-            SelectComboBoxItem(cboMyWeapon2Main, preset.MainWeapon2);
-            SelectComboBoxItem(cboMyArmor1Main, preset.MainArmor1);
-            SelectComboBoxItem(cboMyArmor2Main, preset.MainArmor2);
 
             cboMyAccessoryGrade.SelectedIndex = preset.AccessoryGrade;
             SelectComboBoxItem(cboMyAccessoryMain, preset.AccessoryOption);
@@ -2102,23 +1456,39 @@ namespace GameDamageCalculator.UI
 
             SelectComboBoxItem(cboMyPet, preset.PetName);
             cboMyPetStar.SelectedIndex = preset.PetStar;
-            
-            // 프리셋 불러오기 (ApplyPresetToUI)
-            if (preset.SubOptions != null)
+
+            // ⭐ 장비 데이터 불러오기 (새 코드) - 기존 서브옵션 불러오기 부분 교체
+            if (preset.EquipmentMainOptions != null)
             {
-                txtMySubAtkRate.Text = preset.SubOptions.GetValueOrDefault("AtkRate", 0).ToString();
-                txtMySubAtk.Text = preset.SubOptions.GetValueOrDefault("Atk", 0).ToString();
-                txtMySubCri.Text = preset.SubOptions.GetValueOrDefault("Cri", 0).ToString();
-                txtMySubCriDmg.Text = preset.SubOptions.GetValueOrDefault("CriDmg", 0).ToString();
-                txtMySubWek.Text = preset.SubOptions.GetValueOrDefault("Wek", 0).ToString();
-                txtMySubBlk.Text = preset.SubOptions.GetValueOrDefault("Blk", 0).ToString();
-                txtMySubDmgRdc.Text = preset.SubOptions.GetValueOrDefault("DmgRdc", 0).ToString();
-                txtMySubDefRate.Text = preset.SubOptions.GetValueOrDefault("DefRate", 0).ToString();
-                txtMySubDef.Text = preset.SubOptions.GetValueOrDefault("Def", 0).ToString();
-                txtMySubHpRate.Text = preset.SubOptions.GetValueOrDefault("HpRate", 0).ToString();
-                txtMySubHp.Text = preset.SubOptions.GetValueOrDefault("Hp", 0).ToString();
-                txtMySubEffHit.Text = preset.SubOptions.GetValueOrDefault("EffHit", 0).ToString();
-                txtMySubEffRes.Text = preset.SubOptions.GetValueOrDefault("EffRes", 0).ToString();
+                for (int i = 0; i < Equipments.Count; i++)
+                {
+                    var equip = Equipments[i];
+
+                    // 메인옵션
+                    if (preset.EquipmentMainOptions.TryGetValue($"Equip{i}", out var mainOpt))
+                    {
+                        equip.MainStatName = string.IsNullOrEmpty(mainOpt) ? null : mainOpt;
+                    }
+
+                    // 서브옵션 4개
+                    for (int j = 0; j < equip.SubSlots.Count; j++)
+                    {
+                        var slot = equip.SubSlots[j];
+                        string key = $"Equip{i}_Sub{j}";
+
+                        if (preset.EquipmentSubOptions != null && 
+                            preset.EquipmentSubOptions.TryGetValue(key, out var statName))
+                        {
+                            slot.StatName = string.IsNullOrEmpty(statName) ? null : statName;
+                        }
+
+                        if (preset.EquipmentSubTiers != null && 
+                            preset.EquipmentSubTiers.TryGetValue(key, out var tier))
+                        {
+                            slot.Tier = tier;
+                        }
+                    }
+                }
             }
 
             txtMyPetAtk.Text = preset.PetAtkRate.ToString();
@@ -2131,33 +1501,23 @@ namespace GameDamageCalculator.UI
             UpdateBossList();
             SelectComboBoxItem(cboBoss, preset.BossName);
 
+            // ⭐ 버프 불러오기 - 새 코드
             if (preset.BuffChecks != null)
             {
-                foreach (var config in _buffConfigs)
+                foreach (var config in BuffConfigs)
                 {
-                    var chk = GetBuffCheckBox(config);
-                    var btn = GetBuffButton(config);
-                    if (chk != null) chk.IsChecked = preset.BuffChecks.GetValueOrDefault(config.Key, false);
-                    if (btn != null && preset.BuffStates != null)
+                    config.IsChecked = preset.BuffChecks.GetValueOrDefault(config.Key, false);
+
+                    if (preset.BuffStates != null)
                     {
-                        int state = preset.BuffStates.GetValueOrDefault(config.Key, 0);
-                        ApplyBuffButtonState(btn, config.BaseName, state);
+                        config.Level = preset.BuffStates.GetValueOrDefault(config.Key, 0);
                     }
                 }
             }
 
             _isInitialized = true;
-            UpdateMainOptionDisplay();
             UpdateAccessoryDisplay();
             RecalculateStats();
-        }
-
-        private void ApplyBuffButtonState(Button btn, string baseName, int state)
-        {
-            btn.Tag = state;
-            btn.Background = BuffBgColors[state];
-            btn.Foreground = BuffFgColors[state];
-            btn.Content = baseName + BuffOptionSuffix[state];
         }
 
         private void SelectComboBoxItem(ComboBox cbo, string value)

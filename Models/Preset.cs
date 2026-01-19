@@ -22,7 +22,6 @@ namespace GameDamageCalculator.Models
         // 세트
         public string EquipSet1 { get; set; }
         public string EquipSet2 { get; set; }
-        public int SetCount1 { get; set; }
         
         // 메인옵션
         public string MainWeapon1 { get; set; }
@@ -30,8 +29,10 @@ namespace GameDamageCalculator.Models
         public string MainArmor1 { get; set; }
         public string MainArmor2 { get; set; }
         
-        // 서브옵션 (9개)
-        public Dictionary<string, int> SubOptions { get; set; } = new Dictionary<string, int>();
+        // 장비 데이터 (새 구조)
+        public Dictionary<string, string> EquipmentMainOptions { get; set; } = new();
+        public Dictionary<string, string> EquipmentSubOptions { get; set; } = new();
+        public Dictionary<string, int> EquipmentSubTiers { get; set; } = new();
         
         // 장신구
         public int AccessoryGrade { get; set; }
