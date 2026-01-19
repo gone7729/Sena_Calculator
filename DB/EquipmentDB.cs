@@ -61,19 +61,19 @@ namespace GameDamageCalculator.Database
             public static readonly Dictionary<string, BaseStatSet> SubStatBase = 
                 new Dictionary<string, BaseStatSet>
             {
-                { "공%", new BaseStatSet { Atk_Rate = 5 } },
-                { "공", new BaseStatSet { Atk = 50 } },
-                { "치확%", new BaseStatSet { Cri = 4 } },
-                { "치피%", new BaseStatSet { Cri_Dmg = 6 } },
+                { "공격력%", new BaseStatSet { Atk_Rate = 5 } },
+                { "공격력", new BaseStatSet { Atk = 50 } },
+                { "치명타확률%", new BaseStatSet { Cri = 4 } },
+                { "치명타피해%", new BaseStatSet { Cri_Dmg = 6 } },
                 { "속공", new BaseStatSet { Spd = 4 } },
-                { "약공%", new BaseStatSet { Wek = 5 } },
-                { "피통%", new BaseStatSet { Hp_Rate = 5 } },
-                { "피통", new BaseStatSet { Hp = 180 } },
-                { "방어%", new BaseStatSet { Def_Rate = 5 } },
-                { "방어", new BaseStatSet { Def = 30 } },
-                { "막기%", new BaseStatSet { Blk = 4 } },
-                { "효적%", new BaseStatSet { Eff_Hit = 5 } },
-                { "효저%", new BaseStatSet { Eff_Res = 5 } }
+                { "약점공격확률%", new BaseStatSet { Wek = 5 } },
+                { "생명력%", new BaseStatSet { Hp_Rate = 5 } },
+                { "생명력", new BaseStatSet { Hp = 180 } },
+                { "방어력%", new BaseStatSet { Def_Rate = 5 } },
+                { "방어력", new BaseStatSet { Def = 30 } },
+                { "막기확률%", new BaseStatSet { Blk = 4 } },
+                { "효과적중%", new BaseStatSet { Eff_Hit = 5 } },
+                { "효과저항%", new BaseStatSet { Eff_Res = 5 } }
             };
         }
 
