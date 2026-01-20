@@ -45,20 +45,37 @@ namespace GameDamageCalculator.Models
         }
 
         public SkillTranscend GetTranscendBonus(int level)
-        {
-            var result = new SkillTranscend();
-            if (TranscendBonuses == null) return result;
+{
+    var result = new SkillTranscend();
+    if (TranscendBonuses == null) return result;
 
-            foreach (var kvp in TranscendBonuses.Where(t => t.Key <= level).OrderBy(t => t.Key))
+    foreach (var kvp in TranscendBonuses.Where(t => t.Key <= level).OrderBy(t => t.Key))
+    {
+        result.Bonus.Add(kvp.Value.Bonus);
+        result.Debuff.Add(kvp.Value.Debuff);
+        
+        if (kvp.Value.TargetCountOverride.HasValue)
+            result.TargetCountOverride = kvp.Value.TargetCountOverride;
+        
+        result.Effect = kvp.Value.Effect;
+        
+        // ✅ ConsumeExtra 합산 추가
+        if (kvp.Value.ConsumeExtra != null)
+        {
+            if (result.ConsumeExtra == null)
             {
-                result.Bonus.Add(kvp.Value.Bonus);
-                result.Debuff.Add(kvp.Value.Debuff);
-                if (kvp.Value.TargetCountOverride.HasValue)
-                    result.TargetCountOverride = kvp.Value.TargetCountOverride;
-                result.Effect = kvp.Value.Effect;
+                result.ConsumeExtra = new ConsumeExtraDamage();
             }
-            return result;
+            result.ConsumeExtra.TargetMaxHpRatio += kvp.Value.ConsumeExtra.TargetMaxHpRatio;
+            result.ConsumeExtra.AtkRatio += kvp.Value.ConsumeExtra.AtkRatio;
+            result.ConsumeExtra.ConsumeCount += kvp.Value.ConsumeExtra.ConsumeCount;
+            // AtkCap은 덮어쓰기 (보통 변하지 않음)
+            if (kvp.Value.ConsumeExtra.AtkCap > 0)
+                result.ConsumeExtra.AtkCap = kvp.Value.ConsumeExtra.AtkCap;
         }
+    }
+    return result;
+}
 
         public int GetTargetCount(int transcendLevel)
         {
@@ -78,6 +95,31 @@ namespace GameDamageCalculator.Models
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.Bonus != null) result.Add(transcend.Bonus);
+
+            return result;
+        }
+
+        public ConsumeExtraDamage GetTotalConsumeExtra(bool isEnhanced, int transcendLevel)
+        {
+            var levelData = GetLevelData(isEnhanced);
+            var transcend = GetTranscendBonus(transcendLevel);
+
+            if (levelData?.ConsumeExtra == null) return null;
+
+            var result = new ConsumeExtraDamage
+            {
+                ConsumeCount = levelData.ConsumeExtra.ConsumeCount,
+                TargetMaxHpRatio = levelData.ConsumeExtra.TargetMaxHpRatio,
+                AtkCap = levelData.ConsumeExtra.AtkCap,
+                AtkRatio = levelData.ConsumeExtra.AtkRatio
+            };
+
+            // 초월 보너스 합산
+            if (transcend?.ConsumeExtra != null)
+            {
+                result.TargetMaxHpRatio += transcend.ConsumeExtra.TargetMaxHpRatio;
+                result.AtkRatio += transcend.ConsumeExtra.AtkRatio;
+            }
 
             return result;
         }

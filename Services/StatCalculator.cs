@@ -156,12 +156,15 @@ namespace GameDamageCalculator.Services
             result.FinalSpd = totalSpd;
 
             // ========== 순수 기본 스탯 ==========
+            double flatAtkBase = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk + equipmentStats.MainStats.Atk;
+            double flatDefBase = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def + equipmentStats.MainStats.Def;
+            double flatHpBase = equipFlatHp + potentialStats.Hp + equipmentStats.SubStats.Hp + equipmentStats.MainStats.Hp;
             result.BaseAtk = baseAtk * (1 + (equipmentStats.MainStats.Atk_Rate + equipmentStats.SubStats.Atk_Rate 
-                + transcendStats.Atk_Rate + accessoryStats.Atk_Rate + setBonus.Atk_Rate) / 100) + flatAtk;
+                + transcendStats.Atk_Rate + accessoryStats.Atk_Rate + setBonus.Atk_Rate) / 100) + flatAtkBase;
             result.BaseDef = baseDef * (1 + (equipmentStats.MainStats.Def_Rate + equipmentStats.SubStats.Def_Rate 
-                + transcendStats.Def_Rate + accessoryStats.Def_Rate + setBonus.Def_Rate) / 100) + flatDef;
+                + transcendStats.Def_Rate + accessoryStats.Def_Rate + setBonus.Def_Rate) / 100) + flatDefBase;
             result.BaseHp = baseHp * (1 + (equipmentStats.MainStats.Hp_Rate + equipmentStats.SubStats.Hp_Rate 
-                + transcendStats.Hp_Rate + accessoryStats.Hp_Rate + setBonus.Hp_Rate) / 100) + flatHp;
+                + transcendStats.Hp_Rate + accessoryStats.Hp_Rate + setBonus.Hp_Rate) / 100) + flatHpBase;
 
             // ========== 기타 스탯 ==========
             result.DisplayStats = CalculateDisplayStats(

@@ -226,7 +226,7 @@ namespace GameDamageCalculator.Database
                     Cri_Dmg = 0,
                     Eff_Hit = 100
                 },
-                DefenseIncrease = 30,
+                DefenseIncrease = 40,
                 DefenseIncreaseCondition = "체력 30% 이상"
             },
 

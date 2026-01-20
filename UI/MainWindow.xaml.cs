@@ -621,6 +621,7 @@ namespace GameDamageCalculator.UI
                     BossDefIncrease = ParseDouble(txtBossDefInc.Text),
                     BossDmgReduction = ParseDouble(txtBossDmgRdc.Text),
                     BossTargetReduction = GetSelectedTargetReduction(),
+                    TargetHp = ParseDouble(txtBossHp.Text),
 
                     // 전투 옵션
                     IsCritical = chkMyCritical.IsChecked == true,
@@ -634,12 +635,15 @@ namespace GameDamageCalculator.UI
                     IsSkillConditionMet = chkMySkillCondition.IsChecked == true,
                     AtkBuff = buffAtkRate,  // 버프% 합계,
 
+                    
+
                     Mode = mode
                 };
 
                 // 계산 및 출력
                 var result = _calculator.Calculate(input);
                 txtResult.Text = result.Details;
+                
             }
             catch (Exception ex)
             {
