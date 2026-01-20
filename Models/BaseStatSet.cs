@@ -111,6 +111,8 @@ namespace GameDamageCalculator.Models
                 case "방무%": Arm_Pen += value; break;
                 case "주는피해량%": Dmg_Dealt += value; break;
                 case "보스피해량%": Dmg_Dealt_Bos += value; break;
+                case "1-3인기피해량%": Dmg_Dealt_1to3 += value; break;
+                case "4-5인기피해량%": Dmg_Dealt_4to5 += value; break;
             }
         }
 

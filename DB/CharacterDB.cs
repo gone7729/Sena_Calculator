@@ -1856,7 +1856,8 @@ namespace GameDamageCalculator.Database
                             { 6, new SkillTranscend { 
                                 ConsumeExtra = new ConsumeExtraDamage
                                 {
-                                    TargetMaxHpRatio = 6
+                                    TargetMaxHpRatio = 6,
+                                    AtkCap = 300
                                 }
                             }}
                         }

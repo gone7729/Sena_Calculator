@@ -296,7 +296,7 @@ namespace GameDamageCalculator.Database
         {
             new Boss
             {
-                Id = 201,
+                Id = 301,
                 Name = "우마왕 잡몹",
                 BossType = BossType.Mob,
                 Stats = new BaseStatSet
@@ -307,7 +307,7 @@ namespace GameDamageCalculator.Database
             },
             new Boss
             {
-                Id = 202,
+                Id = 302,
                 Name = "악몽 12",
                 BossType = BossType.Mob,
                 Stats = new BaseStatSet
@@ -318,7 +318,7 @@ namespace GameDamageCalculator.Database
             },
             new Boss
             {
-                Id = 203,
+                Id = 303,
                 Name = "악몽 16",
                 BossType = BossType.Mob,
                 Stats = new BaseStatSet
@@ -332,7 +332,7 @@ namespace GameDamageCalculator.Database
         /// <summary>
         /// 모든 보스 목록
         /// </summary>
-        public static List<Boss> AllBosses => SiegeBosses.Concat(RaidBosses).ToList();
+        public static List<Boss> AllBosses => SiegeBosses.Concat(RaidBosses).Concat(ForestBosses).Concat(Mobs).ToList();
 
         /// <summary>
         /// 이름으로 보스 찾기

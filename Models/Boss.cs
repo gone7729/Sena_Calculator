@@ -47,7 +47,7 @@ namespace GameDamageCalculator.Models
 
             if (isConditionMet && DefenseIncrease > 0)
             {
-                baseDef *= (1 + DefenseIncrease);
+                baseDef *= (1 + DefenseIncrease / 100.0);
             }
 
             return baseDef;

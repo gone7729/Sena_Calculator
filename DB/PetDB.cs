@@ -177,7 +177,7 @@ namespace GameDamageCalculator.Database
             // 카람
             new Pet
             {
-                Id = 9,
+                Id = 10,
                 Name = "카람",
                 Rarity = "전설",
                 Skills = new Dictionary<int, PetSkill>
@@ -196,7 +196,7 @@ namespace GameDamageCalculator.Database
             // 멜페로
             new Pet
             {
-                Id = 9,
+                Id = 11,
                 Name = "멜페로",
                 Rarity = "전설",
                 Skills = new Dictionary<int, PetSkill>

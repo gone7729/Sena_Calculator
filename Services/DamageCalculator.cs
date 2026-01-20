@@ -160,6 +160,9 @@ namespace GameDamageCalculator.Services
             var levelData = input.Skill?.GetLevelData(input.IsSkillEnhanced);
             var skillBonus = input.Skill?.GetTotalBonus(input.IsSkillEnhanced, input.TranscendLevel) ?? new BuffSet();
 
+            System.Diagnostics.Debug.WriteLine($"=== DamageInput ===");
+System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
+
             // 1. 스킬 발동 전 버프
             ApplyPreCastBuff(input, levelData, result);
             result.AtkCount = input.Skill?.Atk_Count ?? 1;
@@ -236,21 +239,21 @@ namespace GameDamageCalculator.Services
             // 21. 상세 정보
             result.Details = GenerateDetails(input, result);
 
-System.Diagnostics.Debug.WriteLine($"=== 전체 검증 ===");
-System.Diagnostics.Debug.WriteLine($"FinalAtk: {input.FinalAtk}");
-System.Diagnostics.Debug.WriteLine($"DefCoef: {result.DefCoefficient}");
-System.Diagnostics.Debug.WriteLine($"AtkOverDef: {result.FinalAtk / result.DefCoefficient}");
-System.Diagnostics.Debug.WriteLine($"SkillRatio: {result.SkillRatio}");
-System.Diagnostics.Debug.WriteLine($"CritMult: {result.CritMultiplier}");
-System.Diagnostics.Debug.WriteLine($"WeakMult: {result.WeakpointMultiplier}");
-System.Diagnostics.Debug.WriteLine($"DmgMult: {result.DamageMultiplier}");
-System.Diagnostics.Debug.WriteLine($"전체배율: {result.CritMultiplier * result.WeakpointMultiplier * result.DamageMultiplier}");
-System.Diagnostics.Debug.WriteLine($"=== 추가 피해 ===");
-System.Diagnostics.Debug.WriteLine($"BaseDamage: {result.BaseDamage:N0}");
-System.Diagnostics.Debug.WriteLine($"ExtraDamage: {result.ExtraDamage:N0}");
-System.Diagnostics.Debug.WriteLine($"WekBonusDmg: {result.WekBonusDmg:N0}");
-System.Diagnostics.Debug.WriteLine($"CriBonusDmg: {result.CriBonusDmg:N0}");
-System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
+            System.Diagnostics.Debug.WriteLine($"=== 전체 검증 ===");
+            System.Diagnostics.Debug.WriteLine($"FinalAtk: {input.FinalAtk}");
+            System.Diagnostics.Debug.WriteLine($"DefCoef: {result.DefCoefficient}");
+            System.Diagnostics.Debug.WriteLine($"AtkOverDef: {result.FinalAtk / result.DefCoefficient}");
+            System.Diagnostics.Debug.WriteLine($"SkillRatio: {result.SkillRatio}");
+            System.Diagnostics.Debug.WriteLine($"CritMult: {result.CritMultiplier}");
+            System.Diagnostics.Debug.WriteLine($"WeakMult: {result.WeakpointMultiplier}");
+            System.Diagnostics.Debug.WriteLine($"DmgMult: {result.DamageMultiplier}");
+            System.Diagnostics.Debug.WriteLine($"전체배율: {result.CritMultiplier * result.WeakpointMultiplier * result.DamageMultiplier}");
+            System.Diagnostics.Debug.WriteLine($"=== 추가 피해 ===");
+            System.Diagnostics.Debug.WriteLine($"BaseDamage: {result.BaseDamage:N0}");
+            System.Diagnostics.Debug.WriteLine($"ExtraDamage: {result.ExtraDamage:N0}");
+            System.Diagnostics.Debug.WriteLine($"WekBonusDmg: {result.WekBonusDmg:N0}");
+            System.Diagnostics.Debug.WriteLine($"CriBonusDmg: {result.CriBonusDmg:N0}");
+            System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
 
             return result;
         }
@@ -348,19 +351,17 @@ System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
 
     // === 최종 배율: 곱셈 구조 ===
     // (1 + 피증계열) × (1 + 취약계열) × (1 - 감소계열)
-    double dmgDealtMult = 1 + dmgDealtTotal / 100.0;
-    double vulnerabilityMult = 1 + vulnerabilityTotal / 100.0;
-    double reductionMult = 1 - reductionTotal / 100.0;
+    double totalIncrease = dmgDealtTotal + vulnerabilityTotal - reductionTotal;;
 
      // === 디버그 출력 추가 ===
     System.Diagnostics.Debug.WriteLine($"=== CalcDamageMultiplier ===");
     System.Diagnostics.Debug.WriteLine($"피증: {input.DmgDealt}, 보피증: {bossDmg}, 조건부: {conditionalDmgBonus}, 타겟: {targetTypeDmg}");
     System.Diagnostics.Debug.WriteLine($"취약: {input.Vulnerability}, 보스취약: {bossVuln}, 받피증: {input.DmgTakenIncrease}");
     System.Diagnostics.Debug.WriteLine($"감소: {reductionTotal}");
-    System.Diagnostics.Debug.WriteLine($"dmgDealtMult: {dmgDealtMult}, vulnerabilityMult: {vulnerabilityMult}, reductionMult: {reductionMult}");
-    System.Diagnostics.Debug.WriteLine($"최종 DamageMultiplier: {dmgDealtMult * vulnerabilityMult * reductionMult}");
+    System.Diagnostics.Debug.WriteLine($"최종 DamageMultiplier: {totalIncrease}");
 
-    return dmgDealtMult * vulnerabilityMult * reductionMult;
+    return 1 + totalIncrease / 100.0;
+    
 }
 
         private double CalcLostHpBonusDmg(DamageInput input, SkillLevelData levelData)
@@ -474,6 +475,7 @@ System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
     {
         totalHpRatio += transcendBonus.ConsumeExtra.TargetMaxHpRatio;
         totalAtkRatio += transcendBonus.ConsumeExtra.AtkRatio;
+        totalAtkCap += transcendBonus.ConsumeExtra.AtkCap;
     }
     
     double damage = 0;
@@ -487,6 +489,8 @@ System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
         {
             double cap = input.FinalAtk * (totalAtkCap / 100.0);
             System.Diagnostics.Debug.WriteLine($"Cap 값: {cap:N0}");
+            System.Diagnostics.Debug.WriteLine($"Cap 초월더해지는지: {totalAtkCap:N0}");
+            System.Diagnostics.Debug.WriteLine($"Hp 비례 초월 더해지는지: {totalHpRatio:N0}");
             damage = Math.Min(damage, cap);
             System.Diagnostics.Debug.WriteLine($"Cap 적용 후: {damage:N0}");
         }
@@ -499,6 +503,11 @@ System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
                       * result.CritMultiplier 
                       * result.WeakpointMultiplier;
 result.ConsumeExtraDmg = damage * fullMultiplier;
+
+System.Diagnostics.Debug.WriteLine($"consumeExtra.TargetMaxHpRatio: {consumeExtra.TargetMaxHpRatio}");
+System.Diagnostics.Debug.WriteLine($"consumeExtra.AtkCap: {consumeExtra.AtkCap}");
+System.Diagnostics.Debug.WriteLine($"transcendBonus?.ConsumeExtra?.TargetMaxHpRatio: {transcendBonus?.ConsumeExtra?.TargetMaxHpRatio ?? 0}");
+System.Diagnostics.Debug.WriteLine($"transcendBonus?.ConsumeExtra?.AtkCap: {transcendBonus?.ConsumeExtra?.AtkCap ?? 0}");
 
 System.Diagnostics.Debug.WriteLine($"fullMultiplier: {fullMultiplier:N2} (DmgMult:{result.DamageMultiplier:N2} × Crit:{result.CritMultiplier} × Weak:{result.WeakpointMultiplier})");
 System.Diagnostics.Debug.WriteLine($"최종 ConsumeExtraDmg: {result.ConsumeExtraDmg:N0}");

@@ -100,29 +100,34 @@ namespace GameDamageCalculator.Models
         }
 
         public ConsumeExtraDamage GetTotalConsumeExtra(bool isEnhanced, int transcendLevel)
-        {
-            var levelData = GetLevelData(isEnhanced);
-            var transcend = GetTranscendBonus(transcendLevel);
+{
+    var levelData = GetLevelData(isEnhanced);
+    var transcend = GetTranscendBonus(transcendLevel);
 
-            if (levelData?.ConsumeExtra == null) return null;
+    // 둘 다 없으면 null
+    if (levelData?.ConsumeExtra == null && transcend?.ConsumeExtra == null)
+        return null;
 
-            var result = new ConsumeExtraDamage
-            {
-                ConsumeCount = levelData.ConsumeExtra.ConsumeCount,
-                TargetMaxHpRatio = levelData.ConsumeExtra.TargetMaxHpRatio,
-                AtkCap = levelData.ConsumeExtra.AtkCap,
-                AtkRatio = levelData.ConsumeExtra.AtkRatio
-            };
+    var result = new ConsumeExtraDamage();
+    
+    // 레벨 데이터가 있으면 복사
+    if (levelData?.ConsumeExtra != null)
+    {
+        result.ConsumeCount = levelData.ConsumeExtra.ConsumeCount;
+        result.TargetMaxHpRatio = levelData.ConsumeExtra.TargetMaxHpRatio;
+        result.AtkCap = levelData.ConsumeExtra.AtkCap;
+        result.AtkRatio = levelData.ConsumeExtra.AtkRatio;
+    }
 
-            // 초월 보너스 합산
-            if (transcend?.ConsumeExtra != null)
-            {
-                result.TargetMaxHpRatio += transcend.ConsumeExtra.TargetMaxHpRatio;
-                result.AtkRatio += transcend.ConsumeExtra.AtkRatio;
-            }
+    // 초월 보너스 합산
+    if (transcend?.ConsumeExtra != null)
+    {
+        result.TargetMaxHpRatio += transcend.ConsumeExtra.TargetMaxHpRatio;
+        result.AtkRatio += transcend.ConsumeExtra.AtkRatio;
+    }
 
-            return result;
-        }
+    return result;
+}
     }
 
     /// <summary>

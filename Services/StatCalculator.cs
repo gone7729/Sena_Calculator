@@ -118,9 +118,9 @@ namespace GameDamageCalculator.Services
             double formationDefRate = input.Formation?.GetDefRate() ?? 0;
 
             double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
-                + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
-                + accessoryStats.Atk_Rate + input.PetOptionAtkRate
-                + equipmentStats.MainStats.Atk_Rate;
+    + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
+    + accessoryStats.Atk_Rate + input.PetOptionAtkRate  // ✅ 펫잠재 여기!
+    + equipmentStats.MainStats.Atk_Rate;
 
             double totalDefRate = transcendStats.Def_Rate + formationDefRate
                 + setBonus.Def_Rate + equipmentStats.SubStats.Def_Rate
@@ -134,9 +134,9 @@ namespace GameDamageCalculator.Services
 
             // ========== 버프% ==========
             BuffSet totalBuffs = input.TotalBuffs ?? new BuffSet();
-            double buffAtkRate = input.PetOptionAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
-            double buffDefRate = input.PetOptionDefRate + totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
-            double buffHpRate = input.PetOptionHpRate + totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
+            double buffAtkRate =  totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
+            double buffDefRate =  totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
+            double buffHpRate =  totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
 
             // ========== 기본 스탯 (버프 적용 전) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
@@ -154,6 +154,12 @@ namespace GameDamageCalculator.Services
             result.FinalDef = baseStatDef * (1 + buffDefRate / 100.0);
             result.FinalHp = baseStatHp * (1 + buffHpRate / 100.0);
             result.FinalSpd = totalSpd;
+
+            System.Diagnostics.Debug.WriteLine($"=== FinalAtk 계산 ===");
+System.Diagnostics.Debug.WriteLine($"baseStatAtk: {baseStatAtk}");
+System.Diagnostics.Debug.WriteLine($"buffAtkRate: {buffAtkRate}");
+System.Diagnostics.Debug.WriteLine($"계산: {baseStatAtk} × {1 + buffAtkRate / 100.0} = {baseStatAtk * (1 + buffAtkRate / 100.0)}");
+System.Diagnostics.Debug.WriteLine($"result.FinalAtk: {result.FinalAtk}");
 
             // ========== 순수 기본 스탯 ==========
             double flatAtkBase = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk + equipmentStats.MainStats.Atk;
@@ -173,6 +179,13 @@ namespace GameDamageCalculator.Services
                 totalBuffs, characterPassiveBuff,
                 totalAtkRate, scalingBonus.Cri
             );
+
+            // 라인 136 근처에 추가
+System.Diagnostics.Debug.WriteLine($"=== 버프 디버그 ===");
+System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Atk_Rate: {characterPassiveBuff.Atk_Rate}");
+System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Cri_Dmg: {characterPassiveBuff.Cri_Dmg}");
+System.Diagnostics.Debug.WriteLine($"totalBuffs.Atk_Rate: {totalBuffs.Atk_Rate}");
+System.Diagnostics.Debug.WriteLine($"buffAtkRate: {buffAtkRate}");
 
             return result;
         }
