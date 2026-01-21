@@ -630,6 +630,8 @@
                             <RowDefinition Height="40"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="40"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="40"/>
                         </Grid.RowDefinitions>
                         
                         <!-- 치명타 확률 / 치명타 피해 -->
@@ -683,6 +685,9 @@
                         <!-- 속공 -->
                         <TextBlock Text="속공" Grid.Row="16" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBox x:Name="txtMyStatSpd" Grid.Row="17" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,0,5"/>
+                        <TextBlock Text="타입피해증가" Grid.Row="16" Grid.Column="0" Style="{StaticResource LabelText}"/>
+                        <TextBox x:Name="txtMyStatDmgDealtType" Grid.Row="17" Grid.Column="0" Text="0%" Style="{StaticResource OutputBox}" Margin="0,0,0,5"/>
+                        
                     </Grid>
                 </StackPanel>
             </Border>

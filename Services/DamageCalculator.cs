@@ -27,6 +27,7 @@ namespace GameDamageCalculator.Services
             public double FinalHp { get; set; }
             public double CritDamage { get; set; }
             public double DmgDealt { get; set; }
+            public double DmgDealtType { get; set; }
             public double DmgDealtBoss { get; set; }
             public double ArmorPen { get; set; }
             public double WeakpointDmg { get; set; }
@@ -221,10 +222,11 @@ System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
             result.DamagePerHit = ApplyBlessing(result.DamagePerHit, input, result);
 
             // 17. 최종 데미지
+            double vulnerabilityTotal = 1 + (input.Vulnerability + input.BossVulnerability + input.DmgTakenIncrease) / 100;
             result.SkillDamage = result.DamagePerHit * result.AtkCount;
             result.StatusDamage = result.BonusDamage * result.AtkCount;
-            result.FinalDamage = result.SkillDamage + result.StatusDamage 
-                                + result.HpRatioDamage + result.ConsumeExtraDmg;
+            result.FinalDamage = (result.SkillDamage + result.StatusDamage 
+                    + result.HpRatioDamage + result.ConsumeExtraDmg) * vulnerabilityTotal;
 
             // 18. 회복량
             CalcHeal(input, levelData, result);
@@ -254,6 +256,13 @@ System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
             System.Diagnostics.Debug.WriteLine($"WekBonusDmg: {result.WekBonusDmg:N0}");
             System.Diagnostics.Debug.WriteLine($"CriBonusDmg: {result.CriBonusDmg:N0}");
             System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
+            System.Diagnostics.Debug.WriteLine($"FinalDmg: {result.FinalDamage:N0}");
+            System.Diagnostics.Debug.WriteLine($"=== 방어 계수 상세 ===");
+System.Diagnostics.Debug.WriteLine($"BossDef: {input.BossDef}");
+System.Diagnostics.Debug.WriteLine($"BossDefIncrease: {input.BossDefIncrease}");
+System.Diagnostics.Debug.WriteLine($"DefReduction: {input.DefReduction}");
+System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
+            
 
             return result;
         }
@@ -278,21 +287,39 @@ System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
         }
 
         private double CalcDefCoefficient(DamageInput input, double armorPen, out double effectiveDef)
-        {
-            const double DEF_CONSTANT = 0.00214;
-            const double THRESHOLD = 3125.0;
+{
+    const double DEF_CONSTANT = 466.66;  // 1400/3
+    const double THRESHOLD = 3125.0;
 
-            double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
-            double armorPenModifier = 1 - armorPen;
-            effectiveDef = input.BossDef * defModifier * armorPenModifier;
+    double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
+    double armorPenModifier = 1 - armorPen;
+    effectiveDef = input.BossDef * defModifier * armorPenModifier;
 
-            if (effectiveDef <= THRESHOLD)
-                return 1 + effectiveDef * DEF_CONSTANT;
+    double damageRate;
+    
+    if (effectiveDef <= THRESHOLD)
+    {
+        // 3125 이하: 기존 공식
+        damageRate = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
+    }
+    else
+    {
+        // 3125 초과: 효율 절반
+        double rate1 = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
+        double rate2 = DEF_CONSTANT / (DEF_CONSTANT + THRESHOLD);
+        damageRate = (rate1 + rate2) / 2;
+    }
 
-            double baseCoef = 1 + THRESHOLD * DEF_CONSTANT;
-            double extraDef = effectiveDef - THRESHOLD;
-            return baseCoef + extraDef * DEF_CONSTANT * 0.5;
-        }
+    // 피해율을 방어계수로 변환
+    double defCoef = 1 / damageRate;
+
+    System.Diagnostics.Debug.WriteLine($"=== 방어 계수 ===");
+    System.Diagnostics.Debug.WriteLine($"effectiveDef: {effectiveDef}");
+    System.Diagnostics.Debug.WriteLine($"damageRate: {damageRate}");
+    System.Diagnostics.Debug.WriteLine($"DefCoef: {defCoef}");
+
+    return defCoef;
+}
 
         private double CalcDefCoefficientSimple(DamageInput input, double armorPen)
         {
@@ -340,18 +367,13 @@ System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
 
     // === 피증 계열 합산 (덧셈으로 먼저 합침) ===
     // 피증 + 보피증 + 조건부 피해 보너스 + 타겟 수 피해
-    double dmgDealtTotal = input.DmgDealt + bossDmg + conditionalDmgBonus + targetTypeDmg;
-
-    // === 취약 계열 합산 ===
-    // 취약 + 보스취약 + 받피증
-    double vulnerabilityTotal = input.Vulnerability + bossVuln + input.DmgTakenIncrease;
+    double dmgDealtTotal = input.DmgDealt + input.DmgDealtType + bossDmg + conditionalDmgBonus + targetTypeDmg;
 
     // === 피해 감소 계열 ===
     double reductionTotal = input.BossDmgReduction + input.BossTargetReduction;
 
     // === 최종 배율: 곱셈 구조 ===
-    // (1 + 피증계열) × (1 + 취약계열) × (1 - 감소계열)
-    double totalIncrease = dmgDealtTotal + vulnerabilityTotal - reductionTotal;;
+    double totalIncrease = dmgDealtTotal - reductionTotal;
 
      // === 디버그 출력 추가 ===
     System.Diagnostics.Debug.WriteLine($"=== CalcDamageMultiplier ===");
@@ -896,7 +918,7 @@ System.Diagnostics.Debug.WriteLine($"최종 ConsumeExtraDmg: {result.ConsumeExtr
     return $@"═══════════════════════════════════════════════════
 🎯 PVE (보스전)
 ═══════════════════════════════════════════════════
-💥 스킬 데미지: {result.SkillDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{criBonusInfo}{consumeExtraInfo}{hpRatioInfo}{atkCountInfo}{coopInfo}{blessingInfo}{healFromDmgInfo}{statusBuilder}{totalDamageInfo}
+💥 스킬 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{criBonusInfo}{consumeExtraInfo}{hpRatioInfo}{atkCountInfo}{coopInfo}{blessingInfo}{healFromDmgInfo}{statusBuilder}{totalDamageInfo}
 ═══════════════════════════════════════════════════
 
 📊 스탯 정보

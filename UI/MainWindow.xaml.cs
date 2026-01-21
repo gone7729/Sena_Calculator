@@ -601,6 +601,7 @@ namespace GameDamageCalculator.UI
                     FinalHp = ParseStatValue(txtMyStatHp.Text),
                     CritDamage = ParseStatValue(txtMyStatCriDmg.Text),
                     DmgDealt = ParseStatValue(txtMyStatDmgDealt.Text),
+                    DmgDealtType = ParseStatValue(txtMyStatDmgDealtType.Text),
                     DmgDealtBoss = ParseStatValue(txtMyStatBossDmg.Text),
                     ArmorPen = ParseStatValue(txtMyStatArmPen.Text),
                     WeakpointDmg = ParseStatValue(txtMyStatWekDmg.Text),
@@ -1036,6 +1037,7 @@ namespace GameDamageCalculator.UI
             txtMyStatEffAcc.Text = $"{stats.Eff_Acc}%";
             txtMyStatDmgRdc.Text = $"{stats.Dmg_Rdc}%";
             txtMyStatAtkRate.Text = $"{stats.Atk_Rate}%";
+            txtMyStatDmgDealtType.Text = $"{stats.Dmg_Dealt_Type}%";
         }
 
         

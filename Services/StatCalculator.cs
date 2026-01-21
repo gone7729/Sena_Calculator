@@ -119,7 +119,7 @@ namespace GameDamageCalculator.Services
 
             double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
     + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
-    + accessoryStats.Atk_Rate + input.PetOptionAtkRate  // ✅ 펫잠재 여기!
+    + accessoryStats.Atk_Rate 
     + equipmentStats.MainStats.Atk_Rate;
 
             double totalDefRate = transcendStats.Def_Rate + formationDefRate
@@ -134,7 +134,7 @@ namespace GameDamageCalculator.Services
 
             // ========== 버프% ==========
             BuffSet totalBuffs = input.TotalBuffs ?? new BuffSet();
-            double buffAtkRate =  totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
+            double buffAtkRate =  input.PetOptionAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
             double buffDefRate =  totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
             double buffHpRate =  totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
 
@@ -181,11 +181,13 @@ System.Diagnostics.Debug.WriteLine($"result.FinalAtk: {result.FinalAtk}");
             );
 
             // 라인 136 근처에 추가
-System.Diagnostics.Debug.WriteLine($"=== 버프 디버그 ===");
-System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Atk_Rate: {characterPassiveBuff.Atk_Rate}");
-System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Cri_Dmg: {characterPassiveBuff.Cri_Dmg}");
+System.Diagnostics.Debug.WriteLine($"=== TotalBuffs 상세 ===");
 System.Diagnostics.Debug.WriteLine($"totalBuffs.Atk_Rate: {totalBuffs.Atk_Rate}");
-System.Diagnostics.Debug.WriteLine($"buffAtkRate: {buffAtkRate}");
+System.Diagnostics.Debug.WriteLine($"totalBuffs.Dmg_Dealt: {totalBuffs.Dmg_Dealt}");
+System.Diagnostics.Debug.WriteLine($"totalBuffs.Dmg_Dealt_Boss: {totalBuffs.Dmg_Dealt_Bos}");
+System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Atk_Rate: {characterPassiveBuff.Atk_Rate}");
+System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Atk_Rate: {characterPassiveBuff.Dmg_Dealt_Type}");
+
 
             return result;
         }
@@ -341,7 +343,11 @@ System.Diagnostics.Debug.WriteLine($"buffAtkRate: {buffAtkRate}");
                 Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos 
                     + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos 
                     + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
-                    
+
+                Dmg_Dealt_Type = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type 
+                    + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type 
+                    + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type,
+                
                 Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen 
                     + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,
                     
@@ -371,6 +377,7 @@ System.Diagnostics.Debug.WriteLine($"buffAtkRate: {buffAtkRate}");
                     
                 Atk_Rate = totalAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate
             };
+            
         }
 
         #endregion

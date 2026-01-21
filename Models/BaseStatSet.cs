@@ -35,6 +35,7 @@ namespace GameDamageCalculator.Models
         public double Arm_Pen { get; set; }     // 방어 무시 (%)
         public double Dmg_Dealt { get; set; }   // 주는 피해량 (%)
         public double Dmg_Dealt_Bos { get; set; } // 보스 대상 피해량 (%)
+        public double Dmg_Dealt_Type { get; set; } // ~~ 주는 피해량 (%)
 
         // ===== 비율 증가 (장비/버프용) =====
         public double Atk_Rate { get; set; }    // 공격력 % 증가
