@@ -27,7 +27,6 @@ namespace GameDamageCalculator.Models
         /// </summary>
         public BaseStatSet GetBaseStats(int star)
         {
-            System.Diagnostics.Debug.WriteLine($"Rarity: '{Rarity}', Star: {star}");
             if (StatTable.PetStatTable.GradeStats.TryGetValue(Rarity, out var rarityStats))
             {
                 if (rarityStats.TryGetValue(star, out var stats))

@@ -244,7 +244,6 @@ namespace GameDamageCalculator.UI
         {
             if (cbo == null) 
             {
-                System.Diagnostics.Debug.WriteLine("InitializePetComboBox: cbo is null");
                 return;
             }
             
@@ -253,7 +252,6 @@ namespace GameDamageCalculator.UI
             
             // PetDb.Pets 직접 확인 후 로드
             var pets = PetDb.Pets;
-            System.Diagnostics.Debug.WriteLine($"InitializePetComboBox: PetDb.Pets count = {pets?.Count ?? 0}");
             
             if (pets != null && pets.Count > 0)
             {
@@ -262,8 +260,6 @@ namespace GameDamageCalculator.UI
                     cbo.Items.Add(pet.Name);
                 }
             }
-            
-            System.Diagnostics.Debug.WriteLine($"InitializePetComboBox: {cbo.Name} items count = {cbo.Items.Count}");
             cbo.SelectedIndex = 0;
         }
 

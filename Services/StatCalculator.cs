@@ -155,12 +155,6 @@ namespace GameDamageCalculator.Services
             result.FinalHp = baseStatHp * (1 + buffHpRate / 100.0);
             result.FinalSpd = totalSpd;
 
-            System.Diagnostics.Debug.WriteLine($"=== FinalAtk 계산 ===");
-System.Diagnostics.Debug.WriteLine($"baseStatAtk: {baseStatAtk}");
-System.Diagnostics.Debug.WriteLine($"buffAtkRate: {buffAtkRate}");
-System.Diagnostics.Debug.WriteLine($"계산: {baseStatAtk} × {1 + buffAtkRate / 100.0} = {baseStatAtk * (1 + buffAtkRate / 100.0)}");
-System.Diagnostics.Debug.WriteLine($"result.FinalAtk: {result.FinalAtk}");
-
             // ========== 순수 기본 스탯 ==========
             double flatAtkBase = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk + equipmentStats.MainStats.Atk;
             double flatDefBase = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def + equipmentStats.MainStats.Def;
@@ -179,14 +173,6 @@ System.Diagnostics.Debug.WriteLine($"result.FinalAtk: {result.FinalAtk}");
                 totalBuffs, characterPassiveBuff,
                 totalAtkRate, scalingBonus.Cri
             );
-
-            // 라인 136 근처에 추가
-System.Diagnostics.Debug.WriteLine($"=== TotalBuffs 상세 ===");
-System.Diagnostics.Debug.WriteLine($"totalBuffs.Atk_Rate: {totalBuffs.Atk_Rate}");
-System.Diagnostics.Debug.WriteLine($"totalBuffs.Dmg_Dealt: {totalBuffs.Dmg_Dealt}");
-System.Diagnostics.Debug.WriteLine($"totalBuffs.Dmg_Dealt_Boss: {totalBuffs.Dmg_Dealt_Bos}");
-System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Atk_Rate: {characterPassiveBuff.Atk_Rate}");
-System.Diagnostics.Debug.WriteLine($"characterPassiveBuff.Atk_Rate: {characterPassiveBuff.Dmg_Dealt_Type}");
 
 
             return result;

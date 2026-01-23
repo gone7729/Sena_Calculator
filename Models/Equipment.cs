@@ -149,7 +149,6 @@ namespace GameDamageCalculator.Models
             BaseStatSet total = new BaseStatSet();
             foreach (var sub in SubSlots)
             {
-                System.Diagnostics.Debug.WriteLine($"SubSlot: {sub.StatName}, Tier: {sub.Tier}, Cri: {sub.GetStats().Cri}, Atk%: {sub.GetStats().Atk_Rate}");
                 total.Add(sub.GetStats());
             }
             return total;

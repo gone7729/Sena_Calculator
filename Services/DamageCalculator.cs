@@ -161,9 +161,6 @@ namespace GameDamageCalculator.Services
             var levelData = input.Skill?.GetLevelData(input.IsSkillEnhanced);
             var skillBonus = input.Skill?.GetTotalBonus(input.IsSkillEnhanced, input.TranscendLevel) ?? new BuffSet();
 
-            System.Diagnostics.Debug.WriteLine($"=== DamageInput ===");
-System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
-
             // 1. 스킬 발동 전 버프
             ApplyPreCastBuff(input, levelData, result);
             result.AtkCount = input.Skill?.Atk_Count ?? 1;
@@ -184,8 +181,8 @@ System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
 
             // 6. 약점 계수
             result.WeakpointMultiplier = input.IsWeakpoint
-    ? input.WeakpointDmg / 100.0  // 버프 제거
-    : 1.0;
+            ? input.WeakpointDmg / 100.0  // 버프 제거
+            : 1.0;
 
             // 7. 피해 증가 계수
             result.DamageMultiplier = CalcDamageMultiplier(input);
@@ -239,30 +236,7 @@ System.Diagnostics.Debug.WriteLine($"input.FinalAtk: {input.FinalAtk}");
             CalcCoopDamage(input, result);
 
             // 21. 상세 정보
-            result.Details = GenerateDetails(input, result);
-
-            System.Diagnostics.Debug.WriteLine($"=== 전체 검증 ===");
-            System.Diagnostics.Debug.WriteLine($"FinalAtk: {input.FinalAtk}");
-            System.Diagnostics.Debug.WriteLine($"DefCoef: {result.DefCoefficient}");
-            System.Diagnostics.Debug.WriteLine($"AtkOverDef: {result.FinalAtk / result.DefCoefficient}");
-            System.Diagnostics.Debug.WriteLine($"SkillRatio: {result.SkillRatio}");
-            System.Diagnostics.Debug.WriteLine($"CritMult: {result.CritMultiplier}");
-            System.Diagnostics.Debug.WriteLine($"WeakMult: {result.WeakpointMultiplier}");
-            System.Diagnostics.Debug.WriteLine($"DmgMult: {result.DamageMultiplier}");
-            System.Diagnostics.Debug.WriteLine($"전체배율: {result.CritMultiplier * result.WeakpointMultiplier * result.DamageMultiplier}");
-            System.Diagnostics.Debug.WriteLine($"=== 추가 피해 ===");
-            System.Diagnostics.Debug.WriteLine($"BaseDamage: {result.BaseDamage:N0}");
-            System.Diagnostics.Debug.WriteLine($"ExtraDamage: {result.ExtraDamage:N0}");
-            System.Diagnostics.Debug.WriteLine($"WekBonusDmg: {result.WekBonusDmg:N0}");
-            System.Diagnostics.Debug.WriteLine($"CriBonusDmg: {result.CriBonusDmg:N0}");
-            System.Diagnostics.Debug.WriteLine($"DamagePerHit: {result.DamagePerHit:N0}");
-            System.Diagnostics.Debug.WriteLine($"FinalDmg: {result.FinalDamage:N0}");
-            System.Diagnostics.Debug.WriteLine($"=== 방어 계수 상세 ===");
-System.Diagnostics.Debug.WriteLine($"BossDef: {input.BossDef}");
-System.Diagnostics.Debug.WriteLine($"BossDefIncrease: {input.BossDefIncrease}");
-System.Diagnostics.Debug.WriteLine($"DefReduction: {input.DefReduction}");
-System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
-            
+            result.Details = GenerateDetails(input, result);          
 
             return result;
         }
@@ -287,43 +261,22 @@ System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
         }
 
         private double CalcDefCoefficient(DamageInput input, double armorPen, out double effectiveDef)
-{
-    const double DEF_CONSTANT = 466.66;  // 1400/3
-    const double THRESHOLD = 3125.0;
+        {
+            const double DEF_CONSTANT = 426.0;  // 테스트 역산 결과
 
-    double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
-    double armorPenModifier = 1 - armorPen;
-    effectiveDef = input.BossDef * defModifier * armorPenModifier;
+            double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
+            double armorPenModifier = 1 - armorPen;
+            effectiveDef = input.BossDef * defModifier * armorPenModifier;
 
-    double damageRate;
-    
-    if (effectiveDef <= THRESHOLD)
-    {
-        // 3125 이하: 기존 공식
-        damageRate = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
-    }
-    else
-    {
-        // 3125 초과: 효율 절반
-        double rate1 = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
-        double rate2 = DEF_CONSTANT / (DEF_CONSTANT + THRESHOLD);
-        damageRate = (rate1 + rate2) / 2;
-    }
+            // 방어계수 = 1 + 실효방어력 / 426
+            double defCoef = 1 + effectiveDef / DEF_CONSTANT;
 
-    // 피해율을 방어계수로 변환
-    double defCoef = 1 / damageRate;
-
-    System.Diagnostics.Debug.WriteLine($"=== 방어 계수 ===");
-    System.Diagnostics.Debug.WriteLine($"effectiveDef: {effectiveDef}");
-    System.Diagnostics.Debug.WriteLine($"damageRate: {damageRate}");
-    System.Diagnostics.Debug.WriteLine($"DefCoef: {defCoef}");
-
-    return defCoef;
-}
+            return defCoef;
+        }
 
         private double CalcDefCoefficientSimple(DamageInput input, double armorPen)
         {
-            const double DEF_CONSTANT = 0.00214;
+            const double DEF_CONSTANT = 426.0;  // 테스트 역산 결과 (≈ 1400/3)
             const double THRESHOLD = 3125.0;
 
             double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
@@ -331,11 +284,19 @@ System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
             double effectiveDef = input.BossDef * defModifier * armorPenModifier;
 
             if (effectiveDef <= THRESHOLD)
-                return 1 + effectiveDef * DEF_CONSTANT;
-
-            double baseCoef = 1 + THRESHOLD * DEF_CONSTANT;
-            double extraDef = effectiveDef - THRESHOLD;
-            return baseCoef + extraDef * DEF_CONSTANT * 0.5;
+            {
+                // 3125 이하: 기본 공식
+                return 1 + effectiveDef / DEF_CONSTANT;
+            }
+            else
+            {
+                // 3125 초과: 효율 절반
+                // [ {426/(426+실효방어)} + {426/(426+3125)} ] / 2
+                double rate1 = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
+                double rate2 = DEF_CONSTANT / (DEF_CONSTANT + THRESHOLD);
+                double damageRate = (rate1 + rate2) / 2;
+                return 1 / damageRate;
+            }
         }
 
         #endregion
@@ -374,13 +335,6 @@ System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
 
     // === 최종 배율: 곱셈 구조 ===
     double totalIncrease = dmgDealtTotal - reductionTotal;
-
-     // === 디버그 출력 추가 ===
-    System.Diagnostics.Debug.WriteLine($"=== CalcDamageMultiplier ===");
-    System.Diagnostics.Debug.WriteLine($"피증: {input.DmgDealt}, 보피증: {bossDmg}, 조건부: {conditionalDmgBonus}, 타겟: {targetTypeDmg}");
-    System.Diagnostics.Debug.WriteLine($"취약: {input.Vulnerability}, 보스취약: {bossVuln}, 받피증: {input.DmgTakenIncrease}");
-    System.Diagnostics.Debug.WriteLine($"감소: {reductionTotal}");
-    System.Diagnostics.Debug.WriteLine($"최종 DamageMultiplier: {totalIncrease}");
 
     return 1 + totalIncrease / 100.0;
     
@@ -434,14 +388,6 @@ System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
                       * result.WeakpointMultiplier
                       * result.DamageMultiplier
                       + fixedDamage;
-
-    // === 디버그 출력 (계산 후) ===
-    System.Diagnostics.Debug.WriteLine($"=== CalcBaseDamage ===");
-    System.Diagnostics.Debug.WriteLine($"atkOverDef: {atkOverDef:N2}, SkillRatio: {result.SkillRatio:N2}");
-    System.Diagnostics.Debug.WriteLine($"atkDamage(raw): {atkDamage:N2}");
-    System.Diagnostics.Debug.WriteLine($"CritMult: {result.CritMultiplier}, WeakMult: {result.WeakpointMultiplier}, DmgMult: {result.DamageMultiplier:N4}");
-    System.Diagnostics.Debug.WriteLine($"전체배율: {result.CritMultiplier * result.WeakpointMultiplier * result.DamageMultiplier:N2}");
-    System.Diagnostics.Debug.WriteLine($"BaseDamage: {result.BaseDamage:N0}");
 }
         private void CalcExtraDamage(DamageInput input, SkillLevelData levelData, BuffSet skillBonus,
                                      double atkOverDef, DamageResult result)
@@ -505,16 +451,11 @@ System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
     if (totalHpRatio > 0 && input.TargetHp > 0)
     {
         damage = input.TargetHp * (totalHpRatio / 100.0);
-        System.Diagnostics.Debug.WriteLine($"HP 비례 raw: {damage:N0}");
         
         if (totalAtkCap > 0)
         {
             double cap = input.FinalAtk * (totalAtkCap / 100.0);
-            System.Diagnostics.Debug.WriteLine($"Cap 값: {cap:N0}");
-            System.Diagnostics.Debug.WriteLine($"Cap 초월더해지는지: {totalAtkCap:N0}");
-            System.Diagnostics.Debug.WriteLine($"Hp 비례 초월 더해지는지: {totalHpRatio:N0}");
             damage = Math.Min(damage, cap);
-            System.Diagnostics.Debug.WriteLine($"Cap 적용 후: {damage:N0}");
         }
     }
 
@@ -525,14 +466,6 @@ System.Diagnostics.Debug.WriteLine($"ArmorPen: {result.TotalArmorPen}");
                       * result.CritMultiplier 
                       * result.WeakpointMultiplier;
 result.ConsumeExtraDmg = damage * fullMultiplier;
-
-System.Diagnostics.Debug.WriteLine($"consumeExtra.TargetMaxHpRatio: {consumeExtra.TargetMaxHpRatio}");
-System.Diagnostics.Debug.WriteLine($"consumeExtra.AtkCap: {consumeExtra.AtkCap}");
-System.Diagnostics.Debug.WriteLine($"transcendBonus?.ConsumeExtra?.TargetMaxHpRatio: {transcendBonus?.ConsumeExtra?.TargetMaxHpRatio ?? 0}");
-System.Diagnostics.Debug.WriteLine($"transcendBonus?.ConsumeExtra?.AtkCap: {transcendBonus?.ConsumeExtra?.AtkCap ?? 0}");
-
-System.Diagnostics.Debug.WriteLine($"fullMultiplier: {fullMultiplier:N2} (DmgMult:{result.DamageMultiplier:N2} × Crit:{result.CritMultiplier} × Weak:{result.WeakpointMultiplier})");
-System.Diagnostics.Debug.WriteLine($"최종 ConsumeExtraDmg: {result.ConsumeExtraDmg:N0}");
 }
 
         #endregion
