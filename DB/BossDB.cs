@@ -288,6 +288,38 @@ namespace GameDamageCalculator.Database
                     Eff_Hit = 100
                 },
             },
+            new Boss
+            {
+                Id = 205,
+                Name = "강림1페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 4066,
+                    Def = 1510,
+                    Hp = 1000000,
+                    Spd = 100,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+            },
+            new Boss
+            {
+                Id = 206,
+                Name = "강림2페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 4231,
+                    Def = 1733,
+                    Hp = 5000000,
+                    Spd = 100,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+            },
 
         };
 
