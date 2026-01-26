@@ -21,6 +21,16 @@ namespace GameDamageCalculator.Models
         // ===== 그룹 관련 =====
         public string GroupKey { get; set; }
         public bool ShowButton { get; set; } = true;
+        
+        /// <summary>
+        /// 그룹 동료 (같은 GroupKey를 가진 다른 BuffConfig)
+        /// </summary>
+        public BuffConfig GroupPartner { get; set; }
+        
+        /// <summary>
+        /// 그룹 아이템 여부 (체크박스 2개 표시용)
+        /// </summary>
+        public bool HasGroupPartner => GroupPartner != null;
 
         // ===== 그룹 Level 공유를 위한 static Dictionary =====
         private static readonly Dictionary<string, int> _groupLevels = new();

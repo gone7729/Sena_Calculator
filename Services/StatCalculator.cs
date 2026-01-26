@@ -118,9 +118,9 @@ namespace GameDamageCalculator.Services
             double formationDefRate = input.Formation?.GetDefRate() ?? 0;
 
             double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
-    + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
-    + accessoryStats.Atk_Rate 
-    + equipmentStats.MainStats.Atk_Rate;
+                + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
+                + accessoryStats.Atk_Rate + input.PetOptionAtkRate 
+                + equipmentStats.MainStats.Atk_Rate;
 
             double totalDefRate = transcendStats.Def_Rate + formationDefRate
                 + setBonus.Def_Rate + equipmentStats.SubStats.Def_Rate
@@ -134,14 +134,14 @@ namespace GameDamageCalculator.Services
 
             // ========== 버프% ==========
             BuffSet totalBuffs = input.TotalBuffs ?? new BuffSet();
-            double buffAtkRate =  input.PetOptionAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
-            double buffDefRate =  totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
-            double buffHpRate =  totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
+            double buffAtkRate = totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
+            double buffDefRate = totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
+            double buffHpRate  = totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
 
             // ========== 기본 스탯 (버프 적용 전) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
             double baseStatDef = baseDef * (1 + totalDefRate / 100.0) + flatDef;
-            double baseStatHp = baseHp * (1 + totalHpRate / 100.0) + flatHp;
+            double baseStatHp  = baseHp * (1 + totalHpRate / 100.0) + flatHp;
 
             // ========== 스탯 비례 증가 ==========
             var scalingBonus = CalculateStatScaling(input, baseStatAtk, baseStatDef, baseStatHp, totalSpd);
@@ -152,19 +152,19 @@ namespace GameDamageCalculator.Services
             // ========== 최종 스탯 (버프 적용 후) ==========
             result.FinalAtk = baseStatAtk * (1 + buffAtkRate / 100.0);
             result.FinalDef = baseStatDef * (1 + buffDefRate / 100.0);
-            result.FinalHp = baseStatHp * (1 + buffHpRate / 100.0);
+            result.FinalHp  = baseStatHp  * (1 + buffHpRate / 100.0);
             result.FinalSpd = totalSpd;
 
             // ========== 순수 기본 스탯 ==========
             double flatAtkBase = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk + equipmentStats.MainStats.Atk;
             double flatDefBase = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def + equipmentStats.MainStats.Def;
-            double flatHpBase = equipFlatHp + potentialStats.Hp + equipmentStats.SubStats.Hp + equipmentStats.MainStats.Hp;
+            double flatHpBase  = equipFlatHp  + potentialStats.Hp  + equipmentStats.SubStats.Hp  + equipmentStats.MainStats.Hp;
             result.BaseAtk = baseAtk * (1 + (equipmentStats.MainStats.Atk_Rate + equipmentStats.SubStats.Atk_Rate 
                 + transcendStats.Atk_Rate + accessoryStats.Atk_Rate + setBonus.Atk_Rate) / 100) + flatAtkBase;
             result.BaseDef = baseDef * (1 + (equipmentStats.MainStats.Def_Rate + equipmentStats.SubStats.Def_Rate 
                 + transcendStats.Def_Rate + accessoryStats.Def_Rate + setBonus.Def_Rate) / 100) + flatDefBase;
-            result.BaseHp = baseHp * (1 + (equipmentStats.MainStats.Hp_Rate + equipmentStats.SubStats.Hp_Rate 
-                + transcendStats.Hp_Rate + accessoryStats.Hp_Rate + setBonus.Hp_Rate) / 100) + flatHpBase;
+            result.BaseHp  = baseHp  * (1 + (equipmentStats.MainStats.Hp_Rate + equipmentStats.SubStats.Hp_Rate 
+                + transcendStats.Hp_Rate  + accessoryStats.Hp_Rate  + setBonus.Hp_Rate) / 100)  + flatHpBase;
 
             // ========== 기타 스탯 ==========
             result.DisplayStats = CalculateDisplayStats(

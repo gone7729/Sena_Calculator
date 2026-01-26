@@ -57,6 +57,15 @@ namespace GameDamageCalculator.Models
         // 버프/디버프 체크 상태
         public Dictionary<string, bool> BuffChecks { get; set; } = new Dictionary<string, bool>();
         public Dictionary<string, int> BuffStates { get; set; } = new Dictionary<string, int>();  // 4상태 버튼
+        
+        // 상황 옵션
+        public bool IsCritical { get; set; } = true;
+        public bool IsWeakpoint { get; set; }
+        public bool IsBlocked { get; set; }
+        public bool IsLostHpCondition { get; set; }
+        public bool IsSkillCondition { get; set; }
+        public bool IsStatusEffect { get; set; }
+        public int TargetStackCount { get; set; }
     }
     
     public class SubOptionData

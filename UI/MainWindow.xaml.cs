@@ -29,16 +29,20 @@ namespace GameDamageCalculator.UI
         public ObservableCollection<BuffConfig> BuffConfigs { get; private set; }
 
         public IEnumerable<BuffConfig> PassiveBuffs => 
-            BuffConfigs.Where(c => c.IsBuff && c.SkillName == null);
+            BuffConfigs.Where(c => c.IsBuff && c.SkillName == null)
+                       .OrderBy(c => !string.IsNullOrEmpty(c.GroupKey) ? 1 : 0);
 
         public IEnumerable<BuffConfig> ActiveBuffs => 
-            BuffConfigs.Where(c => c.IsBuff && c.SkillName != null);
+            BuffConfigs.Where(c => c.IsBuff && c.SkillName != null)
+                       .OrderBy(c => !string.IsNullOrEmpty(c.GroupKey) ? 1 : 0);
 
         public IEnumerable<BuffConfig> PassiveDebuffs => 
-            BuffConfigs.Where(c => !c.IsBuff && c.SkillName == null);
+            BuffConfigs.Where(c => !c.IsBuff && c.SkillName == null)
+                       .OrderBy(c => !string.IsNullOrEmpty(c.GroupKey) ? 1 : 0);
 
         public IEnumerable<BuffConfig> ActiveDebuffs => 
-            BuffConfigs.Where(c => !c.IsBuff && c.SkillName != null);
+            BuffConfigs.Where(c => !c.IsBuff && c.SkillName != null)
+                       .OrderBy(c => !string.IsNullOrEmpty(c.GroupKey) ? 1 : 0);
 
         
 
@@ -190,7 +194,31 @@ namespace GameDamageCalculator.UI
                 if (_isInitialized) RecalculateStats();
             };
 
+            // 그룹 파트너 연결 (ShowButton=true인 아이템에 ShowButton=false인 파트너 연결)
+            LinkGroupPartners();
+
             DataContext = this;
+        }
+
+        /// <summary>
+        /// 같은 GroupKey를 가진 아이템들을 서로 연결
+        /// </summary>
+        private void LinkGroupPartners()
+        {
+            var groups = BuffConfigs
+                .Where(c => !string.IsNullOrEmpty(c.GroupKey))
+                .GroupBy(c => c.GroupKey);
+
+            foreach (var group in groups)
+            {
+                var primary = group.FirstOrDefault(c => c.ShowButton);
+                var secondary = group.FirstOrDefault(c => !c.ShowButton);
+
+                if (primary != null && secondary != null)
+                {
+                    primary.GroupPartner = secondary;
+                }
+            }
         }
 
         
@@ -914,12 +942,6 @@ namespace GameDamageCalculator.UI
             RecalculateStats();
         }
 
-        private void BtnOpenPvp_Click(object sender, RoutedEventArgs e)
-        {
-            var pvpWindow = new PvpWindow();
-            pvpWindow.Show();
-        }
-
         private void CboMob_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
@@ -1243,6 +1265,55 @@ namespace GameDamageCalculator.UI
             }
         }
 
+        /// <summary>
+        /// 모든 버프/디버프 버튼 색상을 현재 Level에 맞게 업데이트
+        /// </summary>
+        private void UpdateBuffButtonColors()
+        {
+            // ItemsControl에서 버튼 찾기
+            UpdateBuffButtonColorsInItemsControl(icPassiveBuffs);
+            UpdateBuffButtonColorsInItemsControl(icActiveBuffs);
+            UpdateBuffButtonColorsInItemsControl(icPassiveDebuffs);
+            UpdateBuffButtonColorsInItemsControl(icActiveDebuffs);
+        }
+
+        private void UpdateBuffButtonColorsInItemsControl(ItemsControl itemsControl)
+        {
+            if (itemsControl == null) return;
+
+            for (int i = 0; i < itemsControl.Items.Count; i++)
+            {
+                var container = itemsControl.ItemContainerGenerator.ContainerFromIndex(i) as FrameworkElement;
+                if (container == null) continue;
+
+                var config = itemsControl.Items[i] as BuffConfig;
+                if (config == null) continue;
+
+                // 버튼 찾기
+                var button = FindVisualChild<Button>(container);
+                if (button != null)
+                {
+                    button.Background = BuffBgColors[config.Level];
+                    button.Foreground = BuffFgColors[config.Level];
+                }
+            }
+        }
+
+        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                    return result;
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                    return descendant;
+            }
+            return null;
+        }
+
         #endregion
 
         #region 버프/디버프 합산
@@ -1380,6 +1451,9 @@ namespace GameDamageCalculator.UI
         
                 PetName = cboMyPet.SelectedIndex > 0 ? cboMyPet.SelectedItem.ToString() : "",
                 PetStar = cboMyPetStar.SelectedIndex,
+                PetAtkRate = double.TryParse(txtMyPetAtk.Text, out double atkRate) ? atkRate : 0,
+                PetDefRate = double.TryParse(txtMyPetDef.Text, out double defRate) ? defRate : 0,
+                PetHpRate = double.TryParse(txtMyPetHp.Text, out double hpRate) ? hpRate : 0,
         
                 BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : "Descend"),
                 BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
@@ -1416,6 +1490,15 @@ namespace GameDamageCalculator.UI
                 preset.BuffChecks[config.Key] = config.IsChecked;
                 preset.BuffStates[config.Key] = config.Level;
             }
+
+            // ⭐ 상황 옵션 저장
+            preset.IsCritical = chkMyCritical.IsChecked == true;
+            preset.IsWeakpoint = chkMyWeakpoint.IsChecked == true;
+            preset.IsBlocked = chkMyBlock.IsChecked == true;
+            preset.IsLostHpCondition = chkMyLostHpCondition.IsChecked == true;
+            preset.IsSkillCondition = chkMySkillCondition.IsChecked == true;
+            preset.IsStatusEffect = chkMyStatusEffect.IsChecked == true;
+            preset.TargetStackCount = int.TryParse(txtMyTargetStackCount.Text, out int stackCount) ? stackCount : 0;
         
             return preset;
         }
@@ -1507,6 +1590,58 @@ namespace GameDamageCalculator.UI
             UpdateBossList();
             SelectComboBoxItem(cboBoss, preset.BossName);
 
+            // ⭐ 장신구 UI 업데이트 (6성이면 부옵션 표시)
+            if (preset.AccessoryGrade == 3)  // 6성
+            {
+                panelMyAccessorySub.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                panelMyAccessorySub.Visibility = Visibility.Collapsed;
+            }
+
+            // ⭐ 보스 스탯 로드
+            if (cboBoss.SelectedIndex > 0)
+            {
+                string selected = cboBoss.SelectedItem?.ToString();
+                Boss boss = null;
+
+                if (preset.BossType == "Siege")
+                {
+                    boss = BossDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                }
+                else if (preset.BossType == "Raid")
+                {
+                    boss = BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                }
+                else if (preset.BossType == "Descend")
+                {
+                    boss = BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                }
+
+                if (boss != null)
+                {
+                    txtBossDef.Text = boss.Stats.Def.ToString("N0");
+                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
+                    txtBossDmgRdc.Text = "0";
+                    txtBossHp.Text = boss.Stats.Hp.ToString("N0");
+                    txtBoss1TargetRdc.Text = boss.SingleTargetReduction.ToString("F0");
+                    txtBoss3TargetRdc.Text = boss.TripleTargetReduction.ToString("F0");
+                    txtBoss5TargetRdc.Text = boss.MultiTargetReduction.ToString("F0");
+
+                    if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
+                    {
+                        panelBossCondition.Visibility = Visibility.Visible;
+                        txtBossCondition.Text = boss.DefenseIncreaseCondition;
+                        chkBossCondition.IsChecked = false;
+                    }
+                    else
+                    {
+                        panelBossCondition.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+
             // ⭐ 버프 불러오기 - 새 코드
             if (preset.BuffChecks != null)
             {
@@ -1520,6 +1655,18 @@ namespace GameDamageCalculator.UI
                     }
                 }
             }
+
+            // ⭐ 버프/디버프 버튼 색상 업데이트
+            UpdateBuffButtonColors();
+
+            // ⭐ 상황 옵션 로드
+            chkMyCritical.IsChecked = preset.IsCritical;
+            chkMyWeakpoint.IsChecked = preset.IsWeakpoint;
+            chkMyBlock.IsChecked = preset.IsBlocked;
+            chkMyLostHpCondition.IsChecked = preset.IsLostHpCondition;
+            chkMySkillCondition.IsChecked = preset.IsSkillCondition;
+            chkMyStatusEffect.IsChecked = preset.IsStatusEffect;
+            txtMyTargetStackCount.Text = preset.TargetStackCount.ToString();
 
             _isInitialized = true;
             UpdateAccessoryDisplay();
