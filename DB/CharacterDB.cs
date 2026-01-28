@@ -1357,8 +1357,8 @@ namespace GameDamageCalculator.Database
                     Name = "뒷거래",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { SelfBuff = new PermanentBuff { Atk_Rate = 24 } } },
-                        { 1, new PassiveLevelData { SelfBuff = new PermanentBuff { Atk_Rate = 29 } } }
+                        { 0, new PassiveLevelData { SelfBuff = new PermanentBuff { Dmg_Dealt_Type = 24 } } },
+                        { 1, new PassiveLevelData { SelfBuff = new PermanentBuff { Dmg_Dealt_Type = 29 } } }
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {

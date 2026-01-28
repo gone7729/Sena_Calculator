@@ -835,7 +835,8 @@
                                     <ComboBox x:Name="cboMyTranscend" Style="{StaticResource ComboStyle}" Width="70" Margin="0,2,10,2"
                                               SelectionChanged="CboTranscend_SelectionChanged"/>
                                     <TextBlock Text="스강" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748b"/>
-                                    <CheckBox x:Name="chkMySkillEnhanced" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <CheckBox x:Name="chkMySkillEnhanced" VerticalAlignment="Center" Margin="0,0,10,0"
+                                            Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
                                     <TextBlock Text="조건" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748b"/>
                                     <CheckBox x:Name="chkMyPassiveCondition" VerticalAlignment="Center" Margin="0,0,10,0" 
                                         Checked="PassiveBuff_Changed" Unchecked="PassiveBuff_Changed"/>
