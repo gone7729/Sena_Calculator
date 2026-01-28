@@ -25,7 +25,17 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 그룹 동료 (같은 GroupKey를 가진 다른 BuffConfig)
         /// </summary>
-        public BuffConfig GroupPartner { get; set; }
+        private BuffConfig _groupPartner;
+        public BuffConfig GroupPartner 
+        { 
+            get => _groupPartner;
+            set
+            {
+                _groupPartner = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasGroupPartner));
+            }
+        }
         
         /// <summary>
         /// 그룹 아이템 여부 (체크박스 2개 표시용)

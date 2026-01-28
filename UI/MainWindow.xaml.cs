@@ -1334,8 +1334,8 @@ namespace GameDamageCalculator.UI
             {
                 new Equipment { Name = "무기1", Slot = "무기" },
                 new Equipment { Name = "무기2", Slot = "무기" },
-                new Equipment { Name = "갑옷1", Slot = "방어구" },
-                new Equipment { Name = "갑옷2", Slot = "방어구" },
+                new Equipment { Name = "방어구1", Slot = "방어구" },
+                new Equipment { Name = "방어구2", Slot = "방어구" },
             };
 
             foreach (var equip in Equipments)

@@ -199,8 +199,8 @@ namespace GameDamageCalculator.Services
             // 10. 추가 피해
             CalcExtraDamage(input, levelData, skillBonus, atkOverDef, result);
 
-            // 11. HP 비례 피해
-            result.HpRatioDamage = CalcHpRatioDamage(input, levelData, result.DamageMultiplier);
+            // 11. HP 비례 피해 (치명타/약점 적용됨)
+            result.HpRatioDamage = CalcHpRatioDamage(input, levelData, result);
 
             // 12. 스택 소모형 추가 피해
             CalcConsumeExtraDamage(input, levelData, atkOverDef, result);
@@ -392,33 +392,44 @@ namespace GameDamageCalculator.Services
         private void CalcExtraDamage(DamageInput input, SkillLevelData levelData, BuffSet skillBonus,
                                      double atkOverDef, DamageResult result)
         {
-            // 조건부 추가 피해
+            // 조건부 추가 피해 (치명타/약점 적용됨)
             result.ExtraDamage = 0;
             if (input.IsSkillConditionMet && levelData?.ConditionalExtraDmg > 0)
             {
-                double extraDmg = atkOverDef * (levelData.ConditionalExtraDmg / 100.0) * result.DamageMultiplier;
+                double extraDmg = atkOverDef * (levelData.ConditionalExtraDmg / 100.0) 
+                                * result.DamageMultiplier
+                                * result.CritMultiplier
+                                * result.WeakpointMultiplier;
                 if (levelData.ConditionalExtraDmgPerHit)
                     extraDmg *= result.AtkCount;
                 result.ExtraDamage = extraDmg;
             }
 
-            // 시전자 생명력 비례 추가 피해
+            // 시전자 생명력 비례 추가 피해 (치명타/약점 적용됨)
             if (levelData.ConditionalExtraDmgSelfHpRatio > 0)
             {
-                double selfHpExtraDmg = input.SelfMaxHp * (levelData.ConditionalExtraDmgSelfHpRatio / 100.0);
+                double selfHpExtraDmg = input.SelfMaxHp * (levelData.ConditionalExtraDmgSelfHpRatio / 100.0)
+                                      * result.CritMultiplier
+                                      * result.WeakpointMultiplier;
                 result.ExtraDamage += selfHpExtraDmg;
             }
 
-            // 약점 추가 피해
+            // 약점 추가 피해 (치명타/약점 적용됨)
             result.WekBonusDmg = 0;
             if (input.IsWeakpoint && skillBonus.WekBonusDmg > 0)
-                result.WekBonusDmg = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.DamageMultiplier;
+                result.WekBonusDmg = atkOverDef * (skillBonus.WekBonusDmg / 100.0) 
+                                   * result.DamageMultiplier
+                                   * result.CritMultiplier
+                                   * result.WeakpointMultiplier;
 
-            // 치명타 추가 피해
+            // 치명타 추가 피해 (치명타/약점 적용됨)
             result.CriBonusDmg = 0;
             if (input.IsCritical && skillBonus.CriBonusDmg > 0)
             {
-                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) * result.DamageMultiplier;
+                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) 
+                                * result.DamageMultiplier
+                                * result.CritMultiplier
+                                * result.WeakpointMultiplier;
                 if (skillBonus.CriBonusDmgPerHit)
                     criBonus *= result.AtkCount;
                 result.CriBonusDmg = criBonus;
@@ -472,7 +483,7 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
 
         #region HP 비례 피해 계산
 
-        private double CalcHpRatioDamage(DamageInput input, SkillLevelData levelData, double damageMultiplier)
+        private double CalcHpRatioDamage(DamageInput input, SkillLevelData levelData, DamageResult result)
         {
 
             if (levelData == null) return 0;
@@ -483,7 +494,9 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
                 double rawDamage = input.TargetHp * (levelData.TargetMaxHpRatio / 100.0);
                 if (levelData.AtkCap > 0)
                     rawDamage = Math.Min(rawDamage, input.FinalAtk * (levelData.AtkCap / 100.0));
-                totalHpDamage += rawDamage * damageMultiplier;
+                totalHpDamage += rawDamage * result.DamageMultiplier 
+                               * result.CritMultiplier 
+                               * result.WeakpointMultiplier;
             }
 
             if (levelData.TargetCurrentHpRatio > 0 && input.TargetCurrentHp > 0)
@@ -491,7 +504,9 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
                 double rawDamage = input.TargetCurrentHp * (levelData.TargetCurrentHpRatio / 100.0);
                 if (levelData.AtkCap > 0)
                     rawDamage = Math.Min(rawDamage, input.FinalAtk * (levelData.AtkCap / 100.0));
-                totalHpDamage += rawDamage * damageMultiplier;
+                totalHpDamage += rawDamage * result.DamageMultiplier 
+                               * result.CritMultiplier 
+                               * result.WeakpointMultiplier;
             }
 
             return totalHpDamage;
@@ -825,8 +840,6 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
     }
 
     string extraInfo = result.ExtraDamage > 0 ? $"\n  ├ 조건부 추가: {result.ExtraDamage:N0}" : "";
-    string wekBonusInfo = result.WekBonusDmg > 0 ? $"\n  ├ 약점 추가: {result.WekBonusDmg:N0}" : "";
-    string criBonusInfo = result.CriBonusDmg > 0 ? $"\n  ├ 치명타 추가: {result.CriBonusDmg:N0}" : "";
     string consumeExtraInfo = result.ConsumeExtraDmg > 0 ? $"\n  ├ 스택 소모 추가: {result.ConsumeExtraDmg:N0}" : "";
     
     // ✅ HP 비례 피해 표시 추가
@@ -848,26 +861,25 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
         totalDamageInfo = $"\n───────────────────────────────────────────────────\n🎯 총 피해: {result.FinalDamage:N0}";
     }
 
-    return $@"═══════════════════════════════════════════════════
-🎯 PVE (보스전)
-═══════════════════════════════════════════════════
-💥 스킬 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{wekBonusInfo}{criBonusInfo}{consumeExtraInfo}{hpRatioInfo}{atkCountInfo}{coopInfo}{blessingInfo}{healFromDmgInfo}{statusBuilder}{totalDamageInfo}
-═══════════════════════════════════════════════════
+    return $@"
+════════════════════════════════════════
+💥 스킬 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{consumeExtraInfo}{hpRatioInfo}{atkCountInfo}{coopInfo}{blessingInfo}{healFromDmgInfo}{statusBuilder}{totalDamageInfo}
+════════════════════════════════════════
 
 📊 스탯 정보
-───────────────────────────────────────────────────
+─────────────────
   최종 공격력: {result.FinalAtk:N0}
   총 방무: {result.TotalArmorPen * 100:F1}%
   실효 방어력: {result.EffectiveBossDef:N0}
   방어 계수: {result.DefCoefficient:F4}
 
 📈 배율 정보
-───────────────────────────────────────────────────
+──────────────────
   스킬 배율: {result.SkillRatio:F2}x
   치명 계수: {result.CritMultiplier:F2}x {critInfo}
   약공 계수: {result.WeakpointMultiplier:F2}x {wekInfo}
   피증 계수: {result.DamageMultiplier:F2}x{conditionalInfo}
-═══════════════════════════════════════════════════
+════════════════════════════════════════
 
 ---디버깅용---
   [캐릭터 스탯]
