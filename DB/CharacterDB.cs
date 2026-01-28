@@ -5741,6 +5741,95 @@ namespace GameDamageCalculator.Database
 
             #region 영웅 - 만능형 351~
 
+            // 빅토리아
+            new Character
+            {
+                Id = 351,
+                Name = "빅토리아",
+                Grade = "희귀",
+                Type = "만능형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                             } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 120,
+                             } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "권총 사격",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 285,
+                                DebuffEffect = new TimedDebuff{ Vulnerability = 22 }
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 110,
+                                DebuffEffect = new TimedDebuff{ Vulnerability = 22 }
+                            }}
+                        },
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "사기 진작",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                PartyBuff = new TimedBuff{ Atk_Rate = 29 }
+                            }},
+                            { 1, new SkillLevelData { 
+                                PartyBuff = new TimedBuff{ Atk_Rate = 35 }
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            {6, new SkillTranscend{ Effect = "1턴증가" }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "해적왕의 위엄",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            Effect = "마비 면역",
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Effect = "마비 면역, 스킬 사용 시 체력 회복",
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            PartyBuff = new PermanentBuff{ Dmg_Rdc = 22 },
+                            Effect = "아군 후열"
+                        }}
+                    }
+                },
+                TranscendType = TranscendType.DefDmgRdc
+            },
+
             #endregion
 
             #region 전설 - 방어형 401~

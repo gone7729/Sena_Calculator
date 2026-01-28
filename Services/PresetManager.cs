@@ -11,9 +11,18 @@ namespace GameDamageCalculator.Services
         private readonly string _presetPath;
         public List<Preset> Presets { get; private set; } = new List<Preset>();
         
-       public PresetManager()
+        public PresetManager()
         {
-            _presetPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "presets.json");
+            // exe가 있는 경로에 preset 폴더 생성
+            var presetFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "preset");
+            
+            // 폴더가 없으면 생성
+            if (!Directory.Exists(presetFolder))
+            {
+                Directory.CreateDirectory(presetFolder);
+            }
+            
+            _presetPath = Path.Combine(presetFolder, "presets.json");
             Load();
         }
         

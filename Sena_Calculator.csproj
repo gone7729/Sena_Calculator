@@ -7,10 +7,28 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>GameDamageCalculator</RootNamespace>
     <AssemblyName>세나리_데미지계산기</AssemblyName>
-    <ApplicationIcon></ApplicationIcon>
+    
+    <!-- 앱 정보 -->
+    <Version>1.0.0</Version>
+    <Authors>김광동</Authors>
+    <Product>세나리 데미지 계산기</Product>
+    <Description>세븐나이츠 리버스 데미지 계산기</Description>
+    
+    <!-- 아이콘 (있으면 경로 지정) -->
+    <ApplicationIcon>sena_icon.ico</ApplicationIcon>
+    
+    <!-- 배포 설정 -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    
+    <!-- WPF는 Trim 사용 안함 (XAML 바인딩 문제 방지) -->
+    <PublishTrimmed>false</PublishTrimmed>
+    
+    <!-- Ready to Run (시작 속도 향상) -->
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
 </Project>

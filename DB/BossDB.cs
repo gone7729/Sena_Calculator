@@ -275,7 +275,151 @@ namespace GameDamageCalculator.Database
             new Boss
             {
                 Id = 201,
-                Name = "카르마",
+                Name = "태오1페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 4282,
+                    Def = 942,
+                    Hp = 1000000,
+                    Spd = 19,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 90, 
+                MagicReduction = 0, 
+                SingleTargetReduction = 0,
+                TripleTargetReduction = 90,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0 
+            },
+            new Boss
+            {
+                Id = 202,
+                Name = "태오2페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 4810,
+                    Def = 1061,
+                    Hp = 5000000,
+                    Spd = 29,
+                    Cri = 25,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 90, 
+                MagicReduction = 0, 
+                SingleTargetReduction = 0,
+                TripleTargetReduction = 90,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0
+            },
+            new Boss
+            {
+                Id = 203,
+                Name = "카일1페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 3576,
+                    Def = 1047,
+                    Hp = 1000000,
+                    Spd = 29,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 0, 
+                MagicReduction = 90, 
+                SingleTargetReduction = 0,
+                TripleTargetReduction = 90,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0
+            },
+            new Boss
+            {
+                Id = 204,
+                Name = "카일2페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 4203,
+                    Def = 1202,
+                    Hp = 5000000,
+                    Spd = 29,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 0, 
+                MagicReduction = 90, 
+                SingleTargetReduction = 0,
+                TripleTargetReduction = 90,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0
+            },
+            new Boss
+            {
+                Id = 205,
+                Name = "연희1페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 3382,
+                    Def = 1045,
+                    Hp = 400000,
+                    Spd = 29,
+                    Cri = 0,
+                    Cri_Dmg = 250,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 90, 
+                MagicReduction = 0, 
+                SingleTargetReduction = 90,
+                TripleTargetReduction = 0,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0
+            },
+            new Boss
+            {
+                Id = 206,
+                Name = "연희2페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 3921,
+                    Def = 1202,
+                    Hp = 2000000,
+                    Spd = 29,
+                    Cri = 0,
+                    Cri_Dmg = 250,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 90, 
+                MagicReduction = 0, 
+                SingleTargetReduction = 90,
+                TripleTargetReduction = 0,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0
+            },
+            new Boss
+            {
+                Id = 207,
+                Name = "카르마1페",
                 BossType = BossType.Raid,
                 Stats = new BaseStatSet
                 {
@@ -287,10 +431,50 @@ namespace GameDamageCalculator.Database
                     Cri_Dmg = 150,
                     Eff_Hit = 100
                 },
+                PhysicalReduction = 0, 
+                MagicReduction = 90, 
+                SingleTargetReduction = 90,
+                TripleTargetReduction = 0,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0,
+                IsStackableDefenseIncrease = true,
+                DefenseIncrease = 13,
+                MaxDefenseStack = 8,
+                DefenseIncreaseCondition = "스킬 1회 당 1중첩"
             },
             new Boss
             {
-                Id = 205,
+                Id = 208,
+                Name = "카르마2페",
+                BossType = BossType.Raid,
+                Stats = new BaseStatSet
+                {
+                    Atk = 3691,
+                    Def = 767,
+                    Hp = 2000000,
+                    Spd = 19,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                },
+                PhysicalReduction = 0, 
+                MagicReduction = 90, 
+                SingleTargetReduction = 90,
+                TripleTargetReduction = 0,
+                MultiTargetReduction = 90,
+                DamageReduction = 0,      
+                DamageTakenIncrease = 0, 
+                Vulnerability = 0,
+                IsStackableDefenseIncrease = true,
+                DefenseIncrease = 13,
+                MaxDefenseStack = 8,
+                DefenseIncreaseCondition = "스킬 1회 당 1중첩"
+            },
+            new Boss
+            {
+                Id = 209,
                 Name = "강림1페",
                 BossType = BossType.Raid,
                 Stats = new BaseStatSet
@@ -306,7 +490,7 @@ namespace GameDamageCalculator.Database
             },
             new Boss
             {
-                Id = 206,
+                Id = 210,
                 Name = "강림2페",
                 BossType = BossType.Raid,
                 Stats = new BaseStatSet

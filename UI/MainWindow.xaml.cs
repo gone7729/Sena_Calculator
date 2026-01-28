@@ -504,9 +504,21 @@ namespace GameDamageCalculator.UI
                 txtBoss5TargetRdc.Text = boss.MultiTargetReduction.ToString("F0");
         
                 // 조건부 방증 처리
-                if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
+                if (boss.IsStackableDefenseIncrease)
                 {
+                    // 스택형 방증 (카르마 등)
+                    panelBossCondition.Visibility = Visibility.Collapsed;
+                    panelBossStack.Visibility = Visibility.Visible;
+                    btnBossStack.Content = "0";
+                    btnBossStack.Tag = boss.MaxDefenseStack;  // 최대 스택 저장
+                    txtBossStackInfo.Text = $"/ {boss.MaxDefenseStack}";
+                    txtBossDefInc.Text = "0";  // 초기 스택 0
+                }
+                else if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
+                {
+                    // 기존 체력조건 방증
                     panelBossCondition.Visibility = Visibility.Visible;
+                    panelBossStack.Visibility = Visibility.Collapsed;
                     txtBossCondition.Text = boss.DefenseIncreaseCondition;
                     chkBossCondition.IsChecked = false;
                     txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
@@ -514,6 +526,7 @@ namespace GameDamageCalculator.UI
                 else
                 {
                     panelBossCondition.Visibility = Visibility.Collapsed;
+                    panelBossStack.Visibility = Visibility.Collapsed;
                     txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                 }
             }
@@ -538,6 +551,54 @@ namespace GameDamageCalculator.UI
                     txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
                     txtBossHp.Text = boss.Stats.Hp.ToString("N0");
                 }
+            }
+        }
+
+        /// <summary>
+        /// 스택 버튼 좌클릭 - 스택 감소
+        /// </summary>
+        private void BossStack_LeftClick(object sender, MouseButtonEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            int currentStack = int.Parse(btnBossStack.Content.ToString());
+            if (currentStack > 0)
+            {
+                currentStack--;
+                btnBossStack.Content = currentStack.ToString();
+                UpdateBossStackDefense(currentStack);
+            }
+        }
+
+        /// <summary>
+        /// 스택 버튼 우클릭 - 스택 증가
+        /// </summary>
+        private void BossStack_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            int maxStack = btnBossStack.Tag != null ? (int)btnBossStack.Tag : 8;
+            int currentStack = int.Parse(btnBossStack.Content.ToString());
+            
+            if (currentStack < maxStack)
+            {
+                currentStack++;
+                btnBossStack.Content = currentStack.ToString();
+                UpdateBossStackDefense(currentStack);
+            }
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// 스택에 따른 방증% 업데이트
+        /// </summary>
+        private void UpdateBossStackDefense(int stack)
+        {
+            var boss = GetSelectedBoss();
+            if (boss != null && boss.IsStackableDefenseIncrease)
+            {
+                double totalDefIncrease = boss.DefenseIncrease * stack;
+                txtBossDefInc.Text = totalDefIncrease.ToString("F0");
             }
         }
 
@@ -763,6 +824,10 @@ namespace GameDamageCalculator.UI
             // 보스 조건 초기화
             panelBossCondition.Visibility = Visibility.Collapsed;
             chkBossCondition.IsChecked = false;
+            
+            // 스택 패널 초기화
+            panelBossStack.Visibility = Visibility.Collapsed;
+            btnBossStack.Content = "0";
 
             // 버프/디버프 초기화
             foreach (var config in BuffConfigs)

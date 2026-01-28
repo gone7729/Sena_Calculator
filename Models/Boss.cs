@@ -29,6 +29,10 @@ namespace GameDamageCalculator.Models
         public double DefenseIncrease { get; set; }
         public string DefenseIncreaseCondition { get; set; }
 
+        // 스택형 방어력 증가
+        public bool IsStackableDefenseIncrease { get; set; } = false;  // 스택형 여부
+        public int MaxDefenseStack { get; set; } = 0;                   // 최대 스택
+
         // 조건부 방어력 감소
         public double DefenseDecrease { get; set; }
         public string DefenseDecreaseCondition { get; set; }
@@ -51,6 +55,17 @@ namespace GameDamageCalculator.Models
             }
 
             return baseDef;
+        }
+
+        /// <summary>
+        /// 스택형 방어력 증가 계산
+        /// </summary>
+        public double GetStackableDefenseIncrease(int currentStack)
+        {
+            if (!IsStackableDefenseIncrease) return 0;
+            
+            int clampedStack = System.Math.Clamp(currentStack, 0, MaxDefenseStack);
+            return DefenseIncrease * clampedStack;
         }
     }
 

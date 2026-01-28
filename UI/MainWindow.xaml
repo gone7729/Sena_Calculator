@@ -1294,9 +1294,21 @@
                             <TextBox x:Name="txtBossHp" Grid.Row="1" Grid.Column="0" Text="0" Margin="0,0,5,0" Style="{StaticResource InputBox}"/>
                         </Grid>
                         
-                        <StackPanel x:Name="panelBossCondition" Visibility="Collapsed">
-                            <CheckBox x:Name="chkBossCondition" Checked="BossCondition_Changed" Unchecked="BossCondition_Changed"/>
-                            <TextBlock x:Name="txtBossCondition"/>
+                        <!-- 조건부 방증 패널 (기존 체력조건) -->
+                        <StackPanel x:Name="panelBossCondition" Visibility="Collapsed" Orientation="Horizontal" Margin="0,5,0,0">
+                            <CheckBox x:Name="chkBossCondition" Content="체력조건" Checked="BossCondition_Changed" Unchecked="BossCondition_Changed" Foreground="#e2e8f0"/>
+                            <TextBlock x:Name="txtBossCondition" Foreground="#64748b" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- 스택형 방증 패널 (카르마 등) -->
+                        <StackPanel x:Name="panelBossStack" Visibility="Collapsed" Orientation="Horizontal" Margin="0,5,0,0">
+                            <TextBlock Text="방증 스택" Foreground="#e2e8f0" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <Button x:Name="btnBossStack" Content="0" Width="40" Height="26"
+                                    MouseLeftButtonUp="BossStack_LeftClick" 
+                                    MouseRightButtonUp="BossStack_RightClick"
+                                    Style="{StaticResource BuffOptionButtonStyle}"
+                                    ToolTip="좌클릭: -1 / 우클릭: +1"/>
+                            <TextBlock x:Name="txtBossStackInfo" Text="/ 8" Foreground="#64748b" VerticalAlignment="Center" Margin="5,0,0,0"/>
                         </StackPanel>
                         
                         <!-- 상황 체크박스 -->
