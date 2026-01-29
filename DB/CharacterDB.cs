@@ -3227,7 +3227,7 @@ namespace GameDamageCalculator.Database
                         {2, new PassiveTranscend{ ConditionalSelfBuff = new TimedBuff { Dmg_Dealt_Type = 29 } }}
                     }
                 },
-                TranscendType = TranscendType.AtkCriDmg
+                TranscendType = TranscendType.AtkCri
             },
 
             // 아리엘

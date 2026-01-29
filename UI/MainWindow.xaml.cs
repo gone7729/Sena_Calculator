@@ -1056,7 +1056,8 @@ namespace GameDamageCalculator.UI
             if (cboMyPet.SelectedIndex > 0)
                 pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
 
-            // 버프/디버프 계산
+            // 버프/디버프 계산 (지속/턴제 분리)
+            var (partyPermanentBuffs, partyTimedBuffs) = _buffCalculator.CalculateSeparatedPartyBuffs(BuffConfigs, pet, petStar);
             var totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
             _currentDebuffs = _buffCalculator.CalculateTotalDebuffs(BuffConfigs, pet, petStar);
 
@@ -1087,7 +1088,11 @@ namespace GameDamageCalculator.UI
                 PetOptionHpRate = GetPetOptionHpRate(),
 
                 TotalBuffs = totalBuffs,
-                TotalDebuffs = _currentDebuffs
+                TotalDebuffs = _currentDebuffs,
+
+                // 분리된 파티버프 (지속/턴제)
+                PartyPermanentBuffs = partyPermanentBuffs,
+                PartyTimedBuffs = partyTimedBuffs
             };
 
             // ========== 계산 실행 ==========

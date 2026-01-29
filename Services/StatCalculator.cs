@@ -45,6 +45,10 @@ namespace GameDamageCalculator.Services
         // 버프/디버프
         public BuffSet TotalBuffs { get; set; }
         public DebuffSet TotalDebuffs { get; set; }
+
+        // 분리된 파티버프 (지속/턴제)
+        public BuffSet PartyPermanentBuffs { get; set; }
+        public BuffSet PartyTimedBuffs { get; set; }
     }
 
     /// <summary>
@@ -92,8 +96,17 @@ namespace GameDamageCalculator.Services
             double baseDef = characterStats.Def;
             double baseHp = characterStats.Hp;
 
-            // ========== 캐릭터 패시브 자버프 ==========
-            BuffSet characterPassiveBuff = GetCharacterPassiveBuff(input);
+            // ========== 캐릭터 패시브 자버프 (지속/턴제 분리) ==========
+            var (selfPermanentBuff, selfTimedBuff) = GetCharacterPassiveBuffSeparated(input);
+
+            // ========== 파티버프 (지속/턴제 분리) ==========
+            BuffSet partyPermanentBuff = input.PartyPermanentBuffs ?? new BuffSet();
+            BuffSet partyTimedBuff = input.PartyTimedBuffs ?? new BuffSet();
+
+            // 호환성을 위한 통합 버프 (로그용)
+            BuffSet characterPassiveBuff = new BuffSet();
+            characterPassiveBuff.Add(selfPermanentBuff);
+            characterPassiveBuff.Add(selfTimedBuff);
 
             // ========== 각종 스탯 소스 ==========
             var potentialStats = GetPotentialStats(input);
@@ -204,10 +217,6 @@ namespace GameDamageCalculator.Services
                 + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg;
             result.DebugLog.AppendLine($"  ★ 합계: {totalWekDmg}%");
 
-            // 콘솔 출력
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.WriteLine(result.DebugLog.ToString());
-
             // ========== 깡스탯 합계 ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
             double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
@@ -223,18 +232,19 @@ namespace GameDamageCalculator.Services
             // ========== 속공 계산 ==========
             double totalSpd = characterStats.Spd + equipmentStats.SubStats.Spd;
 
-            // ========== 합연산% ==========
+            // ========== 합연산% (스탯창에 포함되는 것들) ==========
             double formationAtkRate = input.Formation?.GetAtkRate() ?? 0;
             double formationDefRate = input.Formation?.GetDefRate() ?? 0;
 
-            double totalAtkRate = transcendStats.Atk_Rate + formationAtkRate
+            // 스탯창 공격력%: 진형, 펫잠재 제외 (이것들은 기초공에만 적용)
+            double totalAtkRate = transcendStats.Atk_Rate
                 + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
-                + accessoryStats.Atk_Rate + input.PetOptionAtkRate 
+                + accessoryStats.Atk_Rate
                 + equipmentStats.MainStats.Atk_Rate;
 
-            double totalDefRate = transcendStats.Def_Rate + formationDefRate
+            double totalDefRate = transcendStats.Def_Rate
                 + setBonus.Def_Rate + equipmentStats.SubStats.Def_Rate
-                + accessoryStats.Def_Rate + input.PetOptionDefRate
+                + accessoryStats.Def_Rate
                 + equipmentStats.MainStats.Def_Rate;
 
             double totalHpRate = transcendStats.Hp_Rate
@@ -242,26 +252,57 @@ namespace GameDamageCalculator.Services
                 + accessoryStats.Hp_Rate + input.PetOptionHpRate
                 + equipmentStats.MainStats.Hp_Rate;
 
-            // ========== 버프% ==========
-            double buffAtkRate = totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
-            double buffDefRate = totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
-            double buffHpRate  = totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
+            // ========== 버프% (지속끼리 Max, 턴제끼리 Max, 그 후 합연산) ==========
+            result.DebugLog.AppendLine("\n[버프% 중복 처리 - 지속/턴제 분리 (합연산)]");
 
-            // ========== 기본 스탯 (버프 적용 전) ==========
+            // 공격력%
+            result.DebugLog.AppendLine($"  [공%] 파티지속: {partyPermanentBuff.Atk_Rate}%, 자버프지속: {selfPermanentBuff.Atk_Rate}%");
+            result.DebugLog.AppendLine($"  [공%] 파티턴제: {partyTimedBuff.Atk_Rate}%, 자버프턴제: {selfTimedBuff.Atk_Rate}%");
+            double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate);
+            double timedAtkRate = Math.Max(partyTimedBuff.Atk_Rate, selfTimedBuff.Atk_Rate);
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentAtkRate}%, 턴제: {timedAtkRate}% → (1+({permanentAtkRate}+{timedAtkRate})/100) = {1 + (permanentAtkRate + timedAtkRate) / 100:F4}x");
+
+            // 방어력%
+            result.DebugLog.AppendLine($"  [방%] 파티지속: {partyPermanentBuff.Def_Rate}%, 자버프지속: {selfPermanentBuff.Def_Rate}%");
+            result.DebugLog.AppendLine($"  [방%] 파티턴제: {partyTimedBuff.Def_Rate}%, 자버프턴제: {selfTimedBuff.Def_Rate}%");
+            double permanentDefRate = Math.Max(partyPermanentBuff.Def_Rate, selfPermanentBuff.Def_Rate);
+            double timedDefRate = Math.Max(partyTimedBuff.Def_Rate, selfTimedBuff.Def_Rate);
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentDefRate}%, 턴제: {timedDefRate}% → (1+({permanentDefRate}+{timedDefRate})/100) = {1 + (permanentDefRate + timedDefRate) / 100:F4}x");
+
+            // 체력%
+            result.DebugLog.AppendLine($"  [체%] 파티지속: {partyPermanentBuff.Hp_Rate}%, 자버프지속: {selfPermanentBuff.Hp_Rate}%");
+            result.DebugLog.AppendLine($"  [체%] 파티턴제: {partyTimedBuff.Hp_Rate}%, 자버프턴제: {selfTimedBuff.Hp_Rate}%");
+            double permanentHpRate = Math.Max(partyPermanentBuff.Hp_Rate, selfPermanentBuff.Hp_Rate);
+            double timedHpRate = Math.Max(partyTimedBuff.Hp_Rate, selfTimedBuff.Hp_Rate);
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentHpRate}%, 턴제: {timedHpRate}% → (1+({permanentHpRate}+{timedHpRate})/100) = {1 + (permanentHpRate + timedHpRate) / 100:F4}x");
+
+            // ========== 기본 스탯 (스탯창 = 진형/펫잠재 제외) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
             double baseStatDef = baseDef * (1 + totalDefRate / 100.0) + flatDef;
             double baseStatHp  = baseHp * (1 + totalHpRate / 100.0) + flatHp;
 
+            // ========== 별도 보너스 (기초공에만 적용: 진형 + 펫잠재공%) ==========
+            double separateBonusAtk = baseAtk * (formationAtkRate + input.PetOptionAtkRate) / 100.0;
+            double separateBonusDef = baseDef * (formationDefRate + input.PetOptionDefRate) / 100.0;
+            result.DebugLog.AppendLine($"\n[별도 보너스 (기초공에만 적용)]");
+            result.DebugLog.AppendLine($"  진형공%: {formationAtkRate}%, 펫잠재공%: {input.PetOptionAtkRate}%");
+            result.DebugLog.AppendLine($"  → 기초공{baseAtk} × ({formationAtkRate} + {input.PetOptionAtkRate})% = {separateBonusAtk:F0}");
+
             // ========== 스탯 비례 증가 ==========
-            var scalingBonus = CalculateStatScaling(input, baseStatAtk, baseStatDef, baseStatHp, totalSpd);
+            var scalingBonus = CalculateStatScaling(input, baseStatAtk + separateBonusAtk, baseStatDef + separateBonusDef, baseStatHp, totalSpd);
             baseStatAtk += scalingBonus.Atk;
             baseStatDef += scalingBonus.Def;
             baseStatHp += scalingBonus.Hp;
 
-            // ========== 최종 스탯 (버프 적용 후) ==========
-            result.FinalAtk = baseStatAtk * (1 + buffAtkRate / 100.0);
-            result.FinalDef = baseStatDef * (1 + buffDefRate / 100.0);
-            result.FinalHp  = baseStatHp  * (1 + buffHpRate / 100.0);
+            // ========== 버프 전 최종 (스탯창 + 별도보너스) ==========
+            double preBuffAtk = baseStatAtk + separateBonusAtk;
+            double preBuffDef = baseStatDef + separateBonusDef;
+
+            // ========== 최종 스탯 (버프 적용 후 - 합연산) ==========
+            // 공식: 최종공격력 = (스탯공격력 + 펫깡공 + 기초공 * (진형 + 펫잠재%)) * (1 + 지속% + 턴제%)
+            result.FinalAtk = preBuffAtk * (1 + (permanentAtkRate + timedAtkRate) / 100.0);
+            result.FinalDef = preBuffDef * (1 + (permanentDefRate + timedDefRate) / 100.0);
+            result.FinalHp  = baseStatHp * (1 + (permanentHpRate + timedHpRate) / 100.0);
             result.FinalSpd = totalSpd;
 
             // ========== 순수 기본 스탯 ==========
@@ -277,37 +318,45 @@ namespace GameDamageCalculator.Services
 
             // ========== 기타 스탯 ==========
             result.DisplayStats = CalculateDisplayStats(
-                characterStats, transcendStats, setBonus, 
-                equipmentStats, accessoryStats, 
+                characterStats, transcendStats, setBonus,
+                equipmentStats, accessoryStats,
                 totalBuffs, characterPassiveBuff,
-                totalAtkRate, scalingBonus.Cri
+                totalAtkRate, scalingBonus.Cri,
+                permanentAtkRate, timedAtkRate
             );
 
+            // 콘솔 출력 (WPF에서는 Debug 사용)
+            System.Diagnostics.Debug.WriteLine(result.DebugLog.ToString());
 
             return result;
         }
 
         #region Private Helper Methods
 
-        private BuffSet GetCharacterPassiveBuff(StatCalculationInput input)
+        /// <summary>
+        /// 캐릭터 패시브 자버프를 지속/턴제 분리하여 반환
+        /// </summary>
+        private (BuffSet Permanent, BuffSet Timed) GetCharacterPassiveBuffSeparated(StatCalculationInput input)
         {
-            BuffSet buff = new BuffSet();
-            if (input.Character?.Passive == null) return buff;
+            BuffSet permanent = new BuffSet();
+            BuffSet timed = new BuffSet();
 
-            // 상시 자버프
+            if (input.Character?.Passive == null) return (permanent, timed);
+
+            // 상시 자버프 (지속)
             var permanentBuff = input.Character.Passive.GetTotalSelfBuff(
                 input.IsSkillEnhanced, input.TranscendLevel);
-            if (permanentBuff != null) buff.Add(permanentBuff);
+            if (permanentBuff != null) permanent.Add(permanentBuff);
 
             // 턴제 자버프 (조건 충족 시)
             if (input.IsPassiveConditionMet)
             {
                 var timedBuff = input.Character.Passive.GetConditionalSelfBuff(
                     input.IsSkillEnhanced, input.TranscendLevel);
-                if (timedBuff != null) buff.Add(timedBuff);
+                if (timedBuff != null) timed.Add(timedBuff);
             }
 
-            return buff;
+            return (permanent, timed);
         }
 
         private BaseStatSet GetPotentialStats(StatCalculationInput input)
@@ -415,64 +464,66 @@ namespace GameDamageCalculator.Services
             BaseStatSet characterStats, BaseStatSet transcendStats, BaseStatSet setBonus,
             (BaseStatSet MainStats, BaseStatSet SubStats) equipmentStats, BaseStatSet accessoryStats,
             BuffSet totalBuffs, BuffSet characterPassiveBuff,
-            double totalAtkRate, double scalingCri)
+            double totalAtkRate, double scalingCri,
+            double buffPermanentAtkRate, double buffTimedAtkRate)
         {
             return new BaseStatSet
             {
-                Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri 
-                    + equipmentStats.SubStats.Cri + equipmentStats.MainStats.Cri 
+                Cri = characterStats.Cri + transcendStats.Cri + setBonus.Cri
+                    + equipmentStats.SubStats.Cri + equipmentStats.MainStats.Cri
                     + accessoryStats.Cri + characterPassiveBuff.Cri + totalBuffs.Cri + scalingCri,
-                    
-                Cri_Dmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg 
-                    + equipmentStats.SubStats.Cri_Dmg + equipmentStats.MainStats.Cri_Dmg 
+
+                Cri_Dmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg
+                    + equipmentStats.SubStats.Cri_Dmg + equipmentStats.MainStats.Cri_Dmg
                     + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg + characterPassiveBuff.Cri_Dmg,
-                    
-                Wek = characterStats.Wek + transcendStats.Wek + setBonus.Wek 
-                    + equipmentStats.SubStats.Wek + equipmentStats.MainStats.Wek 
+
+                Wek = characterStats.Wek + transcendStats.Wek + setBonus.Wek
+                    + equipmentStats.SubStats.Wek + equipmentStats.MainStats.Wek
                     + accessoryStats.Wek + totalBuffs.Wek + characterPassiveBuff.Wek,
-                    
-                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg 
+
+                Wek_Dmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg
                     + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
-                    
-                Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt 
+
+                Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt
                     + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt,
-                    
-                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos 
-                    + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos 
+
+                Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos
+                    + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos
                     + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
 
-                Dmg_Dealt_Type = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type 
-                    + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type 
+                Dmg_Dealt_Type = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type
+                    + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type
                     + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type,
-                
-                Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen 
+
+                Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen
                     + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,
-                    
-                Blk = characterStats.Blk + transcendStats.Blk + setBonus.Blk 
+
+                Blk = characterStats.Blk + transcendStats.Blk + setBonus.Blk
                     + equipmentStats.SubStats.Blk + equipmentStats.MainStats.Blk + accessoryStats.Blk,
-                    
-                Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit 
-                    + equipmentStats.SubStats.Eff_Hit + equipmentStats.MainStats.Eff_Hit 
+
+                Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit
+                    + equipmentStats.SubStats.Eff_Hit + equipmentStats.MainStats.Eff_Hit
                     + accessoryStats.Eff_Hit + totalBuffs.Eff_Hit + characterPassiveBuff.Eff_Hit,
-                    
-                Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res 
-                    + equipmentStats.SubStats.Eff_Res + equipmentStats.MainStats.Eff_Res 
+
+                Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res
+                    + equipmentStats.SubStats.Eff_Res + equipmentStats.MainStats.Eff_Res
                     + accessoryStats.Eff_Res + totalBuffs.Eff_Res + characterPassiveBuff.Eff_Res,
-                    
+
                 Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
-                
-                Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc 
+
+                Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc
                     + equipmentStats.MainStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc,
-                    
-                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3 
-                    + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 
+
+                Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3
+                    + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3
                     + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3,
-                    
-                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 
-                    + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 
+
+                Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5
+                    + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5
                     + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5,
-                    
-                Atk_Rate = totalAtkRate + totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate
+
+                // 버프%: Max 처리된 지속+턴제 값 사용
+                Atk_Rate = totalAtkRate + buffPermanentAtkRate + buffTimedAtkRate
             };
             
         }

@@ -40,7 +40,7 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 본인 전용 상시 버프 (SelfBuff + PartyBuff 둘 다)
+        /// 본인 전용 상시 버프
         /// </summary>
         public PermanentBuff GetTotalSelfBuff(bool isEnhanced, int transcendLevel)
         {

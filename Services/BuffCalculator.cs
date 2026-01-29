@@ -15,8 +15,8 @@ namespace GameDamageCalculator.Services
         /// 전체 버프 합산 (상시 + 턴제 + 펫)
         /// </summary>
         public BuffSet CalculateTotalBuffs(
-            IEnumerable<BuffConfig> buffConfigs, 
-            Pet pet, 
+            IEnumerable<BuffConfig> buffConfigs,
+            Pet pet,
             int petStar)
         {
             // 상시 버프 (패시브 상시끼리 MaxMerge)
@@ -37,6 +37,35 @@ namespace GameDamageCalculator.Services
             total.Add(petBuffs);
 
             return total;
+        }
+
+        /// <summary>
+        /// 지속/턴제 분리된 파티 버프 반환
+        /// </summary>
+        public (BuffSet Permanent, BuffSet Timed) CalculateSeparatedPartyBuffs(
+            IEnumerable<BuffConfig> buffConfigs,
+            Pet pet,
+            int petStar)
+        {
+            // 상시 버프 (패시브 상시끼리 MaxMerge)
+            PermanentBuff permanentBuffs = GetPermanentPassiveBuffs(buffConfigs);
+
+            // 턴제 버프 (패시브 조건부 + 액티브 스킬 끼리 MaxMerge)
+            TimedBuff timedBuffs = new TimedBuff();
+            timedBuffs.MaxMerge(GetTimedPassiveBuffs(buffConfigs));
+            timedBuffs.MaxMerge(GetActiveBuffs(buffConfigs));
+
+            // 펫 버프는 턴제로 취급
+            BuffSet petBuffs = pet?.GetSkillBuff(petStar) ?? new BuffSet();
+
+            BuffSet permanent = new BuffSet();
+            permanent.Add(permanentBuffs);
+
+            BuffSet timed = new BuffSet();
+            timed.Add(timedBuffs);
+            timed.Add(petBuffs);
+
+            return (permanent, timed);
         }
 
         /// <summary>

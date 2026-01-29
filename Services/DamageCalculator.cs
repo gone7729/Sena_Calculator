@@ -175,8 +175,19 @@ namespace GameDamageCalculator.Services
             result.DebugLog.AppendLine($"[6] 치명계수: {(input.IsCritical ? "발동" : "미발동")} → 입력{inputCritDmg}% + 스킬{skillCritDmg}% = {result.CritMultiplier:F4}x");
 
             // 6. 약점 계수
-            result.WeakpointMultiplier = input.IsWeakpoint ? input.WeakpointDmg / 100.0 : 1.0;
-            result.DebugLog.AppendLine($"[7] 약점계수: {(input.IsWeakpoint ? "발동" : "미발동")} → {input.WeakpointDmg}% = {result.WeakpointMultiplier:F4}x");
+            // 약점 공식: 1 + (약피% - 100%) × 0.527
+            // 예: 130% → 1 + 30 × 0.527 = 1.158x
+            const double WEAKPOINT_FACTOR = 0.527;
+            if (input.IsWeakpoint)
+            {
+                double weakpointBonus = input.WeakpointDmg - 100.0; // 130% → 30
+                result.WeakpointMultiplier = 1 + (weakpointBonus / 100.0) * WEAKPOINT_FACTOR;
+            }
+            else
+            {
+                result.WeakpointMultiplier = 1.0;
+            }
+            result.DebugLog.AppendLine($"[7] 약점계수: {(input.IsWeakpoint ? "발동" : "미발동")} → {input.WeakpointDmg}% = 1 + ({input.WeakpointDmg - 100}/100) × {WEAKPOINT_FACTOR} = {result.WeakpointMultiplier:F4}x");
 
             // 7. 피해 증가 계수
             result.DamageMultiplier = CalcDamageMultiplier(input, result.DebugLog);
@@ -238,9 +249,8 @@ namespace GameDamageCalculator.Services
             // 21. 상세 정보
             result.Details = GenerateDetails(input, result);
 
-            // ===== 콘솔 출력 (디버깅용) =====
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.WriteLine(result.DebugLog.ToString());
+            // ===== 디버그 출력 =====
+            System.Diagnostics.Debug.WriteLine(result.DebugLog.ToString());
 
             return result;
         }
