@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Database;
 
@@ -66,6 +68,9 @@ namespace GameDamageCalculator.Services
 
         // 디버프 (UI 표시용)
         public DebuffSet CurrentDebuffs { get; set; }
+
+        // 디버깅용 로그
+        public StringBuilder DebugLog { get; set; } = new();
     }
 
     /// <summary>
@@ -97,6 +102,111 @@ namespace GameDamageCalculator.Services
             var transcendStats = input.Character?.GetTranscendStats(input.TranscendLevel) ?? new BaseStatSet();
             var setBonus = GetSetBonus(input.EquipSetName, input.EquipSetCount);
             var petBaseStats = input.Pet?.GetBaseStats(input.PetStar) ?? new BaseStatSet();
+
+            // ========== 버프 ==========
+            BuffSet totalBuffs = input.TotalBuffs ?? new BuffSet();
+
+            // ========== 디버그 로그: 피증 출처별 상세 ==========
+            result.DebugLog.AppendLine("══════════ 스탯 출처별 상세 ══════════");
+            result.DebugLog.AppendLine($"캐릭터: {input.Character?.Name}, 초월: {input.TranscendLevel}, 스강: {input.IsSkillEnhanced}");
+            result.DebugLog.AppendLine($"세트: {input.EquipSetName} {input.EquipSetCount}세트");
+            
+            result.DebugLog.AppendLine("\n[피증% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Dmg_Dealt}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Dmg_Dealt}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Dmg_Dealt}%");
+            result.DebugLog.AppendLine($"  장신구: {accessoryStats.Dmg_Dealt}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Dmg_Dealt}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Dmg_Dealt}%");
+            double totalDmgDealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt 
+                + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalDmgDealt}%");
+
+            result.DebugLog.AppendLine("\n[보피증% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Dmg_Dealt_Bos}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Dmg_Dealt_Bos}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Dmg_Dealt_Bos}%");
+            result.DebugLog.AppendLine($"  장신구: {accessoryStats.Dmg_Dealt_Bos}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Dmg_Dealt_Bos}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Dmg_Dealt_Bos}%");
+            double totalDmgDealtBos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos 
+                + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos 
+                + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalDmgDealtBos}%");
+
+            result.DebugLog.AppendLine("\n[타입피증% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Dmg_Dealt_Type}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Dmg_Dealt_Type}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Dmg_Dealt_Type}%");
+            result.DebugLog.AppendLine($"  장신구: {accessoryStats.Dmg_Dealt_Type}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Dmg_Dealt_Type}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Dmg_Dealt_Type}%");
+            double totalDmgDealtType = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type 
+                + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type 
+                + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalDmgDealtType}%");
+
+            result.DebugLog.AppendLine("\n[1-3인기% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Dmg_Dealt_1to3}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Dmg_Dealt_1to3}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Dmg_Dealt_1to3}%");
+            result.DebugLog.AppendLine($"  장신구: {accessoryStats.Dmg_Dealt_1to3}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Dmg_Dealt_1to3}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Dmg_Dealt_1to3}%");
+            double totalDmg1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3 
+                + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3 
+                + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalDmg1to3}%");
+
+            result.DebugLog.AppendLine("\n[4-5인기% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Dmg_Dealt_4to5}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Dmg_Dealt_4to5}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Dmg_Dealt_4to5}%");
+            result.DebugLog.AppendLine($"  장신구: {accessoryStats.Dmg_Dealt_4to5}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Dmg_Dealt_4to5}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Dmg_Dealt_4to5}%");
+            double totalDmg4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5 
+                + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5 
+                + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalDmg4to5}%");
+
+            result.DebugLog.AppendLine("\n[방무% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Arm_Pen}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Arm_Pen}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Arm_Pen}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Arm_Pen}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Arm_Pen}%");
+            double totalArmPen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen 
+                + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalArmPen}%");
+
+            result.DebugLog.AppendLine("\n[치피% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  장비 메인: {equipmentStats.MainStats.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  장비 부옵: {equipmentStats.SubStats.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  장신구: {accessoryStats.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Cri_Dmg}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Cri_Dmg}%");
+            double totalCriDmg = characterStats.Cri_Dmg + transcendStats.Cri_Dmg + setBonus.Cri_Dmg 
+                + equipmentStats.SubStats.Cri_Dmg + equipmentStats.MainStats.Cri_Dmg 
+                + accessoryStats.Cri_Dmg + totalBuffs.Cri_Dmg + characterPassiveBuff.Cri_Dmg;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalCriDmg}%");
+
+            result.DebugLog.AppendLine("\n[약피% 출처]");
+            result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Wek_Dmg}%");
+            result.DebugLog.AppendLine($"  초월: {transcendStats.Wek_Dmg}%");
+            result.DebugLog.AppendLine($"  세트: {setBonus.Wek_Dmg}%");
+            result.DebugLog.AppendLine($"  버프: {totalBuffs.Wek_Dmg}%");
+            result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Wek_Dmg}%");
+            double totalWekDmg = characterStats.Wek_Dmg + transcendStats.Wek_Dmg + setBonus.Wek_Dmg 
+                + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg;
+            result.DebugLog.AppendLine($"  ★ 합계: {totalWekDmg}%");
+
+            // 콘솔 출력
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.WriteLine(result.DebugLog.ToString());
 
             // ========== 깡스탯 합계 ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
@@ -133,7 +243,6 @@ namespace GameDamageCalculator.Services
                 + equipmentStats.MainStats.Hp_Rate;
 
             // ========== 버프% ==========
-            BuffSet totalBuffs = input.TotalBuffs ?? new BuffSet();
             double buffAtkRate = totalBuffs.Atk_Rate + characterPassiveBuff.Atk_Rate;
             double buffDefRate = totalBuffs.Def_Rate + characterPassiveBuff.Def_Rate;
             double buffHpRate  = totalBuffs.Hp_Rate + characterPassiveBuff.Hp_Rate;
@@ -243,13 +352,15 @@ namespace GameDamageCalculator.Services
 
             if (EquipmentDb.SetEffects.TryGetValue(setName, out var setData))
             {
-                // 2세트 효과
-                if (setCount >= 2 && setData.TryGetValue(2, out var bonus2))
-                    total.Add(bonus2);
-                
-                // 4세트 효과
+                // 4세트면 4세트만, 2세트면 2세트만 적용 (중복 X)
                 if (setCount >= 4 && setData.TryGetValue(4, out var bonus4))
+                {
                     total.Add(bonus4);
+                }
+                else if (setCount >= 2 && setData.TryGetValue(2, out var bonus2))
+                {
+                    total.Add(bonus2);
+                }
             }
 
             return total;

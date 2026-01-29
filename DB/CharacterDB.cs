@@ -70,12 +70,12 @@ namespace GameDamageCalculator.Database
                     MaxStacks = 8,
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { Debuff = new PermanentDebuff { Vulnerability = 24 } } },
-                        { 1, new PassiveLevelData { Debuff = new PermanentDebuff { Vulnerability = 32 } } }
+                        { 0, new PassiveLevelData { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 24 } } },
+                        { 1, new PassiveLevelData { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 24 } } }
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 24 } } }
+                        { 2, new PassiveTranscend { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 8 } } }
                     }
                 },
                 TranscendType = TranscendType.AtkCri

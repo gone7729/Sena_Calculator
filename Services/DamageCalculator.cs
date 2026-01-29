@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using GameDamageCalculator.Models;
@@ -10,9 +11,6 @@ namespace GameDamageCalculator.Services
     {
         #region Input/Output 클래스
 
-        /// <summary>
-        /// 데미지 계산 입력 데이터
-        /// </summary>
         public class DamageInput
         {
             // ===== 캐릭터/스킬 =====
@@ -39,7 +37,7 @@ namespace GameDamageCalculator.Services
             public double DefReduction { get; set; }
             public double DmgTakenIncrease { get; set; }
             public double Vulnerability { get; set; }
-            public double BossVulnerability { get; set; }   // 보스 취약
+            public double BossVulnerability { get; set; }
             public double EffResReduction { get; set; }
             public double HealReduction { get; set; }
 
@@ -75,27 +73,20 @@ namespace GameDamageCalculator.Services
             public BattleMode Mode { get; set; } = BattleMode.Boss;
         }
 
-        /// <summary>
-        /// 데미지 계산 결과
-        /// </summary>
         public class DamageResult
         {
-            // ===== 스탯 =====
             public double FinalAtk { get; set; }
             public double TotalArmorPen { get; set; }
             public double EffectiveBossDef { get; set; }
             public double DefCoefficient { get; set; }
 
-            // ===== 배율 =====
             public double SkillRatio { get; set; }
             public double CritMultiplier { get; set; }
             public double WeakpointMultiplier { get; set; }
             public double DamageMultiplier { get; set; }
 
-            // ===== 타수 =====
             public int AtkCount { get; set; }
 
-            // ===== 피해 (1타 기준) =====
             public double BaseDamage { get; set; }
             public double ExtraDamage { get; set; }
             public double WekBonusDmg { get; set; }
@@ -103,42 +94,36 @@ namespace GameDamageCalculator.Services
             public double DamagePerHit { get; set; }
             public double ConsumeExtraDmg { get; set; }
 
-            // ===== 최종 피해 =====
             public double FinalDamage { get; set; }
             public double SkillDamage { get; set; }
             public double StatusDamage { get; set; }
             public double BonusDamage { get; set; }
             public double HpRatioDamage { get; set; }
 
-            // ===== 협공 =====
             public double CoopDamage { get; set; }
             public double CoopHpDamage { get; set; }
             public bool CoopTriggered { get; set; }
             public double CoopChance { get; set; }
 
-            // ===== 회복 =====
             public double HealAmount { get; set; }
             public string HealSource { get; set; }
             public double HealFromDamage { get; set; }
 
-            // ===== 축복 =====
             public double DamageBeforeBlessing { get; set; }
             public bool BlessingApplied { get; set; }
 
-            // ===== HP 전환 =====
             public double HpConversionValue { get; set; }
             public double HpConversionLoss { get; set; }
             public bool HasHpConversion { get; set; }
 
-            // ===== 상세 정보 =====
             public Dictionary<string, double> BonusDamageDetails { get; set; } = new();
             public List<StatusEffectResult> StatusEffectResults { get; set; } = new();
             public string Details { get; set; }
+            
+            // ===== 디버깅용 =====
+            public StringBuilder DebugLog { get; set; } = new();
         }
 
-        /// <summary>
-        /// 상태이상 적용 결과
-        /// </summary>
         public class StatusEffectResult
         {
             public string Name { get; set; }
@@ -152,62 +137,75 @@ namespace GameDamageCalculator.Services
 
         #region 메인 계산
 
-        /// <summary>
-        /// 데미지 계산 메인 메서드
-        /// </summary>
         public DamageResult Calculate(DamageInput input)
         {
             var result = new DamageResult { FinalAtk = input.FinalAtk };
             var levelData = input.Skill?.GetLevelData(input.IsSkillEnhanced);
             var skillBonus = input.Skill?.GetTotalBonus(input.IsSkillEnhanced, input.TranscendLevel) ?? new BuffSet();
 
+            // ===== 디버깅 로그 =====
+            result.DebugLog.AppendLine("══════════ 데미지 계산 디버그 ══════════");
+            result.DebugLog.AppendLine($"[입력] 캐릭터: {input.Character?.Name}, 스킬: {input.Skill?.Name}");
+            result.DebugLog.AppendLine($"[입력] 스강: {input.IsSkillEnhanced}, 초월: {input.TranscendLevel}");
+
             // 1. 스킬 발동 전 버프
             ApplyPreCastBuff(input, levelData, result);
             result.AtkCount = input.Skill?.Atk_Count ?? 1;
+            result.DebugLog.AppendLine($"\n[2] PreCast 후 공격력: {result.FinalAtk:N0}, 타수: {result.AtkCount}");
 
             // 2. 스킬 배율
             result.SkillRatio = (levelData?.Ratio ?? 100) / 100.0;
+            result.DebugLog.AppendLine($"[3] 스킬배율: {levelData?.Ratio ?? 100}% = {result.SkillRatio:F4}x");
 
             // 3. 방어 관통
-            result.TotalArmorPen = Math.Min((input.ArmorPen + skillBonus.Arm_Pen) / 100.0, 1.0);
+            double inputArmorPen = input.ArmorPen;
+            double skillArmorPen = skillBonus.Arm_Pen;
+            result.TotalArmorPen = Math.Min((inputArmorPen + skillArmorPen) / 100.0, 1.0);
+            result.DebugLog.AppendLine($"[4] 방무: 입력{inputArmorPen}% + 스킬{skillArmorPen}% = {result.TotalArmorPen * 100:F2}%");
 
             // 4. 방어 계수
             CalcDefenseCoefficient(input, levelData, result);
+            result.DebugLog.AppendLine($"[5] 방어계수: 보스방{input.BossDef:N0} × (1+{input.BossDefIncrease}-{input.DefReduction})% × (1-{result.TotalArmorPen:F2})");
+            result.DebugLog.AppendLine($"    실효방어: {result.EffectiveBossDef:N2}, 방어계수: {result.DefCoefficient:F4}");
 
             // 5. 치명타 계수
-            result.CritMultiplier = input.IsCritical
-                ? (input.CritDamage + skillBonus.Cri_Dmg) / 100.0
-                : 1.0;
+            double inputCritDmg = input.CritDamage;
+            double skillCritDmg = skillBonus.Cri_Dmg;
+            result.CritMultiplier = input.IsCritical ? (inputCritDmg + skillCritDmg) / 100.0 : 1.0;
+            result.DebugLog.AppendLine($"[6] 치명계수: {(input.IsCritical ? "발동" : "미발동")} → 입력{inputCritDmg}% + 스킬{skillCritDmg}% = {result.CritMultiplier:F4}x");
 
             // 6. 약점 계수
-            result.WeakpointMultiplier = input.IsWeakpoint
-            ? input.WeakpointDmg / 100.0  // 버프 제거
-            : 1.0;
+            result.WeakpointMultiplier = input.IsWeakpoint ? input.WeakpointDmg / 100.0 : 1.0;
+            result.DebugLog.AppendLine($"[7] 약점계수: {(input.IsWeakpoint ? "발동" : "미발동")} → {input.WeakpointDmg}% = {result.WeakpointMultiplier:F4}x");
 
             // 7. 피해 증가 계수
-            result.DamageMultiplier = CalcDamageMultiplier(input);
+            result.DamageMultiplier = CalcDamageMultiplier(input, result.DebugLog);
 
             // 8. 잃은 HP 비례 피해 증가
             double lostHpBonus = CalcLostHpBonusDmg(input, levelData);
             if (lostHpBonus > 0)
+            {
+                result.DebugLog.AppendLine($"[9] 잃은HP 보너스: +{lostHpBonus}%");
                 result.DamageMultiplier *= (1 + lostHpBonus / 100.0);
+            }
 
             // 9. 기본 데미지
             double atkOverDef = result.FinalAtk / result.DefCoefficient;
+            result.DebugLog.AppendLine($"\n[10] 기본데미지: 공{result.FinalAtk:N0} / 방계수{result.DefCoefficient:F4} = {atkOverDef:N2}");
             CalcBaseDamage(input, levelData, atkOverDef, result);
 
             // 10. 추가 피해
             CalcExtraDamage(input, levelData, skillBonus, atkOverDef, result);
 
-            // 11. HP 비례 피해 (치명타/약점 적용됨)
+            // 11. HP 비례 피해
             result.HpRatioDamage = CalcHpRatioDamage(input, levelData, result);
 
             // 12. 스택 소모형 추가 피해
             CalcConsumeExtraDamage(input, levelData, atkOverDef, result);
 
             // 13. 1타당 데미지
-            result.DamagePerHit = result.BaseDamage + result.ExtraDamage + result.WekBonusDmg
-                    + result.CriBonusDmg;
+            result.DamagePerHit = result.BaseDamage + result.ExtraDamage + result.WekBonusDmg + result.CriBonusDmg;
+            result.DebugLog.AppendLine($"\n[14] 1타당합계: 기본{result.BaseDamage:N0} + 조건{result.ExtraDamage:N0} + 약추{result.WekBonusDmg:N0} + 치추{result.CriBonusDmg:N0} = {result.DamagePerHit:N0}");
 
             // 14. 별도 피해
             CalcBonusDamage(input, levelData, atkOverDef, result);
@@ -222,21 +220,27 @@ namespace GameDamageCalculator.Services
             double vulnerabilityTotal = 1 + (input.Vulnerability + input.BossVulnerability + input.DmgTakenIncrease) / 100;
             result.SkillDamage = result.DamagePerHit * result.AtkCount;
             result.StatusDamage = result.BonusDamage * result.AtkCount;
-            result.FinalDamage = (result.SkillDamage + result.StatusDamage 
-                    + result.HpRatioDamage + result.ConsumeExtraDmg) * vulnerabilityTotal;
+            result.FinalDamage = (result.SkillDamage + result.StatusDamage + result.HpRatioDamage + result.ConsumeExtraDmg) * vulnerabilityTotal;
 
-            // 18. 회복량
+            result.DebugLog.AppendLine($"\n[17] 최종계산:");
+            result.DebugLog.AppendLine($"    취약계수: 1 + ({input.Vulnerability} + {input.BossVulnerability} + {input.DmgTakenIncrease})/100 = {vulnerabilityTotal:F4}x");
+            result.DebugLog.AppendLine($"    스킬피해: {result.DamagePerHit:N0} × {result.AtkCount}타 = {result.SkillDamage:N0}");
+            result.DebugLog.AppendLine($"    상태이상: {result.StatusDamage:N0}, HP비례: {result.HpRatioDamage:N0}, 스택소모: {result.ConsumeExtraDmg:N0}");
+            result.DebugLog.AppendLine($"    취약전합계: {result.SkillDamage + result.StatusDamage + result.HpRatioDamage + result.ConsumeExtraDmg:N0}");
+            result.DebugLog.AppendLine($"    ★ 최종: {result.FinalDamage:N0}");
+
+            // 18~20
             CalcHeal(input, levelData, result);
-
-            // 19. 피해량 비례 회복
             if (levelData?.HealDmgRatio > 0)
                 result.HealFromDamage = result.FinalDamage * (levelData.HealDmgRatio / 100.0);
-
-            // 20. 협공 피해
             CalcCoopDamage(input, result);
 
             // 21. 상세 정보
-            result.Details = GenerateDetails(input, result);          
+            result.Details = GenerateDetails(input, result);
+
+            // ===== 콘솔 출력 (디버깅용) =====
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.WriteLine(result.DebugLog.ToString());
 
             return result;
         }
@@ -249,96 +253,96 @@ namespace GameDamageCalculator.Services
         {
             double skillDefReduction = levelData?.DispelDefReduction ?? 0;
             double effectiveDefReduction = Math.Max(input.DefReduction, skillDefReduction);
-
             double originalDefReduction = input.DefReduction;
             input.DefReduction = effectiveDefReduction;
-
             result.DefCoefficient = CalcDefCoefficient(input, result.TotalArmorPen, out double effectiveDef);
             result.EffectiveBossDef = effectiveDef;
-
             input.DefReduction = originalDefReduction;
-            
         }
 
         private double CalcDefCoefficient(DamageInput input, double armorPen, out double effectiveDef)
         {
-            const double DEF_CONSTANT = 426.0;  // 테스트 역산 결과
-
+            const double DEF_CONSTANT = 426.0;
             double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
             double armorPenModifier = 1 - armorPen;
             effectiveDef = input.BossDef * defModifier * armorPenModifier;
-
-            // 방어계수 = 1 + 실효방어력 / 426
-            double defCoef = 1 + effectiveDef / DEF_CONSTANT;
-
-            return defCoef;
+            return 1 + effectiveDef / DEF_CONSTANT;
         }
 
         private double CalcDefCoefficientSimple(DamageInput input, double armorPen)
         {
-            const double DEF_CONSTANT = 426.0;  // 테스트 역산 결과 (≈ 1400/3)
+            const double DEF_CONSTANT = 426.0;
             const double THRESHOLD = 3125.0;
-
             double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
             double armorPenModifier = 1 - armorPen;
             double effectiveDef = input.BossDef * defModifier * armorPenModifier;
 
             if (effectiveDef <= THRESHOLD)
-            {
-                // 3125 이하: 기본 공식
                 return 1 + effectiveDef / DEF_CONSTANT;
-            }
-            else
-            {
-                // 3125 초과: 효율 절반
-                // [ {426/(426+실효방어)} + {426/(426+3125)} ] / 2
-                double rate1 = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
-                double rate2 = DEF_CONSTANT / (DEF_CONSTANT + THRESHOLD);
-                double damageRate = (rate1 + rate2) / 2;
-                return 1 / damageRate;
-            }
+
+            double rate1 = DEF_CONSTANT / (DEF_CONSTANT + effectiveDef);
+            double rate2 = DEF_CONSTANT / (DEF_CONSTANT + THRESHOLD);
+            return 1 / ((rate1 + rate2) / 2);
         }
 
         #endregion
 
         #region 피해 배율 계산
 
-        private double CalcDamageMultiplier(DamageInput input)
-{
-    // === 조건부 피해 보너스 (스킬 초월) ===
-    double conditionalDmgBonus = 0;
-    if (input.Skill != null)
-    {
-        var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
-        conditionalDmgBonus = skillTranscend.ConditionalDmgBonus;
-    }
+        private double CalcDamageMultiplier(DamageInput input, StringBuilder debugLog)
+        {
+            debugLog.AppendLine($"\n[8] 피증계수 계산 (곱연산):");
 
-    // === 타겟 수 기반 피해 ===
-    double targetTypeDmg = 0;
-    if (input.Skill != null)
-    {
-        int targetCount = input.Skill.GetTargetCount(input.TranscendLevel);
-        targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3
-                      : (targetCount >= 4) ? input.Dmg4to5 : 0;
-    }
+            // 조건부 피증
+            double conditionalDmgBonus = 0;
+            if (input.Skill != null)
+            {
+                var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
+                conditionalDmgBonus = skillTranscend.ConditionalDmgBonus;
+            }
 
-    // === 보스 모드 전용 스탯 ===
-    double bossDmg = input.Mode == BattleMode.Boss ? input.DmgDealtBoss : 0;
-    double bossVuln = input.Mode == BattleMode.Boss ? input.BossVulnerability : 0;
+            // 인기 피증
+            double targetTypeDmg = 0;
+            int targetCount = 0;
+            if (input.Skill != null)
+            {
+                targetCount = input.Skill.GetTargetCount(input.TranscendLevel);
+                targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3 : (targetCount >= 4) ? input.Dmg4to5 : 0;
+            }
 
-    // === 피증 계열 합산 (덧셈으로 먼저 합침) ===
-    // 피증 + 보피증 + 조건부 피해 보너스 + 타겟 수 피해
-    double dmgDealtTotal = input.DmgDealt + input.DmgDealtType + bossDmg + conditionalDmgBonus + targetTypeDmg;
+            // 보스 피증
+            double bossDmg = input.Mode == BattleMode.Boss ? input.DmgDealtBoss : 0;
 
-    // === 피해 감소 계열 ===
-    double reductionTotal = input.BossDmgReduction + input.BossTargetReduction;
+            // 피감
+            double reductionTotal = input.BossDmgReduction + input.BossTargetReduction;
 
-    // === 최종 배율: 곱셈 구조 ===
-    double totalIncrease = dmgDealtTotal - reductionTotal;
+            // ===== 곱연산 방식 =====
+            // 기본피증 (세트 + 장신구 + 버프 등)
+            double baseDmgDealt = input.DmgDealt + input.DmgDealtType + conditionalDmgBonus;
+            double baseMult = 1 + (baseDmgDealt - reductionTotal) / 100.0;
 
-    return 1 + totalIncrease / 100.0;
-    
-}
+            // 보스피증 (별도 곱연산)
+            double bossMult = 1 + bossDmg / 100.0;
+
+            // 인기피증 (별도 곱연산)
+            double targetMult = 1 + targetTypeDmg / 100.0;
+
+            // 최종 피증계수 = 기본 × 보스 × 인기
+            double multiplier = baseMult * bossMult * targetMult;
+
+            debugLog.AppendLine($"    기본피증: {input.DmgDealt}%");
+            debugLog.AppendLine($"    타입피증: {input.DmgDealtType}%");
+            debugLog.AppendLine($"    조건부: {conditionalDmgBonus}%");
+            debugLog.AppendLine($"    → 기본계수: (1 + ({baseDmgDealt} - {reductionTotal})/100) = {baseMult:F4}x");
+            debugLog.AppendLine($"    보스피증: {bossDmg}%");
+            debugLog.AppendLine($"    → 보스계수: (1 + {bossDmg}/100) = {bossMult:F4}x");
+            debugLog.AppendLine($"    {targetCount}인기피증: {targetTypeDmg}%");
+            debugLog.AppendLine($"    → 인기계수: (1 + {targetTypeDmg}/100) = {targetMult:F4}x");
+            debugLog.AppendLine($"    피감합계: {reductionTotal}% (보스{input.BossDmgReduction}% + 인기{input.BossTargetReduction}%)");
+            debugLog.AppendLine($"    ★ 피증계수: {baseMult:F4} × {bossMult:F4} × {targetMult:F4} = {multiplier:F4}x");
+
+            return multiplier;
+        }
 
         private double CalcLostHpBonusDmg(DamageInput input, SkillLevelData levelData)
         {
@@ -365,119 +369,111 @@ namespace GameDamageCalculator.Services
         }
 
         private void CalcBaseDamage(DamageInput input, SkillLevelData levelData, double atkOverDef, DamageResult result)
-{
-    double atkDamage = atkOverDef * result.SkillRatio;
-    double fixedDamage = levelData?.FixedDamage ?? 0;
-
-    double defDamage = 0;
-    if (levelData?.DefRatio > 0 && input.FinalDef > 0)
-    {
-        double defOverDef = input.FinalDef / result.DefCoefficient;
-        defDamage = defOverDef * (levelData.DefRatio / 100.0);
-    }
-
-    double hpDamage = 0;
-    if (levelData?.HpRatio > 0 && input.FinalHp > 0)
-    {
-        double hpOverDef = input.FinalHp / result.DefCoefficient;
-        hpDamage = hpOverDef * (levelData.HpRatio / 100.0);
-    }
-
-    result.BaseDamage = (atkDamage + defDamage + hpDamage)
-                      * result.CritMultiplier
-                      * result.WeakpointMultiplier
-                      * result.DamageMultiplier
-                      + fixedDamage;
-}
-        private void CalcExtraDamage(DamageInput input, SkillLevelData levelData, BuffSet skillBonus,
-                                     double atkOverDef, DamageResult result)
         {
-            // 조건부 추가 피해 (치명타/약점 적용됨)
+            double atkDamage = atkOverDef * result.SkillRatio;
+            double fixedDamage = levelData?.FixedDamage ?? 0;
+            double defDamage = 0;
+            double hpDamage = 0;
+
+            if (levelData?.DefRatio > 0 && input.FinalDef > 0)
+            {
+                double defOverDef = input.FinalDef / result.DefCoefficient;
+                defDamage = defOverDef * (levelData.DefRatio / 100.0);
+            }
+
+            if (levelData?.HpRatio > 0 && input.FinalHp > 0)
+            {
+                double hpOverDef = input.FinalHp / result.DefCoefficient;
+                hpDamage = hpOverDef * (levelData.HpRatio / 100.0);
+            }
+
+            double rawDamage = atkDamage + defDamage + hpDamage;
+            result.BaseDamage = rawDamage * result.CritMultiplier * result.WeakpointMultiplier * result.DamageMultiplier + fixedDamage;
+
+            result.DebugLog.AppendLine($"    공격력피해: {atkOverDef:N2} × {result.SkillRatio:F4} = {atkDamage:N2}");
+            if (defDamage > 0) result.DebugLog.AppendLine($"    방어력피해: {defDamage:N2}");
+            if (hpDamage > 0) result.DebugLog.AppendLine($"    HP피해: {hpDamage:N2}");
+            result.DebugLog.AppendLine($"    원시합계: {rawDamage:N2}");
+            result.DebugLog.AppendLine($"    × 치명{result.CritMultiplier:F4} × 약점{result.WeakpointMultiplier:F4} × 피증{result.DamageMultiplier:F4}");
+            result.DebugLog.AppendLine($"    + 고정피해: {fixedDamage:N0}");
+            result.DebugLog.AppendLine($"    = 기본데미지: {result.BaseDamage:N0}");
+        }
+
+        private void CalcExtraDamage(DamageInput input, SkillLevelData levelData, BuffSet skillBonus, double atkOverDef, DamageResult result)
+        {
+            result.DebugLog.AppendLine($"\n[11] 추가피해:");
             result.ExtraDamage = 0;
+            
             if (input.IsSkillConditionMet && levelData?.ConditionalExtraDmg > 0)
             {
-                double extraDmg = atkOverDef * (levelData.ConditionalExtraDmg / 100.0) 
-                                * result.DamageMultiplier
-                                * result.CritMultiplier
-                                * result.WeakpointMultiplier;
-                if (levelData.ConditionalExtraDmgPerHit)
-                    extraDmg *= result.AtkCount;
+                double extraDmg = atkOverDef * (levelData.ConditionalExtraDmg / 100.0) * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                if (levelData.ConditionalExtraDmgPerHit) extraDmg *= result.AtkCount;
                 result.ExtraDamage = extraDmg;
+                result.DebugLog.AppendLine($"    조건부: {result.ExtraDamage:N0}");
             }
 
-            // 시전자 생명력 비례 추가 피해 (치명타/약점 적용됨)
-            if (levelData.ConditionalExtraDmgSelfHpRatio > 0)
+            if (levelData?.ConditionalExtraDmgSelfHpRatio > 0)
             {
-                double selfHpExtraDmg = input.SelfMaxHp * (levelData.ConditionalExtraDmgSelfHpRatio / 100.0)
-                                      * result.CritMultiplier
-                                      * result.WeakpointMultiplier;
+                double selfHpExtraDmg = input.SelfMaxHp * (levelData.ConditionalExtraDmgSelfHpRatio / 100.0) * result.CritMultiplier * result.WeakpointMultiplier;
                 result.ExtraDamage += selfHpExtraDmg;
+                result.DebugLog.AppendLine($"    시전자HP비례: {selfHpExtraDmg:N0}");
             }
 
-            // 약점 추가 피해 (치명타/약점 적용됨)
             result.WekBonusDmg = 0;
             if (input.IsWeakpoint && skillBonus.WekBonusDmg > 0)
-                result.WekBonusDmg = atkOverDef * (skillBonus.WekBonusDmg / 100.0) 
-                                   * result.DamageMultiplier
-                                   * result.CritMultiplier
-                                   * result.WeakpointMultiplier;
+            {
+                result.WekBonusDmg = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                result.DebugLog.AppendLine($"    약점추가: {result.WekBonusDmg:N0}");
+            }
 
-            // 치명타 추가 피해 (치명타/약점 적용됨)
             result.CriBonusDmg = 0;
             if (input.IsCritical && skillBonus.CriBonusDmg > 0)
             {
-                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) 
-                                * result.DamageMultiplier
-                                * result.CritMultiplier
-                                * result.WeakpointMultiplier;
-                if (skillBonus.CriBonusDmgPerHit)
-                    criBonus *= result.AtkCount;
+                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                if (skillBonus.CriBonusDmgPerHit) criBonus *= result.AtkCount;
                 result.CriBonusDmg = criBonus;
+                result.DebugLog.AppendLine($"    치명추가: {result.CriBonusDmg:N0}");
             }
         }
 
-        private void CalcConsumeExtraDamage(DamageInput input, SkillLevelData levelData,
-                                    double atkOverDef, DamageResult result)
-{
-    result.ConsumeExtraDmg = 0;
-    if (levelData?.ConsumeExtra == null) return;
-
-    var consumeExtra = levelData.ConsumeExtra;
-    
-    // ✅ 초월 보너스 합산
-    double totalHpRatio = consumeExtra.TargetMaxHpRatio;
-    double totalAtkCap = consumeExtra.AtkCap;
-    double totalAtkRatio = consumeExtra.AtkRatio;
-    
-    var transcendBonus = input.Skill?.GetTranscendBonus(input.TranscendLevel);
-    if (transcendBonus?.ConsumeExtra != null)
-    {
-        totalHpRatio += transcendBonus.ConsumeExtra.TargetMaxHpRatio;
-        totalAtkRatio += transcendBonus.ConsumeExtra.AtkRatio;
-        totalAtkCap += transcendBonus.ConsumeExtra.AtkCap;
-    }
-    
-    double damage = 0;
-
-    if (totalHpRatio > 0 && input.TargetHp > 0)
-    {
-        damage = input.TargetHp * (totalHpRatio / 100.0);
-        
-        if (totalAtkCap > 0)
+        private void CalcConsumeExtraDamage(DamageInput input, SkillLevelData levelData, double atkOverDef, DamageResult result)
         {
-            double cap = input.FinalAtk * (totalAtkCap / 100.0);
-            damage = Math.Min(damage, cap);
+            result.ConsumeExtraDmg = 0;
+            if (levelData?.ConsumeExtra == null) return;
+
+            result.DebugLog.AppendLine($"\n[13] 스택소모:");
+            var consumeExtra = levelData.ConsumeExtra;
+            
+            double totalHpRatio = consumeExtra.TargetMaxHpRatio;
+            double totalAtkCap = consumeExtra.AtkCap;
+            double totalAtkRatio = consumeExtra.AtkRatio;
+            
+            var transcendBonus = input.Skill?.GetTranscendBonus(input.TranscendLevel);
+            if (transcendBonus?.ConsumeExtra != null)
+            {
+                totalHpRatio += transcendBonus.ConsumeExtra.TargetMaxHpRatio;
+                totalAtkRatio += transcendBonus.ConsumeExtra.AtkRatio;
+                totalAtkCap += transcendBonus.ConsumeExtra.AtkCap;
+            }
+            
+            double damage = 0;
+            if (totalHpRatio > 0 && input.TargetHp > 0)
+            {
+                damage = input.TargetHp * (totalHpRatio / 100.0);
+                if (totalAtkCap > 0)
+                {
+                    double cap = input.FinalAtk * (totalAtkCap / 100.0);
+                    damage = Math.Min(damage, cap);
+                }
+            }
+            if (totalAtkRatio > 0)
+                damage += atkOverDef * (totalAtkRatio / 100.0);
+
+            double fullMultiplier = result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+            result.ConsumeExtraDmg = damage * fullMultiplier;
+            result.DebugLog.AppendLine($"    HP비례{totalHpRatio}% 공비례{totalAtkRatio}% 공제한{totalAtkCap}%");
+            result.DebugLog.AppendLine($"    = {result.ConsumeExtraDmg:N0}");
         }
-    }
-
-    if (totalAtkRatio > 0)
-        damage += atkOverDef * (totalAtkRatio / 100.0);
-
-    double fullMultiplier = result.DamageMultiplier 
-                      * result.CritMultiplier 
-                      * result.WeakpointMultiplier;
-result.ConsumeExtraDmg = damage * fullMultiplier;
-}
 
         #endregion
 
@@ -485,8 +481,9 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
 
         private double CalcHpRatioDamage(DamageInput input, SkillLevelData levelData, DamageResult result)
         {
-
             if (levelData == null) return 0;
+            
+            result.DebugLog.AppendLine($"\n[12] HP비례:");
             double totalHpDamage = 0;
 
             if (levelData.TargetMaxHpRatio > 0 && input.TargetHp > 0)
@@ -494,9 +491,8 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
                 double rawDamage = input.TargetHp * (levelData.TargetMaxHpRatio / 100.0);
                 if (levelData.AtkCap > 0)
                     rawDamage = Math.Min(rawDamage, input.FinalAtk * (levelData.AtkCap / 100.0));
-                totalHpDamage += rawDamage * result.DamageMultiplier 
-                               * result.CritMultiplier 
-                               * result.WeakpointMultiplier;
+                totalHpDamage += rawDamage * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                result.DebugLog.AppendLine($"    최대HP: {input.TargetHp:N0} × {levelData.TargetMaxHpRatio}% = {totalHpDamage:N0}");
             }
 
             if (levelData.TargetCurrentHpRatio > 0 && input.TargetCurrentHp > 0)
@@ -504,9 +500,7 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
                 double rawDamage = input.TargetCurrentHp * (levelData.TargetCurrentHpRatio / 100.0);
                 if (levelData.AtkCap > 0)
                     rawDamage = Math.Min(rawDamage, input.FinalAtk * (levelData.AtkCap / 100.0));
-                totalHpDamage += rawDamage * result.DamageMultiplier 
-                               * result.CritMultiplier 
-                               * result.WeakpointMultiplier;
+                totalHpDamage += rawDamage * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
             }
 
             return totalHpDamage;
@@ -523,7 +517,6 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
             result.BonusDamage = 0;
             result.BonusDamageDetails.Clear();
             result.StatusEffectResults.Clear();
-
             if (levelData == null) return;
 
             if (result.HpRatioDamage > 0)
@@ -535,8 +528,7 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
             CalcStatusEffectDamage(input, levelData, atkOverDef, result);
         }
 
-        private void CalcStatusEffectDamage(DamageInput input, SkillLevelData levelData,
-                                            double atkOverDef, DamageResult result)
+        private void CalcStatusEffectDamage(DamageInput input, SkillLevelData levelData, double atkOverDef, DamageResult result)
         {
             if (levelData.StatusEffects == null || levelData.StatusEffects.Count == 0) return;
 
@@ -544,9 +536,7 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
 
             foreach (var effect in levelData.StatusEffects)
             {
-                var effectToUse = skillTranscend?.StatusEffects?
-                    .FirstOrDefault(e => e.Type == effect.Type) ?? effect;
-
+                var effectToUse = skillTranscend?.StatusEffects?.FirstOrDefault(e => e.Type == effect.Type) ?? effect;
                 var baseEffect = StatusEffectDb.Get(effectToUse.Type);
                 if (baseEffect == null) continue;
 
@@ -572,16 +562,13 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
                     continue;
                 }
 
-                double damage = CalcSingleStatusEffectDamage(input, effectToUse, baseEffect,
-                                                            atkOverDef, expectedStacks, result);
+                double damage = CalcSingleStatusEffectDamage(input, effectToUse, baseEffect, atkOverDef, expectedStacks, result);
                 if (damage > 0)
                     AddBonusDamageDetail(result, baseEffect.Name, damage);
             }
         }
 
-        private double CalcSingleStatusEffectDamage(DamageInput input, SkillStatusEffect effectToUse,
-                                                    StatusEffect baseEffect, double atkOverDef,
-                                                    double expectedStacks, DamageResult result)
+        private double CalcSingleStatusEffectDamage(DamageInput input, SkillStatusEffect effectToUse, StatusEffect baseEffect, double atkOverDef, double expectedStacks, DamageResult result)
         {
             double atkRatio = (effectToUse.CustomAtkRatio ?? baseEffect.AtkRatio) / 100.0;
             double hpRatio = (effectToUse.CustomHpRatio ?? baseEffect.TargetMaxHpRatio) / 100.0;
@@ -625,15 +612,13 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
             return damage * result.DamageMultiplier;
         }
 
-        private double CalcConsumeStatusEffectDamage(DamageInput input, StatusEffect baseEffect,
-                                                     double atkOverDef, double atkRatio, double armorPen)
+        private double CalcConsumeStatusEffectDamage(DamageInput input, StatusEffect baseEffect, double atkOverDef, double atkRatio, double armorPen)
         {
             int consumeCount = Math.Min(input.TargetStackCount, baseEffect.MaxConsume);
             if (consumeCount <= 0) return 0;
 
             double effectiveAtkOverDef = GetEffectiveAtkOverDef(input, atkOverDef, armorPen);
             int remainingTurns = baseEffect.DefaultRemainingTurns > 0 ? baseEffect.DefaultRemainingTurns : 1;
-
             return effectiveAtkOverDef * atkRatio * remainingTurns * consumeCount;
         }
 
@@ -679,7 +664,6 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
         private double CalcExpectedStacks(DamageInput input, SkillStatusEffect effect, int atkCount, int maxStacks)
         {
             int stacksPerHit = effect.Stacks > 0 ? effect.Stacks : 1;
-
             if (input.ForceStatusEffect)
                 return Math.Min(atkCount * stacksPerHit, maxStacks);
 
@@ -704,11 +688,9 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
             result.HealAmount = 0;
             result.HealSource = "";
             result.HealFromDamage = 0;
-
             if (levelData == null) return;
 
             double baseHeal = 0;
-
             if (levelData.HealAtkRatio > 0)
             {
                 baseHeal = input.FinalAtk * (levelData.HealAtkRatio / 100.0);
@@ -737,7 +719,6 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
         {
             result.CoopDamage = 0;
             result.CoopHpDamage = 0;
-
             if (input.Character?.Passive == null) return;
 
             var passiveData = input.Character.Passive.GetLevelData(input.IsSkillEnhanced);
@@ -769,14 +750,13 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
         private void ApplyBlock(DamageInput input, DamageResult result)
         {
             if (!input.IsBlocked) return;
-
+            result.DebugLog.AppendLine($"\n[15] 막기 적용 (-50%)");
             result.DamagePerHit *= 0.5;
             result.BaseDamage *= 0.5;
             result.ExtraDamage *= 0.5;
             result.WekBonusDmg *= 0.5;
             result.HpRatioDamage *= 0.5;
             result.BonusDamage *= 0.5;
-
             foreach (var key in result.BonusDamageDetails.Keys.ToList())
                 result.BonusDamageDetails[key] *= 0.5;
         }
@@ -785,7 +765,6 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
         {
             result.DamageBeforeBlessing = damage;
             result.BlessingApplied = false;
-
             if (input.TargetBlessing <= 0 || input.TargetHp <= 0)
                 return damage;
 
@@ -793,6 +772,7 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
             if (damage > maxDamage)
             {
                 result.BlessingApplied = true;
+                result.DebugLog.AppendLine($"\n[16] 축복 적용: {damage:N0} → {maxDamage:N0}");
                 return maxDamage;
             }
             return damage;
@@ -803,65 +783,59 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
         #region 결과 출력
 
         private string GenerateDetails(DamageInput input, DamageResult result)
-{
-    string critInfo = input.IsCritical ? "(치명타!)" : "(일반)";
-    string wekInfo = input.IsWeakpoint ? "(약점!)" : "";
-    string blockInfo = input.IsBlocked ? " (막기 -50%)" : "";
-
-    var statusBuilder = new StringBuilder();
-    if (result.StatusEffectResults?.Count > 0)
-    {
-        statusBuilder.Append("\n\n🔥 상태이상\n───────────────────────────────────────────────────");
-        foreach (var se in result.StatusEffectResults)
         {
-            if (se.IsForced)
-                statusBuilder.Append($"\n  ✓ {se.Name}: {se.ExpectedStacks:N0}스택 (강제 적용)");
-            else if (se.ExpectedStacks > 0)
-                statusBuilder.Append($"\n  ✓ {se.Name}: {se.ExpectedStacks:N0}스택 성공! ({se.ApplyChance:N0}% 확률)");
-            else
-                statusBuilder.Append($"\n  ✗ {se.Name}: 실패 ({se.ApplyChance:N0}% 확률)");
-        }
+            string critInfo = input.IsCritical ? "(치명타!)" : "(일반)";
+            string wekInfo = input.IsWeakpoint ? "(약점!)" : "";
+            string blockInfo = input.IsBlocked ? " (막기 -50%)" : "";
 
-        if (result.BonusDamageDetails?.Count > 0)
-        {
-            statusBuilder.Append("\n  [피해]");
-            foreach (var kvp in result.BonusDamageDetails)
-                statusBuilder.Append($"\n  ├ {kvp.Key}: {kvp.Value:N0}");
-            statusBuilder.Append($"\n  └ 총 상태이상 피해: {result.StatusDamage:N0}");
-        }
-    }
+            var statusBuilder = new StringBuilder();
+            if (result.StatusEffectResults?.Count > 0)
+            {
+                statusBuilder.Append("\n\n🔥 상태이상\n───────────────────────────────────────────────────");
+                foreach (var se in result.StatusEffectResults)
+                {
+                    if (se.IsForced)
+                        statusBuilder.Append($"\n  ✓ {se.Name}: {se.ExpectedStacks:N0}스택 (강제 적용)");
+                    else if (se.ExpectedStacks > 0)
+                        statusBuilder.Append($"\n  ✓ {se.Name}: {se.ExpectedStacks:N0}스택 성공! ({se.ApplyChance:N0}% 확률)");
+                    else
+                        statusBuilder.Append($"\n  ✗ {se.Name}: 실패 ({se.ApplyChance:N0}% 확률)");
+                }
 
-    string conditionalInfo = "";
-    if (input.IsSkillConditionMet && input.Skill != null)
-    {
-        var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
-        if (skillTranscend.ConditionalDmgBonus > 0)
-            conditionalInfo = $"\n  스킬 조건부 피해: +{skillTranscend.ConditionalDmgBonus}%";
-    }
+                if (result.BonusDamageDetails?.Count > 0)
+                {
+                    statusBuilder.Append("\n  [피해]");
+                    foreach (var kvp in result.BonusDamageDetails)
+                        statusBuilder.Append($"\n  ├ {kvp.Key}: {kvp.Value:N0}");
+                    statusBuilder.Append($"\n  └ 총 상태이상 피해: {result.StatusDamage:N0}");
+                }
+            }
 
-    string extraInfo = result.ExtraDamage > 0 ? $"\n  ├ 조건부 추가: {result.ExtraDamage:N0}" : "";
-    string consumeExtraInfo = result.ConsumeExtraDmg > 0 ? $"\n  ├ 스택 소모 추가: {result.ConsumeExtraDmg:N0}" : "";
-    
-    // ✅ HP 비례 피해 표시 추가
-    string hpRatioInfo = result.HpRatioDamage > 0 ? $"\n  ├ HP비례 추가: {result.HpRatioDamage:N0}" : "";
-    
-    string atkCountInfo = result.AtkCount > 1 ? $"\n  └ {result.AtkCount}타 = {result.DamagePerHit:N0} × {result.AtkCount}" : "";
-    string healFromDmgInfo = result.HealFromDamage > 0 ? $"\n\n💚 피해 흡수: {result.HealFromDamage:N0}" : "";
-    string blessingInfo = result.BlessingApplied ? $"\n\n🛡️ 축복: {result.DamageBeforeBlessing:N0} → {result.DamagePerHit:N0} (HP {input.TargetBlessing}% 제한)" : "";
+            string conditionalInfo = "";
+            if (input.IsSkillConditionMet && input.Skill != null)
+            {
+                var skillTranscend = input.Skill.GetTranscendBonus(input.TranscendLevel);
+                if (skillTranscend.ConditionalDmgBonus > 0)
+                    conditionalInfo = $"\n  스킬 조건부 피해: +{skillTranscend.ConditionalDmgBonus}%";
+            }
 
-    string coopInfo = "";
-    double totalCoopDmg = result.CoopDamage + result.CoopHpDamage;
-    if (totalCoopDmg > 0)
-        coopInfo = $"\n\n⚔️ 협공 피해: {totalCoopDmg:N0}\n  ├ 스킬: {result.CoopDamage:N0}\n  └ HP비례: {result.CoopHpDamage:N0}";
+            string extraInfo = result.ExtraDamage > 0 ? $"\n  ├ 조건부 추가: {result.ExtraDamage:N0}" : "";
+            string consumeExtraInfo = result.ConsumeExtraDmg > 0 ? $"\n  ├ 스택 소모 추가: {result.ConsumeExtraDmg:N0}" : "";
+            string hpRatioInfo = result.HpRatioDamage > 0 ? $"\n  ├ HP비례 추가: {result.HpRatioDamage:N0}" : "";
+            string atkCountInfo = result.AtkCount > 1 ? $"\n  └ {result.AtkCount}타 = {result.DamagePerHit:N0} × {result.AtkCount}" : "";
+            string healFromDmgInfo = result.HealFromDamage > 0 ? $"\n\n💚 피해 흡수: {result.HealFromDamage:N0}" : "";
+            string blessingInfo = result.BlessingApplied ? $"\n\n🛡️ 축복: {result.DamageBeforeBlessing:N0} → {result.DamagePerHit:N0} (HP {input.TargetBlessing}% 제한)" : "";
 
-    // ✅ 최종 피해 합계 표시 (HP 비례 포함)
-    string totalDamageInfo = "";
-    if (result.HpRatioDamage > 0 || result.StatusDamage > 0)
-    {
-        totalDamageInfo = $"\n───────────────────────────────────────────────────\n🎯 총 피해: {result.FinalDamage:N0}";
-    }
+            string coopInfo = "";
+            double totalCoopDmg = result.CoopDamage + result.CoopHpDamage;
+            if (totalCoopDmg > 0)
+                coopInfo = $"\n\n⚔️ 협공 피해: {totalCoopDmg:N0}\n  ├ 스킬: {result.CoopDamage:N0}\n  └ HP비례: {result.CoopHpDamage:N0}";
 
-    return $@"
+            string totalDamageInfo = "";
+            if (result.HpRatioDamage > 0 || result.StatusDamage > 0)
+                totalDamageInfo = $"\n───────────────────────────────────────────────────\n🎯 총 피해: {result.FinalDamage:N0}";
+
+            return $@"
 ════════════════════════════════════════
 💥 스킬 데미지: {result.FinalDamage:N0}{blockInfo}{extraInfo}{consumeExtraInfo}{hpRatioInfo}{atkCountInfo}{coopInfo}{blessingInfo}{healFromDmgInfo}{statusBuilder}{totalDamageInfo}
 ════════════════════════════════════════
@@ -881,33 +855,43 @@ result.ConsumeExtraDmg = damage * fullMultiplier;
   피증 계수: {result.DamageMultiplier:F2}x{conditionalInfo}
 ════════════════════════════════════════
 
----디버깅용---
-  [캐릭터 스탯]
+{result.DebugLog}
+
+═══════════ 입력 데이터 ═══════════
+[캐릭터 스탯]
   공격력: {input.FinalAtk:N0}
+  방어력: {input.FinalDef:N0}
+  HP: {input.FinalHp:N0}
   치피%: {input.CritDamage}
   약피%: {input.WeakpointDmg}
   주피%: {input.DmgDealt}
+  타입피증%: {input.DmgDealtType}
   보피%: {input.DmgDealtBoss}
   방무%: {input.ArmorPen}
+  1-3인기%: {input.Dmg1to3}
+  4-5인기%: {input.Dmg4to5}
 
-  [디버프]
+[디버프]
   방깎%: {input.DefReduction}
   받피증%: {input.DmgTakenIncrease}
   취약%: {input.Vulnerability}
+  보스취약%: {input.BossVulnerability}
 
-  [보스]
+[보스]
   방어력: {input.BossDef}
   방증%: {input.BossDefIncrease}
   받피감%: {input.BossDmgReduction}
   인기감%: {input.BossTargetReduction}
   최대HP: {input.TargetHp:N0}
 
-  [전투옵션]
+[전투옵션]
   치명타: {input.IsCritical}
   약점: {input.IsWeakpoint}
   막기: {input.IsBlocked}
+  스킬조건: {input.IsSkillConditionMet}
+  체력조건: {input.IsLostHpConditionMet}
 ";
-}
+        }
 
         #endregion
     }
