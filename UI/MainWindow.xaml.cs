@@ -109,7 +109,7 @@ namespace GameDamageCalculator.UI
 
                 // ==================== 턴제 버프 ====================
                 new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", Label = "(마공증)", IsBuff = true },
-                new BuffConfig { Key = "BuffActiveZik", BaseName = "지크", CharacterName = "지크", SkillName = "나만 믿어", Label = "(물공증)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveZik", BaseName = "지크", CharacterName = "지크", Label = "(물공증)", IsBuff = true },  // 패시브 턴제버프
                 new BuffConfig { Key = "BuffActiveYui", BaseName = "유이", CharacterName = "유이", SkillName = "축복의 선율", Label = "(물피증)", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveBiscuit", BaseName = "비스킷", CharacterName = "비스킷", SkillName = "장비 강화", Label = "(보피증, 약공확)", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveLina", BaseName = "리나", CharacterName = "리나", SkillName = "따뜻한 울림", Label = "(피증)", IsBuff = true },
@@ -491,7 +491,11 @@ namespace GameDamageCalculator.UI
             {
                 boss = BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
             }
-        
+            else if (rbGrowthDungeon.IsChecked == true)  // ✅ 성장던전 추가
+            {
+                boss = BossDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
+            }
+
             if (boss != null)
             {
                 txtBossDef.Text = boss.Stats.Def.ToString("N0");
@@ -635,7 +639,7 @@ namespace GameDamageCalculator.UI
                 }
 
                 // 버프 합산 - 새 로직
-                Pet pet = cboMyPet.SelectedIndex > 0 
+                Pet pet = cboMyPet.SelectedIndex > 0
                     ? PetDb.GetByName(cboMyPet.SelectedItem.ToString()) : null;
                 int petStar = GetPetStar();
                 BuffSet totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
@@ -654,14 +658,14 @@ namespace GameDamageCalculator.UI
                     {
                         bool isEnhanced = chkMySkillEnhanced.IsChecked == true;
                         int transcendLevel = cboMyTranscend.SelectedIndex;
-                        
+
                         // 상시 자버프
                         var permanentBuff = charForBuff.Passive.GetTotalSelfBuff(isEnhanced, transcendLevel);
                         if (permanentBuff != null)
                         {
                             buffAtkRate += permanentBuff.Atk_Rate;
                         }
-                        
+
                         // 턴제 자버프 (조건 충족 시)
                         bool isConditionMet = chkMyPassiveCondition.IsChecked == true;
                         if (isConditionMet)
@@ -675,8 +679,8 @@ namespace GameDamageCalculator.UI
                     }
                 }
 
-                // DamageInput 생성
-                var input = new DamageCalculator.DamageInput
+                // 기본 DamageInput 생성
+                var baseInput = new DamageCalculator.DamageInput
                 {
                     // 캐릭터/스킬
                     Character = character,
@@ -713,9 +717,9 @@ namespace GameDamageCalculator.UI
                     BossTargetReduction = GetSelectedTargetReduction(),
                     TargetHp = ParseDouble(txtBossHp.Text),
 
-                    // 전투 옵션
-                    IsCritical = chkMyCritical.IsChecked == true,
-                    IsWeakpoint = chkMyWeakpoint.IsChecked == true,
+                    // 전투 옵션 - 빠른 비교에서는 4가지 시나리오로 계산
+                    IsCritical = true,
+                    IsWeakpoint = true,
                     IsBlocked = chkMyBlock.IsChecked == true,
                     TargetStackCount = int.TryParse(txtMyTargetStackCount.Text, out int stacks) ? stacks : 0,
                     ForceStatusEffect = chkMyStatusEffect.IsChecked == true,
@@ -723,17 +727,39 @@ namespace GameDamageCalculator.UI
 
                     // 조건
                     IsSkillConditionMet = chkMySkillCondition.IsChecked == true,
-                    AtkBuff = buffAtkRate,  // 버프% 합계,
+                    AtkBuff = buffAtkRate,
 
-                    
+                    // 자버프 타입피증 (스택소모 스킬용 - 자동 설정)
+                    SelfBuffTypeDmg = GetSelfBuffTypeDmg(character, chkMySkillEnhanced.IsChecked == true),
 
                     Mode = mode
                 };
 
-                // 계산 및 출력
-                var result = _calculator.Calculate(input);
-                txtResult.Text = result.Details;
-                
+                // ===== 빠른 비교: 4가지 시나리오 계산 =====
+                // 1. 치명 + 약점
+                baseInput.IsCritical = true;
+                baseInput.IsWeakpoint = true;
+                var resultCritWek = _calculator.Calculate(baseInput);
+
+                // 2. 치명만
+                baseInput.IsCritical = true;
+                baseInput.IsWeakpoint = false;
+                var resultCritOnly = _calculator.Calculate(baseInput);
+
+                // 3. 약점만
+                baseInput.IsCritical = false;
+                baseInput.IsWeakpoint = true;
+                var resultWekOnly = _calculator.Calculate(baseInput);
+
+                // 4. 일반
+                baseInput.IsCritical = false;
+                baseInput.IsWeakpoint = false;
+                var resultNormal = _calculator.Calculate(baseInput);
+
+                // 비교 결과 출력
+                txtResult.Text = _calculator.GenerateComparisonDetails(
+                    resultCritWek, resultCritOnly, resultWekOnly, resultNormal, baseInput);
+
             }
             catch (Exception ex)
             {
@@ -744,6 +770,18 @@ namespace GameDamageCalculator.UI
         private double GetSelectedTargetReduction()
         {
             return 0;
+        }
+
+        /// <summary>
+        /// 캐릭터 패시브의 자버프 타입피증 가져오기
+        /// 스택소모 스킬에서 스킬피해/스택소모피해 분리 계산용
+        /// </summary>
+        private double GetSelfBuffTypeDmg(Character character, bool isSkillEnhanced)
+        {
+            if (character?.Passive == null) return 0;
+
+            var passiveData = character.Passive.GetLevelData(isSkillEnhanced);
+            return passiveData?.SelfBuff?.Dmg_Dealt_Type ?? 0;
         }
 
         private Boss GetSelectedBoss()
@@ -769,6 +807,14 @@ namespace GameDamageCalculator.UI
             else if (rbRaid.IsChecked == true)
             {
                 return BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+            }
+            else if (rbDescend.IsChecked == true)
+            {
+                return BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name));
+            }
+            else if (rbGrowthDungeon.IsChecked == true)
+            {
+                return BossDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
             }
 
             return new Boss { Name = "Unknown", Stats = new BaseStatSet { Def = 0 } };
@@ -1056,8 +1102,8 @@ namespace GameDamageCalculator.UI
             if (cboMyPet.SelectedIndex > 0)
                 pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
 
-            // 버프/디버프 계산 (지속/턴제 분리)
-            var (partyPermanentBuffs, partyTimedBuffs) = _buffCalculator.CalculateSeparatedPartyBuffs(BuffConfigs, pet, petStar);
+            // 버프/디버프 계산 (지속/턴제/펫 분리)
+            var (partyPermanentBuffs, partyTimedBuffs, partyPetBuffs) = _buffCalculator.CalculateSeparatedPartyBuffs(BuffConfigs, pet, petStar);
             var totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
             _currentDebuffs = _buffCalculator.CalculateTotalDebuffs(BuffConfigs, pet, petStar);
 
@@ -1090,9 +1136,10 @@ namespace GameDamageCalculator.UI
                 TotalBuffs = totalBuffs,
                 TotalDebuffs = _currentDebuffs,
 
-                // 분리된 파티버프 (지속/턴제)
+                // 분리된 파티버프 (지속/턴제/펫)
                 PartyPermanentBuffs = partyPermanentBuffs,
-                PartyTimedBuffs = partyTimedBuffs
+                PartyTimedBuffs = partyTimedBuffs,
+                PartyPetBuffs = partyPetBuffs
             };
 
             // ========== 계산 실행 ==========
@@ -1269,7 +1316,14 @@ namespace GameDamageCalculator.UI
                     cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
                 }
             }
-                    cboBoss.SelectedIndex = 0;
+            else if (rbGrowthDungeon.IsChecked == true)  // ✅ 성장던전 추가
+            {
+                foreach (var boss in BossDb.GrowthDungeonBosses)
+                {
+                    cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
+                }
+            }
+            cboBoss.SelectedIndex = 0;
         }
 
         private void UpdateBossDebuffDisplay()
@@ -1525,7 +1579,7 @@ namespace GameDamageCalculator.UI
                 PetDefRate = double.TryParse(txtMyPetDef.Text, out double defRate) ? defRate : 0,
                 PetHpRate = double.TryParse(txtMyPetHp.Text, out double hpRate) ? hpRate : 0,
         
-                BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : "Descend"),
+                BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : (rbDescend.IsChecked == true ? "Descend" : "GrowthDungeon")),
                 BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
                 // ⬆️ 여기서 객체 초기화 끝! (마지막 항목이라 콤마 없음)
             };
@@ -1604,6 +1658,10 @@ namespace GameDamageCalculator.UI
             SelectComboBoxItem(cboMyEquipSet1, preset.EquipSet1);
 
             cboMyAccessoryGrade.SelectedIndex = preset.AccessoryGrade;
+            // 장신구 버튼도 동기화
+            btnMyAccessoryGrade.Tag = preset.AccessoryGrade.ToString();
+            string[] accessoryGrades = { "없음", "4성", "5성", "6성" };
+            btnMyAccessoryGrade.Content = accessoryGrades[preset.AccessoryGrade];
             SelectComboBoxItem(cboMyAccessoryMain, preset.AccessoryOption);
             SelectComboBoxItem(cboMyAccessorySub, preset.AccessorySubOption);
 
@@ -1656,7 +1714,8 @@ namespace GameDamageCalculator.UI
 
             if (preset.BossType == "Siege") rbSiege.IsChecked = true;
             else if (preset.BossType == "Raid") rbRaid.IsChecked = true;
-            else rbDescend.IsChecked = true;
+            else if (preset.BossType == "Descend") rbDescend.IsChecked = true;
+            else if (preset.BossType == "GrowthDungeon") rbGrowthDungeon.IsChecked = true;
             UpdateBossList();
             SelectComboBoxItem(cboBoss, preset.BossName);
 
@@ -1687,6 +1746,10 @@ namespace GameDamageCalculator.UI
                 else if (preset.BossType == "Descend")
                 {
                     boss = BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                }
+                else if (preset.BossType == "GrowthDungeon")
+                {
+                    boss = BossDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
                 }
 
                 if (boss != null)

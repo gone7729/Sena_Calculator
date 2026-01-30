@@ -46,9 +46,10 @@ namespace GameDamageCalculator.Services
         public BuffSet TotalBuffs { get; set; }
         public DebuffSet TotalDebuffs { get; set; }
 
-        // 분리된 파티버프 (지속/턴제)
+        // 분리된 파티버프 (지속/턴제/펫)
         public BuffSet PartyPermanentBuffs { get; set; }
         public BuffSet PartyTimedBuffs { get; set; }
+        public BuffSet PartyPetBuffs { get; set; }
     }
 
     /// <summary>
@@ -99,9 +100,10 @@ namespace GameDamageCalculator.Services
             // ========== 캐릭터 패시브 자버프 (지속/턴제 분리) ==========
             var (selfPermanentBuff, selfTimedBuff) = GetCharacterPassiveBuffSeparated(input);
 
-            // ========== 파티버프 (지속/턴제 분리) ==========
+            // ========== 파티버프 (지속/턴제/펫 분리) ==========
             BuffSet partyPermanentBuff = input.PartyPermanentBuffs ?? new BuffSet();
             BuffSet partyTimedBuff = input.PartyTimedBuffs ?? new BuffSet();
+            BuffSet partyPetBuff = input.PartyPetBuffs ?? new BuffSet();
 
             // 호환성을 위한 통합 버프 (로그용)
             BuffSet characterPassiveBuff = new BuffSet();
@@ -154,9 +156,15 @@ namespace GameDamageCalculator.Services
             result.DebugLog.AppendLine($"  장신구: {accessoryStats.Dmg_Dealt_Type}%");
             result.DebugLog.AppendLine($"  버프: {totalBuffs.Dmg_Dealt_Type}%");
             result.DebugLog.AppendLine($"  패시브 자버프: {characterPassiveBuff.Dmg_Dealt_Type}%");
-            double totalDmgDealtType = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type 
-                + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type 
-                + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type;
+            if (totalBuffs.Mark_Energeia > 0 || characterPassiveBuff.Mark_Energeia > 0)
+                result.DebugLog.AppendLine($"  표식(에네르게이아): 버프{totalBuffs.Mark_Energeia}% + 패시브{characterPassiveBuff.Mark_Energeia}%");
+            if (totalBuffs.Mark_Purify > 0 || characterPassiveBuff.Mark_Purify > 0)
+                result.DebugLog.AppendLine($"  마력 정화: 버프{totalBuffs.Mark_Purify}% + 패시브{characterPassiveBuff.Mark_Purify}%");
+            double totalDmgDealtType = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type
+                + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type
+                + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type
+                + totalBuffs.Mark_Energeia + characterPassiveBuff.Mark_Energeia
+                + totalBuffs.Mark_Purify + characterPassiveBuff.Mark_Purify;
             result.DebugLog.AppendLine($"  ★ 합계: {totalDmgDealtType}%");
 
             result.DebugLog.AppendLine("\n[1-3인기% 출처]");
@@ -252,29 +260,41 @@ namespace GameDamageCalculator.Services
                 + accessoryStats.Hp_Rate + input.PetOptionHpRate
                 + equipmentStats.MainStats.Hp_Rate;
 
-            // ========== 버프% (지속끼리 Max, 턴제끼리 Max, 그 후 합연산) ==========
-            result.DebugLog.AppendLine("\n[버프% 중복 처리 - 지속/턴제 분리 (합연산)]");
+            // ========== 버프% (지속끼리 Max, 턴제+펫 합연산) ==========
+            result.DebugLog.AppendLine("\n[버프% 중복 처리 - 지속/턴제+펫 분리]");
 
             // 공격력%
             result.DebugLog.AppendLine($"  [공%] 파티지속: {partyPermanentBuff.Atk_Rate}%, 자버프지속: {selfPermanentBuff.Atk_Rate}%");
             result.DebugLog.AppendLine($"  [공%] 파티턴제: {partyTimedBuff.Atk_Rate}%, 자버프턴제: {selfTimedBuff.Atk_Rate}%");
+            result.DebugLog.AppendLine($"  [공%] 펫스킬: {partyPetBuff.Atk_Rate}%");
             double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate);
             double timedAtkRate = Math.Max(partyTimedBuff.Atk_Rate, selfTimedBuff.Atk_Rate);
-            result.DebugLog.AppendLine($"  ★ 지속: {permanentAtkRate}%, 턴제: {timedAtkRate}% → (1+({permanentAtkRate}+{timedAtkRate})/100) = {1 + (permanentAtkRate + timedAtkRate) / 100:F4}x");
+            double petAtkRate = partyPetBuff.Atk_Rate;
+            // 턴제 + 펫은 합연산
+            double atkMultiplier = (1 + permanentAtkRate / 100.0) * (1 + (timedAtkRate + petAtkRate) / 100.0);
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentAtkRate}%, 턴제+펫: {timedAtkRate + petAtkRate}% → (1+{permanentAtkRate}/100)×(1+{timedAtkRate + petAtkRate}/100) = {atkMultiplier:F4}x");
 
             // 방어력%
             result.DebugLog.AppendLine($"  [방%] 파티지속: {partyPermanentBuff.Def_Rate}%, 자버프지속: {selfPermanentBuff.Def_Rate}%");
             result.DebugLog.AppendLine($"  [방%] 파티턴제: {partyTimedBuff.Def_Rate}%, 자버프턴제: {selfTimedBuff.Def_Rate}%");
+            result.DebugLog.AppendLine($"  [방%] 펫스킬: {partyPetBuff.Def_Rate}%");
             double permanentDefRate = Math.Max(partyPermanentBuff.Def_Rate, selfPermanentBuff.Def_Rate);
             double timedDefRate = Math.Max(partyTimedBuff.Def_Rate, selfTimedBuff.Def_Rate);
-            result.DebugLog.AppendLine($"  ★ 지속: {permanentDefRate}%, 턴제: {timedDefRate}% → (1+({permanentDefRate}+{timedDefRate})/100) = {1 + (permanentDefRate + timedDefRate) / 100:F4}x");
+            double petDefRate = partyPetBuff.Def_Rate;
+            // 턴제 + 펫은 합연산
+            double defMultiplier = (1 + permanentDefRate / 100.0) * (1 + (timedDefRate + petDefRate) / 100.0);
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentDefRate}%, 턴제+펫: {timedDefRate + petDefRate}% → (1+{permanentDefRate}/100)×(1+{timedDefRate + petDefRate}/100) = {defMultiplier:F4}x");
 
             // 체력%
             result.DebugLog.AppendLine($"  [체%] 파티지속: {partyPermanentBuff.Hp_Rate}%, 자버프지속: {selfPermanentBuff.Hp_Rate}%");
             result.DebugLog.AppendLine($"  [체%] 파티턴제: {partyTimedBuff.Hp_Rate}%, 자버프턴제: {selfTimedBuff.Hp_Rate}%");
+            result.DebugLog.AppendLine($"  [체%] 펫스킬: {partyPetBuff.Hp_Rate}%");
             double permanentHpRate = Math.Max(partyPermanentBuff.Hp_Rate, selfPermanentBuff.Hp_Rate);
             double timedHpRate = Math.Max(partyTimedBuff.Hp_Rate, selfTimedBuff.Hp_Rate);
-            result.DebugLog.AppendLine($"  ★ 지속: {permanentHpRate}%, 턴제: {timedHpRate}% → (1+({permanentHpRate}+{timedHpRate})/100) = {1 + (permanentHpRate + timedHpRate) / 100:F4}x");
+            double petHpRate = partyPetBuff.Hp_Rate;
+            // 턴제 + 펫은 합연산
+            double hpMultiplier = (1 + permanentHpRate / 100.0) * (1 + (timedHpRate + petHpRate) / 100.0);
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentHpRate}%, 턴제+펫: {timedHpRate + petHpRate}% → (1+{permanentHpRate}/100)×(1+{timedHpRate + petHpRate}/100) = {hpMultiplier:F4}x");
 
             // ========== 기본 스탯 (스탯창 = 진형/펫잠재 제외) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
@@ -298,11 +318,11 @@ namespace GameDamageCalculator.Services
             double preBuffAtk = baseStatAtk + separateBonusAtk;
             double preBuffDef = baseStatDef + separateBonusDef;
 
-            // ========== 최종 스탯 (버프 적용 후 - 합연산) ==========
-            // 공식: 최종공격력 = (스탯공격력 + 펫깡공 + 기초공 * (진형 + 펫잠재%)) * (1 + 지속% + 턴제%)
-            result.FinalAtk = preBuffAtk * (1 + (permanentAtkRate + timedAtkRate) / 100.0);
-            result.FinalDef = preBuffDef * (1 + (permanentDefRate + timedDefRate) / 100.0);
-            result.FinalHp  = baseStatHp * (1 + (permanentHpRate + timedHpRate) / 100.0);
+            // ========== 최종 스탯 (버프 적용 후 - 곱연산) ==========
+            // 공식: 최종공격력 = (스탯공격력 + 펫깡공 + 기초공 * (진형 + 펫잠재%)) * (1+지속%) * (1+턴제%) * (1+펫%)
+            result.FinalAtk = preBuffAtk * atkMultiplier;
+            result.FinalDef = preBuffDef * defMultiplier;
+            result.FinalHp  = baseStatHp * hpMultiplier;
             result.FinalSpd = totalSpd;
 
             // ========== 순수 기본 스탯 ==========
@@ -321,8 +341,8 @@ namespace GameDamageCalculator.Services
                 characterStats, transcendStats, setBonus,
                 equipmentStats, accessoryStats,
                 totalBuffs, characterPassiveBuff,
-                totalAtkRate, scalingBonus.Cri,
-                permanentAtkRate, timedAtkRate
+                totalAtkRate, scalingBonus.Cri, scalingBonus.DmgRdc,
+                permanentAtkRate, timedAtkRate, petAtkRate
             );
 
             // 콘솔 출력 (WPF에서는 Debug 사용)
@@ -415,15 +435,15 @@ namespace GameDamageCalculator.Services
             return total;
         }
 
-        private (double Atk, double Def, double Hp, double Cri, double Blk) CalculateStatScaling(
+        private (double Atk, double Def, double Hp, double Cri, double Blk, double DmgRdc) CalculateStatScaling(
             StatCalculationInput input, double baseAtk, double baseDef, double baseHp, double spd)
         {
-            double scalingAtk = 0, scalingDef = 0, scalingHp = 0, scalingCri = 0, scalingBlk = 0;
+            double scalingAtk = 0, scalingDef = 0, scalingHp = 0, scalingCri = 0, scalingBlk = 0, scalingDmgRdc = 0;
 
-            if (input.Character?.Passive == null) return (0, 0, 0, 0, 0);
+            if (input.Character?.Passive == null) return (0, 0, 0, 0, 0, 0);
 
             var passiveData = input.Character.Passive.GetLevelData(input.IsSkillEnhanced);
-            if (passiveData?.StatScalings == null) return (0, 0, 0, 0, 0);
+            if (passiveData?.StatScalings == null) return (0, 0, 0, 0, 0, 0);
 
             foreach (var scaling in passiveData.StatScalings)
             {
@@ -434,6 +454,7 @@ namespace GameDamageCalculator.Services
                     StatType.Def => baseDef,
                     StatType.Atk => baseAtk,
                     StatType.Blk => scalingBlk,
+                    StatType.Dmg_Rdc => scalingDmgRdc,
                     _ => 0
                 };
 
@@ -446,10 +467,11 @@ namespace GameDamageCalculator.Services
                     case StatType.Hp: scalingHp += bonus; break;
                     case StatType.Cri: scalingCri += bonus; break;
                     case StatType.Blk: scalingBlk += bonus; break;
+                    case StatType.Dmg_Rdc: scalingDmgRdc += bonus; break;
                 }
             }
 
-            return (scalingAtk, scalingDef, scalingHp, scalingCri, scalingBlk);
+            return (scalingAtk, scalingDef, scalingHp, scalingCri, scalingBlk, scalingDmgRdc);
         }
 
         private double CalcScalingBonus(double sourceValue, StatScaling scaling)
@@ -464,8 +486,8 @@ namespace GameDamageCalculator.Services
             BaseStatSet characterStats, BaseStatSet transcendStats, BaseStatSet setBonus,
             (BaseStatSet MainStats, BaseStatSet SubStats) equipmentStats, BaseStatSet accessoryStats,
             BuffSet totalBuffs, BuffSet characterPassiveBuff,
-            double totalAtkRate, double scalingCri,
-            double buffPermanentAtkRate, double buffTimedAtkRate)
+            double totalAtkRate, double scalingCri, double scalingDmgRdc,
+            double buffPermanentAtkRate, double buffTimedAtkRate, double buffPetAtkRate)
         {
             return new BaseStatSet
             {
@@ -493,7 +515,9 @@ namespace GameDamageCalculator.Services
 
                 Dmg_Dealt_Type = characterStats.Dmg_Dealt_Type + transcendStats.Dmg_Dealt_Type
                     + setBonus.Dmg_Dealt_Type + accessoryStats.Dmg_Dealt_Type
-                    + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type,
+                    + totalBuffs.Dmg_Dealt_Type + characterPassiveBuff.Dmg_Dealt_Type
+                    + totalBuffs.Mark_Energeia + characterPassiveBuff.Mark_Energeia
+                    + totalBuffs.Mark_Purify + characterPassiveBuff.Mark_Purify,
 
                 Arm_Pen = characterStats.Arm_Pen + transcendStats.Arm_Pen + setBonus.Arm_Pen
                     + totalBuffs.Arm_Pen + characterPassiveBuff.Arm_Pen,
@@ -512,7 +536,8 @@ namespace GameDamageCalculator.Services
                 Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
 
                 Dmg_Rdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc
-                    + equipmentStats.MainStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc,
+                    + equipmentStats.MainStats.Dmg_Rdc + totalBuffs.Dmg_Rdc + characterPassiveBuff.Dmg_Rdc
+                    + scalingDmgRdc,
 
                 Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3
                     + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3
@@ -522,10 +547,10 @@ namespace GameDamageCalculator.Services
                     + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5
                     + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5,
 
-                // 버프%: Max 처리된 지속+턴제 값 사용
-                Atk_Rate = totalAtkRate + buffPermanentAtkRate + buffTimedAtkRate
+                // 버프%: Max 처리된 지속+턴제+펫 값 사용
+                Atk_Rate = totalAtkRate + buffPermanentAtkRate + buffTimedAtkRate + buffPetAtkRate
             };
-            
+
         }
 
         #endregion

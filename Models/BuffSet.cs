@@ -26,6 +26,8 @@ namespace GameDamageCalculator.Models
         // ===== 피해량 =====
         public double Dmg_Dealt { get; set; }       // 피해량%
         public double Dmg_Dealt_Type { get; set; }  // 물리/마법 피해량% (유저가 타입에 맞게 적용)
+        public double Mark_Energeia { get; set; }   // 표식: 에네르게이아의 포화 (타입피증과 별도 적용)
+        public double Mark_Purify { get; set; }     // 마력 정화 (타입피증과 별도 적용)
         public double Dmg_Dealt_Bos { get; set; }   // 보스 피해량%
         public double Dmg_Dealt_1to3 { get; set; }  // 1-3인기 피해량%
         public double Dmg_Dealt_4to5 { get; set; }  // 4-5인기 피해량%
@@ -61,6 +63,8 @@ namespace GameDamageCalculator.Models
             WekBonusDmg += other.WekBonusDmg;
             Dmg_Dealt += other.Dmg_Dealt;
             Dmg_Dealt_Type += other.Dmg_Dealt_Type;
+            Mark_Energeia += other.Mark_Energeia;
+            Mark_Purify += other.Mark_Purify;
             Dmg_Dealt_Bos += other.Dmg_Dealt_Bos;
             Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
             Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
@@ -93,6 +97,8 @@ namespace GameDamageCalculator.Models
             WekBonusDmg = Math.Max(WekBonusDmg, other.WekBonusDmg);
             Dmg_Dealt = Math.Max(Dmg_Dealt, other.Dmg_Dealt);
             Dmg_Dealt_Type = Math.Max(Dmg_Dealt_Type, other.Dmg_Dealt_Type);
+            Mark_Energeia = Math.Max(Mark_Energeia, other.Mark_Energeia);
+            Mark_Purify = Math.Max(Mark_Purify, other.Mark_Purify);
             Dmg_Dealt_Bos = Math.Max(Dmg_Dealt_Bos, other.Dmg_Dealt_Bos);
             Dmg_Dealt_1to3 = Math.Max(Dmg_Dealt_1to3, other.Dmg_Dealt_1to3);
             Dmg_Dealt_4to5 = Math.Max(Dmg_Dealt_4to5, other.Dmg_Dealt_4to5);
@@ -126,6 +132,8 @@ namespace GameDamageCalculator.Models
                 WekBonusDmg = WekBonusDmg,
                 Dmg_Dealt = Dmg_Dealt,
                 Dmg_Dealt_Type = Dmg_Dealt_Type,
+                Mark_Energeia = Mark_Energeia,
+                Mark_Purify = Mark_Purify,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
@@ -158,6 +166,8 @@ namespace GameDamageCalculator.Models
             WekBonusDmg = 0;
             Dmg_Dealt = 0;
             Dmg_Dealt_Type = 0;
+            Mark_Energeia = 0;
+            Mark_Purify = 0;
             Dmg_Dealt_Bos = 0;
             Dmg_Dealt_1to3 = 0;
             Dmg_Dealt_4to5 = 0;
@@ -194,6 +204,8 @@ namespace GameDamageCalculator.Models
                 WekBonusDmg = WekBonusDmg,
                 Dmg_Dealt = Dmg_Dealt,
                 Dmg_Dealt_Type = Dmg_Dealt_Type,
+                Mark_Energeia = Mark_Energeia,
+                Mark_Purify = Mark_Purify,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
@@ -230,6 +242,8 @@ namespace GameDamageCalculator.Models
                 WekBonusDmg = timedBuff.WekBonusDmg,
                 Dmg_Dealt = timedBuff.Dmg_Dealt,
                 Dmg_Dealt_Type = timedBuff.Dmg_Dealt_Type,
+                Mark_Energeia = timedBuff.Mark_Energeia,
+                Mark_Purify = timedBuff.Mark_Purify,
                 Dmg_Dealt_Bos = timedBuff.Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = timedBuff.Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = timedBuff.Dmg_Dealt_4to5,
@@ -267,6 +281,8 @@ namespace GameDamageCalculator.Models
                 WekBonusDmg = WekBonusDmg,
                 Dmg_Dealt = Dmg_Dealt,
                 Dmg_Dealt_Type = Dmg_Dealt_Type,
+                Mark_Energeia = Mark_Energeia,
+                Mark_Purify = Mark_Purify,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,

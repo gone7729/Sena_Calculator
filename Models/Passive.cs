@@ -240,6 +240,7 @@ namespace GameDamageCalculator.Models
         Cri_Dmg,    // 치명타 피해
         Eff_Hit,    // 효과 적중
         Eff_Res,    // 효과 저항
-        Blk         // 막기
+        Blk,        // 막기
+        Dmg_Rdc     // 받는 피해 감소
     }
 }

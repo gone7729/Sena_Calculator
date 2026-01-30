@@ -28,6 +28,7 @@ namespace GameDamageCalculator.Models
 
         // ===== 효과 관련 =====
         public double Eff_Red { get; set; }             // 효과 저항 감소%
+        public double Eff_Hit_Red { get; set; }         // 효과 적용률(적중) 감소%
 
         /// <summary>
         /// 다른 DebuffSet을 현재 세트에 더함
@@ -47,6 +48,7 @@ namespace GameDamageCalculator.Models
             Heal_Reduction += other.Heal_Reduction;
             Unrecover += other.Unrecover;
             Eff_Red += other.Eff_Red;
+            Eff_Hit_Red += other.Eff_Hit_Red;
             Blk_Red += other.Blk_Red;
         }
 
@@ -68,6 +70,7 @@ namespace GameDamageCalculator.Models
             Heal_Reduction = Math.Max(Heal_Reduction, other.Heal_Reduction);
             Unrecover = Math.Max(Unrecover, other.Unrecover);
             Eff_Red = Math.Max(Eff_Red, other.Eff_Red);
+            Eff_Hit_Red = Math.Max(Eff_Hit_Red, other.Eff_Hit_Red);
             Blk_Red = Math.Max(Blk_Red, other.Blk_Red);
         }
 
@@ -89,6 +92,7 @@ namespace GameDamageCalculator.Models
                 Heal_Reduction = Heal_Reduction,
                 Unrecover = Unrecover,
                 Eff_Red = Eff_Red,
+                Eff_Hit_Red = Eff_Hit_Red,
                 Blk_Red = Blk_Red,
             };
         }
@@ -109,6 +113,7 @@ namespace GameDamageCalculator.Models
             Heal_Reduction = 0;
             Unrecover = 0;
             Eff_Red = 0;
+            Eff_Hit_Red = 0;
             Blk_Red = 0;
         }
     }
@@ -133,6 +138,7 @@ namespace GameDamageCalculator.Models
                 Heal_Reduction = Heal_Reduction,
                 Unrecover = Unrecover,
                 Eff_Red = Eff_Red,
+                Eff_Hit_Red = Eff_Hit_Red,
                 Blk_Red = Blk_Red,
             };
         }
@@ -158,6 +164,7 @@ namespace GameDamageCalculator.Models
                 Heal_Reduction = Heal_Reduction,
                 Unrecover = Unrecover,
                 Eff_Red = Eff_Red,
+                Eff_Hit_Red = Eff_Hit_Red,
                 Blk_Red = Blk_Red,
             };
         }

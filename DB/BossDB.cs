@@ -507,6 +507,30 @@ namespace GameDamageCalculator.Database
 
         };
 
+        /// <summary>
+        /// 성장던전 보스 목록
+        /// </summary>
+        public static readonly List<Boss> GrowthDungeonBosses = new List<Boss>
+        {
+            new Boss
+            {
+                Id = 401,
+                Name = "골드던전",
+                BossType = BossType.GrowthDungeon,
+                Difficulty = 15,
+                Stats = new BaseStatSet
+                {
+                    Atk = 11596,
+                    Def = 3932,
+                    Hp = 747703,
+                    Spd = 41,
+                    Cri = 5,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                }
+            },
+        };
+
         // 잡몹
         public static readonly List<Boss> Mobs = new List<Boss>
         {
@@ -548,7 +572,7 @@ namespace GameDamageCalculator.Database
         /// <summary>
         /// 모든 보스 목록
         /// </summary>
-        public static List<Boss> AllBosses => SiegeBosses.Concat(RaidBosses).Concat(ForestBosses).Concat(Mobs).ToList();
+        public static List<Boss> AllBosses => SiegeBosses.Concat(RaidBosses).Concat(ForestBosses).Concat(GrowthDungeonBosses).Concat(Mobs).ToList();
 
         /// <summary>
         /// 이름으로 보스 찾기

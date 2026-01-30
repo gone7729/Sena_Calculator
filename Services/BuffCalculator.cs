@@ -40,9 +40,10 @@ namespace GameDamageCalculator.Services
         }
 
         /// <summary>
-        /// 지속/턴제 분리된 파티 버프 반환
+        /// 지속/턴제/펫 분리된 파티 버프 반환
+        /// 펫스킬은 지속/턴제와 별개로 무조건 같이 적용됨
         /// </summary>
-        public (BuffSet Permanent, BuffSet Timed) CalculateSeparatedPartyBuffs(
+        public (BuffSet Permanent, BuffSet Timed, BuffSet Pet) CalculateSeparatedPartyBuffs(
             IEnumerable<BuffConfig> buffConfigs,
             Pet pet,
             int petStar)
@@ -55,7 +56,7 @@ namespace GameDamageCalculator.Services
             timedBuffs.MaxMerge(GetTimedPassiveBuffs(buffConfigs));
             timedBuffs.MaxMerge(GetActiveBuffs(buffConfigs));
 
-            // 펫 버프는 턴제로 취급
+            // 펫 버프 (별도 카테고리 - 지속/턴제와 별개로 항상 적용)
             BuffSet petBuffs = pet?.GetSkillBuff(petStar) ?? new BuffSet();
 
             BuffSet permanent = new BuffSet();
@@ -63,9 +64,8 @@ namespace GameDamageCalculator.Services
 
             BuffSet timed = new BuffSet();
             timed.Add(timedBuffs);
-            timed.Add(petBuffs);
 
-            return (permanent, timed);
+            return (permanent, timed, petBuffs);
         }
 
         /// <summary>

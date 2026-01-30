@@ -76,7 +76,8 @@ namespace GameDamageCalculator.Models
     {
         Siege,      // 공성전
         Raid,       // 레이드
-        Forest,      // 강림
+        Forest,     // 강림
+        GrowthDungeon, // 성장던전
         Other,
         Mob
     }

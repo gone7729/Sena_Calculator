@@ -1207,7 +1207,9 @@
                                          Checked="BossType_Changed" Foreground="#e2e8f0" Margin="0,0,10,0"/>
                             <RadioButton x:Name="rbRaid" Content="레이드" GroupName="BossType" 
                                          Checked="BossType_Changed" Foreground="#e2e8f0" Margin="0,0,10,0"/>
-                            <RadioButton x:Name="rbDescend" Content="강림" GroupName="BossType" 
+                            <RadioButton x:Name="rbDescend" Content="강림" GroupName="BossType"
+                                         Checked="BossType_Changed" Foreground="#e2e8f0" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="rbGrowthDungeon" Content="성장던전" GroupName="BossType"
                                          Checked="BossType_Changed" Foreground="#e2e8f0"/>
                         </StackPanel>
 
@@ -1327,32 +1329,30 @@
                                 <RowDefinition Height="24"/>
                                 <RowDefinition Height="28"/>
                             </Grid.RowDefinitions>
-                            
-                            <!-- 1행: 치명타 / 약공 / 막기 -->
-                            <CheckBox x:Name="chkMyCritical" Content="치명타" IsChecked="True" 
+
+                            <!-- 1행: 막기 / 체력조건 / 특정조건 -->
+                            <CheckBox x:Name="chkMyBlock" Content="막기"
                                       Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Foreground="#e2e8f0"/>
-                            <CheckBox x:Name="chkMyWeakpoint" Content="약공" 
+                            <CheckBox x:Name="chkMyLostHpCondition" Content="체력조건"
                                       Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Foreground="#e2e8f0"/>
-                            <CheckBox x:Name="chkMyBlock" Content="막기" 
+                            <CheckBox x:Name="chkMySkillCondition" Content="특정조건"
                                       Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Foreground="#e2e8f0"/>
-                            
-                            <!-- 2행: 체력조건 / 특정조건 -->
-                            <CheckBox x:Name="chkMyLostHpCondition" Content="체력조건" 
-                                      Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="#e2e8f0"/>
-                            <CheckBox x:Name="chkMySkillCondition" Content="특정조건" 
-                                      Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Foreground="#e2e8f0"/>
-                            
-                            <!-- 3행: 상태이상 확정 -->
-                            <CheckBox x:Name="chkMyStatusEffect" Content="상태이상 확정" 
-                                      Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Foreground="#e2e8f0"/>
-                            
-                            <!-- 4행: 상태이상 스택 -->
-                            <TextBlock Text="상태이상 스택" 
-                                       Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource LabelText}"/>
-                            <TextBox x:Name="txtMyTargetStackCount" Text="0" 
-                                     Grid.Row="3" Grid.Column="1" Width="60" Height="28" 
+
+                            <!-- 2행: 상태이상 확정 -->
+                            <CheckBox x:Name="chkMyStatusEffect" Content="상태이상 확정"
+                                      Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Foreground="#e2e8f0"/>
+
+                            <!-- 3행: 상태이상 스택 -->
+                            <TextBlock Text="상태이상 스택"
+                                       Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource LabelText}"/>
+                            <TextBox x:Name="txtMyTargetStackCount" Text="0"
+                                     Grid.Row="2" Grid.Column="1" Width="60" Height="28"
                                      VerticalAlignment="Center" HorizontalAlignment="Left" TextChanged="BossOption_Changed"
                                      Style="{StaticResource InputBox}"/>
+
+                            <!-- 숨겨진 체크박스 (코드 호환용) -->
+                            <CheckBox x:Name="chkMyCritical" IsChecked="True" Visibility="Collapsed"/>
+                            <CheckBox x:Name="chkMyWeakpoint" Visibility="Collapsed"/>
                         </Grid>
                         
                         <!-- 버튼 -->
@@ -1369,10 +1369,17 @@
                         <TextBlock Text="계산 결과" Style="{StaticResource SectionTitle}"/>
                         
                         <Border Background="#1e2128" CornerRadius="8" Padding="12">
-                            <ScrollViewer Height="280" VerticalScrollBarVisibility="Auto">
-                                <TextBlock x:Name="txtResult" TextWrapping="Wrap" Foreground="#e2e8f0" LineHeight="22"
-                                           Text="계산 버튼을 눌러 결과를 확인하세요."/>
-                            </ScrollViewer>
+                            <TextBox x:Name="txtResult"
+                                     Height="280"
+                                     TextWrapping="Wrap"
+                                     Foreground="#e2e8f0"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     IsReadOnly="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Text="계산 버튼을 눌러 결과를 확인하세요."
+                                     FontFamily="Consolas, 맑은 고딕"
+                                     AcceptsReturn="True"/>
                         </Border>
                     </StackPanel>
                 </Border>
