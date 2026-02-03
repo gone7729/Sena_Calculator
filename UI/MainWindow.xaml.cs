@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using GameDamageCalculator.Models;
@@ -18,12 +19,20 @@ namespace GameDamageCalculator.UI
 
         private bool _isInitialized = false;
         private readonly DamageCalculator _calculator;
-        private readonly StatCalculator _statCalculator;      
+        private readonly StatCalculator _statCalculator;
         private readonly BuffCalculator _buffCalculator;
         private Formation _currentFormation = new Formation();
         private PresetManager _presetManager;
         private DebuffSet _currentDebuffs = new DebuffSet();
-        private Accessory _currentAccessory = new Accessory(); 
+        private Accessory _currentAccessory = new Accessory();
+
+        // 셋팅 슬롯 관리 (2셋팅 전환용)
+        private Preset[] _characterSlots = new Preset[2];
+        private int _currentSlotIndex = 0;
+
+        // 각 셋팅의 최대 데미지 저장 (비교용)
+        private double[] _slotMaxDamages = new double[2];
+        private string[] _slotCharacterNames = new string[2];
 
         // MainWindow.xaml.cs
         public ObservableCollection<BuffConfig> BuffConfigs { get; private set; }
@@ -736,10 +745,10 @@ namespace GameDamageCalculator.UI
                 };
 
                 // ===== 빠른 비교: 4가지 시나리오 계산 =====
-                // 1. 치명 + 약점
+                // 1. 치명 + 약점 (디버그 파일 출력)
                 baseInput.IsCritical = true;
                 baseInput.IsWeakpoint = true;
-                var resultCritWek = _calculator.Calculate(baseInput);
+                var resultCritWek = _calculator.Calculate(baseInput, writeDebugFile: true);
 
                 // 2. 치명만
                 baseInput.IsCritical = true;
@@ -756,8 +765,15 @@ namespace GameDamageCalculator.UI
                 baseInput.IsWeakpoint = false;
                 var resultNormal = _calculator.Calculate(baseInput);
 
-                // 비교 결과 출력
-                txtResult.Text = _calculator.GenerateComparisonDetails(
+                // 현재 셋팅의 최대 데미지 저장 (치명+약점이 최대)
+                _slotMaxDamages[_currentSlotIndex] = resultCritWek.FinalDamage;
+                _slotCharacterNames[_currentSlotIndex] = character.Name;
+
+                // 셋팅 비교 문자열 생성
+                string comparisonHeader = GenerateSettingComparison();
+
+                // 비교 결과 출력 (비교 헤더 + 상세 결과)
+                txtResult.Text = comparisonHeader + _calculator.GenerateComparisonDetails(
                     resultCritWek, resultCritOnly, resultWekOnly, resultNormal, baseInput);
 
             }
@@ -765,6 +781,61 @@ namespace GameDamageCalculator.UI
             {
                 txtResult.Text = $"오류: {ex.Message}";
             }
+        }
+
+        /// <summary>
+        /// 1번 셋팅과 2번 셋팅의 데미지 비교 문자열 생성
+        /// </summary>
+        private string GenerateSettingComparison()
+        {
+            // 둘 다 계산된 적이 없으면 빈 문자열
+            if (_slotMaxDamages[0] == 0 && _slotMaxDamages[1] == 0)
+                return "";
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("═══════════════════════════════════════");
+            sb.AppendLine("         ⚔️  셋팅 비교  ⚔️");
+            sb.AppendLine("═══════════════════════════════════════");
+
+            // 1번 셋팅 정보
+            string name1 = _slotCharacterNames[0] ?? "미설정";
+            double dmg1 = _slotMaxDamages[0];
+            string dmg1Str = dmg1 > 0 ? dmg1.ToString("N0") : "-";
+
+            // 2번 셋팅 정보
+            string name2 = _slotCharacterNames[1] ?? "미설정";
+            double dmg2 = _slotMaxDamages[1];
+            string dmg2Str = dmg2 > 0 ? dmg2.ToString("N0") : "-";
+
+            // 현재 셋팅 표시
+            string marker1 = _currentSlotIndex == 0 ? " ◀" : "";
+            string marker2 = _currentSlotIndex == 1 ? " ◀" : "";
+
+            sb.AppendLine($"  1번 셋팅 ({name1}): {dmg1Str,12}{marker1}");
+            sb.AppendLine($"  2번 셋팅 ({name2}): {dmg2Str,12}{marker2}");
+
+            // 둘 다 계산되었으면 차이 표시
+            if (dmg1 > 0 && dmg2 > 0)
+            {
+                double diff = dmg1 - dmg2;
+                double diffPercent = (diff / dmg2) * 100;
+                string diffSign = diff >= 0 ? "+" : "";
+                string winner = diff > 0 ? "1번" : (diff < 0 ? "2번" : "동일");
+
+                sb.AppendLine("───────────────────────────────────────");
+                sb.AppendLine($"  차이: {diffSign}{diff:N0} ({diffSign}{diffPercent:F1}%)");
+                sb.AppendLine($"  → {winner} 셋팅이 더 높음");
+            }
+            else
+            {
+                sb.AppendLine("───────────────────────────────────────");
+                sb.AppendLine("  ※ 두 셋팅 모두 계산해야 비교 가능");
+            }
+
+            sb.AppendLine("═══════════════════════════════════════");
+            sb.AppendLine();
+
+            return sb.ToString();
         }
 
         private double GetSelectedTargetReduction()
@@ -1533,6 +1604,72 @@ namespace GameDamageCalculator.UI
             foreach (var equip in Equipments)
             {
                 equip.Reset();
+            }
+        }
+
+        #endregion
+
+        #region 캐릭터 슬롯 전환
+
+        /// <summary>
+        /// 캐릭터 슬롯 전환 버튼 클릭
+        /// </summary>
+        private void BtnSlot_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag != null)
+            {
+                int newIndex = int.Parse(btn.Tag.ToString());
+                if (newIndex == _currentSlotIndex) return;
+
+                SwitchCharacterSlot(newIndex);
+            }
+        }
+
+        /// <summary>
+        /// 캐릭터 슬롯 전환 실행
+        /// </summary>
+        private void SwitchCharacterSlot(int newIndex)
+        {
+            // 1. 현재 UI 값을 현재 슬롯에 저장
+            _characterSlots[_currentSlotIndex] = CreatePresetFromUI();
+
+            // 2. 인덱스 변경
+            _currentSlotIndex = newIndex;
+
+            // 3. 새 슬롯 데이터가 있으면 UI에 로드, 없으면 초기화
+            if (_characterSlots[newIndex] != null)
+            {
+                ApplyPresetToUI(_characterSlots[newIndex]);
+            }
+            else
+            {
+                // 새 슬롯은 초기 상태로
+                BtnReset_Click(null, null);
+            }
+
+            // 4. 버튼 UI 업데이트
+            UpdateSlotButtonStyles();
+        }
+
+        /// <summary>
+        /// 슬롯 버튼 스타일 업데이트 (선택된 슬롯 강조)
+        /// </summary>
+        private void UpdateSlotButtonStyles()
+        {
+            // 1번 슬롯 버튼
+            if (_currentSlotIndex == 0)
+            {
+                btnSlot1.Background = new SolidColorBrush(Color.FromRgb(99, 102, 241));  // #6366f1
+                btnSlot1.Foreground = Brushes.White;
+                btnSlot2.Background = new SolidColorBrush(Color.FromRgb(54, 59, 71));    // #363b47
+                btnSlot2.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184)); // #94a3b8
+            }
+            else
+            {
+                btnSlot1.Background = new SolidColorBrush(Color.FromRgb(54, 59, 71));
+                btnSlot1.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184));
+                btnSlot2.Background = new SolidColorBrush(Color.FromRgb(99, 102, 241));
+                btnSlot2.Foreground = Brushes.White;
             }
         }
 

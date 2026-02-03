@@ -128,6 +128,7 @@ namespace GameDamageCalculator.Services
 
             // ===== 디버깅용 =====
             public StringBuilder DebugLog { get; set; } = new();
+            public bool WriteDebugFile { get; set; }
         }
 
         public class StatusEffectResult
@@ -143,9 +144,10 @@ namespace GameDamageCalculator.Services
 
         #region 메인 계산
 
-        public DamageResult Calculate(DamageInput input)
+        public DamageResult Calculate(DamageInput input, bool writeDebugFile = false)
         {
             var result = new DamageResult { FinalAtk = input.FinalAtk };
+            result.WriteDebugFile = writeDebugFile;
             var levelData = input.Skill?.GetLevelData(input.IsSkillEnhanced);
             var skillBonus = input.Skill?.GetTotalBonus(input.IsSkillEnhanced, input.TranscendLevel) ?? new BuffSet();
 
@@ -246,8 +248,12 @@ namespace GameDamageCalculator.Services
             // 21. 상세 정보
             result.Details = GenerateDetails(input, result);
 
-            // ===== 디버그 출력 =====
-            System.Diagnostics.Debug.WriteLine(result.DebugLog.ToString());
+            // ===== 디버그 출력 (첫번째 계산만) =====
+            if (result.WriteDebugFile)
+            {
+                System.Diagnostics.Debug.WriteLine(result.DebugLog.ToString());
+                try { System.IO.File.WriteAllText("damage_debug.txt", result.DebugLog.ToString(), Encoding.UTF8); } catch { }
+            }
 
             return result;
         }

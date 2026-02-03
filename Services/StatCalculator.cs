@@ -345,8 +345,9 @@ namespace GameDamageCalculator.Services
                 permanentAtkRate, timedAtkRate, petAtkRate
             );
 
-            // 콘솔 출력 (WPF에서는 Debug 사용)
+            // 디버그 출력 (파일)
             System.Diagnostics.Debug.WriteLine(result.DebugLog.ToString());
+            try { System.IO.File.WriteAllText("stat_debug.txt", result.DebugLog.ToString(), Encoding.UTF8); } catch { }
 
             return result;
         }
