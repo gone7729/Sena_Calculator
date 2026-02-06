@@ -43,7 +43,17 @@ BaseDamage = (공/방계수) × 스킬배율 × 치명계수 × 약점계수 × 
 - UI 버프 리스트에 소교/빅토리아/여포 추가
 - 셋팅 비교 UI 간소화 (차이값 제거, 결과만 표시)
 - 프리셋 슬롯별 분리 (1번/2번 독립 프리셋, presets_1/2.json)
+- 라이언 광풍참 잃은HP 비례 피해 구현 (LostHpAssumedRemaining 모델)
+- SkillDmgMultiplier 버그 수정 (잃은HP 보너스 누락)
+- 체력조건/특정조건 체크박스 분리 (체력조건=강포방증, 특정조건=스킬조건)
+
+## 잃은HP 비례 피해 주의사항
+- SkillLevelData.LostHpAssumedRemaining: 특정조건 체크 시 가정할 대상 잔여HP%
+- 보너스 = LostHpBonusDmgMax × (100 - LostHpAssumedRemaining) / 100
+- SkillDmgMultiplier와 DamageMultiplier 모두에 적용 필수
+- 라이언 광풍참: 30% 잔여 → 35% 보너스 (인게임 ~1.2% 오차)
 
 ## 진행중/예정 작업
 - [ ] 추가 캐릭터 데이터 입력
-- [ ] 다른 캐릭터 인게임 검증 (타카 재검증 등)
+- [ ] 다른 캐릭터 인게임 검증 (타카 재검증, 라이언 재검증 등)
+- [ ] 라이언 광풍참 정확한 잔여HP% 확인 (현재 30% 가정, 실제 33.2%에서 정확)

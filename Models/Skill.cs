@@ -200,6 +200,7 @@ namespace GameDamageCalculator.Models
 
         // ===== 잃은 HP 비례 =====
         public double LostHpBonusDmgMax { get; set; }
+        public double LostHpAssumedRemaining { get; set; } // 특정조건 시 대상 잔여HP% (예: 30 = 30%남음 → 70%손실)
 
         // ===== 상태이상 =====
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();

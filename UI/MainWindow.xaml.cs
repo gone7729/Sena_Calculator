@@ -741,10 +741,9 @@ namespace GameDamageCalculator.UI
                     IsBlocked = chkMyBlock.IsChecked == true,
                     TargetStackCount = int.TryParse(txtMyTargetStackCount.Text, out int stacks) ? stacks : 0,
                     ForceStatusEffect = chkMyStatusEffect.IsChecked == true,
-                    IsLostHpConditionMet = chkMyLostHpCondition.IsChecked == true,
-
-                    // 조건
+                    // 조건 (특정조건 체크 시 잃은HP 보너스도 함께 적용)
                     IsSkillConditionMet = chkMySkillCondition.IsChecked == true,
+                    IsLostHpConditionMet = chkMySkillCondition.IsChecked == true,
                     AtkBuff = buffAtkRate,
 
                     // 자버프 타입피증 (스택소모 스킬용 - 자동 설정)

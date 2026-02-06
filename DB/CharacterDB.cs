@@ -129,15 +129,17 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 145, 
+                            { 0, new SkillLevelData {
+                                Ratio = 145,
                                 LostHpBonusDmgMax = 50,
+                                LostHpAssumedRemaining = 30,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
                                 Bonus = new BuffSet { WekBonusDmg = 230 }
                             }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 170, 
-                                LostHpBonusDmgMax  = 50,
+                            { 1, new SkillLevelData {
+                                Ratio = 170,
+                                LostHpBonusDmgMax = 50,
+                                LostHpAssumedRemaining = 30,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
                                 Bonus = new BuffSet { WekBonusDmg = 270 }
                             }}

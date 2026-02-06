@@ -198,8 +198,10 @@ namespace GameDamageCalculator.Services
             double lostHpBonus = CalcLostHpBonusDmg(input, levelData);
             if (lostHpBonus > 0)
             {
-                result.DebugLog.AppendLine($"[9] 잃은HP 보너스: +{lostHpBonus}%");
-                result.DamageMultiplier *= (1 + lostHpBonus / 100.0);
+                double lostHpMul = 1 + lostHpBonus / 100.0;
+                result.DebugLog.AppendLine($"[9] 잃은HP 보너스: +{lostHpBonus}% (×{lostHpMul:F4})");
+                result.DamageMultiplier *= lostHpMul;
+                result.SkillDmgMultiplier *= lostHpMul;
             }
 
             // 9. 기본 데미지
@@ -370,7 +372,14 @@ namespace GameDamageCalculator.Services
         private double CalcLostHpBonusDmg(DamageInput input, SkillLevelData levelData)
         {
             if (levelData == null || levelData.LostHpBonusDmgMax <= 0) return 0;
-            return input.IsLostHpConditionMet ? levelData.LostHpBonusDmgMax : 0;
+            if (!input.IsLostHpConditionMet) return 0;
+            // 잔여HP% 기준이 있으면 비례 계산 (예: 30% 남음 → 70% 손실 → 50% × 0.7 = 35%)
+            if (levelData.LostHpAssumedRemaining > 0)
+            {
+                double lostPct = (100.0 - levelData.LostHpAssumedRemaining) / 100.0;
+                return levelData.LostHpBonusDmgMax * lostPct;
+            }
+            return levelData.LostHpBonusDmgMax;
         }
 
         #endregion
