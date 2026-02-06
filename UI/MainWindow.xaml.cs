@@ -22,7 +22,7 @@ namespace GameDamageCalculator.UI
         private readonly StatCalculator _statCalculator;
         private readonly BuffCalculator _buffCalculator;
         private Formation _currentFormation = new Formation();
-        private PresetManager _presetManager;
+        private PresetManager[] _presetManagers = new PresetManager[2];
         private DebuffSet _currentDebuffs = new DebuffSet();
         private Accessory _currentAccessory = new Accessory();
 
@@ -80,7 +80,8 @@ namespace GameDamageCalculator.UI
             InitializeComboBoxes();  // 이 시점에 컨트롤들이 준비되어 있어야 함
             InitializeBuffConfigs();
             DataContext = this;
-            _presetManager = new PresetManager();
+            _presetManagers[0] = new PresetManager("presets_1.json");
+            _presetManagers[1] = new PresetManager("presets_2.json");
             RefreshPresetList();
             _isInitialized = true;
             RecalculateStats();
@@ -1634,7 +1635,10 @@ namespace GameDamageCalculator.UI
                 BtnReset_Click(null, null);
             }
 
-            // 4. 버튼 UI 업데이트
+            // 4. 프리셋 리스트 갱신 (슬롯별 분리)
+            RefreshPresetList();
+
+            // 5. 버튼 UI 업데이트
             UpdateSlotButtonStyles();
         }
 
@@ -1668,7 +1672,7 @@ namespace GameDamageCalculator.UI
         {
             cboPreset.Items.Clear();
             cboPreset.Items.Add("-- 프리셋 선택 --");
-            foreach (var name in _presetManager.GetPresetNames())
+            foreach (var name in _presetManagers[_currentSlotIndex].GetPresetNames())
             {
                 cboPreset.Items.Add(name);
             }
@@ -1974,7 +1978,7 @@ namespace GameDamageCalculator.UI
             {
                 var preset = CreatePresetFromUI();
                 preset.Name = cboPreset.SelectedItem.ToString();
-                _presetManager.UpdatePreset(cboPreset.SelectedIndex - 1, preset);
+                _presetManagers[_currentSlotIndex].UpdatePreset(cboPreset.SelectedIndex - 1, preset);
                 MessageBox.Show($"'{preset.Name}' 프리셋이 저장되었습니다.", "저장 완료");
             }
             else
@@ -2017,7 +2021,7 @@ namespace GameDamageCalculator.UI
             {
                 var preset = CreatePresetFromUI();
                 preset.Name = textBox.Text;
-                _presetManager.AddPreset(preset);
+                _presetManagers[_currentSlotIndex].AddPreset(preset);
                 RefreshPresetList();
                 cboPreset.SelectedIndex = cboPreset.Items.Count - 1;
                 MessageBox.Show($"'{preset.Name}' 프리셋이 저장되었습니다.", "저장 완료");
@@ -2034,7 +2038,7 @@ namespace GameDamageCalculator.UI
 
             if (result == MessageBoxResult.Yes)
             {
-                _presetManager.DeletePreset(cboPreset.SelectedIndex - 1);
+                _presetManagers[_currentSlotIndex].DeletePreset(cboPreset.SelectedIndex - 1);
                 RefreshPresetList();
             }
         }
@@ -2044,7 +2048,7 @@ namespace GameDamageCalculator.UI
             if (!_isInitialized) return;
             if (cboPreset.SelectedIndex <= 0) return;
 
-            var preset = _presetManager.GetPreset(cboPreset.SelectedIndex - 1);
+            var preset = _presetManagers[_currentSlotIndex].GetPreset(cboPreset.SelectedIndex - 1);
             ApplyPresetToUI(preset);
         }
 
