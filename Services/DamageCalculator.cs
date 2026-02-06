@@ -111,6 +111,9 @@ namespace GameDamageCalculator.Services
             public bool CoopTriggered { get; set; }
             public double CoopChance { get; set; }
 
+            public double MarkDamage { get; set; }
+            public double MarkHpDamage { get; set; }
+
             public double HealAmount { get; set; }
             public string HealSource { get; set; }
             public double HealFromDamage { get; set; }
@@ -244,6 +247,7 @@ namespace GameDamageCalculator.Services
             if (levelData?.HealDmgRatio > 0)
                 result.HealFromDamage = result.FinalDamage * (levelData.HealDmgRatio / 100.0);
             CalcCoopDamage(input, result);
+            CalcMarkDamage(input, result);
 
             // 21. 상세 정보
             result.Details = GenerateDetails(input, result);
@@ -357,15 +361,8 @@ namespace GameDamageCalculator.Services
                 debugLog.AppendLine($"    스택소모용 피증: {totalDmgBonus}% → {multiplier:F4}x (자버프 포함)");
             }
 
-            // ===== 조건부 추가피해용: n인기피증 제외 =====
-            // 조건부 추가피해(방어무시)에는 n인기피증이 적용되지 않음
-            double extraDmgBonus = totalDmgBonus - targetTypeDmg;
-            result.ExtraDmgMultiplier = 1 + (extraDmgBonus - reductionTotal) / 100.0;
-            if (targetTypeDmg > 0)
-            {
-                debugLog.AppendLine($"\n    [조건부추가] n인기피증 {targetTypeDmg}% 제외:");
-                debugLog.AppendLine($"    추가피해용 피증: {extraDmgBonus}% → {result.ExtraDmgMultiplier:F4}x");
-            }
+            // ===== 조건부 추가피해용 =====
+            result.ExtraDmgMultiplier = multiplier;
 
             return multiplier;
         }
@@ -461,7 +458,9 @@ namespace GameDamageCalculator.Services
             result.DebugLog.AppendLine($"    [약점추가 조건] IsWeakpoint:{input.IsWeakpoint}, WekBonusDmg:{skillBonus.WekBonusDmg}%");
             if (input.IsWeakpoint && skillBonus.WekBonusDmg > 0)
             {
-                result.WekBonusDmg = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.SkillDmgMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                double wekBonus = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.SkillDmgMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                if (skillBonus.WekBonusDmgPerHit) wekBonus *= result.AtkCount;
+                result.WekBonusDmg = wekBonus;
                 result.DebugLog.AppendLine($"    약점추가: {result.WekBonusDmg:N0}");
             }
 
@@ -786,6 +785,32 @@ namespace GameDamageCalculator.Services
 
         #endregion
 
+        #region 표식 계산
+
+        private void CalcMarkDamage(DamageInput input, DamageResult result)
+        {
+            result.MarkDamage = 0;
+            result.MarkHpDamage = 0;
+            if (input.Character?.Passive == null) return;
+
+            var passiveData = input.Character.Passive.GetLevelData(input.IsSkillEnhanced);
+            var markAttack = passiveData?.MarkAttack;
+            if (markAttack == null) return;
+
+            if (markAttack.Ratio > 0)
+            {
+                double atkOverDef = input.FinalAtk / result.DefCoefficient;
+                result.MarkDamage = atkOverDef * (markAttack.Ratio / 100.0) * result.DamageMultiplier * markAttack.AtkCount;
+            }
+
+            if (markAttack.TargetMaxHpRatio > 0 && input.TargetHp > 0)
+            {
+                result.MarkHpDamage = input.TargetHp * (markAttack.TargetMaxHpRatio / 100.0) * result.DamageMultiplier;
+            }
+        }
+
+        #endregion
+
         #region 막기/축복 처리
 
         private void ApplyBlock(DamageInput input, DamageResult result)
@@ -895,7 +920,8 @@ namespace GameDamageCalculator.Services
 
             // 별도 피해 (취약 적용)
             if (result.HpRatioDamage > 0 || result.ConsumeExtraDmg > 0 ||
-                result.StatusDamage > 0 || result.CoopDamage > 0 || result.CoopHpDamage > 0)
+                result.StatusDamage > 0 || result.CoopDamage > 0 || result.CoopHpDamage > 0 ||
+                result.MarkDamage > 0 || result.MarkHpDamage > 0)
             {
                 sb.AppendLine("\n📌 별도 피해");
                 if (result.HpRatioDamage > 0)
@@ -907,6 +933,9 @@ namespace GameDamageCalculator.Services
                 double totalCoopDmg = (result.CoopDamage + result.CoopHpDamage) * vulMult;
                 if (totalCoopDmg > 0)
                     sb.AppendLine($"  협공: {totalCoopDmg:N0}");
+                double totalMarkDmg = (result.MarkDamage + result.MarkHpDamage) * vulMult;
+                if (totalMarkDmg > 0)
+                    sb.AppendLine($"  표식: {totalMarkDmg:N0}");
             }
 
             // 축복/흡수
@@ -996,7 +1025,8 @@ namespace GameDamageCalculator.Services
 
             // ===== 4. 별도 피해 (스킬 데미지 외 추가) =====
             if (result.HpRatioDamage > 0 || result.ConsumeExtraDmg > 0 ||
-                result.StatusDamage > 0 || result.CoopDamage > 0 || result.CoopHpDamage > 0)
+                result.StatusDamage > 0 || result.CoopDamage > 0 || result.CoopHpDamage > 0 ||
+                result.MarkDamage > 0 || result.MarkHpDamage > 0)
             {
                 sb.AppendLine("\n📌 별도 피해");
                 if (result.HpRatioDamage > 0)
@@ -1008,6 +1038,9 @@ namespace GameDamageCalculator.Services
                 double totalCoopDmg = result.CoopDamage + result.CoopHpDamage;
                 if (totalCoopDmg > 0)
                     sb.AppendLine($"  협공: {totalCoopDmg:N0}");
+                double totalMarkDmg = result.MarkDamage + result.MarkHpDamage;
+                if (totalMarkDmg > 0)
+                    sb.AppendLine($"  표식: {totalMarkDmg:N0}");
             }
 
             // 축복/흡수

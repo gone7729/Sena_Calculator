@@ -160,6 +160,7 @@ namespace GameDamageCalculator.Models
         public string Effect { get; set; }
         public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
         public CoopAttack CoopAttack { get; set; }
+        public MarkAttack MarkAttack { get; set; }
         public PainEndurance PainEndurance { get; set; }
         public BaseStatSet FlatBonus { get; set; }
     }
@@ -175,6 +176,17 @@ namespace GameDamageCalculator.Models
         public double Ratio { get; set; }               // 공격력 배율%
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP%
         public double AtkCap { get; set; }              // 공격력 제한%
+    }
+
+    /// <summary>
+    /// 표식 공격 데이터
+    /// </summary>
+    public class MarkAttack
+    {
+        public int MaxStacks { get; set; }               // 최대 중첩 수
+        public int AtkCount { get; set; } = 1;           // 타수
+        public double Ratio { get; set; }                // 공격력 배율%
+        public double TargetMaxHpRatio { get; set; }     // 최대 중첩 시 대상 최대 HP%
     }
 
     /// <summary>

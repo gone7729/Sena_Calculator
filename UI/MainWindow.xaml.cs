@@ -115,6 +115,8 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "BuffPassiveYushin", BaseName = "유신", CharacterName = "유신", Label = "(효과적중)", IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveRozy", BaseName = "로지", CharacterName = "로지", Label = "(효과적중(만/방))", IsBuff = true },
                 new BuffConfig { Key = "BuffPassiveSpike", BaseName = "스파이크", CharacterName = "스파이크", Label = "(효적,효저)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveYopo", BaseName = "여포", CharacterName = "여포", Label = "(용이무모)", IsBuff = true },
+                new BuffConfig { Key = "BuffPassiveVictoria", BaseName = "빅토리아", CharacterName = "빅토리아", Label = "(댐감@2초)", IsBuff = true },
 
                 // ==================== 턴제 버프 ====================
                 new BuffConfig { Key = "BuffActiveDazy", BaseName = "데이지", CharacterName = "데이지", SkillName = "불나비", Label = "(마공증)", IsBuff = true },
@@ -126,6 +128,9 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "BuffActiveRudi", BaseName = "루디", CharacterName = "루디", SkillName = "방어 준비", Label = "(댐감@스강)", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveAkila", BaseName = "아킬라", CharacterName = "아킬라", SkillName = "칠흑의 장막", Label = "(댐감@스강)", IsBuff = true },
                 new BuffConfig { Key = "BuffActiveAlice", BaseName = "엘리스", CharacterName = "엘리스", SkillName = "비밀의 문", Label = "(방증)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveYopo", BaseName = "여포", CharacterName = "여포", SkillName = "혈풍벽파", Label = "(방관@6초)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveSogyo", BaseName = "소교", CharacterName = "소교", SkillName = "호접지몽", Label = "(공증,치피@6초)", IsBuff = true },
+                new BuffConfig { Key = "BuffActiveVictoria", BaseName = "빅토리아", CharacterName = "빅토리아", SkillName = "사기 진작", Label = "(공증)", IsBuff = true },
 
                 // ==================== 지속 디버프 ====================
                 new BuffConfig { Key = "DebuffPassiveTaka", BaseName = "타카", CharacterName = "타카", Label = "(받피증, 취약)", IsBuff = false },
@@ -182,6 +187,9 @@ namespace GameDamageCalculator.UI
                 new BuffConfig { Key = "DebuffActiveAceS2", BaseName = "에이스", CharacterName = "에이스", SkillName = "일도천화엽", Label = "(취약,막감)", GroupKey = "Ace", ShowButton = false, IsBuff = false },
 
                 new BuffConfig { Key = "DebuffActiveGoku", BaseName = "손오공", CharacterName = "손오공", SkillName = "환.여의난참무", Label = "(막감)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveYopo", BaseName = "여포", CharacterName = "여포", SkillName = "혈풍벽파", Label = "(방깎@2초)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveSogyo", BaseName = "소교", CharacterName = "소교", SkillName = "호접지몽", Label = "(취약)", IsBuff = false },
+                new BuffConfig { Key = "DebuffActiveVictoria", BaseName = "빅토리아", CharacterName = "빅토리아", SkillName = "권총 사격", Label = "(취약)", IsBuff = false },
             };
 
             // 체크 변경 이벤트 연결
@@ -658,7 +666,7 @@ namespace GameDamageCalculator.UI
                 if (rbMob.IsChecked == true) mode = BattleMode.Mob;
 
                 // 버프% 계산
-                double buffAtkRate = GetPetOptionAtkRate() + totalBuffs.Atk_Rate;
+                double buffAtkRate = GetPetOptionAtkRate() + totalBuffs.Atk_Rate + totalBuffs.FoolhardyBravery;
 
                 if (cboMyCharacter.SelectedIndex > 0)
                 {
@@ -784,7 +792,7 @@ namespace GameDamageCalculator.UI
         }
 
         /// <summary>
-        /// 1번 셋팅과 2번 셋팅의 데미지 비교 문자열 생성
+        /// 1번 셋팅과 2번 셋팅의 데미지 결과 문자열 생성
         /// </summary>
         private string GenerateSettingComparison()
         {
@@ -794,43 +802,20 @@ namespace GameDamageCalculator.UI
 
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("═══════════════════════════════════════");
-            sb.AppendLine("         ⚔️  셋팅 비교  ⚔️");
-            sb.AppendLine("═══════════════════════════════════════");
 
-            // 1번 셋팅 정보
             string name1 = _slotCharacterNames[0] ?? "미설정";
             double dmg1 = _slotMaxDamages[0];
             string dmg1Str = dmg1 > 0 ? dmg1.ToString("N0") : "-";
 
-            // 2번 셋팅 정보
             string name2 = _slotCharacterNames[1] ?? "미설정";
             double dmg2 = _slotMaxDamages[1];
             string dmg2Str = dmg2 > 0 ? dmg2.ToString("N0") : "-";
 
-            // 현재 셋팅 표시
             string marker1 = _currentSlotIndex == 0 ? " ◀" : "";
             string marker2 = _currentSlotIndex == 1 ? " ◀" : "";
 
-            sb.AppendLine($"  1번 셋팅 ({name1}): {dmg1Str,12}{marker1}");
-            sb.AppendLine($"  2번 셋팅 ({name2}): {dmg2Str,12}{marker2}");
-
-            // 둘 다 계산되었으면 차이 표시
-            if (dmg1 > 0 && dmg2 > 0)
-            {
-                double diff = dmg1 - dmg2;
-                double diffPercent = (diff / dmg2) * 100;
-                string diffSign = diff >= 0 ? "+" : "";
-                string winner = diff > 0 ? "1번" : (diff < 0 ? "2번" : "동일");
-
-                sb.AppendLine("───────────────────────────────────────");
-                sb.AppendLine($"  차이: {diffSign}{diff:N0} ({diffSign}{diffPercent:F1}%)");
-                sb.AppendLine($"  → {winner} 셋팅이 더 높음");
-            }
-            else
-            {
-                sb.AppendLine("───────────────────────────────────────");
-                sb.AppendLine("  ※ 두 셋팅 모두 계산해야 비교 가능");
-            }
+            sb.AppendLine($"  1번 ({name1}): {dmg1Str,12}{marker1}");
+            sb.AppendLine($"  2번 ({name2}): {dmg2Str,12}{marker2}");
 
             sb.AppendLine("═══════════════════════════════════════");
             sb.AppendLine();
@@ -852,7 +837,9 @@ namespace GameDamageCalculator.UI
             if (character?.Passive == null) return 0;
 
             var passiveData = character.Passive.GetLevelData(isSkillEnhanced);
-            return passiveData?.SelfBuff?.Dmg_Dealt_Type ?? 0;
+            var selfBuff = passiveData?.SelfBuff;
+            if (selfBuff == null) return 0;
+            return selfBuff.Dmg_Dealt_Type + selfBuff.Mark_Energeia + selfBuff.Mark_Purify;
         }
 
         private Boss GetSelectedBoss()

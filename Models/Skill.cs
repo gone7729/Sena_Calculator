@@ -239,6 +239,7 @@ namespace GameDamageCalculator.Models
         public double AtkCap { get; set; }
         public double HealHpRatio { get; set; }
 
+        public double HealAtkRatio { get; set; }
         public string Effect { get; set; }
     }
 

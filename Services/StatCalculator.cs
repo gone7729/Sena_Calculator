@@ -267,12 +267,13 @@ namespace GameDamageCalculator.Services
             result.DebugLog.AppendLine($"  [공%] 파티지속: {partyPermanentBuff.Atk_Rate}%, 자버프지속: {selfPermanentBuff.Atk_Rate}%");
             result.DebugLog.AppendLine($"  [공%] 파티턴제: {partyTimedBuff.Atk_Rate}%, 자버프턴제: {selfTimedBuff.Atk_Rate}%");
             result.DebugLog.AppendLine($"  [공%] 펫스킬: {partyPetBuff.Atk_Rate}%");
-            double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate);
+            double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate)
+                + partyPermanentBuff.FoolhardyBravery;
             double timedAtkRate = Math.Max(partyTimedBuff.Atk_Rate, selfTimedBuff.Atk_Rate);
             double petAtkRate = partyPetBuff.Atk_Rate;
-            // 턴제 + 펫은 합연산
-            double atkMultiplier = (1 + permanentAtkRate / 100.0) * (1 + (timedAtkRate + petAtkRate) / 100.0);
-            result.DebugLog.AppendLine($"  ★ 지속: {permanentAtkRate}%, 턴제+펫: {timedAtkRate + petAtkRate}% → (1+{permanentAtkRate}/100)×(1+{timedAtkRate + petAtkRate}/100) = {atkMultiplier:F4}x");
+            double totalBuffAtkRate = permanentAtkRate + timedAtkRate + petAtkRate;
+            double atkMultiplier = 1 + totalBuffAtkRate / 100.0;
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentAtkRate}% + 턴제: {timedAtkRate}% + 펫: {petAtkRate}% = {totalBuffAtkRate}% → {atkMultiplier:F4}x");
 
             // 방어력%
             result.DebugLog.AppendLine($"  [방%] 파티지속: {partyPermanentBuff.Def_Rate}%, 자버프지속: {selfPermanentBuff.Def_Rate}%");
@@ -281,9 +282,9 @@ namespace GameDamageCalculator.Services
             double permanentDefRate = Math.Max(partyPermanentBuff.Def_Rate, selfPermanentBuff.Def_Rate);
             double timedDefRate = Math.Max(partyTimedBuff.Def_Rate, selfTimedBuff.Def_Rate);
             double petDefRate = partyPetBuff.Def_Rate;
-            // 턴제 + 펫은 합연산
-            double defMultiplier = (1 + permanentDefRate / 100.0) * (1 + (timedDefRate + petDefRate) / 100.0);
-            result.DebugLog.AppendLine($"  ★ 지속: {permanentDefRate}%, 턴제+펫: {timedDefRate + petDefRate}% → (1+{permanentDefRate}/100)×(1+{timedDefRate + petDefRate}/100) = {defMultiplier:F4}x");
+            double totalBuffDefRate = permanentDefRate + timedDefRate + petDefRate;
+            double defMultiplier = 1 + totalBuffDefRate / 100.0;
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentDefRate}% + 턴제: {timedDefRate}% + 펫: {petDefRate}% = {totalBuffDefRate}% → {defMultiplier:F4}x");
 
             // 체력%
             result.DebugLog.AppendLine($"  [체%] 파티지속: {partyPermanentBuff.Hp_Rate}%, 자버프지속: {selfPermanentBuff.Hp_Rate}%");
@@ -292,9 +293,9 @@ namespace GameDamageCalculator.Services
             double permanentHpRate = Math.Max(partyPermanentBuff.Hp_Rate, selfPermanentBuff.Hp_Rate);
             double timedHpRate = Math.Max(partyTimedBuff.Hp_Rate, selfTimedBuff.Hp_Rate);
             double petHpRate = partyPetBuff.Hp_Rate;
-            // 턴제 + 펫은 합연산
-            double hpMultiplier = (1 + permanentHpRate / 100.0) * (1 + (timedHpRate + petHpRate) / 100.0);
-            result.DebugLog.AppendLine($"  ★ 지속: {permanentHpRate}%, 턴제+펫: {timedHpRate + petHpRate}% → (1+{permanentHpRate}/100)×(1+{timedHpRate + petHpRate}/100) = {hpMultiplier:F4}x");
+            double totalBuffHpRate = permanentHpRate + timedHpRate + petHpRate;
+            double hpMultiplier = 1 + totalBuffHpRate / 100.0;
+            result.DebugLog.AppendLine($"  ★ 지속: {permanentHpRate}% + 턴제: {timedHpRate}% + 펫: {petHpRate}% = {totalBuffHpRate}% → {hpMultiplier:F4}x");
 
             // ========== 기본 스탯 (스탯창 = 진형/펫잠재 제외) ==========
             double baseStatAtk = baseAtk * (1 + totalAtkRate / 100.0) + flatAtk;
