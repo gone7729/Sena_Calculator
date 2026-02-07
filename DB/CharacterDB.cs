@@ -132,14 +132,14 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 Ratio = 145,
                                 LostHpBonusDmgMax = 50,
-                                LostHpAssumedRemaining = 30,
+                                LostHpAssumedRemaining = 0,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
                                 Bonus = new BuffSet { WekBonusDmg = 230 }
                             }},
                             { 1, new SkillLevelData {
                                 Ratio = 170,
                                 LostHpBonusDmgMax = 50,
-                                LostHpAssumedRemaining = 30,
+                                LostHpAssumedRemaining = 0,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
                                 Bonus = new BuffSet { WekBonusDmg = 270 }
                             }}
@@ -3261,8 +3261,8 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "우후죽순",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
+                        TargetCount = 1,
+                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { 
@@ -3287,7 +3287,7 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "호접지몽",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
+                        TargetCount = 1,
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
