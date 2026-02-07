@@ -1646,19 +1646,25 @@ namespace GameDamageCalculator.UI
         /// </summary>
         private void UpdateSlotButtonStyles()
         {
-            // 1번 슬롯 버튼
+            var activeGradient = new LinearGradientBrush(
+                Color.FromRgb(99, 102, 241),   // #6366f1
+                Color.FromRgb(139, 92, 246),    // #8b5cf6
+                0);
+            var inactiveBrush = Brushes.Transparent;
+            var inactiveFg = new SolidColorBrush(Color.FromRgb(148, 163, 184)); // #94a3b8
+
             if (_currentSlotIndex == 0)
             {
-                btnSlot1.Background = new SolidColorBrush(Color.FromRgb(99, 102, 241));  // #6366f1
+                btnSlot1.Background = activeGradient;
                 btnSlot1.Foreground = Brushes.White;
-                btnSlot2.Background = new SolidColorBrush(Color.FromRgb(54, 59, 71));    // #363b47
-                btnSlot2.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184)); // #94a3b8
+                btnSlot2.Background = inactiveBrush;
+                btnSlot2.Foreground = inactiveFg;
             }
             else
             {
-                btnSlot1.Background = new SolidColorBrush(Color.FromRgb(54, 59, 71));
-                btnSlot1.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184));
-                btnSlot2.Background = new SolidColorBrush(Color.FromRgb(99, 102, 241));
+                btnSlot1.Background = inactiveBrush;
+                btnSlot1.Foreground = inactiveFg;
+                btnSlot2.Background = activeGradient;
                 btnSlot2.Foreground = Brushes.White;
             }
         }

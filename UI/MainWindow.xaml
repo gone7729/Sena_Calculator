@@ -5,30 +5,61 @@
         xmlns:local="clr-namespace:GameDamageCalculator.UI"
         Title="세븐나이츠 데미지 계산기" 
         Height="800" Width="1240"
-        Background="#1a1d23"
+        Background="#14161b"
         WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
-        <!-- ========== 색상 팔레트 ========== -->
-        <!-- Primary: #6366f1 (Indigo) -->
-        <!-- Secondary: #8b5cf6 (Violet) -->
-        <!-- Accent: #f59e0b (Amber) -->
-        <!-- Success: #10b981 (Emerald) -->
-        <!-- Danger: #ef4444 (Red) -->
-        <!-- Surface: #1e2128 (Dark) -->
-        <!-- Card: #262a33 (Card Dark) -->
+        <!-- ========== 섹션별 액센트 컬러 ========== -->
+        <SolidColorBrush x:Key="AccentCharacter" Color="#818cf8"/>
+        <SolidColorBrush x:Key="AccentEquipment" Color="#f59e0b"/>
+        <SolidColorBrush x:Key="AccentPet" Color="#10b981"/>
+        <SolidColorBrush x:Key="AccentFormation" Color="#06b6d4"/>
+        <SolidColorBrush x:Key="AccentBuff" Color="#a78bfa"/>
+        <SolidColorBrush x:Key="AccentDebuff" Color="#f87171"/>
+        <SolidColorBrush x:Key="AccentBoss" Color="#fb923c"/>
+        <SolidColorBrush x:Key="AccentResult" Color="#34d399"/>
+        <SolidColorBrush x:Key="AccentStat" Color="#60a5fa"/>
+
+        <!-- ========== 재사용 그라데이션 ========== -->
+        <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#6366f1" Offset="0"/>
+            <GradientStop Color="#8b5cf6" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- 배경 앰비언트 글로우 -->
+        <RadialGradientBrush x:Key="BgAmbientGlow" Center="0.3,0.1" RadiusX="0.8" RadiusY="0.6">
+            <GradientStop Color="#0c6366f1" Offset="0"/>
+            <GradientStop Color="#001a1d23" Offset="1"/>
+        </RadialGradientBrush>
         
         <!-- ========== SectionBorder ========== -->
         <Style x:Key="SectionBorder" TargetType="Border">
-            <Setter Property="Background" Value="#262a33"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#2a2e38" Offset="0"/>
+                        <GradientStop Color="#262a33" Offset="0.15"/>
+                        <GradientStop Color="#262a33" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
             <Setter Property="BorderBrush" Value="#363b47"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12"/>
             <Setter Property="Margin" Value="2"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3" Color="#000000"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.35" Color="#000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ========== ElevatedSectionBorder (보스/결과 영역) ========== -->
+        <Style x:Key="ElevatedSectionBorder" TargetType="Border" BasedOn="{StaticResource SectionBorder}">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.45" Color="#000000"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -99,10 +130,10 @@
         
         <!-- ========== SectionTitle ========== -->
         <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#f8fafc"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#f1f5f9"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
         
         <!-- ========== LabelText ========== -->
@@ -135,8 +166,16 @@
                                           VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#4a5568"/>
+                            </Trigger>
                             <Trigger Property="IsFocused" Value="True">
                                 <Setter Property="BorderBrush" Value="#6366f1"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.25" Color="#6366f1"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -280,9 +319,16 @@
         
         <!-- ========== OutputBox ========== -->
         <Style x:Key="OutputBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#1e2128"/>
-            <Setter Property="Foreground" Value="#6366f1"/>
-            <Setter Property="BorderBrush" Value="#363b47"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#1e2128" Offset="0"/>
+                        <GradientStop Color="#1a1d23" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#818cf8"/>
+            <Setter Property="BorderBrush" Value="#2c3040"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -474,26 +520,71 @@
         
         <!-- ========== CalcButton (Primary) ========== -->
         <Style x:Key="CalcButton" TargetType="Button">
-            <Setter Property="Background" Value="#6366f1"/>
             <Setter Property="Foreground" Value="#ffffff"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="20,10"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="border" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#6366f1" Offset="0"/>
+                                    <GradientStop Color="#7c3aed" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.3" Color="#6366f1"/>
+                            </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="border"
+                                            Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                            To="24" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="border"
+                                            Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                            To="0.6" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="border"
+                                            Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                            To="8" Duration="0:0:0.3"/>
+                                        <DoubleAnimation Storyboard.TargetName="border"
+                                            Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                            To="0.3" Duration="0:0:0.3"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#818cf8"/>
+                                <Setter TargetName="border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#818cf8" Offset="0"/>
+                                            <GradientStop Color="#8b5cf6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#4f46e5"/>
+                                <Setter TargetName="border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#4f46e5" Offset="0"/>
+                                            <GradientStop Color="#6d28d9" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -503,23 +594,26 @@
         
         <!-- ========== SecondaryButton ========== -->
         <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#363b47"/>
-            <Setter Property="Foreground" Value="#e2e8f0"/>
+            <Setter Property="Foreground" Value="#cbd5e1"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Padding" Value="16,10"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="border" CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                BorderBrush="#4a5568" BorderThickness="1" Background="#2c3040">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#464c5c"/>
+                                <Setter TargetName="border" Property="Background" Value="#363b47"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#6366f1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1e2128"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -564,8 +658,18 @@
 
         <!-- 버프 아이템 템플릿 (단일 + 그룹 통합) -->
         <DataTemplate x:Key="BuffItemTemplate">
-            <Border Margin="1" Padding="5" Background="#1e2128" CornerRadius="6"
+            <Border Margin="1" Padding="5" CornerRadius="6"
                     Visibility="{Binding ShowButton, Converter={StaticResource BoolToVisibility}}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="#1e2128"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#252930"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel>
                     <!-- 라벨 (그룹이면 두 개 표시) -->
                     <StackPanel Orientation="Horizontal">
@@ -648,7 +752,14 @@
 
         <!-- ========== 장비 템플릿 ========== -->
         <DataTemplate x:Key="EquipmentTemplate">
-            <Border Background="#1e2128" BorderBrush="#363b47" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,4,4">
+            <Border BorderBrush="#2c3040" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,4,4">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#222630" Offset="0"/>
+                        <GradientStop Color="#1e2128" Offset="0.1"/>
+                        <GradientStop Color="#1e2128" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <StackPanel>
                     <!-- 장비 이름 + 메인옵션 -->
                     <Grid Margin="0,0,0,6">
@@ -696,83 +807,127 @@
     </Window.Resources>
     
     <Grid Margin="6">
+        <!-- 앰비언트 글로우 오버레이 -->
+        <Border Background="{StaticResource BgAmbientGlow}" IsHitTestVisible="False"/>
+
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
+
         <!-- 타이틀 + 프리셋 -->
-        <Border Grid.Row="0" Background="#262a33" Padding="10" Margin="0,0,0,4" CornerRadius="8">
+        <Border Grid.Row="0" CornerRadius="10" Margin="0,0,0,6">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#2c3040" Offset="0"/>
+                    <GradientStop Color="#262a33" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.4" Color="#000000"/>
+            </Border.Effect>
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="3"/>
+                </Grid.RowDefinitions>
 
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="세븐나이츠"
-                               FontSize="16" FontWeight="Bold"
-                               Foreground="#f8fafc"
-                               VerticalAlignment="Center"/>
-                    <TextBlock Text="데미지 계산기"
-                               FontSize="16" FontWeight="Bold"
-                               Foreground="#6366f1"
-                               VerticalAlignment="Center"
-                               Margin="8,0,0,0"/>
+                <Grid Grid.Row="0" Margin="14,10,14,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                    <!-- 셋팅 슬롯 전환 버튼 -->
-                    <Border Background="#1e2128" CornerRadius="6" Margin="20,0,0,0" Padding="2">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="btnSlot1" Content="1번 셋팅"
-                                    Click="BtnSlot_Click" Tag="0"
-                                    Width="80" Height="28"
-                                    Background="#6366f1" Foreground="White"
-                                    FontSize="11" FontWeight="SemiBold"
-                                    BorderThickness="0" Cursor="Hand">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="border" Background="{TemplateBinding Background}"
-                                                CornerRadius="4" Padding="8,4">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                            <Button x:Name="btnSlot2" Content="2번 셋팅"
-                                    Click="BtnSlot_Click" Tag="1"
-                                    Width="80" Height="28"
-                                    Background="#363b47" Foreground="#94a3b8"
-                                    FontSize="11" FontWeight="SemiBold"
-                                    BorderThickness="0" Cursor="Hand">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="border" Background="{TemplateBinding Background}"
-                                                CornerRadius="4" Padding="8,4">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="세븐나이츠"
+                                   FontSize="17" FontWeight="Bold"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Foreground>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#f8fafc" Offset="0"/>
+                                    <GradientStop Color="#cbd5e1" Offset="1"/>
+                                </LinearGradientBrush>
+                            </TextBlock.Foreground>
+                        </TextBlock>
+                        <TextBlock Text="데미지 계산기"
+                                   FontSize="17" FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0">
+                            <TextBlock.Foreground>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#818cf8" Offset="0"/>
+                                    <GradientStop Color="#a78bfa" Offset="1"/>
+                                </LinearGradientBrush>
+                            </TextBlock.Foreground>
+                        </TextBlock>
 
-                <!-- 프리셋 -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <ComboBox x:Name="cboPreset" Width="140" Margin="0,0,8,0"
-                              SelectionChanged="CboPreset_SelectionChanged"
-                              Style="{StaticResource ComboStyle}"/>
-                    <Button Content="저장" Width="60" Margin="0,0,4,0" 
-                            Click="BtnSavePreset_Click" Style="{StaticResource BuffOptionButtonStyle}"
-                            Padding="12,8"/>
-                    <Button Content="새로저장" Width="70" Margin="0,0,4,0" 
-                            Click="BtnSaveAsPreset_Click" Style="{StaticResource BuffOptionButtonStyle}"
-                            Padding="12,8"/>
-                    <Button Content="삭제" Width="60" 
-                            Click="BtnDeletePreset_Click" Style="{StaticResource BuffOptionButtonStyle}"
-                            Padding="12,8"/>
-                </StackPanel>
+                        <!-- 셋팅 슬롯 전환 버튼 -->
+                        <Border Background="#1a1d23" CornerRadius="8" Margin="20,0,0,0" Padding="3"
+                                BorderBrush="#363b47" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="btnSlot1" Content="1번 셋팅"
+                                        Click="BtnSlot_Click" Tag="0"
+                                        Width="80" Height="28"
+                                        Background="#6366f1" Foreground="White"
+                                        FontSize="11" FontWeight="SemiBold"
+                                        BorderThickness="0" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="border" Background="{TemplateBinding Background}"
+                                                    CornerRadius="6" Padding="8,4">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="btnSlot2" Content="2번 셋팅"
+                                        Click="BtnSlot_Click" Tag="1"
+                                        Width="80" Height="28"
+                                        Background="Transparent" Foreground="#94a3b8"
+                                        FontSize="11" FontWeight="SemiBold"
+                                        BorderThickness="0" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="border" Background="{TemplateBinding Background}"
+                                                    CornerRadius="6" Padding="8,4">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 프리셋 -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <ComboBox x:Name="cboPreset" Width="140" Margin="0,0,8,0"
+                                  SelectionChanged="CboPreset_SelectionChanged"
+                                  Style="{StaticResource ComboStyle}"/>
+                        <Button Content="저장" Width="60" Margin="0,0,4,0"
+                                Click="BtnSavePreset_Click" Style="{StaticResource BuffOptionButtonStyle}"
+                                Padding="12,8"/>
+                        <Button Content="새로저장" Width="70" Margin="0,0,4,0"
+                                Click="BtnSaveAsPreset_Click" Style="{StaticResource BuffOptionButtonStyle}"
+                                Padding="12,8"/>
+                        <Button Content="삭제" Width="60"
+                                Click="BtnDeletePreset_Click" Style="{StaticResource BuffOptionButtonStyle}"
+                                Padding="12,8"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 하단 그라데이션 악센트 라인 -->
+                <Border Grid.Row="1" CornerRadius="0,0,10,10">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#6366f1" Offset="0"/>
+                            <GradientStop Color="#8b5cf6" Offset="0.5"/>
+                            <GradientStop Color="#a78bfa" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
             </Grid>
         </Border>
 
@@ -791,8 +946,18 @@
                     <!-- ===== 캐릭터 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="캐릭터" Style="{StaticResource SectionTitle}"/>
-                            
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="캐릭터" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="40">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#818cf8" Offset="0"/>
+                                            <GradientStop Color="#00818cf8" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
+
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="80"/>
@@ -885,7 +1050,17 @@
                     <!-- ===== 장비 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="장비" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="장비" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="30">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#f59e0b" Offset="0"/>
+                                            <GradientStop Color="#00f59e0b" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
 
                             <!-- 세트 -->
                             <Grid Margin="0,0,0,8">
@@ -960,7 +1135,17 @@
                     <!-- ===== 펫 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="펫" Style="{StaticResource SectionTitle}"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="펫" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="20">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#10b981" Offset="0"/>
+                                            <GradientStop Color="#0010b981" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
                             
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
@@ -1028,7 +1213,17 @@
                     <!-- ===== 진형 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="진형" Style="{StaticResource SectionTitle}"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="진형" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="30">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#06b6d4" Offset="0"/>
+                                            <GradientStop Color="#0006b6d4" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
 
                             <StackPanel Orientation="Horizontal">
                                 <ComboBox x:Name="cboMyFormation" Style="{StaticResource ComboStyle}" Width="150" Margin="0,0,20,0"
@@ -1048,7 +1243,17 @@
                     <!-- ===== 버프 - 패시브 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="지속 버프" Style="{StaticResource SectionTitle}"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="지속 버프" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="45">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#a78bfa" Offset="0"/>
+                                            <GradientStop Color="#00a78bfa" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
                             <ItemsControl x:Name="icPassiveBuffs" ItemsSource="{Binding PassiveBuffs}" 
                                           ItemTemplate="{StaticResource BuffItemTemplate}">
                                 <ItemsControl.ItemsPanel>
@@ -1063,7 +1268,17 @@
                     <!-- ===== 버프 - 액티브 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="턴제 버프" Style="{StaticResource SectionTitle}"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="턴제 버프" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="45">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#a78bfa" Offset="0"/>
+                                            <GradientStop Color="#00a78bfa" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
                             <ItemsControl x:Name="icActiveBuffs" ItemsSource="{Binding ActiveBuffs}" 
                                           ItemTemplate="{StaticResource BuffItemTemplate}">
                                 <ItemsControl.ItemsPanel>
@@ -1078,7 +1293,17 @@
                     <!-- ===== 디버프 - 패시브 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="지속 디버프" Style="{StaticResource SectionTitle}"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="지속 디버프" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="50">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#f87171" Offset="0"/>
+                                            <GradientStop Color="#00f87171" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
                             <ItemsControl x:Name="icPassiveDebuffs" ItemsSource="{Binding PassiveDebuffs}" 
                                           ItemTemplate="{StaticResource BuffItemTemplate}">
                                 <ItemsControl.ItemsPanel>
@@ -1093,7 +1318,17 @@
                     <!-- ===== 디버프 - 액티브 ===== -->
                     <Border Style="{StaticResource SectionBorder}">
                         <StackPanel>
-                            <TextBlock Text="턴제 디버프" Style="{StaticResource SectionTitle}"/>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="턴제 디버프" Style="{StaticResource SectionTitle}"/>
+                                <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="50">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#f87171" Offset="0"/>
+                                            <GradientStop Color="#00f87171" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
                             <ItemsControl x:Name="icActiveDebuffs" ItemsSource="{Binding ActiveDebuffs}" 
                                           ItemTemplate="{StaticResource BuffItemTemplate}">
                                 <ItemsControl.ItemsPanel>
@@ -1110,27 +1345,47 @@
             <!-- ==================== 2컬럼: 스탯 ==================== -->
             <Border Grid.Column="1" Style="{StaticResource SectionBorder}">
                 <StackPanel>
-                    <TextBlock Text="스탯" Style="{StaticResource SectionTitle}"/>
-
-                    <!-- 기본 공/방/생 -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBlock Text="기본 공" Foreground="#64748b" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtMyStatAtkBase" Text="0" Margin="5,0,15,0" FontWeight="SemiBold" Foreground="#94a3b8"/>
-                        <TextBlock Text="기본 방" Foreground="#64748b" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtMyStatDefBase" Text="0" Margin="5,0,15,0" FontWeight="SemiBold" Foreground="#94a3b8"/>
-                        <TextBlock Text="기본 생" Foreground="#64748b" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtMyStatHpBase" Text="0" Margin="5,0,0,0" FontWeight="SemiBold" Foreground="#94a3b8"/>
+                    <StackPanel Margin="0,0,0,6">
+                        <TextBlock Text="스탯" Style="{StaticResource SectionTitle}"/>
+                        <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="30">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#60a5fa" Offset="0"/>
+                                    <GradientStop Color="#0060a5fa" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
                     </StackPanel>
 
-                    <!-- 최종 공/방/생 -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="최종 공" Foreground="#64748b" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtMyStatAtk" Text="0" Margin="5,0,15,0" FontWeight="Bold" Foreground="#f87171"/>
-                        <TextBlock Text="최종 방" Foreground="#64748b" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtMyStatDef" Text="0" Margin="5,0,15,0" FontWeight="Bold" Foreground="#60a5fa"/>
-                        <TextBlock Text="최종 생" Foreground="#64748b" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtMyStatHp" Text="0" Margin="5,0,0,0" FontWeight="Bold" Foreground="#4ade80"/>
-                    </StackPanel>
+                    <!-- 기본/최종 공방생 컨테이너 -->
+                    <Border Background="#1e2128" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                        <StackPanel>
+                            <!-- 기본 공/방/생 -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="기본" Foreground="#64748b" Width="30" VerticalAlignment="Center" FontSize="10"/>
+                                <TextBlock Text="공" Foreground="#64748b" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtMyStatAtkBase" Text="0" Width="50" FontWeight="SemiBold" Foreground="#94a3b8"/>
+                                <TextBlock Text="방" Foreground="#64748b" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtMyStatDefBase" Text="0" Width="50" FontWeight="SemiBold" Foreground="#94a3b8"/>
+                                <TextBlock Text="생" Foreground="#64748b" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtMyStatHpBase" Text="0" Width="50" FontWeight="SemiBold" Foreground="#94a3b8"/>
+                            </StackPanel>
+
+                            <!-- 구분선 -->
+                            <Border Height="1" Background="#363b47" Margin="0,4" Opacity="0.5"/>
+
+                            <!-- 최종 공/방/생 -->
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="최종" Foreground="#94a3b8" Width="30" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold"/>
+                                <TextBlock Text="공" Foreground="#f87171" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtMyStatAtk" Text="0" Width="50" FontWeight="Bold" FontSize="13" Foreground="#f87171"/>
+                                <TextBlock Text="방" Foreground="#60a5fa" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtMyStatDef" Text="0" Width="50" FontWeight="Bold" FontSize="13" Foreground="#60a5fa"/>
+                                <TextBlock Text="생" Foreground="#4ade80" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtMyStatHp" Text="0" Width="50" FontWeight="Bold" FontSize="13" Foreground="#4ade80"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                     
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -1230,8 +1485,19 @@
             <StackPanel Grid.Column="2">
                 
                 <!-- ===== 보스 ===== -->
-                <Border Style="{StaticResource SectionBorder}">
+                <Border Style="{StaticResource ElevatedSectionBorder}">
                     <StackPanel>
+                        <StackPanel Margin="0,0,0,6">
+                            <TextBlock Text="대상" Style="{StaticResource SectionTitle}"/>
+                            <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="30">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#fb923c" Offset="0"/>
+                                        <GradientStop Color="#00fb923c" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </StackPanel>
                         <!-- 전투 모드 선택 -->
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,10">
                             <RadioButton x:Name="rbBoss" Content="보스" IsChecked="True" GroupName="BattleMode" Checked="BattleMode_Changed" Foreground="#e2e8f0"/>
@@ -1401,11 +1667,27 @@
                 </Border>
                 
                 <!-- ===== 계산 결과 ===== -->
-                <Border Style="{StaticResource SectionBorder}">
+                <Border Style="{StaticResource ElevatedSectionBorder}">
                     <StackPanel>
-                        <TextBlock Text="계산 결과" Style="{StaticResource SectionTitle}"/>
-                        
-                        <Border Background="#1e2128" CornerRadius="8" Padding="12">
+                        <StackPanel Margin="0,0,0,6">
+                            <TextBlock Text="계산 결과" Style="{StaticResource SectionTitle}"/>
+                            <Border Height="2" CornerRadius="1" HorizontalAlignment="Left" Width="50">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#34d399" Offset="0"/>
+                                        <GradientStop Color="#0034d399" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </StackPanel>
+
+                        <Border CornerRadius="8" Padding="14" BorderBrush="#2c3040" BorderThickness="1">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="#1e2128" Offset="0"/>
+                                    <GradientStop Color="#1a1d23" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
                             <TextBox x:Name="txtResult"
                                      Height="280"
                                      TextWrapping="Wrap"
@@ -1422,6 +1704,7 @@
                 </Border>
                 
             </StackPanel>
+        </Grid>
         </Grid>
     </Grid>
 </Window>
