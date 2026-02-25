@@ -267,8 +267,7 @@ namespace GameDamageCalculator.Services
             result.DebugLog.AppendLine($"  [공%] 파티지속: {partyPermanentBuff.Atk_Rate}%, 자버프지속: {selfPermanentBuff.Atk_Rate}%");
             result.DebugLog.AppendLine($"  [공%] 파티턴제: {partyTimedBuff.Atk_Rate}%, 자버프턴제: {selfTimedBuff.Atk_Rate}%");
             result.DebugLog.AppendLine($"  [공%] 펫스킬: {partyPetBuff.Atk_Rate}%");
-            double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate)
-                + partyPermanentBuff.FoolhardyBravery;
+            double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate);
             double timedAtkRate = Math.Max(partyTimedBuff.Atk_Rate, selfTimedBuff.Atk_Rate);
             double petAtkRate = partyPetBuff.Atk_Rate;
             double totalBuffAtkRate = permanentAtkRate + timedAtkRate + petAtkRate;

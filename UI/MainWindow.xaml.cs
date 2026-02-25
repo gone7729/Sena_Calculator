@@ -667,7 +667,7 @@ namespace GameDamageCalculator.UI
                 if (rbMob.IsChecked == true) mode = BattleMode.Mob;
 
                 // 버프% 계산
-                double buffAtkRate = GetPetOptionAtkRate() + totalBuffs.Atk_Rate + totalBuffs.FoolhardyBravery;
+                double buffAtkRate = GetPetOptionAtkRate() + totalBuffs.Atk_Rate;
 
                 if (cboMyCharacter.SelectedIndex > 0)
                 {

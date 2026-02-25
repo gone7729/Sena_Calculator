@@ -1057,8 +1057,8 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 2,
+                        TargetCount = 2,
+                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData { Ratio = 80 } },
@@ -1133,7 +1133,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData { 
-                            PartyBuff = new PermanentBuff{ FoolhardyBravery = 31 },
+                            PartyBuff = new PermanentBuff{ Atk_Rate = 31 },
                             MarkAttack = new MarkAttack
                             {
                                 MaxStacks = 2,
@@ -1145,7 +1145,7 @@ namespace GameDamageCalculator.Database
                             Effect = "축복, 표식:방천화극의 분노 (최대2중첩, 2중첩시 HP16%+약피28%)"
                         }},
                         { 1, new PassiveLevelData {
-                            PartyBuff = new PermanentBuff{ FoolhardyBravery = 31 },
+                            PartyBuff = new PermanentBuff{ Atk_Rate = 31 },
                             MarkAttack = new MarkAttack
                             {
                                 MaxStacks = 2,
@@ -1155,6 +1155,93 @@ namespace GameDamageCalculator.Database
                             },
                             ConditionalSelfBuff = new TimedBuff { Wek_Dmg = 28 },
                             Effect = "축복, 표식:방천화극의 분노 (최대2중첩, 2중첩시 HP16%+약피28%)"
+                        }}
+                    },
+                    
+                },
+                TranscendType = TranscendType.AtkWek
+            },
+
+            // 백룡
+            new Character
+            {
+                Id = 14,
+                Name = "백룡",
+                Grade = "전설",
+                Type = "공격형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { Ratio = 100 } },
+                            { 1, new SkillLevelData { Ratio = 120 } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "섬광십무",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 340, 
+                                Bonus = new BuffSet{ Arm_Pen = 40 }
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 410, 
+                                Bonus = new BuffSet{ Arm_Pen = 40 }
+                             } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            {2, new SkillTranscend{ HealAtkRatio = 30 }},
+                            {6, new SkillTranscend{ Bonus = new BuffSet{ Arm_Pen = 25 } } }
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "쌍절태풍격",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 5,
+                        Atk_Count = 2,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 475, 
+                                Bonus = new BuffSet{ Arm_Pen = 40 } ,
+                            } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 575, 
+                                Bonus = new BuffSet{ Arm_Pen = 40 } ,
+                              } }
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            {6, new SkillTranscend{ Bonus = new BuffSet{ Arm_Pen = 25 } }}
+                        }
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "전설의 부활",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            SelfBuff = new PermanentBuff{ Cri = 27, Arm_Pen = 5 },
+                        }},
+                        { 1, new PassiveLevelData {
+                            SelfBuff = new PermanentBuff{ Cri = 33, Arm_Pen = 10 },
                         }}
                     },
                     
