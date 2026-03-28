@@ -1661,7 +1661,8 @@
                         <!-- 버튼 -->
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                             <Button Content="⚔️ 데미지 계산" Style="{StaticResource CalcButton}" Click="BtnCalculate_Click" Margin="0,0,10,0"/>
-                            <Button Content="🔄 초기화" Style="{StaticResource SecondaryButton}" Click="BtnReset_Click"/>
+                            <Button Content="🔄 초기화" Style="{StaticResource SecondaryButton}" Click="BtnReset_Click" Margin="0,0,10,0"/>
+                            <Button Content="⚔ 배틀 시뮬레이터" Style="{StaticResource SecondaryButton}" Click="BtnSimulator_Click"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

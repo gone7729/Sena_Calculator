@@ -942,7 +942,13 @@ namespace GameDamageCalculator.UI
 
             txtResult.Text = "계산 버튼을 눌러\n결과를 확인하세요.";
         }
-        
+
+        private void BtnSimulator_Click(object sender, RoutedEventArgs e)
+        {
+            var simulatorWindow = new SimulatorWindow();
+            simulatorWindow.Show();
+        }
+
         private void Tier_MouseLeft(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
