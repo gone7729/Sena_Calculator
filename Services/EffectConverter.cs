@@ -15,6 +15,7 @@ namespace GameDamageCalculator.Services
 
         /// <summary>
         /// 패시브의 모든 효과를 BattleEffect 리스트로 변환
+        /// 새 Effects 리스트가 있으면 우선 사용, 없으면 레거시 필드 사용
         /// </summary>
         public static List<BattleEffect> FromPassive(
             Passive passive, string characterName,
@@ -23,6 +24,17 @@ namespace GameDamageCalculator.Services
         {
             var effects = new List<BattleEffect>();
             if (passive == null) return effects;
+
+            var levelData = passive.GetLevelData(isEnhanced);
+
+            // 새 Effects 리스트가 있으면 우선 사용
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                effects.AddRange(FromPersistentEffects(levelData.Effects, characterName, isConditionMet));
+                return effects;
+            }
+
+            // === 레거시 필드 변환 ===
 
             // 상시 자버프
             var selfBuff = passive.GetTotalSelfBuff(isEnhanced, transcendLevel);
@@ -72,7 +84,7 @@ namespace GameDamageCalculator.Services
                 });
             }
 
-            // 조건부 효과 (조건 충족 시에만)
+            // 조건부 효과
             if (isConditionMet)
             {
                 var condSelf = passive.GetConditionalSelfBuff(isEnhanced, transcendLevel);
@@ -86,7 +98,7 @@ namespace GameDamageCalculator.Services
                         Target = EffectTarget.Self,
                         MergeStrategy = MergeStrategy.MaxMerge,
                         IsPermanent = false,
-                        RemainingTurns = 99, // 조건 유지 중 상시
+                        RemainingTurns = 99,
                         BuffValues = condSelf
                     });
                 }
@@ -125,7 +137,6 @@ namespace GameDamageCalculator.Services
             }
 
             // 패시브 상태이상
-            var levelData = passive.GetLevelData(isEnhanced);
             if (levelData.StatusEffects != null)
             {
                 foreach (var se in levelData.StatusEffects)
@@ -143,6 +154,7 @@ namespace GameDamageCalculator.Services
 
         /// <summary>
         /// 스킬의 모든 효과를 BattleEffect 리스트로 변환
+        /// 새 Effects 리스트가 있으면 우선 사용, 없으면 레거시 필드 사용
         /// </summary>
         public static List<BattleEffect> FromSkill(
             Skill skill, string characterName,
@@ -153,6 +165,39 @@ namespace GameDamageCalculator.Services
 
             var levelData = skill.GetLevelData(isEnhanced);
             var totalBonus = skill.GetTotalBonus(isEnhanced, transcendLevel);
+
+            // 새 Effects가 있으면 우선 사용 (Bonus는 별도 유지)
+            if (levelData?.Effects != null && levelData.Effects.Count > 0)
+            {
+                // Bonus는 항상 레거시 방식 유지
+                if (totalBonus != null && !IsEmpty(totalBonus))
+                {
+                    effects.Add(new BattleEffect
+                    {
+                        Id = $"skill_bonus:{characterName}:{skill.Name}",
+                        SourceName = characterName,
+                        Category = EffectCategory.SkillBonus,
+                        Target = EffectTarget.Self,
+                        MergeStrategy = MergeStrategy.Additive,
+                        IsPermanent = false,
+                        RemainingTurns = 0,
+                        BuffValues = totalBonus
+                    });
+                }
+
+                effects.AddRange(FromSkillEffects(levelData.Effects, characterName, skill.Name));
+
+                // 초월 Effects도 추가
+                var txBonus = skill.GetTranscendBonus(transcendLevel);
+                if (txBonus?.Effects != null && txBonus.Effects.Count > 0)
+                {
+                    effects.AddRange(FromSkillEffects(txBonus.Effects, characterName, $"{skill.Name}(초월)"));
+                }
+
+                return effects;
+            }
+
+            // === 레거시 필드 변환 ===
 
             // 스킬 보너스 (해당 스킬 데미지 계산에만 적용)
             if (totalBonus != null && !IsEmpty(totalBonus))
@@ -318,7 +363,149 @@ namespace GameDamageCalculator.Services
 
         #endregion
 
-        #region SkillStatusEffect → BattleEffect
+        #region 새 모델 변환
+
+        /// <summary>
+        /// SkillEffect 리스트 → BattleEffect 리스트 (스킬 턴제 효과)
+        /// </summary>
+        private static List<BattleEffect> FromSkillEffects(
+            List<SkillEffect> skillEffects, string characterName, string skillName)
+        {
+            var results = new List<BattleEffect>();
+            if (skillEffects == null) return results;
+
+            foreach (var se in skillEffects)
+            {
+                var effect = new BattleEffect
+                {
+                    SourceName = characterName,
+                    IsPermanent = false,
+                    RemainingTurns = se.Duration > 0 ? se.Duration : 99,
+                    ApplyChance = se.Chance,
+                };
+
+                // 대상 매핑
+                effect.Target = se.Target;
+
+                switch (se.Type)
+                {
+                    case SkillEffectType.Buff:
+                        effect.Id = $"skill_effect_buff:{characterName}:{skillName}:{se.Target}";
+                        effect.Category = se.Target == EffectTarget.Self
+                            ? EffectCategory.ActiveSelfBuff
+                            : EffectCategory.ActivePartyBuff;
+                        effect.MergeStrategy = MergeStrategy.MaxMerge;
+                        effect.BuffValues = se.Buff;
+                        break;
+
+                    case SkillEffectType.Debuff:
+                        effect.Id = $"skill_effect_debuff:{characterName}:{skillName}";
+                        effect.Category = EffectCategory.ActiveDebuff;
+                        effect.MergeStrategy = MergeStrategy.MaxMerge;
+                        effect.DebuffValues = se.Debuff;
+                        break;
+
+                    case SkillEffectType.StatusAilment:
+                        effect.Id = $"skill_effect_status:{characterName}:{skillName}:{se.StatusType}";
+                        effect.Category = ResolveStatusCategory(se.StatusType);
+                        effect.MergeStrategy = MergeStrategy.Stack;
+                        effect.StatusType = se.StatusType;
+                        effect.Stacks = se.Stacks;
+                        effect.MaxStacks = StatusEffectDb.Get(se.StatusType)?.MaxStacks ?? 1;
+                        // 커스텀 오버라이드 → StatusEffectData
+                        var baseEffect = StatusEffectDb.Get(se.StatusType);
+                        var data = StatusEffectData.FromDbEffect(baseEffect);
+                        if (se.CustomAtkRatio.HasValue) data.AtkRatio = se.CustomAtkRatio.Value;
+                        if (se.CustomHpRatio.HasValue) data.TargetMaxHpRatio = se.CustomHpRatio.Value;
+                        if (se.CustomTargetMaxHpRatio.HasValue) data.TargetMaxHpRatio = se.CustomTargetMaxHpRatio.Value;
+                        if (se.CustomAtkCap.HasValue) data.AtkCap = se.CustomAtkCap.Value;
+                        if (se.CustomArmorPen.HasValue) data.ArmorPen = se.CustomArmorPen.Value;
+                        if (se.CustomFixedDamage.HasValue) data.FixedDamage = se.CustomFixedDamage.Value;
+                        if (se.MaxConsume > 0) data.MaxConsume = se.MaxConsume;
+                        effect.StatusData = data;
+                        effect.RemainingTurns = se.Duration > 0 ? se.Duration : baseEffect?.Duration ?? 2;
+                        break;
+                }
+
+                results.Add(effect);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// PersistentEffect 리스트 → BattleEffect 리스트 (패시브 지속 효과)
+        /// </summary>
+        private static List<BattleEffect> FromPersistentEffects(
+            List<PersistentEffect> persistentEffects, string characterName, bool isConditionMet)
+        {
+            var results = new List<BattleEffect>();
+            if (persistentEffects == null) return results;
+
+            foreach (var pe in persistentEffects)
+            {
+                // 조건부 효과인데 조건 미충족이면 스킵
+                if (pe.IsConditional && !isConditionMet)
+                    continue;
+
+                var effect = new BattleEffect
+                {
+                    SourceName = characterName,
+                    Target = pe.Target,
+                    IsPermanent = !pe.IsConditional,
+                    RemainingTurns = pe.IsConditional ? 99 : -1,
+                };
+
+                switch (pe.Type)
+                {
+                    case PersistentEffectType.Buff:
+                        bool isSelf = pe.Target == EffectTarget.Self;
+                        effect.Id = $"persistent_buff:{characterName}:{pe.Target}:{(pe.IsConditional ? "cond" : "perm")}";
+                        effect.Category = pe.IsConditional
+                            ? (isSelf ? EffectCategory.ConditionalSelfBuff : EffectCategory.ConditionalPartyBuff)
+                            : (isSelf ? EffectCategory.PassiveSelfBuff : EffectCategory.PassivePartyBuff);
+                        effect.MergeStrategy = MergeStrategy.MaxMerge;
+                        effect.BuffValues = pe.Buff;
+                        break;
+
+                    case PersistentEffectType.Debuff:
+                        effect.Id = $"persistent_debuff:{characterName}:{(pe.IsConditional ? "cond" : "perm")}";
+                        effect.Category = pe.IsConditional
+                            ? EffectCategory.ConditionalDebuff
+                            : EffectCategory.PassiveDebuff;
+                        effect.MergeStrategy = MergeStrategy.MaxMerge;
+                        effect.DebuffValues = pe.Debuff;
+                        break;
+
+                    case PersistentEffectType.StatusAilment:
+                        effect.Id = $"persistent_status:{characterName}:{pe.StatusType}";
+                        effect.Category = ResolveStatusCategory(pe.StatusType);
+                        effect.MergeStrategy = MergeStrategy.Stack;
+                        effect.StatusType = pe.StatusType;
+                        effect.Stacks = pe.Stacks;
+                        effect.StatusData = StatusEffectData.FromDbEffect(StatusEffectDb.Get(pe.StatusType));
+                        effect.ApplyChance = pe.Chance;
+                        break;
+
+                    case PersistentEffectType.CoopAttack:
+                    case PersistentEffectType.MarkAttack:
+                    case PersistentEffectType.StatScaling:
+                    case PersistentEffectType.PainEndurance:
+                    case PersistentEffectType.FlatBonus:
+                        // 특수 메카닉은 BattleEffect로 직접 변환하지 않음
+                        // 별도 처리 경로 유지 (DamageCalculator/StatCalculator에서 직접 참조)
+                        continue;
+                }
+
+                results.Add(effect);
+            }
+
+            return results;
+        }
+
+        #endregion
+
+        #region SkillStatusEffect → BattleEffect (레거시)
 
         private static BattleEffect FromSkillStatusEffect(
             SkillStatusEffect sse, string characterName, string skillName)

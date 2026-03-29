@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using GameDamageCalculator.Models.Effects;
 
 namespace GameDamageCalculator.Models
 {
@@ -155,7 +156,7 @@ namespace GameDamageCalculator.Models
         public TimedBuff ConditionalPartyBuff { get; set; } = new TimedBuff();   // 아군 전체 조건부
         public TimedDebuff ConditionalDebuff { get; set; } = new TimedDebuff();  // 조건부 디버프
 
-        // 상태이상 부여
+        // 상태이상 부여 (레거시)
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
         public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
@@ -163,6 +164,9 @@ namespace GameDamageCalculator.Models
         public MarkAttack MarkAttack { get; set; }
         public PainEndurance PainEndurance { get; set; }
         public BaseStatSet FlatBonus { get; set; }
+
+        // ===== 통합 효과 리스트 (새 방식) =====
+        public List<PersistentEffect> Effects { get; set; }
     }
 
     /// <summary>

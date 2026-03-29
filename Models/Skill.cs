@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using GameDamageCalculator.Models.Effects;
 
 namespace GameDamageCalculator.Models
 {
@@ -202,8 +203,11 @@ namespace GameDamageCalculator.Models
         public double LostHpBonusDmgMax { get; set; }
         public double LostHpAssumedRemaining { get; set; } // 특정조건 시 대상 잔여HP% (예: 30 = 30%남음 → 70%손실)
 
-        // ===== 상태이상 =====
+        // ===== 상태이상 (레거시 - 새 코드는 Effects 사용) =====
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
+
+        // ===== 통합 효과 리스트 (새 방식) =====
+        public List<SkillEffect> Effects { get; set; }
 
         // ===== 기타 =====
         public string Effect { get; set; }
@@ -230,9 +234,12 @@ namespace GameDamageCalculator.Models
         public double ConditionalExtraDmg { get; set; }
         public double ConditionalExtraDmgSelfHpRatio { get; set; }
 
-        // 상태이상
+        // 상태이상 (레거시)
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public ConsumeExtraDamage ConsumeExtra { get; set; }
+
+        // 통합 효과 리스트 (새 방식)
+        public List<SkillEffect> Effects { get; set; }
 
         // 생명력 비례 피해
         public double TargetMaxHpRatio { get; set; }

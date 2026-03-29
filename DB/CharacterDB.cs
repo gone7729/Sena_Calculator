@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
+using GameDamageCalculator.Models.Effects;
 
 namespace GameDamageCalculator.Database
 {
@@ -333,28 +334,18 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
                                 Ratio = 72,
-                                StatusEffects = new List<SkillStatusEffect>
+                                Effects = new List<SkillEffect>
                                 {
-                                    new SkillStatusEffect 
-                                    { 
-                                        Type = StatusEffectType.Bleeding,
-                                        Stacks = 1,
-                                        Chance = 55
-                                    }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 55 }
                                 }
                             } },
-                            { 1, new SkillLevelData { 
+                            { 1, new SkillLevelData {
                                 Ratio = 85,
-                                StatusEffects = new List<SkillStatusEffect>
+                                Effects = new List<SkillEffect>
                                 {
-                                    new SkillStatusEffect 
-                                    { 
-                                        Type = StatusEffectType.Bleeding,
-                                        Stacks = 1,
-                                        Chance = 60
-                                    }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 60 }
                                 }
                             } },
                         },
@@ -372,34 +363,29 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 175, 
-                                StatusEffects = new List<SkillStatusEffect>
+                            { 0, new SkillLevelData {
+                                Ratio = 175,
+                                Effects = new List<SkillEffect>
                                 {
-                                    new SkillStatusEffect 
-                                    { 
-                                        Type = StatusEffectType.BleedExplosion
-                                    }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BleedExplosion }
                                 }
-                                }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 205, 
-                                StatusEffects = new List<SkillStatusEffect>
+                            }},
+                            { 1, new SkillLevelData {
+                                Ratio = 205,
+                                Effects = new List<SkillEffect>
                                 {
-                                    new SkillStatusEffect 
-                                    { 
-                                        Type = StatusEffectType.BleedExplosion
-                                    }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BleedExplosion }
                                 }
-                                }},
+                            }},
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { 
-                                StatusEffects = new List<SkillStatusEffect> {
-                                    new SkillStatusEffect { Type = StatusEffectType.BleedExplosion, CustomAtkRatio = 150 }
+                            { 6, new SkillTranscend {
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BleedExplosion, CustomAtkRatio = 150 }
                                 },
-                                Effect = "출혈폭발 댐증" 
+                                Effect = "출혈폭발 댐증"
                             }}
                         }
                     }
@@ -409,11 +395,17 @@ namespace GameDamageCalculator.Database
                     Name = "화랑의 후예",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            SelfBuff = new PermanentBuff { Dmg_Dealt = 29 }
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt = 29 } }
+                            }
                         }},
-                        { 1, new PassiveLevelData { 
-                            SelfBuff = new PermanentBuff { Dmg_Dealt = 35 }
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt = 35 } }
+                            }
                         }}
                     }
                 },
@@ -451,12 +443,21 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 62, DebuffEffect = new TimedDebuff { Heal_Reduction = 52 } } },
-                            { 1, new SkillLevelData { Ratio = 62, DebuffEffect = new TimedDebuff { Heal_Reduction = 68 } } }
+                            { 0, new SkillLevelData { Ratio = 62, Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 52 } }
+                            }}},
+                            { 1, new SkillLevelData { Ratio = 62, Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 68 } }
+                            }}}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Debuff = new TimedDebuff{ Vulnerability = 24 } } }
+                            { 6, new SkillTranscend { Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 24 } }
+                            }}}
                         }
                     },
                     new Skill
@@ -473,7 +474,10 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Debuff = new TimedDebuff{ Vulnerability = 24 } } }
+                            { 6, new SkillTranscend { Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 24 } }
+                            }}}
                         }
                     }
                 },
@@ -482,13 +486,19 @@ namespace GameDamageCalculator.Database
                     Name = "팔사의 저주",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            PartyBuff = new PermanentBuff { Cri_Dmg = 28 },
-                            ConditionalSelfBuff = new TimedBuff { Dmg_Dealt_Type = 20 }
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 28 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                            }
                         }},
-                        { 1, new PassiveLevelData { 
-                            PartyBuff = new PermanentBuff { Cri_Dmg = 34 },
-                            ConditionalSelfBuff = new TimedBuff { Dmg_Dealt_Type = 20 }
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 34 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                            }
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
@@ -1098,34 +1108,31 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 57, 
-                            Bonus = new BuffSet{ WekBonusDmg = 25, WekBonusDmgPerHit = true } ,
-                            StatusEffects = new List<SkillStatusEffect>
+                            { 0, new SkillLevelData { Ratio = 57,
+                                Bonus = new BuffSet { WekBonusDmg = 25, WekBonusDmgPerHit = true },
+                                Effects = new List<SkillEffect>
                                 {
-                                    new SkillStatusEffect
-                                    {
-                                        Type = StatusEffectType.Stun,
-                                        Stacks = 1,
-                                        Chance = 45
-                                    }
-                                } 
-                            } },
-                            { 1, new SkillLevelData { Ratio = 67, 
-                            Bonus = new BuffSet{ WekBonusDmg = 25, WekBonusDmgPerHit = true } ,
-                            StatusEffects = new List<SkillStatusEffect>
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45 }
+                                }
+                            }},
+                            { 1, new SkillLevelData { Ratio = 67,
+                                Bonus = new BuffSet { WekBonusDmg = 25, WekBonusDmgPerHit = true },
+                                Effects = new List<SkillEffect>
                                 {
-                                    new SkillStatusEffect
-                                    {
-                                        Type = StatusEffectType.Stun,
-                                        Stacks = 1,
-                                        Chance = 55
-                                    }
-                                }  } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 55 }
+                                }
+                            }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            {2, new SkillTranscend{ Debuff = new TimedDebuff{ Def_Reduction = 29 } }},
-                            {6, new SkillTranscend{ HealAtkRatio = 40, PartyBuff = new TimedBuff{ Arm_Pen = 10 } }}
+                            { 2, new SkillTranscend { Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 29 } }
+                            }}},
+                            { 6, new SkillTranscend { HealAtkRatio = 40, Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Arm_Pen = 10 } }
+                            }}}
                         }
                     },
                     new Skill
@@ -1137,17 +1144,23 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 52, 
-                            Bonus = new BuffSet{ WekBonusDmg = 27, WekBonusDmgPerHit = true } ,
-                            } },
-                            { 1, new SkillLevelData { Ratio = 60, 
-                            Bonus = new BuffSet{ WekBonusDmg = 32, WekBonusDmgPerHit = true } ,
-                              } }
+                            { 0, new SkillLevelData { Ratio = 52,
+                                Bonus = new BuffSet { WekBonusDmg = 27, WekBonusDmgPerHit = true }
+                            }},
+                            { 1, new SkillLevelData { Ratio = 60,
+                                Bonus = new BuffSet { WekBonusDmg = 32, WekBonusDmgPerHit = true }
+                            }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            {2, new SkillTranscend{ Debuff = new TimedDebuff{ Def_Reduction = 29 } }},
-                            {6, new SkillTranscend{ HealAtkRatio = 40, PartyBuff = new TimedBuff{ Arm_Pen = 10 } }}
+                            { 2, new SkillTranscend { Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 29 } }
+                            }}},
+                            { 6, new SkillTranscend { HealAtkRatio = 40, Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Arm_Pen = 10 } }
+                            }}}
                         }
                     }
                 },
@@ -1156,32 +1169,25 @@ namespace GameDamageCalculator.Database
                     Name = "초인적인 힘",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            PartyBuff = new PermanentBuff{ Atk_Rate = 31 },
-                            MarkAttack = new MarkAttack
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                                MaxStacks = 2,
-                                AtkCount = 1,
-                                Ratio = 45,
-                                TargetMaxHpRatio = 16
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 31 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Wek_Dmg = 28 } },
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.MarkAttack, MarkAttack = new MarkAttack { MaxStacks = 2, AtkCount = 1, Ratio = 45, TargetMaxHpRatio = 16 } }
                             },
-                            ConditionalSelfBuff = new TimedBuff { Wek_Dmg = 28 },
                             Effect = "축복, 표식:방천화극의 분노 (최대2중첩, 2중첩시 HP16%+약피28%)"
                         }},
                         { 1, new PassiveLevelData {
-                            PartyBuff = new PermanentBuff{ Atk_Rate = 31 },
-                            MarkAttack = new MarkAttack
+                            Effects = new List<PersistentEffect>
                             {
-                                MaxStacks = 2,
-                                AtkCount = 1,
-                                Ratio = 45,
-                                TargetMaxHpRatio = 16
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 31 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Wek_Dmg = 28 } },
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.MarkAttack, MarkAttack = new MarkAttack { MaxStacks = 2, AtkCount = 1, Ratio = 45, TargetMaxHpRatio = 16 } }
                             },
-                            ConditionalSelfBuff = new TimedBuff { Wek_Dmg = 28 },
                             Effect = "축복, 표식:방천화극의 분노 (최대2중첩, 2중첩시 HP16%+약피28%)"
                         }}
                     },
-                    
                 },
                 TranscendType = TranscendType.AtkWek
             },
