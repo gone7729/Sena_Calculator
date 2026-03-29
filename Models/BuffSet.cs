@@ -36,6 +36,8 @@ namespace GameDamageCalculator.Models
         // ===== 방어 관련 =====
         public double Arm_Pen { get; set; }         // 방어 관통%
         public double Dmg_Rdc { get; set; }         // 받는 피해 감소%
+        public double Phys_Dmg_Rdc { get; set; }   // 물리 받피감%
+        public double Mag_Dmg_Rdc { get; set; }    // 마법 받피감%
         public double Dmg_Rdc_Multi { get; set; }   // 5인기 받피감%
         public double Blk { get; set; }             // 막기 확률%
 
@@ -71,6 +73,8 @@ namespace GameDamageCalculator.Models
             Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
             Arm_Pen += other.Arm_Pen;
             Dmg_Rdc += other.Dmg_Rdc;
+            Phys_Dmg_Rdc += other.Phys_Dmg_Rdc;
+            Mag_Dmg_Rdc += other.Mag_Dmg_Rdc;
             Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
             Blk += other.Blk;
             Heal_Bonus += other.Heal_Bonus;
@@ -105,6 +109,8 @@ namespace GameDamageCalculator.Models
             Dmg_Dealt_4to5 = Math.Max(Dmg_Dealt_4to5, other.Dmg_Dealt_4to5);
             Arm_Pen = Math.Max(Arm_Pen, other.Arm_Pen);
             Dmg_Rdc = Math.Max(Dmg_Rdc, other.Dmg_Rdc);
+            Phys_Dmg_Rdc = Math.Max(Phys_Dmg_Rdc, other.Phys_Dmg_Rdc);
+            Mag_Dmg_Rdc = Math.Max(Mag_Dmg_Rdc, other.Mag_Dmg_Rdc);
             Dmg_Rdc_Multi = Math.Max(Dmg_Rdc_Multi, other.Dmg_Rdc_Multi);
             Blk = Math.Max(Blk, other.Blk);
             Heal_Bonus = Math.Max(Heal_Bonus, other.Heal_Bonus);
@@ -140,6 +146,8 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,
+                Phys_Dmg_Rdc = Phys_Dmg_Rdc,
+                Mag_Dmg_Rdc = Mag_Dmg_Rdc,
                 Dmg_Rdc_Multi = Dmg_Rdc_Multi,
                 Blk = Blk,
                 Heal_Bonus = Heal_Bonus,
@@ -174,6 +182,8 @@ namespace GameDamageCalculator.Models
             Dmg_Dealt_4to5 = 0;
             Arm_Pen = 0;
             Dmg_Rdc = 0;
+            Phys_Dmg_Rdc = 0;
+            Mag_Dmg_Rdc = 0;
             Dmg_Rdc_Multi = 0;
             Blk = 0;
             Heal_Bonus = 0;
@@ -212,6 +222,8 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,
+                Phys_Dmg_Rdc = Phys_Dmg_Rdc,
+                Mag_Dmg_Rdc = Mag_Dmg_Rdc,
                 Dmg_Rdc_Multi = Dmg_Rdc_Multi,
                 Blk = Blk,
                 Heal_Bonus = Heal_Bonus,
@@ -250,6 +262,8 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt_4to5 = timedBuff.Dmg_Dealt_4to5,
                 Arm_Pen = timedBuff.Arm_Pen,
                 Dmg_Rdc = timedBuff.Dmg_Rdc,
+                Phys_Dmg_Rdc = timedBuff.Phys_Dmg_Rdc,
+                Mag_Dmg_Rdc = timedBuff.Mag_Dmg_Rdc,
                 Dmg_Rdc_Multi = timedBuff.Dmg_Rdc_Multi,
                 Blk = timedBuff.Blk,
                 Heal_Bonus = timedBuff.Heal_Bonus,
@@ -289,6 +303,8 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,
+                Phys_Dmg_Rdc = Phys_Dmg_Rdc,
+                Mag_Dmg_Rdc = Mag_Dmg_Rdc,
                 Dmg_Rdc_Multi = Dmg_Rdc_Multi,
                 Blk = Blk,
                 Heal_Bonus = Heal_Bonus,

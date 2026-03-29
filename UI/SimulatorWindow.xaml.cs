@@ -81,19 +81,19 @@ namespace GameDamageCalculator.UI
             BossCombo.Items.Clear();
 
             var type = BossTypeCombo.SelectedItem?.ToString();
-            List<Boss> bosses = type switch
+            List<Enemy> enemies = type switch
             {
-                "공성전" => BossDb.SiegeBosses,
-                "레이드" => BossDb.RaidBosses,
-                "강림" => BossDb.ForestBosses,
-                "성장던전" => BossDb.GrowthDungeonBosses,
-                "잡몹" => BossDb.Mobs,
-                _ => new List<Boss>()
+                "공성전" => EnemyDb.SiegeBosses,
+                "레이드" => EnemyDb.RaidBosses,
+                "강림" => EnemyDb.ForestBosses,
+                "성장던전" => EnemyDb.GrowthDungeonBosses,
+                "잡몹" => EnemyDb.Mobs,
+                _ => new List<Enemy>()
             };
 
-            foreach (var boss in bosses)
+            foreach (var en in enemies)
             {
-                BossCombo.Items.Add(boss.Name);
+                BossCombo.Items.Add(en.Name);
             }
             if (BossCombo.Items.Count > 0)
                 BossCombo.SelectedIndex = 0;
@@ -133,11 +133,11 @@ namespace GameDamageCalculator.UI
                 });
             }
 
-            // 보스
-            var bossName = BossCombo.SelectedItem?.ToString();
-            if (!string.IsNullOrEmpty(bossName))
+            // 적
+            var enemyName = BossCombo.SelectedItem?.ToString();
+            if (!string.IsNullOrEmpty(enemyName))
             {
-                config.TargetBoss = BossDb.GetByName(bossName) ?? BossDb.GetMobByName(bossName);
+                config.TargetEnemy = EnemyDb.GetByName(enemyName) ?? EnemyDb.GetMobByName(enemyName);
             }
 
             // 진형
@@ -170,7 +170,7 @@ namespace GameDamageCalculator.UI
                 MessageBox.Show("캐릭터를 1명 이상 선택해주세요.", "알림");
                 return;
             }
-            if (config.TargetBoss == null)
+            if (config.TargetEnemy == null)
             {
                 MessageBox.Show("보스를 선택해주세요.", "알림");
                 return;
@@ -203,7 +203,7 @@ namespace GameDamageCalculator.UI
         private void DisplayBattleResult(BattleResult result)
         {
             TotalDamageText.Text = $"{result.TotalDamage:N0}";
-            ElapsedTimeText.Text = $"총 {result.TotalTurns}턴 | 보스 잔여 HP: {result.BossRemainingHp:N0}";
+            ElapsedTimeText.Text = $"총 {result.TotalTurns}턴 | 보스 잔여 HP: {result.EnemyRemainingHp:N0}";
 
             ResultsPanel.Children.Clear();
 
@@ -229,7 +229,7 @@ namespace GameDamageCalculator.UI
                 MessageBox.Show("캐릭터를 1명 이상 선택해주세요.", "알림");
                 return;
             }
-            if (config.TargetBoss == null)
+            if (config.TargetEnemy == null)
             {
                 MessageBox.Show("보스를 선택해주세요.", "알림");
                 return;

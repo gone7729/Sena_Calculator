@@ -27,7 +27,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 선공 결정: 아군 총 속공 vs 보스 속공
             double allyTotalSpd = allyStates.Sum(s => s.FinalSpd);
-            double bossSpd = config.TargetBoss?.Stats?.Spd ?? 0;
+            double bossSpd = config.TargetEnemy?.Stats?.Spd ?? 0;
             _allyFirst = allyTotalSpd >= bossSpd;
 
             // 아군 속공 순서 정렬 (높은 순)

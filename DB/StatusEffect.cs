@@ -39,6 +39,7 @@ namespace GameDamageCalculator.Models
         Miss,           // 빗나감
         HealBlock,      // 회복 불가
         HpConversion,   // 생명력 전환
+        Regeneration,   // 재생 (턴제 회복)
     }
 
     /// <summary>
@@ -316,6 +317,14 @@ namespace GameDamageCalculator.Models
                 Name = "생명력 전환",
                 Description = "대상의 생명력을 표시된 수치만큼 전환 (현재 생명력 초과 불가)",
                 IsHpConversion = true
+            }},
+
+            { StatusEffectType.Regeneration, new StatusEffect
+            {
+                Type = StatusEffectType.Regeneration,
+                Name = "재생",
+                Description = "턴 시작 시 일정량의 생명력을 회복한다",
+                HealRatio = 0  // 캐릭터별 커스텀 값 사용
             }},
         };
 

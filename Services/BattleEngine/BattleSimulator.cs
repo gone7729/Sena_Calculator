@@ -54,7 +54,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     if (action.IsSkill)
                     {
-                        ExecuteBossSkill(config, state);
+                        ExecuteEnemySkill(config, state);
                     }
                     else
                     {
@@ -66,7 +66,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ProcessTurnEnd(state, action);
 
                 // 보스 HP 체크
-                if (state.BossState.CurrentHp <= 0)
+                if (state.EnemyState.CurrentHp <= 0)
                     break;
             }
 
@@ -92,12 +92,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
 
             // 보스 상태
-            var boss = config.TargetBoss;
-            state.BossState = new BossBattleState
+            var enemy = config.TargetEnemy;
+            state.EnemyState = new EnemyBattleState
             {
-                Boss = boss,
-                CurrentHp = boss.Stats.Hp,
-                MaxHp = boss.Stats.Hp,
+                Enemy = enemy,
+                CurrentHp = enemy.Stats.Hp,
+                MaxHp = enemy.Stats.Hp,
                 DefenseStacks = 0
             };
 
@@ -296,7 +296,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>
         /// 보스 스킬 실행
         /// </summary>
-        private void ExecuteBossSkill(BattleConfig config, BattleState state)
+        private void ExecuteEnemySkill(BattleConfig config, BattleState state)
         {
             // 보스 스킬 사용 → 아군 스킬 쿨다운 5초 감소
             foreach (var charState in state.AllyStates)
@@ -305,7 +305,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
 
             // 보스 로테이션에서 현재 스킬 가져오기
-            if (config.BossRotation != null && config.BossRotation.Count > 0)
+            if (config.EnemyRotation != null && config.EnemyRotation.Count > 0)
             {
                 // TODO: 보스 스킬 로테이션 인덱스 관리
                 // 현재는 쿨다운 감소만 처리
@@ -314,7 +314,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             state.TurnLogs.Add(new BattleTurnLog
             {
                 Turn = state.CurrentTurn,
-                ActorName = config.TargetBoss?.Name ?? "보스",
+                ActorName = config.TargetEnemy?.Name ?? "보스",
                 IsAlly = false,
                 ActionType = ActionType.SkillAttack,
                 SkillName = "보스 스킬",
@@ -330,24 +330,24 @@ namespace GameDamageCalculator.Services.BattleEngine
             CharacterBattleState charState, Skill skill)
         {
             var battleChar = charState.Source;
-            var boss = state.BossState;
+            var enemyState = state.EnemyState;
 
-            // 보스 디버프 합산
-            var bossDebuffs = AggregateBossDebuffs(state);
+            // 적 디버프 합산
+            var enemyDebuffs = AggregateEnemyDebuffs(state);
 
             // 타겟 수에 따른 보스 피해감소
-            double targetReduction = GetTargetReduction(config.TargetBoss, skill.TargetCount);
+            double targetReduction = GetTargetReduction(config.TargetEnemy, skill.TargetCount);
 
-            // 보스 방어력 (스택 포함)
-            double bossDef = config.TargetBoss.Stats.Def;
-            double bossDefIncrease = 0;
-            if (config.TargetBoss.IsStackableDefenseIncrease)
+            // 적 방어력 (스택 포함)
+            double enemyDef = config.TargetEnemy.Stats.Def;
+            double enemyDefIncrease = 0;
+            if (config.TargetEnemy.IsStackableDefenseIncrease)
             {
-                bossDefIncrease = config.TargetBoss.GetStackableDefenseIncrease(boss.DefenseStacks);
+                enemyDefIncrease = config.TargetEnemy.GetStackableDefenseIncrease(enemyState.DefenseStacks);
             }
-            else if (config.TargetBoss.DefenseIncrease > 0)
+            else if (config.TargetEnemy.DefenseIncrease > 0)
             {
-                bossDefIncrease = config.TargetBoss.DefenseIncrease;
+                enemyDefIncrease = config.TargetEnemy.DefenseIncrease;
             }
 
             // DisplayStats에서 추가 스탯 가져오기
@@ -367,22 +367,23 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DmgDealtBoss = 0,
                 ArmorPen = 0,
                 WeakpointDmg = battleChar.Character.GetBaseStats().Wek_Dmg,
-                BossDef = bossDef,
-                BossDefIncrease = bossDefIncrease,
-                BossDmgReduction = config.TargetBoss.DamageReduction,
+                BossDef = enemyDef,
+                BossDefIncrease = enemyDefIncrease,
+                BossDmgReduction = config.TargetEnemy.DamageReduction,
                 BossTargetReduction = targetReduction,
-                BossHp = boss.MaxHp,
-                TargetHp = boss.MaxHp,
-                TargetCurrentHp = boss.CurrentHp,
-                DefReduction = bossDebuffs.Def_Reduction,
-                DmgTakenIncrease = bossDebuffs.Dmg_Taken_Increase,
-                Vulnerability = bossDebuffs.Vulnerability + config.TargetBoss.Vulnerability,
-                BossVulnerability = bossDebuffs.Boss_Vulnerability,
+                BossHp = enemyState.MaxHp,
+                TargetHp = enemyState.MaxHp,
+                TargetCurrentHp = enemyState.CurrentHp,
+                DefReduction = enemyDebuffs.Def_Reduction,
+                DmgTakenIncrease = enemyDebuffs.Dmg_Taken_Increase,
+                Vulnerability = enemyDebuffs.Vulnerability + config.TargetEnemy.Vulnerability,
+                BossVulnerability = enemyDebuffs.Boss_Vulnerability,
                 // 시뮬에서는 치명/약점을 확률적으로 처리하거나 항상 발동으로 설정
                 IsCritical = true,
                 IsWeakpoint = true,
                 IsSkillConditionMet = true,
                 Mode = BattleMode.Boss,
+                IsTargetBoss = config.TargetEnemy?.IsBoss ?? true,
                 SelfMaxHp = charState.MaxHp
             };
 
@@ -396,7 +397,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void ApplyDamage(BattleState state, CharacterBattleState charState,
             double damage, string skillName, ActionType actionType)
         {
-            state.BossState.CurrentHp -= damage;
+            state.EnemyState.CurrentHp -= damage;
             charState.TotalDamageDealt += damage;
             state.TotalDamageDealt += damage;
 
@@ -451,10 +452,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>
         /// 보스에 걸린 디버프 합산
         /// </summary>
-        private DebuffSet AggregateBossDebuffs(BattleState state)
+        private DebuffSet AggregateEnemyDebuffs(BattleState state)
         {
             var total = new DebuffSet();
-            foreach (var debuff in state.BossState.ActiveDebuffs)
+            foreach (var debuff in state.EnemyState.ActiveDebuffs)
             {
                 if (debuff.IsPermanent || debuff.RemainingTurns > 0)
                 {
@@ -470,14 +471,14 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>
         /// 타겟 수에 따른 보스 피해감소율
         /// </summary>
-        private double GetTargetReduction(Boss boss, int targetCount)
+        private double GetTargetReduction(Enemy enemy, int targetCount)
         {
-            if (boss == null) return 0;
+            if (enemy == null) return 0;
             return targetCount switch
             {
-                1 => boss.SingleTargetReduction,
-                3 => boss.TripleTargetReduction,
-                >= 5 => boss.MultiTargetReduction,
+                1 => enemy.SingleTargetReduction,
+                3 => enemy.TripleTargetReduction,
+                >= 5 => enemy.MultiTargetReduction,
                 _ => 0
             };
         }
@@ -498,7 +499,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
 
                 // 보스 디버프 지속시간 감소
-                state.BossState.ActiveDebuffs.RemoveAll(d => !d.IsPermanent && --d.RemainingTurns <= 0);
+                state.EnemyState.ActiveDebuffs.RemoveAll(d => !d.IsPermanent && --d.RemainingTurns <= 0);
             }
         }
 
@@ -516,7 +517,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TotalDamage = state.TotalDamageDealt,
                 TotalTurns = state.CurrentTurn,
                 TurnLogs = state.TurnLogs,
-                BossRemainingHp = Math.Max(0, state.BossState.CurrentHp)
+                EnemyRemainingHp = Math.Max(0, state.EnemyState.CurrentHp)
             };
 
             foreach (var charState in state.AllyStates)

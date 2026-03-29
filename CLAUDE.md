@@ -34,14 +34,15 @@
 Sena_Calculator/
 ├── DB/                      # 게임 데이터베이스
 │   ├── CharacterDB.cs       # 캐릭터/스킬 정보
-│   ├── BossDB.cs           # 보스/몹 정보
+│   ├── EnemyDB.cs          # 적(보스/일반몹) 정보
 │   ├── PetDB.cs            # 펫 정보
 │   ├── EquipmentDb.cs      # 장비 세트 효과
 │   ├── StatusEffectDb.cs   # 상태이상 정보
 │   └── SubOptionDb.cs      # 장비 부옵션 수치
 ├── Models/                  # 데이터 모델
 │   ├── Character.cs        # 캐릭터, 스킬, 패시브
-│   ├── Boss.cs             # 보스/몹 모델
+│   ├── Enemy.cs            # 적 모델 (보스/일반몹 통합, 패시브 시스템)
+│   ├── Stage.cs            # 스테이지 모델 (웨이브/적 배치)
 │   ├── BuffSet.cs          # 버프/디버프 세트
 │   ├── Equipment.cs        # 장비 모델
 │   └── Preset.cs           # 프리셋 저장 모델
@@ -123,12 +124,35 @@ DEF_CONSTANT = 467
 - `Cri_Dmg`: 치명타피해%
 - `Wek_Dmg`: 약점피해%
 - `Arm_Pen`: 방어관통%
+- `Phys_Dmg_Rdc`: 물리 받피감%
+- `Mag_Dmg_Rdc`: 마법 받피감%
 
 ### DebuffSet (디버프)
 - `Def_Reduction`: 방어력감소%
 - `Dmg_Taken_Increase`: 받는피해증가%
 - `Vulnerability`: 취약%
 - `Boss_Vulnerability`: 보스취약%
+
+## Enemy (적) 시스템
+
+### 구조
+- `Enemy`: 보스/일반몹 통합 모델 (`IsBoss` 플래그로 구분)
+- `EnemyDb`: Boss 테이블 + Commons 테이블로 분리
+- `Stage`: 스테이지별 웨이브/적 배치 정의
+
+### 패시브 시스템
+- `InnateBuff` (PermanentBuff): 물리/마법 받피감, 일반 받피감
+- `InnateDebuff` (PermanentDebuff): 받피증, 취약 등 자체 취약성
+- `ConditionalBuff` (TimedBuff): 조건부 방증 등
+- `Skills`: 적이 사용하는 스킬 (옵티마이저 시뮬레이션용)
+
+### 보스피증 적용 조건
+- `DamageInput.IsTargetBoss` = true일 때만 `DmgDealtBoss` 적용
+- Mobs (`IsBoss = false`)에는 보스피증 미적용
+
+### 상태이상
+- `StatusEffectType.Regeneration`: 턴제 회복 (재생)
+- `StatusEffectType.HealBlock`: 회복 불가
 
 ## UI 기능
 

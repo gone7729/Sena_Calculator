@@ -71,6 +71,7 @@ namespace GameDamageCalculator.Services
 
             // ===== 모드 =====
             public BattleMode Mode { get; set; } = BattleMode.Boss;
+            public bool IsTargetBoss { get; set; } = true;
 
             // ===== 스택소모 스킬용 =====
             // 자버프 타입피증 (스택소모 시에만 적용, 스킬피해에는 미적용)
@@ -331,7 +332,7 @@ namespace GameDamageCalculator.Services
             }
 
             // 보스 피증
-            double bossDmg = input.Mode == BattleMode.Boss ? input.DmgDealtBoss : 0;
+            double bossDmg = input.IsTargetBoss ? input.DmgDealtBoss : 0;
 
             // 피감
             double reductionTotal = input.BossDmgReduction + input.BossTargetReduction;
@@ -445,7 +446,7 @@ namespace GameDamageCalculator.Services
                 // 피증 구성요소 개별 출력 (소거법용)
                 int targetCount = input.Skill?.GetTargetCount(input.TranscendLevel) ?? 0;
                 double targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3 : (targetCount >= 4) ? input.Dmg4to5 : 0;
-                double bossDmg = input.Mode == BattleMode.Boss ? input.DmgDealtBoss : 0;
+                double bossDmg = input.IsTargetBoss ? input.DmgDealtBoss : 0;
                 result.DebugLog.AppendLine($"    [피증분석] 기본:{input.DmgDealt}% 타입:{input.DmgDealtType}% 보스:{bossDmg}% {targetCount}인기:{targetTypeDmg}%");
                 result.DebugLog.AppendLine($"    [피증비교] 전체:{result.DamageMultiplier:F4} 스킬:{result.SkillDmgMultiplier:F4} 추가:{result.ExtraDmgMultiplier:F4}");
 

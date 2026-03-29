@@ -945,8 +945,32 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 135, Effect = "회복불가(미구현)" } },
-                            { 1, new SkillLevelData { Ratio = 165, Effect = "회복불가(미구현)" }}
+                            { 0, new SkillLevelData {
+                                Ratio = 135,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect
+                                    {
+                                        Type = StatusEffectType.HealBlock,
+                                        Duration = 2,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                }
+                            } },
+                            { 1, new SkillLevelData {
+                                Ratio = 165,
+                                StatusEffects = new List<SkillStatusEffect>
+                                {
+                                    new SkillStatusEffect
+                                    {
+                                        Type = StatusEffectType.HealBlock,
+                                        Duration = 2,
+                                        Stacks = 1,
+                                        Chance = 100
+                                    }
+                                }
+                            } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6336,6 +6360,98 @@ namespace GameDamageCalculator.Database
                     }
                 },
                 TranscendType = TranscendType.DefBlk
+            },
+
+            // 관우
+            new Character
+            {
+                Id = 316,
+                Name = "관우",
+                Grade = "전설",
+                Type = "만능형",
+                Skills = new List<Skill>
+                {
+                    new Skill
+                    {
+                        Id = 1,
+                        Name = "평타",
+                        SkillType = SkillType.Normal,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 100,
+                                
+                             } },
+                            { 1, new SkillLevelData { 
+                                Ratio = 100, 
+                                DebuffEffect = new TimedDebuff{ Unrecover = 1 },
+                                Effect = "회복불가 추가"
+                             } }
+                        },
+                    },
+                    new Skill
+                    {
+                        Id = 2,
+                        Name = "청룡월파참",
+                        SkillType = SkillType.Skill1,
+                        TargetCount = 1,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Ratio = 390, 
+                            }},
+                            { 1, new SkillLevelData { 
+                                Ratio = 470
+                            }}
+                        },
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>
+                        {
+                            {6, new SkillTranscend{ Bonus = new BuffSet{ Cri = 100 } }}
+                        }
+                    },
+                    new Skill
+                    {
+                        Id = 3,
+                        Name = "진두지휘",
+                        SkillType = SkillType.Skill2,
+                        TargetCount = 5,
+                        Atk_Count = 1,
+                        LevelData = new Dictionary<int, SkillLevelData>
+                        {
+                            { 0, new SkillLevelData { 
+                                Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(2턴), 해제가능한 디버프가 있어야 사용가능"
+                            }},
+                            { 1, new SkillLevelData { 
+                                Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(2턴), 해제가능한 디버프가 있어야 사용가능, 모든피해면역(1턴)"
+                            }}
+                        },
+                    }
+                },
+                Passive = new Passive
+                {
+                    Name = "만인지적",
+                    LevelData = new Dictionary<int, PassiveLevelData>
+                    {
+                        { 0, new PassiveLevelData { 
+                            PartyBuff = new PermanentBuff{Dmg_Dealt_Type = 20},
+                            Effect="감전면역, 2턴"
+                        }},
+                        { 1, new PassiveLevelData { 
+                            PartyBuff = new PermanentBuff{Dmg_Dealt_Type = 20},
+                            Effect="감전면역, 물피증 3턴"
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend { 
+                            PartyBuff = new PermanentBuff{ Cri_Dmg = 40 }
+                        }}
+                    }
+                },
+                TranscendType = TranscendType.AtkWek
             },
 
             #endregion

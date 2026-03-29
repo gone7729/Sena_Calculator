@@ -50,9 +50,13 @@ namespace GameDamageCalculator.Models
         public double PetDefRate { get; set; }
         public double PetHpRate { get; set; }
         
-        // 보스
-        public string BossType { get; set; }  // Siege, Raid, Guild
-        public string BossName { get; set; }
+        // 적
+        public string EnemyType { get; set; }  // Siege, Raid, Guild
+        public string EnemyName { get; set; }
+
+        // 하위호환
+        public string BossType { get => EnemyType; set => EnemyType = value; }
+        public string BossName { get => EnemyName; set => EnemyName = value; }
         
         // 버프/디버프 체크 상태
         public Dictionary<string, bool> BuffChecks { get; set; } = new Dictionary<string, bool>();

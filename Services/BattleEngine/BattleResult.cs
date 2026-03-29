@@ -19,8 +19,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 턴별 로그
         public List<BattleTurnLog> TurnLogs { get; set; } = new();
 
-        // 보스 잔여 HP
-        public double BossRemainingHp { get; set; }
+        // 적 잔여 HP
+        public double EnemyRemainingHp { get; set; }
 
         // DPS (데미지 / 턴)
         public double DamagePerTurn => TotalTurns > 0 ? TotalDamage / TotalTurns : 0;

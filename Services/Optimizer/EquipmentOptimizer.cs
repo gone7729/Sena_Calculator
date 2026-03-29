@@ -455,7 +455,7 @@ namespace GameDamageCalculator.Services.Optimizer
 
             if (bestSkill == null) return 0;
 
-            var boss = config.TargetBoss;
+            var enemy = config.TargetEnemy;
             var damageInput = new DamageCalculator.DamageInput
             {
                 Character = character,
@@ -475,19 +475,20 @@ namespace GameDamageCalculator.Services.Optimizer
                 Dmg4to5 = statResult.DisplayStats.Dmg_Dealt_4to5,
                 DefReduction = totalDebuffs.Def_Reduction,
                 DmgTakenIncrease = totalDebuffs.Dmg_Taken_Increase,
-                Vulnerability = totalDebuffs.Vulnerability + (boss?.Vulnerability ?? 0),
+                Vulnerability = totalDebuffs.Vulnerability + (enemy?.Vulnerability ?? 0),
                 BossVulnerability = totalDebuffs.Boss_Vulnerability,
-                BossDef = boss?.Stats?.Def ?? 0,
-                BossDefIncrease = boss?.DefenseIncrease ?? 0,
-                BossDmgReduction = boss?.DamageReduction ?? 0,
-                BossTargetReduction = GetTargetReduction(boss, bestSkill.TargetCount),
-                BossHp = boss?.Stats?.Hp ?? 0,
-                TargetHp = boss?.Stats?.Hp ?? 0,
-                TargetCurrentHp = boss?.Stats?.Hp ?? 0,
+                BossDef = enemy?.Stats?.Def ?? 0,
+                BossDefIncrease = enemy?.DefenseIncrease ?? 0,
+                BossDmgReduction = enemy?.DamageReduction ?? 0,
+                BossTargetReduction = GetTargetReduction(enemy, bestSkill.TargetCount),
+                BossHp = enemy?.Stats?.Hp ?? 0,
+                TargetHp = enemy?.Stats?.Hp ?? 0,
+                TargetCurrentHp = enemy?.Stats?.Hp ?? 0,
                 IsCritical = true,
                 IsWeakpoint = true,
                 IsSkillConditionMet = true,
                 Mode = BattleMode.Boss,
+                IsTargetBoss = enemy?.IsBoss ?? true,
                 SelfMaxHp = statResult.FinalHp
             };
 
@@ -569,14 +570,14 @@ namespace GameDamageCalculator.Services.Optimizer
             return 0;
         }
 
-        private double GetTargetReduction(Boss boss, int targetCount)
+        private double GetTargetReduction(Enemy enemy, int targetCount)
         {
-            if (boss == null) return 0;
+            if (enemy == null) return 0;
             return targetCount switch
             {
-                1 => boss.SingleTargetReduction,
-                3 => boss.TripleTargetReduction,
-                >= 5 => boss.MultiTargetReduction,
+                1 => enemy.SingleTargetReduction,
+                3 => enemy.TripleTargetReduction,
+                >= 5 => enemy.MultiTargetReduction,
                 _ => 0
             };
         }
@@ -590,7 +591,7 @@ namespace GameDamageCalculator.Services.Optimizer
             {
                 AllyParty = new List<BattleCharacter>(),
                 FormationName = original.FormationName,
-                TargetBoss = original.TargetBoss,
+                TargetEnemy = original.TargetEnemy,
                 AllyPet = original.AllyPet,
                 PetStar = original.PetStar,
                 PetOptionAtkRate = original.PetOptionAtkRate,
@@ -599,7 +600,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 MaxTurns = original.MaxTurns,
                 RotationMode = original.RotationMode,
                 UserRotations = original.UserRotations,
-                BossRotation = original.BossRotation
+                EnemyRotation = original.EnemyRotation
             };
 
             for (int i = 0; i < original.AllyParty.Count; i++)

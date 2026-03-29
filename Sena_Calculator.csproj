@@ -6,6 +6,7 @@
     <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <RootNamespace>GameDamageCalculator</RootNamespace>
     <AssemblyName>세나리_데미지계산기</AssemblyName>
     

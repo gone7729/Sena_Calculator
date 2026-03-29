@@ -5,20 +5,20 @@ using GameDamageCalculator.Models;
 namespace GameDamageCalculator.Database
 {
     /// <summary>
-    /// 보스 데이터베이스
+    /// 적 데이터베이스
     /// </summary>
-    public static class BossDb
+    public static class EnemyDb
     {
         /// <summary>
         /// 공성전 보스 목록
         /// </summary>
-        public static readonly List<Boss> SiegeBosses = new List<Boss>
+        public static readonly List<Enemy> SiegeBosses = new List<Enemy>
         {
-            new Boss
+            new Enemy
             {
                 Id = 1,
                 Name = "루디",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "월요일",
                 Stats = new BaseStatSet
                 {
@@ -41,11 +41,11 @@ namespace GameDamageCalculator.Database
                 Vulnerability = 0 // 취약%
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 2,
                 Name = "아일린",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "화요일",
                 Stats = new BaseStatSet
                 {
@@ -68,11 +68,11 @@ namespace GameDamageCalculator.Database
                 Vulnerability = 0 // 취약%
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 3,
                 Name = "레이첼",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "수요일",
                 Stats = new BaseStatSet
                 {
@@ -95,11 +95,11 @@ namespace GameDamageCalculator.Database
                 Vulnerability = 0 // 취약%
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 4,
                 Name = "델론즈",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "목요일",
                 Stats = new BaseStatSet
                 {
@@ -122,11 +122,11 @@ namespace GameDamageCalculator.Database
                 Vulnerability = 0 // 취약%
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 5,
                 Name = "제이브",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "금요일",
                 Stats = new BaseStatSet
                 {
@@ -149,11 +149,11 @@ namespace GameDamageCalculator.Database
                 Vulnerability = 0 // 취약%
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 6,
                 Name = "스파이크",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "토요일",
                 Stats = new BaseStatSet
                 {
@@ -176,11 +176,11 @@ namespace GameDamageCalculator.Database
                 Vulnerability = 0 // 취약%
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 7,
                 Name = "크리스",
-                BossType = BossType.Siege,
+                EnemyType = EnemyType.Siege,
                 DayOfWeek = "일요일",
                 Stats = new BaseStatSet
                 {
@@ -208,13 +208,13 @@ namespace GameDamageCalculator.Database
         /// <summary>
         /// 레이드 보스 목록
         /// </summary>
-        public static readonly List<Boss> RaidBosses = new List<Boss>
+        public static readonly List<Enemy> RaidBosses = new List<Enemy>
         {
-            new Boss
+            new Enemy
             {
                 Id = 101,
                 Name = "강철의 포식자",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Difficulty = 15,
                 Stats = new BaseStatSet
                 {
@@ -230,11 +230,11 @@ namespace GameDamageCalculator.Database
                 DefenseIncreaseCondition = "체력 30% 이상"
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 102,
                 Name = "파멸의 눈동자",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Difficulty = 15,
                 Stats = new BaseStatSet
                 {
@@ -248,11 +248,11 @@ namespace GameDamageCalculator.Database
                 }
             },
 
-            new Boss
+            new Enemy
             {
                 Id = 103,
                 Name = "우마왕",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Difficulty = 15,
                 Stats = new BaseStatSet
                 {
@@ -270,13 +270,13 @@ namespace GameDamageCalculator.Database
         /// <summary>
         /// 강림 보스 목록
         /// </summary>
-        public static readonly List<Boss> ForestBosses = new List<Boss>
+        public static readonly List<Enemy> ForestBosses = new List<Enemy>
         {
-            new Boss
+            new Enemy
             {
                 Id = 201,
                 Name = "태오1페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 4282,
@@ -296,11 +296,11 @@ namespace GameDamageCalculator.Database
                 DamageTakenIncrease = 0, 
                 Vulnerability = 0 
             },
-            new Boss
+            new Enemy
             {
                 Id = 202,
                 Name = "태오2페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 4810,
@@ -320,11 +320,11 @@ namespace GameDamageCalculator.Database
                 DamageTakenIncrease = 0, 
                 Vulnerability = 0
             },
-            new Boss
+            new Enemy
             {
                 Id = 203,
                 Name = "카일1페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 3576,
@@ -344,11 +344,11 @@ namespace GameDamageCalculator.Database
                 DamageTakenIncrease = 0, 
                 Vulnerability = 0
             },
-            new Boss
+            new Enemy
             {
                 Id = 204,
                 Name = "카일2페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 4203,
@@ -368,11 +368,11 @@ namespace GameDamageCalculator.Database
                 DamageTakenIncrease = 0, 
                 Vulnerability = 0
             },
-            new Boss
+            new Enemy
             {
                 Id = 205,
                 Name = "연희1페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 3382,
@@ -392,11 +392,11 @@ namespace GameDamageCalculator.Database
                 DamageTakenIncrease = 0, 
                 Vulnerability = 0
             },
-            new Boss
+            new Enemy
             {
                 Id = 206,
                 Name = "연희2페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 3921,
@@ -416,11 +416,11 @@ namespace GameDamageCalculator.Database
                 DamageTakenIncrease = 0, 
                 Vulnerability = 0
             },
-            new Boss
+            new Enemy
             {
                 Id = 207,
                 Name = "카르마1페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 3085,
@@ -444,11 +444,11 @@ namespace GameDamageCalculator.Database
                 MaxDefenseStack = 8,
                 DefenseIncreaseCondition = "스킬 1회 당 1중첩"
             },
-            new Boss
+            new Enemy
             {
                 Id = 208,
                 Name = "카르마2페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 3691,
@@ -472,11 +472,11 @@ namespace GameDamageCalculator.Database
                 MaxDefenseStack = 8,
                 DefenseIncreaseCondition = "스킬 1회 당 1중첩"
             },
-            new Boss
+            new Enemy
             {
                 Id = 209,
                 Name = "강림1페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 4066,
@@ -488,11 +488,11 @@ namespace GameDamageCalculator.Database
                     Eff_Hit = 100
                 },
             },
-            new Boss
+            new Enemy
             {
                 Id = 210,
                 Name = "강림2페",
-                BossType = BossType.Raid,
+                EnemyType = EnemyType.Raid,
                 Stats = new BaseStatSet
                 {
                     Atk = 4231,
@@ -510,13 +510,13 @@ namespace GameDamageCalculator.Database
         /// <summary>
         /// 성장던전 보스 목록
         /// </summary>
-        public static readonly List<Boss> GrowthDungeonBosses = new List<Boss>
+        public static readonly List<Enemy> GrowthDungeonBosses = new List<Enemy>
         {
-            new Boss
+            new Enemy
             {
                 Id = 401,
                 Name = "골드던전",
-                BossType = BossType.GrowthDungeon,
+                EnemyType = EnemyType.GrowthDungeon,
                 Difficulty = 15,
                 Stats = new BaseStatSet
                 {
@@ -532,35 +532,38 @@ namespace GameDamageCalculator.Database
         };
 
         // 잡몹
-        public static readonly List<Boss> Mobs = new List<Boss>
+        public static readonly List<Enemy> Mobs = new List<Enemy>
         {
-            new Boss
+            new Enemy
             {
                 Id = 301,
                 Name = "우마왕 잡몹",
-                BossType = BossType.Mob,
+                EnemyType = EnemyType.Mob,
+                IsBoss = false,
                 Stats = new BaseStatSet
                 {
                     Def = 100,
                     Hp = 18000
                 }
             },
-            new Boss
+            new Enemy
             {
                 Id = 302,
                 Name = "악몽 12",
-                BossType = BossType.Mob,
+                EnemyType = EnemyType.Mob,
+                IsBoss = false,
                 Stats = new BaseStatSet
                 {
                     Def = 491,
                     Hp = 36373
                 }
             },
-            new Boss
+            new Enemy
             {
                 Id = 303,
                 Name = "악몽 16",
-                BossType = BossType.Mob,
+                EnemyType = EnemyType.Mob,
+                IsBoss = false,
                 Stats = new BaseStatSet
                 {
                     Def = 910,
@@ -570,26 +573,36 @@ namespace GameDamageCalculator.Database
         };
         
         /// <summary>
-        /// 모든 보스 목록
+        /// 보스 목록 (IsBoss = true)
         /// </summary>
-        public static List<Boss> AllBosses => SiegeBosses.Concat(RaidBosses).Concat(ForestBosses).Concat(GrowthDungeonBosses).Concat(Mobs).ToList();
+        public static List<Enemy> Bosses => SiegeBosses.Concat(RaidBosses).Concat(ForestBosses).Concat(GrowthDungeonBosses).ToList();
 
         /// <summary>
-        /// 이름으로 보스 찾기
+        /// 일반몹 목록 (IsBoss = false)
         /// </summary>
-        public static Boss GetByName(string name, int? difficulty = null)
+        public static List<Enemy> Commons => Mobs;
+
+        /// <summary>
+        /// 모든 적 목록
+        /// </summary>
+        public static List<Enemy> AllEnemies => Bosses.Concat(Commons).ToList();
+
+        /// <summary>
+        /// 이름으로 적 찾기
+        /// </summary>
+        public static Enemy GetByName(string name, int? difficulty = null)
         {
             if (difficulty.HasValue)
             {
-                return AllBosses.FirstOrDefault(b => b.Name == name && b.Difficulty == difficulty);
+                return AllEnemies.FirstOrDefault(b => b.Name == name && b.Difficulty == difficulty);
             }
-            return AllBosses.FirstOrDefault(b => b.Name == name);
+            return AllEnemies.FirstOrDefault(b => b.Name == name);
         }
 
         /// <summary>
         /// 공성전 요일별 보스 찾기
         /// </summary>
-        public static Boss GetSiegeBoss(string dayOfWeek)
+        public static Enemy GetSiegeBoss(string dayOfWeek)
         {
             return SiegeBosses.FirstOrDefault(b => b.DayOfWeek == dayOfWeek);
         }
@@ -597,7 +610,7 @@ namespace GameDamageCalculator.Database
         /// <summary>
         /// 잡몹 이름으로 찾기
         /// </summary>
-        public static Boss GetMobByName(string name)
+        public static Enemy GetMobByName(string name)
         {
             return Mobs.FirstOrDefault(m => m.Name == name);
         }

@@ -14,8 +14,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 진형
         public string FormationName { get; set; }
 
-        // 보스
-        public Boss TargetBoss { get; set; }
+        // 적
+        public Enemy TargetEnemy { get; set; }
 
         // 펫
         public Pet AllyPet { get; set; }
@@ -33,8 +33,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 유저 지정 로테이션: 캐릭터 인덱스별 스킬 순서
         public Dictionary<int, List<SkillType>> UserRotations { get; set; } = new();
 
-        // 적군 스킬 로테이션 (보스별 고정)
-        public List<BossAction> BossRotation { get; set; } = new();
+        // 적군 스킬 로테이션
+        public List<EnemyAction> EnemyRotation { get; set; } = new();
     }
 
     /// <summary>
@@ -47,9 +47,9 @@ namespace GameDamageCalculator.Services.BattleEngine
     }
 
     /// <summary>
-    /// 보스 행동 정의
+    /// 적 행동 정의
     /// </summary>
-    public class BossAction
+    public class EnemyAction
     {
         public string SkillName { get; set; }
         public double CooldownSeconds { get; set; }

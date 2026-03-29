@@ -15,8 +15,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 아군 상태
         public List<CharacterBattleState> AllyStates { get; set; } = new();
 
-        // 보스 상태
-        public BossBattleState BossState { get; set; } = new();
+        // 적 상태
+        public EnemyBattleState EnemyState { get; set; } = new();
 
         // 총 누적 데미지
         public double TotalDamageDealt { get; set; }
@@ -84,11 +84,11 @@ namespace GameDamageCalculator.Services.BattleEngine
     }
 
     /// <summary>
-    /// 보스의 배틀 중 상태
+    /// 적의 배틀 중 상태
     /// </summary>
-    public class BossBattleState
+    public class EnemyBattleState
     {
-        public Boss Boss { get; set; }
+        public Enemy Enemy { get; set; }
         public double CurrentHp { get; set; }
         public double MaxHp { get; set; }
 

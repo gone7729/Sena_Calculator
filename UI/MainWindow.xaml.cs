@@ -287,7 +287,7 @@ namespace GameDamageCalculator.UI
             // 잡몹 리스트
             cboMob.Items.Clear();
             cboMob.Items.Add("선택");
-            foreach (var mob in BossDb.Mobs)
+            foreach (var mob in EnemyDb.Mobs)
             {
                 cboMob.Items.Add(mob.Name);
             }
@@ -495,61 +495,58 @@ namespace GameDamageCalculator.UI
             string selected = cboBoss.SelectedItem?.ToString();
             if (string.IsNullOrEmpty(selected)) return;
         
-            Boss boss = null;
-        
+            Enemy enemy = null;
+
             if (rbSiege.IsChecked == true)
             {
-                boss = BossDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                enemy = EnemyDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
             }
             else if (rbRaid.IsChecked == true)
             {
-                boss = BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                enemy = EnemyDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
             }
-            else if (rbDescend.IsChecked == true)  // ✅ 강림 추가
+            else if (rbDescend.IsChecked == true)
             {
-                boss = BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                enemy = EnemyDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
             }
-            else if (rbGrowthDungeon.IsChecked == true)  // ✅ 성장던전 추가
+            else if (rbGrowthDungeon.IsChecked == true)
             {
-                boss = BossDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                enemy = EnemyDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
             }
 
-            if (boss != null)
+            if (enemy != null)
             {
-                txtBossDef.Text = boss.Stats.Def.ToString("N0");
-                txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
+                txtBossDef.Text = enemy.Stats.Def.ToString("N0");
+                txtBossDefInc.Text = enemy.DefenseIncrease.ToString("F0");
                 txtBossDmgRdc.Text = "0";
-                txtBossHp.Text = boss.Stats.Hp.ToString("N0");
-        
-                txtBoss1TargetRdc.Text = boss.SingleTargetReduction.ToString("F0");
-                txtBoss3TargetRdc.Text = boss.TripleTargetReduction.ToString("F0");
-                txtBoss5TargetRdc.Text = boss.MultiTargetReduction.ToString("F0");
-        
-                // 조건부 방증 처리
-                if (boss.IsStackableDefenseIncrease)
+                txtBossHp.Text = enemy.Stats.Hp.ToString("N0");
+
+                txtBoss1TargetRdc.Text = enemy.SingleTargetReduction.ToString("F0");
+                txtBoss3TargetRdc.Text = enemy.TripleTargetReduction.ToString("F0");
+                txtBoss5TargetRdc.Text = enemy.MultiTargetReduction.ToString("F0");
+
+                if (enemy.IsStackableDefenseIncrease)
                 {
-                    // 스택형 방증 (카르마 등)
                     panelBossCondition.Visibility = Visibility.Collapsed;
                     panelBossStack.Visibility = Visibility.Visible;
                     btnBossStack.Content = "0";
-                    btnBossStack.Tag = boss.MaxDefenseStack;  // 최대 스택 저장
-                    txtBossStackInfo.Text = $"/ {boss.MaxDefenseStack}";
-                    txtBossDefInc.Text = "0";  // 초기 스택 0
+                    btnBossStack.Tag = enemy.MaxDefenseStack;
+                    txtBossStackInfo.Text = $"/ {enemy.MaxDefenseStack}";
+                    txtBossDefInc.Text = "0";
                 }
-                else if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
+                else if (!string.IsNullOrEmpty(enemy.DefenseIncreaseCondition))
                 {
-                    // 기존 체력조건 방증
                     panelBossCondition.Visibility = Visibility.Visible;
                     panelBossStack.Visibility = Visibility.Collapsed;
-                    txtBossCondition.Text = boss.DefenseIncreaseCondition;
+                    txtBossCondition.Text = enemy.DefenseIncreaseCondition;
                     chkBossCondition.IsChecked = false;
-                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
+                    txtBossDefInc.Text = enemy.DefenseIncrease.ToString("F0");
                 }
                 else
                 {
                     panelBossCondition.Visibility = Visibility.Collapsed;
                     panelBossStack.Visibility = Visibility.Collapsed;
-                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
+                    txtBossDefInc.Text = enemy.DefenseIncrease.ToString("F0");
                 }
             }
         }
@@ -567,11 +564,11 @@ namespace GameDamageCalculator.UI
             else
             {
                 // 조건 미충족 → 방증 적용
-                var boss = GetSelectedBoss();
-                if (boss != null)
+                var selectedEnemy = GetSelectedEnemy();
+                if (selectedEnemy != null)
                 {
-                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
-                    txtBossHp.Text = boss.Stats.Hp.ToString("N0");
+                    txtBossDefInc.Text = selectedEnemy.DefenseIncrease.ToString("F0");
+                    txtBossHp.Text = selectedEnemy.Stats.Hp.ToString("N0");
                 }
             }
         }
@@ -616,10 +613,10 @@ namespace GameDamageCalculator.UI
         /// </summary>
         private void UpdateBossStackDefense(int stack)
         {
-            var boss = GetSelectedBoss();
-            if (boss != null && boss.IsStackableDefenseIncrease)
+            var selectedEnemy = GetSelectedEnemy();
+            if (selectedEnemy != null && selectedEnemy.IsStackableDefenseIncrease)
             {
-                double totalDefIncrease = boss.DefenseIncrease * stack;
+                double totalDefIncrease = selectedEnemy.DefenseIncrease * stack;
                 txtBossDefInc.Text = totalDefIncrease.ToString("F0");
             }
         }
@@ -749,7 +746,8 @@ namespace GameDamageCalculator.UI
                     // 자버프 타입피증 (스택소모 스킬용 - 자동 설정)
                     SelfBuffTypeDmg = GetSelfBuffTypeDmg(character, chkMySkillEnhanced.IsChecked == true),
 
-                    Mode = mode
+                    Mode = mode,
+                    IsTargetBoss = mode == BattleMode.Boss
                 };
 
                 // ===== 빠른 비교: 4가지 시나리오 계산 =====
@@ -842,15 +840,14 @@ namespace GameDamageCalculator.UI
             return selfBuff.Dmg_Dealt_Type + selfBuff.Mark_Energeia + selfBuff.Mark_Purify;
         }
 
-        private Boss GetSelectedBoss()
+        private Enemy GetSelectedEnemy()
         {
-            // 직접 입력이면 임시 보스 생성
             if (cboBoss.SelectedIndex <= 0)
             {
-                return new Boss
+                return new Enemy
                 {
                     Name = "직접 입력",
-                    BossType = BossType.Siege,
+                    EnemyType = EnemyType.Siege,
                     Stats = new BaseStatSet { Def = ParseDouble(txtBossDef.Text) },
                     DefenseIncrease = ParseDouble(txtBossDefInc.Text)
                 };
@@ -860,22 +857,22 @@ namespace GameDamageCalculator.UI
 
             if (rbSiege.IsChecked == true)
             {
-                return BossDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                return EnemyDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
             }
             else if (rbRaid.IsChecked == true)
             {
-                return BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                return EnemyDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
             }
             else if (rbDescend.IsChecked == true)
             {
-                return BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                return EnemyDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name));
             }
             else if (rbGrowthDungeon.IsChecked == true)
             {
-                return BossDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                return EnemyDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
             }
 
-            return new Boss { Name = "Unknown", Stats = new BaseStatSet { Def = 0 } };
+            return new Enemy { Name = "Unknown", Stats = new BaseStatSet { Def = 0 } };
         }
   
         private void BtnReset_Click(object sender, RoutedEventArgs e)
@@ -1123,7 +1120,7 @@ namespace GameDamageCalculator.UI
 
             if (cboMob.SelectedIndex > 0)
             {
-                var mob = BossDb.GetMobByName(cboMob.SelectedItem.ToString());
+                var mob = EnemyDb.GetMobByName(cboMob.SelectedItem.ToString());
                 if (mob != null)
                 {
                     txtBossDef.Text = mob.Stats.Def.ToString();
@@ -1361,30 +1358,30 @@ namespace GameDamageCalculator.UI
 
             if (rbSiege.IsChecked == true)
             {
-                foreach (var boss in BossDb.SiegeBosses)
+                foreach (var e in EnemyDb.SiegeBosses)
                 {
-                    cboBoss.Items.Add($"{boss.Name} ({boss.DayOfWeek})");
+                    cboBoss.Items.Add($"{e.Name} ({e.DayOfWeek})");
                 }
             }
             else if (rbRaid.IsChecked == true)
             {
-                foreach (var boss in BossDb.RaidBosses)
+                foreach (var e in EnemyDb.RaidBosses)
                 {
-                    cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
+                    cboBoss.Items.Add($"{e.Name} {e.Difficulty}단계");
                 }
             }
-            else if (rbDescend.IsChecked == true)  // ✅ 강림 추가
+            else if (rbDescend.IsChecked == true)
             {
-                foreach (var boss in BossDb.ForestBosses)
+                foreach (var e in EnemyDb.ForestBosses)
                 {
-                    cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
+                    cboBoss.Items.Add($"{e.Name} {e.Difficulty}단계");
                 }
             }
-            else if (rbGrowthDungeon.IsChecked == true)  // ✅ 성장던전 추가
+            else if (rbGrowthDungeon.IsChecked == true)
             {
-                foreach (var boss in BossDb.GrowthDungeonBosses)
+                foreach (var e in EnemyDb.GrowthDungeonBosses)
                 {
-                    cboBoss.Items.Add($"{boss.Name} {boss.Difficulty}단계");
+                    cboBoss.Items.Add($"{e.Name} {e.Difficulty}단계");
                 }
             }
             cboBoss.SelectedIndex = 0;
@@ -1718,8 +1715,8 @@ namespace GameDamageCalculator.UI
                 PetDefRate = double.TryParse(txtMyPetDef.Text, out double defRate) ? defRate : 0,
                 PetHpRate = double.TryParse(txtMyPetHp.Text, out double hpRate) ? hpRate : 0,
         
-                BossType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : (rbDescend.IsChecked == true ? "Descend" : "GrowthDungeon")),
-                BossName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
+                EnemyType = rbSiege.IsChecked == true ? "Siege" : (rbRaid.IsChecked == true ? "Raid" : (rbDescend.IsChecked == true ? "Descend" : "GrowthDungeon")),
+                EnemyName = cboBoss.SelectedIndex > 0 ? cboBoss.SelectedItem.ToString() : ""
                 // ⬆️ 여기서 객체 초기화 끝! (마지막 항목이라 콤마 없음)
             };
         
@@ -1851,12 +1848,12 @@ namespace GameDamageCalculator.UI
             txtMyPetDef.Text = preset.PetDefRate.ToString();
             txtMyPetHp.Text = preset.PetHpRate.ToString();
 
-            if (preset.BossType == "Siege") rbSiege.IsChecked = true;
-            else if (preset.BossType == "Raid") rbRaid.IsChecked = true;
-            else if (preset.BossType == "Descend") rbDescend.IsChecked = true;
-            else if (preset.BossType == "GrowthDungeon") rbGrowthDungeon.IsChecked = true;
+            if (preset.EnemyType == "Siege") rbSiege.IsChecked = true;
+            else if (preset.EnemyType == "Raid") rbRaid.IsChecked = true;
+            else if (preset.EnemyType == "Descend") rbDescend.IsChecked = true;
+            else if (preset.EnemyType == "GrowthDungeon") rbGrowthDungeon.IsChecked = true;
             UpdateBossList();
-            SelectComboBoxItem(cboBoss, preset.BossName);
+            SelectComboBoxItem(cboBoss, preset.EnemyName);
 
             // ⭐ 장신구 UI 업데이트 (6성이면 부옵션 표시)
             if (preset.AccessoryGrade == 3)  // 6성
@@ -1872,39 +1869,39 @@ namespace GameDamageCalculator.UI
             if (cboBoss.SelectedIndex > 0)
             {
                 string selected = cboBoss.SelectedItem?.ToString();
-                Boss boss = null;
+                Enemy enemy = null;
 
-                if (preset.BossType == "Siege")
+                if (preset.EnemyType == "Siege")
                 {
-                    boss = BossDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                    enemy = EnemyDb.SiegeBosses.FirstOrDefault(b => selected.Contains(b.Name));
                 }
-                else if (preset.BossType == "Raid")
+                else if (preset.EnemyType == "Raid")
                 {
-                    boss = BossDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                    enemy = EnemyDb.RaidBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
                 }
-                else if (preset.BossType == "Descend")
+                else if (preset.EnemyType == "Descend")
                 {
-                    boss = BossDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
+                    enemy = EnemyDb.ForestBosses.FirstOrDefault(b => selected.Contains(b.Name) && selected.Contains($"{b.Difficulty}단계"));
                 }
-                else if (preset.BossType == "GrowthDungeon")
+                else if (preset.EnemyType == "GrowthDungeon")
                 {
-                    boss = BossDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
+                    enemy = EnemyDb.GrowthDungeonBosses.FirstOrDefault(b => selected.Contains(b.Name));
                 }
 
-                if (boss != null)
+                if (enemy != null)
                 {
-                    txtBossDef.Text = boss.Stats.Def.ToString("N0");
-                    txtBossDefInc.Text = boss.DefenseIncrease.ToString("F0");
+                    txtBossDef.Text = enemy.Stats.Def.ToString("N0");
+                    txtBossDefInc.Text = enemy.DefenseIncrease.ToString("F0");
                     txtBossDmgRdc.Text = "0";
-                    txtBossHp.Text = boss.Stats.Hp.ToString("N0");
-                    txtBoss1TargetRdc.Text = boss.SingleTargetReduction.ToString("F0");
-                    txtBoss3TargetRdc.Text = boss.TripleTargetReduction.ToString("F0");
-                    txtBoss5TargetRdc.Text = boss.MultiTargetReduction.ToString("F0");
+                    txtBossHp.Text = enemy.Stats.Hp.ToString("N0");
+                    txtBoss1TargetRdc.Text = enemy.SingleTargetReduction.ToString("F0");
+                    txtBoss3TargetRdc.Text = enemy.TripleTargetReduction.ToString("F0");
+                    txtBoss5TargetRdc.Text = enemy.MultiTargetReduction.ToString("F0");
 
-                    if (!string.IsNullOrEmpty(boss.DefenseIncreaseCondition))
+                    if (!string.IsNullOrEmpty(enemy.DefenseIncreaseCondition))
                     {
                         panelBossCondition.Visibility = Visibility.Visible;
-                        txtBossCondition.Text = boss.DefenseIncreaseCondition;
+                        txtBossCondition.Text = enemy.DefenseIncreaseCondition;
                         chkBossCondition.IsChecked = false;
                     }
                     else
