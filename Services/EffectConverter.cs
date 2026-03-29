@@ -1,0 +1,408 @@
+using System.Collections.Generic;
+using System.Linq;
+using GameDamageCalculator.Models;
+using GameDamageCalculator.Models.Effects;
+
+namespace GameDamageCalculator.Services
+{
+    /// <summary>
+    /// 기존 Skill/Passive/Pet 정의를 BattleEffect로 변환
+    /// CharacterDB 형식을 유지하면서 통합 Effect 시스템 사용 가능
+    /// </summary>
+    public static class EffectConverter
+    {
+        #region Passive → BattleEffect
+
+        /// <summary>
+        /// 패시브의 모든 효과를 BattleEffect 리스트로 변환
+        /// </summary>
+        public static List<BattleEffect> FromPassive(
+            Passive passive, string characterName,
+            bool isEnhanced, int transcendLevel,
+            bool isConditionMet)
+        {
+            var effects = new List<BattleEffect>();
+            if (passive == null) return effects;
+
+            // 상시 자버프
+            var selfBuff = passive.GetTotalSelfBuff(isEnhanced, transcendLevel);
+            if (selfBuff != null && !IsEmpty(selfBuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"passive_self:{characterName}",
+                    SourceName = characterName,
+                    Category = EffectCategory.PassiveSelfBuff,
+                    Target = EffectTarget.Self,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = true,
+                    BuffValues = selfBuff
+                });
+            }
+
+            // 상시 파티버프
+            var partyBuff = passive.GetPartyBuff(isEnhanced, transcendLevel);
+            if (partyBuff != null && !IsEmpty(partyBuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"passive_party:{characterName}",
+                    SourceName = characterName,
+                    Category = EffectCategory.PassivePartyBuff,
+                    Target = EffectTarget.Party,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = true,
+                    BuffValues = partyBuff
+                });
+            }
+
+            // 상시 디버프
+            var debuff = passive.GetDebuff(isEnhanced, transcendLevel);
+            if (debuff != null && !IsEmptyDebuff(debuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"passive_debuff:{characterName}",
+                    SourceName = characterName,
+                    Category = EffectCategory.PassiveDebuff,
+                    Target = EffectTarget.Enemy,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = true,
+                    DebuffValues = debuff
+                });
+            }
+
+            // 조건부 효과 (조건 충족 시에만)
+            if (isConditionMet)
+            {
+                var condSelf = passive.GetConditionalSelfBuff(isEnhanced, transcendLevel);
+                if (condSelf != null && !IsEmpty(condSelf))
+                {
+                    effects.Add(new BattleEffect
+                    {
+                        Id = $"passive_cond_self:{characterName}",
+                        SourceName = characterName,
+                        Category = EffectCategory.ConditionalSelfBuff,
+                        Target = EffectTarget.Self,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = false,
+                        RemainingTurns = 99, // 조건 유지 중 상시
+                        BuffValues = condSelf
+                    });
+                }
+
+                var condParty = passive.GetConditionalPartyBuff(isEnhanced, transcendLevel);
+                if (condParty != null && !IsEmpty(condParty))
+                {
+                    effects.Add(new BattleEffect
+                    {
+                        Id = $"passive_cond_party:{characterName}",
+                        SourceName = characterName,
+                        Category = EffectCategory.ConditionalPartyBuff,
+                        Target = EffectTarget.Party,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = false,
+                        RemainingTurns = 99,
+                        BuffValues = condParty
+                    });
+                }
+
+                var condDebuff = passive.GetConditionalDebuff(isEnhanced, transcendLevel);
+                if (condDebuff != null && !IsEmptyDebuff(condDebuff))
+                {
+                    effects.Add(new BattleEffect
+                    {
+                        Id = $"passive_cond_debuff:{characterName}",
+                        SourceName = characterName,
+                        Category = EffectCategory.ConditionalDebuff,
+                        Target = EffectTarget.Enemy,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = false,
+                        RemainingTurns = 99,
+                        DebuffValues = condDebuff
+                    });
+                }
+            }
+
+            // 패시브 상태이상
+            var levelData = passive.GetLevelData(isEnhanced);
+            if (levelData.StatusEffects != null)
+            {
+                foreach (var se in levelData.StatusEffects)
+                {
+                    effects.Add(FromSkillStatusEffect(se, characterName, passive.Name));
+                }
+            }
+
+            return effects;
+        }
+
+        #endregion
+
+        #region Skill → BattleEffect
+
+        /// <summary>
+        /// 스킬의 모든 효과를 BattleEffect 리스트로 변환
+        /// </summary>
+        public static List<BattleEffect> FromSkill(
+            Skill skill, string characterName,
+            bool isEnhanced, int transcendLevel)
+        {
+            var effects = new List<BattleEffect>();
+            if (skill == null) return effects;
+
+            var levelData = skill.GetLevelData(isEnhanced);
+            var totalBonus = skill.GetTotalBonus(isEnhanced, transcendLevel);
+
+            // 스킬 보너스 (해당 스킬 데미지 계산에만 적용)
+            if (totalBonus != null && !IsEmpty(totalBonus))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"skill_bonus:{characterName}:{skill.Name}",
+                    SourceName = characterName,
+                    Category = EffectCategory.SkillBonus,
+                    Target = EffectTarget.Self,
+                    MergeStrategy = MergeStrategy.Additive,
+                    IsPermanent = false,
+                    RemainingTurns = 0, // 즉시 소멸 (계산에만 사용)
+                    BuffValues = totalBonus
+                });
+            }
+
+            // 스킬 자버프
+            if (levelData?.SelfBuff != null && !IsEmpty(levelData.SelfBuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"skill_self:{characterName}:{skill.Name}",
+                    SourceName = characterName,
+                    Category = EffectCategory.ActiveSelfBuff,
+                    Target = EffectTarget.Self,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = false,
+                    RemainingTurns = 3, // 기본 3턴 (스킬별 다를 수 있음)
+                    BuffValues = levelData.SelfBuff
+                });
+            }
+
+            // 스킬 파티버프
+            if (levelData?.PartyBuff != null && !IsEmpty(levelData.PartyBuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"skill_party:{characterName}:{skill.Name}",
+                    SourceName = characterName,
+                    Category = EffectCategory.ActivePartyBuff,
+                    Target = EffectTarget.Party,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = false,
+                    RemainingTurns = 3,
+                    BuffValues = levelData.PartyBuff
+                });
+            }
+
+            // 스킬 디버프
+            if (levelData?.DebuffEffect != null && !IsEmptyDebuff(levelData.DebuffEffect))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"skill_debuff:{characterName}:{skill.Name}",
+                    SourceName = characterName,
+                    Category = EffectCategory.ActiveDebuff,
+                    Target = EffectTarget.Enemy,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = false,
+                    RemainingTurns = 3,
+                    DebuffValues = levelData.DebuffEffect
+                });
+            }
+
+            // 초월 보너스 파티버프/디버프
+            var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+            if (transcendBonus?.PartyBuff != null && !IsEmpty(transcendBonus.PartyBuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"skill_transcend_party:{characterName}:{skill.Name}",
+                    SourceName = characterName,
+                    Category = EffectCategory.ActivePartyBuff,
+                    Target = EffectTarget.Party,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = false,
+                    RemainingTurns = 3,
+                    BuffValues = transcendBonus.PartyBuff
+                });
+            }
+
+            if (transcendBonus?.Debuff != null && !IsEmptyDebuff(transcendBonus.Debuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"skill_transcend_debuff:{characterName}:{skill.Name}",
+                    SourceName = characterName,
+                    Category = EffectCategory.ActiveDebuff,
+                    Target = EffectTarget.Enemy,
+                    MergeStrategy = MergeStrategy.MaxMerge,
+                    IsPermanent = false,
+                    RemainingTurns = 3,
+                    DebuffValues = transcendBonus.Debuff
+                });
+            }
+
+            // 상태이상
+            if (levelData?.StatusEffects != null)
+            {
+                foreach (var se in levelData.StatusEffects)
+                {
+                    effects.Add(FromSkillStatusEffect(se, characterName, skill.Name));
+                }
+            }
+
+            // 초월 상태이상
+            if (transcendBonus?.StatusEffects != null)
+            {
+                foreach (var se in transcendBonus.StatusEffects)
+                {
+                    effects.Add(FromSkillStatusEffect(se, characterName, $"{skill.Name}(초월)"));
+                }
+            }
+
+            return effects;
+        }
+
+        #endregion
+
+        #region Pet → BattleEffect
+
+        /// <summary>
+        /// 펫 효과를 BattleEffect 리스트로 변환
+        /// </summary>
+        public static List<BattleEffect> FromPet(Pet pet, int petStar)
+        {
+            var effects = new List<BattleEffect>();
+            if (pet == null) return effects;
+
+            var buff = pet.GetSkillBuff(petStar);
+            if (buff != null && !IsEmpty(buff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"pet_buff:{pet.Name}",
+                    SourceName = pet.Name,
+                    Category = EffectCategory.PetBuff,
+                    Target = EffectTarget.Party,
+                    MergeStrategy = MergeStrategy.Additive,
+                    IsPermanent = true,
+                    BuffValues = buff
+                });
+            }
+
+            var debuff = pet.GetSkillDebuff(petStar);
+            if (debuff != null && !IsEmptyDebuff(debuff))
+            {
+                effects.Add(new BattleEffect
+                {
+                    Id = $"pet_debuff:{pet.Name}",
+                    SourceName = pet.Name,
+                    Category = EffectCategory.PetDebuff,
+                    Target = EffectTarget.Enemy,
+                    MergeStrategy = MergeStrategy.Additive,
+                    IsPermanent = true,
+                    DebuffValues = debuff
+                });
+            }
+
+            return effects;
+        }
+
+        #endregion
+
+        #region SkillStatusEffect → BattleEffect
+
+        private static BattleEffect FromSkillStatusEffect(
+            SkillStatusEffect sse, string characterName, string skillName)
+        {
+            var baseEffect = StatusEffectDb.Get(sse.Type);
+            var category = ResolveStatusCategory(sse.Type);
+
+            return new BattleEffect
+            {
+                Id = $"status:{characterName}:{skillName}:{sse.Type}",
+                SourceName = characterName,
+                Category = category,
+                Target = EffectTarget.Enemy,
+                MergeStrategy = MergeStrategy.Stack,
+                IsPermanent = false,
+                RemainingTurns = sse.Duration > 0 ? sse.Duration : baseEffect?.Duration ?? 2,
+                StatusType = sse.Type,
+                StatusData = ResolveStatusData(baseEffect, sse),
+                Stacks = sse.Stacks,
+                MaxStacks = baseEffect?.MaxStacks ?? 1,
+                ApplyChance = sse.Chance
+            };
+        }
+
+        private static StatusEffectData ResolveStatusData(StatusEffect baseEffect, SkillStatusEffect sse)
+        {
+            var data = StatusEffectData.FromDbEffect(baseEffect);
+            // 스킬별 커스텀 오버라이드 적용
+            if (sse.CustomAtkRatio.HasValue) data.AtkRatio = sse.CustomAtkRatio.Value;
+            if (sse.CustomHpRatio.HasValue) data.TargetMaxHpRatio = sse.CustomHpRatio.Value;
+            if (sse.CustomTargetMaxHpRatio.HasValue) data.TargetMaxHpRatio = sse.CustomTargetMaxHpRatio.Value;
+            if (sse.CustomAtkCap.HasValue) data.AtkCap = sse.CustomAtkCap.Value;
+            if (sse.CustomArmorPen.HasValue) data.ArmorPen = sse.CustomArmorPen.Value;
+            if (sse.CustomFixedDamage.HasValue) data.FixedDamage = sse.CustomFixedDamage.Value;
+            if (sse.MaxConsume > 0) data.MaxConsume = sse.MaxConsume;
+            return data;
+        }
+
+        private static EffectCategory ResolveStatusCategory(StatusEffectType type)
+        {
+            return type switch
+            {
+                StatusEffectType.Stun or StatusEffectType.Silence or StatusEffectType.Freeze
+                    or StatusEffectType.Petrify or StatusEffectType.IceExtreme or StatusEffectType.Paralysis
+                    or StatusEffectType.Shock or StatusEffectType.Sleep or StatusEffectType.Confusion
+                    or StatusEffectType.Concussion => EffectCategory.CrowdControl,
+
+                StatusEffectType.Burn or StatusEffectType.Bleeding or StatusEffectType.Poison
+                    or StatusEffectType.InstantDeath or StatusEffectType.ManaBackflow
+                    or StatusEffectType.ChainDamage => EffectCategory.DamageOverTime,
+
+                _ => EffectCategory.SpecialStatus
+            };
+        }
+
+        #endregion
+
+        #region 유틸리티
+
+        private static bool IsEmpty(BuffSet buff)
+        {
+            if (buff == null) return true;
+            return buff.Atk_Rate == 0 && buff.Def_Rate == 0 && buff.Hp_Rate == 0
+                && buff.Cri == 0 && buff.Cri_Dmg == 0 && buff.CriBonusDmg == 0
+                && buff.Wek == 0 && buff.Wek_Dmg == 0 && buff.WekBonusDmg == 0
+                && buff.Dmg_Dealt == 0 && buff.Dmg_Dealt_Type == 0 && buff.Dmg_Dealt_Bos == 0
+                && buff.Dmg_Dealt_1to3 == 0 && buff.Dmg_Dealt_4to5 == 0
+                && buff.Mark_Energeia == 0 && buff.Mark_Purify == 0
+                && buff.Arm_Pen == 0 && buff.Dmg_Rdc == 0 && buff.Blk == 0
+                && buff.Heal_Bonus == 0 && buff.Eff_Res == 0 && buff.Eff_Hit == 0
+                && buff.Shield_HpRatio == 0 && buff.Blessing == 0;
+        }
+
+        private static bool IsEmptyDebuff(DebuffSet debuff)
+        {
+            if (debuff == null) return true;
+            return debuff.Def_Reduction == 0 && debuff.Dmg_Taken_Increase == 0
+                && debuff.Vulnerability == 0 && debuff.Boss_Vulnerability == 0
+                && debuff.Atk_Reduction == 0 && debuff.Spd_Reduction == 0
+                && debuff.Dmg_Reduction == 0 && debuff.Cri_Dmg_Reduction == 0
+                && debuff.Heal_Reduction == 0 && debuff.Unrecover == 0
+                && debuff.Eff_Red == 0 && debuff.Eff_Hit_Red == 0 && debuff.Blk_Red == 0;
+        }
+
+        #endregion
+    }
+}

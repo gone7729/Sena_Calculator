@@ -45,14 +45,28 @@ Sena_Calculator/
 │   ├── Stage.cs            # 스테이지 모델 (웨이브/적 배치)
 │   ├── BuffSet.cs          # 버프/디버프 세트
 │   ├── Equipment.cs        # 장비 모델
+│   ├── EquipmentLoadout.cs # 장비 한벌 (무기2+방어구2+장신구1)
+│   ├── BattleCharacter.cs  # 배틀 시뮬용 캐릭터 설정
 │   └── Preset.cs           # 프리셋 저장 모델
 ├── Services/                # 계산 로직
 │   ├── DamageCalculator.cs # 데미지 계산 핵심
 │   ├── StatCalculator.cs   # 스탯 계산
-│   └── BuffCalculator.cs   # 버프/디버프 합산
+│   ├── BuffCalculator.cs   # 버프/디버프 합산
+│   ├── BattleEngine/       # 배틀 시뮬레이터
+│   │   ├── BattleSimulator.cs  # 배틀 진행 메인 루프
+│   │   ├── TurnManager.cs      # 턴/행동 순서 관리
+│   │   ├── BattleState.cs      # 배틀 상태 (HP, 버프, 쿨다운)
+│   │   ├── BattleConfig.cs     # 배틀 설정
+│   │   └── BattleResult.cs     # 시뮬레이션 결과
+│   └── Optimizer/          # 장비 옵티마이저
+│       ├── EquipmentOptimizer.cs  # 최적화 메인 로직
+│       ├── SetCombination.cs      # 세트 조합 열거
+│       └── OptimizerResult.cs     # 최적화 결과
 └── UI/                      # WPF UI
-    ├── MainWindow.xaml      # 메인 UI
-    └── MainWindow.xaml.cs   # UI 코드비하인드
+    ├── MainWindow.xaml      # 메인 UI (데미지 계산기)
+    ├── MainWindow.xaml.cs   # UI 코드비하인드
+    ├── SimulatorWindow.xaml     # 배틀 시뮬레이터 UI
+    └── SimulatorWindow.xaml.cs  # 시뮬레이터 코드비하인드
 ```
 
 ## 핵심 데미지 공식
@@ -202,6 +216,31 @@ dotnet run
 | `MainWindow.xaml.cs` | UI 이벤트 핸들러, 계산 호출 |
 | `BuffCalculator.cs` | 파티 버프/디버프 합산 |
 | `StatCalculator.cs` | 최종 스탯 계산 |
+
+## 배틀 시뮬레이터 & 장비 옵티마이저
+
+### 배틀 시뮬레이터
+- 5인 파티 vs 보스 턴제 배틀 시뮬레이션
+- 턴 구조: 선공 스킬(0턴) → 후공 기본공격2+스킬 → 선공 기본공격2+스킬 반복
+- 선공 결정: 아군 총 속공 합 vs 적 속공
+- 기본공격 순서: 파티 내 속공 높은 순
+- 스킬 로테이션: 유저 지정 / 자동 최적화 (예정)
+- 쿨다운: 초 기반, 상대 스킬 사용 시 5초 감소 (5초 이하 잔여 시 미적용)
+
+### 장비 옵티마이저
+- 세트 조합 열거 → 메인옵션 탐색 → 서브옵션 그리디 배분
+- 장비 규칙:
+  - 캐릭터당 무기 2개, 방어구 2개, 장신구 1개
+  - 9개 세트 (선봉장/추적자/성기사/수문장/수호자/암살자/복수자/주술사/조율자)
+  - 4세트 효과는 2세트와 중첩 안됨 (4세트만 적용)
+  - 교차 세트 가능 (무기 A세트 + 방어구 B세트 = 2+2세트)
+
+### 장비 조합 탐색 공간
+- 4세트: 9가지
+- 2+2세트: 9×8 = 72가지
+- 메인옵: 무기 5종(DPS필터) × 방어구 5종
+- 서브옵: 16슬롯 그리디 배분 (1티어당 데미지 증가량 기준)
+- 장신구: 등급(3) × 메인(11) × 서브(11)
 
 ## 미확인 사항
 
