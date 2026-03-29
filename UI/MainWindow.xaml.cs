@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Services;
+using GameDamageCalculator.Models.Effects;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -20,7 +21,8 @@ namespace GameDamageCalculator.UI
         private bool _isInitialized = false;
         private readonly DamageCalculator _calculator;
         private readonly StatCalculator _statCalculator;
-        private readonly BuffCalculator _buffCalculator;
+        private readonly BuffCalculator _buffCalculator; // 레거시 (검증용)
+        private readonly EffectManager _effectManager = new();
         private Formation _currentFormation = new Formation();
         private PresetManager[] _presetManagers = new PresetManager[2];
         private DebuffSet _currentDebuffs = new DebuffSet();
@@ -657,7 +659,10 @@ namespace GameDamageCalculator.UI
                 Pet pet = cboMyPet.SelectedIndex > 0
                     ? PetDb.GetByName(cboMyPet.SelectedItem.ToString()) : null;
                 int petStar = GetPetStar();
-                BuffSet totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
+                // EffectManager로 버프 집계
+                _effectManager.Clear();
+                _effectManager.AddEffects(EffectConverter.FromBuffConfigs(BuffConfigs, pet, petStar));
+                BuffSet totalBuffs = _effectManager.GetTotalBuffs();
                 double weakDmgBuff = totalBuffs.Wek_Dmg;
 
                 BattleMode mode = BattleMode.Boss;
@@ -1163,10 +1168,12 @@ namespace GameDamageCalculator.UI
             if (cboMyPet.SelectedIndex > 0)
                 pet = PetDb.GetByName(cboMyPet.SelectedItem.ToString());
 
-            // 버프/디버프 계산 (지속/턴제/펫 분리)
-            var (partyPermanentBuffs, partyTimedBuffs, partyPetBuffs) = _buffCalculator.CalculateSeparatedPartyBuffs(BuffConfigs, pet, petStar);
-            var totalBuffs = _buffCalculator.CalculateTotalBuffs(BuffConfigs, pet, petStar);
-            _currentDebuffs = _buffCalculator.CalculateTotalDebuffs(BuffConfigs, pet, petStar);
+            // 버프/디버프 계산 (EffectManager 통합)
+            _effectManager.Clear();
+            _effectManager.AddEffects(EffectConverter.FromBuffConfigs(BuffConfigs, pet, petStar));
+            var (partyPermanentBuffs, partyTimedBuffs, partyPetBuffs) = _effectManager.GetSeparatedBuffs();
+            var totalBuffs = _effectManager.GetTotalBuffs();
+            _currentDebuffs = _effectManager.GetTotalDebuffs();
 
             // 입력 데이터 생성
             var input = new StatCalculationInput

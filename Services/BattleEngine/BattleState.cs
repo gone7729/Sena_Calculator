@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
+using GameDamageCalculator.Models.Effects;
 
 namespace GameDamageCalculator.Services.BattleEngine
 {
@@ -45,8 +46,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 패시브 스택
         public int PassiveStacks { get; set; }
 
-        // 활성 버프 (남은 턴 포함)
-        public List<ActiveBuff> ActiveBuffs { get; set; } = new();
+        // 통합 효과 관리자 (버프/디버프/상태이상 통합)
+        public EffectManager Effects { get; set; } = new();
 
         // 스킬 쿨다운 (초 기반)
         public Dictionary<SkillType, double> SkillCooldowns { get; set; } = new();
@@ -95,30 +96,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 방어력 스택 (스택형 방어력 증가 보스용)
         public int DefenseStacks { get; set; }
 
-        // 보스에게 걸린 디버프
-        public List<ActiveDebuff> ActiveDebuffs { get; set; } = new();
-    }
-
-    /// <summary>
-    /// 턴 기반 활성 버프
-    /// </summary>
-    public class ActiveBuff
-    {
-        public string SourceName { get; set; }
-        public BuffSet Buff { get; set; }
-        public int RemainingTurns { get; set; }
-        public bool IsPermanent { get; set; }
-    }
-
-    /// <summary>
-    /// 턴 기반 활성 디버프
-    /// </summary>
-    public class ActiveDebuff
-    {
-        public string SourceName { get; set; }
-        public DebuffSet Debuff { get; set; }
-        public int RemainingTurns { get; set; }
-        public bool IsPermanent { get; set; }
+        // 통합 효과 관리자 (디버프/상태이상 통합)
+        public EffectManager Effects { get; set; } = new();
     }
 
     /// <summary>

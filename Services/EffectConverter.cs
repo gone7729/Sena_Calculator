@@ -376,6 +376,188 @@ namespace GameDamageCalculator.Services
 
         #endregion
 
+        #region BuffConfig → BattleEffect (UI 호환)
+
+        /// <summary>
+        /// UI의 BuffConfig 리스트 + 펫을 BattleEffect 리스트로 변환
+        /// BuffCalculator.CalculateTotalBuffs/CalculateSeparatedPartyBuffs/CalculateTotalDebuffs를 대체
+        /// </summary>
+        public static List<BattleEffect> FromBuffConfigs(
+            IEnumerable<BuffConfig> buffConfigs, Pet pet, int petStar)
+        {
+            var effects = new List<BattleEffect>();
+
+            foreach (var config in buffConfigs)
+            {
+                if (!config.IsChecked) continue;
+
+                var (isEnhanced, transcendLevel) = config.GetBuffOption();
+                var character = Database.CharacterDb.GetByName(config.CharacterName);
+                if (character == null) continue;
+
+                if (config.SkillName == null)
+                {
+                    // 패시브 효과
+                    if (config.IsBuff)
+                    {
+                        // 패시브 파티버프 (상시)
+                        var partyBuff = character.Passive?.GetPartyBuff(isEnhanced, transcendLevel);
+                        if (partyBuff != null && !IsEmpty(partyBuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"passive_party:{config.CharacterName}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.PassivePartyBuff,
+                                Target = EffectTarget.Party,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = true,
+                                BuffValues = partyBuff
+                            });
+                        }
+
+                        // 패시브 파티버프 (조건부)
+                        var condPartyBuff = character.Passive?.GetConditionalPartyBuff(isEnhanced, transcendLevel);
+                        if (condPartyBuff != null && !IsEmpty(condPartyBuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"passive_cond_party:{config.CharacterName}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.ConditionalPartyBuff,
+                                Target = EffectTarget.Party,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = false,
+                                RemainingTurns = 99,
+                                BuffValues = condPartyBuff
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // 패시브 디버프 (상시)
+                        var debuff = character.Passive?.GetDebuff(isEnhanced, transcendLevel);
+                        if (debuff != null && !IsEmptyDebuff(debuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"passive_debuff:{config.CharacterName}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.PassiveDebuff,
+                                Target = EffectTarget.Enemy,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = true,
+                                DebuffValues = debuff
+                            });
+                        }
+
+                        // 패시브 디버프 (조건부)
+                        var condDebuff = character.Passive?.GetConditionalDebuff(isEnhanced, transcendLevel);
+                        if (condDebuff != null && !IsEmptyDebuff(condDebuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"passive_cond_debuff:{config.CharacterName}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.ConditionalDebuff,
+                                Target = EffectTarget.Enemy,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = false,
+                                RemainingTurns = 99,
+                                DebuffValues = condDebuff
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    // 스킬 효과
+                    var skill = character.Skills?.FirstOrDefault(s => s.Name == config.SkillName);
+                    if (skill == null) continue;
+
+                    if (config.IsBuff)
+                    {
+                        // 스킬 파티버프
+                        var levelData = skill.GetLevelData(isEnhanced);
+                        if (levelData?.PartyBuff != null && !IsEmpty(levelData.PartyBuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"skill_party:{config.CharacterName}:{skill.Name}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.ActivePartyBuff,
+                                Target = EffectTarget.Party,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = false,
+                                RemainingTurns = 99,
+                                BuffValues = levelData.PartyBuff
+                            });
+                        }
+
+                        // 초월 파티버프
+                        var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                        if (transcendBonus?.PartyBuff != null && !IsEmpty(transcendBonus.PartyBuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"skill_transcend_party:{config.CharacterName}:{skill.Name}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.ActivePartyBuff,
+                                Target = EffectTarget.Party,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = false,
+                                RemainingTurns = 99,
+                                BuffValues = transcendBonus.PartyBuff
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // 스킬 디버프
+                        var levelData = skill.GetLevelData(isEnhanced);
+                        if (levelData?.DebuffEffect != null && !IsEmptyDebuff(levelData.DebuffEffect))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"skill_debuff:{config.CharacterName}:{skill.Name}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.ActiveDebuff,
+                                Target = EffectTarget.Enemy,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = false,
+                                RemainingTurns = 99,
+                                DebuffValues = levelData.DebuffEffect
+                            });
+                        }
+
+                        // 초월 디버프
+                        var transcendBonus = skill.GetTranscendBonus(transcendLevel);
+                        if (transcendBonus?.Debuff != null && !IsEmptyDebuff(transcendBonus.Debuff))
+                        {
+                            effects.Add(new BattleEffect
+                            {
+                                Id = $"skill_transcend_debuff:{config.CharacterName}:{skill.Name}",
+                                SourceName = config.CharacterName,
+                                Category = EffectCategory.ActiveDebuff,
+                                Target = EffectTarget.Enemy,
+                                MergeStrategy = MergeStrategy.MaxMerge,
+                                IsPermanent = false,
+                                RemainingTurns = 99,
+                                DebuffValues = transcendBonus.Debuff
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 펫 효과
+            effects.AddRange(FromPet(pet, petStar));
+
+            return effects;
+        }
+
+        #endregion
+
         #region 유틸리티
 
         private static bool IsEmpty(BuffSet buff)

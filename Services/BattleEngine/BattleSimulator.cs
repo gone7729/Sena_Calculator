@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
+using GameDamageCalculator.Models.Effects;
 using GameDamageCalculator.Database;
 
 namespace GameDamageCalculator.Services.BattleEngine
@@ -332,8 +333,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             var battleChar = charState.Source;
             var enemyState = state.EnemyState;
 
-            // 적 디버프 합산
-            var enemyDebuffs = AggregateEnemyDebuffs(state);
+            // 적 디버프 합산 (EffectManager 통합)
+            var enemyDebuffs = state.EnemyState.Effects.GetTotalDebuffs();
 
             // 타겟 수에 따른 보스 피해감소
             double targetReduction = GetTargetReduction(config.TargetEnemy, skill.TargetCount);
@@ -450,25 +451,6 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 보스에 걸린 디버프 합산
-        /// </summary>
-        private DebuffSet AggregateEnemyDebuffs(BattleState state)
-        {
-            var total = new DebuffSet();
-            foreach (var debuff in state.EnemyState.ActiveDebuffs)
-            {
-                if (debuff.IsPermanent || debuff.RemainingTurns > 0)
-                {
-                    total.Def_Reduction = Math.Max(total.Def_Reduction, debuff.Debuff.Def_Reduction);
-                    total.Dmg_Taken_Increase = Math.Max(total.Dmg_Taken_Increase, debuff.Debuff.Dmg_Taken_Increase);
-                    total.Vulnerability = Math.Max(total.Vulnerability, debuff.Debuff.Vulnerability);
-                    total.Boss_Vulnerability = Math.Max(total.Boss_Vulnerability, debuff.Debuff.Boss_Vulnerability);
-                }
-            }
-            return total;
-        }
-
-        /// <summary>
         /// 타겟 수에 따른 보스 피해감소율
         /// </summary>
         private double GetTargetReduction(Enemy enemy, int targetCount)
@@ -492,14 +474,14 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 스킬은 턴 소모하지 않으므로, 기본공격 시에만 처리
             if (!action.IsSkill)
             {
-                // 아군 버프 지속시간 감소
+                // 아군 효과 턴 경과
                 foreach (var charState in state.AllyStates)
                 {
-                    charState.ActiveBuffs.RemoveAll(b => !b.IsPermanent && --b.RemainingTurns <= 0);
+                    charState.Effects.TickTurn();
                 }
 
-                // 보스 디버프 지속시간 감소
-                state.EnemyState.ActiveDebuffs.RemoveAll(d => !d.IsPermanent && --d.RemainingTurns <= 0);
+                // 적 효과 턴 경과
+                state.EnemyState.Effects.TickTurn();
             }
         }
 
