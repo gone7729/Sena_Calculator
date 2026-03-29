@@ -203,8 +203,44 @@ namespace GameDamageCalculator.Models
         public double LostHpBonusDmgMax { get; set; }
         public double LostHpAssumedRemaining { get; set; } // 특정조건 시 대상 잔여HP% (예: 30 = 30%남음 → 70%손실)
 
-        // ===== 상태이상 (레거시 - 새 코드는 Effects 사용) =====
-        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
+        // ===== 상태이상 =====
+        // 새 Effects가 있으면 자동 변환, 없으면 레거시 필드 사용
+        private List<SkillStatusEffect> _statusEffects = new List<SkillStatusEffect>();
+        public List<SkillStatusEffect> StatusEffects
+        {
+            get
+            {
+                if (_statusEffects.Count > 0) return _statusEffects;
+                if (Effects == null || Effects.Count == 0) return _statusEffects;
+                // Effects에서 상태이상만 추출하여 레거시 형식으로 변환
+                var converted = new List<SkillStatusEffect>();
+                foreach (var e in Effects)
+                {
+                    if (e.Type == SkillEffectType.StatusAilment)
+                    {
+                        converted.Add(new SkillStatusEffect
+                        {
+                            Type = e.StatusType,
+                            Stacks = e.Stacks,
+                            Chance = e.Chance,
+                            Duration = e.Duration,
+                            MaxConsume = e.MaxConsume,
+                            CustomAtkRatio = e.CustomAtkRatio,
+                            CustomHpRatio = e.CustomHpRatio,
+                            CustomAtkCap = e.CustomAtkCap,
+                            CustomArmorPen = e.CustomArmorPen,
+                            CustomFixedDamage = e.CustomFixedDamage,
+                            CustomTargetMaxHpRatio = e.CustomTargetMaxHpRatio,
+                            CustomTargetCurrentHpRatio = e.CustomTargetCurrentHpRatio,
+                            CustomHpConversionRatio = e.CustomHpConversionRatio,
+                            CustomTriggerCount = e.CustomTriggerCount,
+                        });
+                    }
+                }
+                return converted;
+            }
+            set => _statusEffects = value ?? new List<SkillStatusEffect>();
+        }
 
         // ===== 통합 효과 리스트 (새 방식) =====
         public List<SkillEffect> Effects { get; set; }
@@ -234,8 +270,42 @@ namespace GameDamageCalculator.Models
         public double ConditionalExtraDmg { get; set; }
         public double ConditionalExtraDmgSelfHpRatio { get; set; }
 
-        // 상태이상 (레거시)
-        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
+        // 상태이상
+        private List<SkillStatusEffect> _statusEffects = new List<SkillStatusEffect>();
+        public List<SkillStatusEffect> StatusEffects
+        {
+            get
+            {
+                if (_statusEffects.Count > 0) return _statusEffects;
+                if (Effects == null || Effects.Count == 0) return _statusEffects;
+                var converted = new List<SkillStatusEffect>();
+                foreach (var e in Effects)
+                {
+                    if (e.Type == SkillEffectType.StatusAilment)
+                    {
+                        converted.Add(new SkillStatusEffect
+                        {
+                            Type = e.StatusType,
+                            Stacks = e.Stacks,
+                            Chance = e.Chance,
+                            Duration = e.Duration,
+                            MaxConsume = e.MaxConsume,
+                            CustomAtkRatio = e.CustomAtkRatio,
+                            CustomHpRatio = e.CustomHpRatio,
+                            CustomAtkCap = e.CustomAtkCap,
+                            CustomArmorPen = e.CustomArmorPen,
+                            CustomFixedDamage = e.CustomFixedDamage,
+                            CustomTargetMaxHpRatio = e.CustomTargetMaxHpRatio,
+                            CustomTargetCurrentHpRatio = e.CustomTargetCurrentHpRatio,
+                            CustomHpConversionRatio = e.CustomHpConversionRatio,
+                            CustomTriggerCount = e.CustomTriggerCount,
+                        });
+                    }
+                }
+                return converted;
+            }
+            set => _statusEffects = value ?? new List<SkillStatusEffect>();
+        }
         public ConsumeExtraDamage ConsumeExtra { get; set; }
 
         // 통합 효과 리스트 (새 방식)

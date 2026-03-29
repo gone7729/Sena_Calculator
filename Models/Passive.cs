@@ -41,15 +41,29 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 본인 전용 상시 버프
+        /// 본인 전용 상시 버프 (새 Effects + 레거시 필드 모두 확인)
         /// </summary>
         public PermanentBuff GetTotalSelfBuff(bool isEnhanced, int transcendLevel)
         {
             var result = new PermanentBuff();
-
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.SelfBuff != null) result.Add(levelData.SelfBuff);
-            if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
+
+            // 새 Effects에서 Self + Party 상시 버프 추출
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                foreach (var e in levelData.Effects)
+                {
+                    if (e.Type == Effects.PersistentEffectType.Buff && !e.IsConditional
+                        && (e.Target == Effects.EffectTarget.Self || e.Target == Effects.EffectTarget.Party)
+                        && e.Buff != null)
+                        result.Add(e.Buff);
+                }
+            }
+            else
+            {
+                if (levelData.SelfBuff != null) result.Add(levelData.SelfBuff);
+                if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
+            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.SelfBuff != null) result.Add(transcend.SelfBuff);
@@ -64,10 +78,23 @@ namespace GameDamageCalculator.Models
         public TimedBuff GetConditionalSelfBuff(bool isEnhanced, int transcendLevel)
         {
             var result = new TimedBuff();
-
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.ConditionalSelfBuff != null) result.Add(levelData.ConditionalSelfBuff);
-            if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
+
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                foreach (var e in levelData.Effects)
+                {
+                    if (e.Type == Effects.PersistentEffectType.Buff && e.IsConditional
+                        && (e.Target == Effects.EffectTarget.Self || e.Target == Effects.EffectTarget.Party)
+                        && e.Buff != null)
+                        result.Add(e.Buff);
+                }
+            }
+            else
+            {
+                if (levelData.ConditionalSelfBuff != null) result.Add(levelData.ConditionalSelfBuff);
+                if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
+            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.ConditionalSelfBuff != null) result.Add(transcend.ConditionalSelfBuff);
@@ -82,9 +109,21 @@ namespace GameDamageCalculator.Models
         public PermanentBuff GetPartyBuff(bool isEnhanced, int transcendLevel)
         {
             var result = new PermanentBuff();
-
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
+
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                foreach (var e in levelData.Effects)
+                {
+                    if (e.Type == Effects.PersistentEffectType.Buff && !e.IsConditional
+                        && e.Target == Effects.EffectTarget.Party && e.Buff != null)
+                        result.Add(e.Buff);
+                }
+            }
+            else
+            {
+                if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
+            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.PartyBuff != null) result.Add(transcend.PartyBuff);
@@ -98,9 +137,21 @@ namespace GameDamageCalculator.Models
         public TimedBuff GetConditionalPartyBuff(bool isEnhanced, int transcendLevel)
         {
             var result = new TimedBuff();
-
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
+
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                foreach (var e in levelData.Effects)
+                {
+                    if (e.Type == Effects.PersistentEffectType.Buff && e.IsConditional
+                        && e.Target == Effects.EffectTarget.Party && e.Buff != null)
+                        result.Add(e.Buff);
+                }
+            }
+            else
+            {
+                if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
+            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.ConditionalPartyBuff != null) result.Add(transcend.ConditionalPartyBuff);
@@ -114,9 +165,21 @@ namespace GameDamageCalculator.Models
         public PermanentDebuff GetDebuff(bool isEnhanced, int transcendLevel)
         {
             var result = new PermanentDebuff();
-
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.Debuff != null) result.Add(levelData.Debuff);
+
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                foreach (var e in levelData.Effects)
+                {
+                    if (e.Type == Effects.PersistentEffectType.Debuff && !e.IsConditional
+                        && e.Debuff != null)
+                        result.Add(e.Debuff);
+                }
+            }
+            else
+            {
+                if (levelData.Debuff != null) result.Add(levelData.Debuff);
+            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.Debuff != null) result.Add(transcend.Debuff);
@@ -130,9 +193,21 @@ namespace GameDamageCalculator.Models
         public TimedDebuff GetConditionalDebuff(bool isEnhanced, int transcendLevel)
         {
             var result = new TimedDebuff();
-
             var levelData = GetLevelData(isEnhanced);
-            if (levelData.ConditionalDebuff != null) result.Add(levelData.ConditionalDebuff);
+
+            if (levelData.Effects != null && levelData.Effects.Count > 0)
+            {
+                foreach (var e in levelData.Effects)
+                {
+                    if (e.Type == Effects.PersistentEffectType.Debuff && e.IsConditional
+                        && e.Debuff != null)
+                        result.Add(e.Debuff);
+                }
+            }
+            else
+            {
+                if (levelData.ConditionalDebuff != null) result.Add(levelData.ConditionalDebuff);
+            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.ConditionalDebuff != null) result.Add(transcend.ConditionalDebuff);
