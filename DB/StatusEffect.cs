@@ -30,6 +30,9 @@ namespace GameDamageCalculator.Models
         Poison, // 중독
         ChainDamage, // 카일꺼
         
+        // === 패시브 스택형 ===
+        EagleClaw,      // 매의 발톱 (타카)
+
         // === 특수 ===
         Bomb,           // 폭탄
         BombDetonation, // 폭탄 폭파
@@ -325,6 +328,16 @@ namespace GameDamageCalculator.Models
                 Name = "재생",
                 Description = "턴 시작 시 일정량의 생명력을 회복한다",
                 HealRatio = 0  // 캐릭터별 커스텀 값 사용
+            }},
+
+            // === 패시브 스택형 ===
+
+            { StatusEffectType.EagleClaw, new StatusEffect
+            {
+                Type = StatusEffectType.EagleClaw,
+                Name = "매의 발톱",
+                Description = "자신의 모든 공격 2회 시 대상에게 2스택 부여, 최대 8스택. 스택당 받는 피해 3% 증가",
+                MaxStacks = 8
             }},
         };
 

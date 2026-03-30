@@ -16,6 +16,13 @@ namespace GameDamageCalculator.Models.Effects
         public bool IsConditional { get; set; }      // 조건부 여부
         public string Condition { get; set; }        // 조건 설명 (UI 표시용)
 
+        // === 적용 모드 & 스택 트리거 ===
+        public ApplyMode ApplyMode { get; set; } = ApplyMode.Immediate;
+        public TriggerCondition TriggerCondition { get; set; }  // Triggered일 때 조건
+        public int TriggerCount { get; set; } = 1;              // 트리거에 필요한 횟수
+        public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
+        public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
+
         // === 버프/디버프 스탯 (Type = Buff 또는 Debuff일 때) ===
         public BuffSet Buff { get; set; }
         public DebuffSet Debuff { get; set; }

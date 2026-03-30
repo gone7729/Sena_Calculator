@@ -177,7 +177,6 @@ namespace GameDamageCalculator.Services.BattleEngine
                 FinalAtk = statResult.FinalAtk,
                 FinalDef = statResult.FinalDef,
                 FinalSpd = statResult.FinalSpd,
-                PassiveStacks = 0,
                 RotationIndex = 0,
                 TotalDamageDealt = 0
             };
@@ -248,6 +247,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             var normalSkill = character.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
             if (normalSkill == null) return;
 
+            // 스택 트리거 처리 (공격 전)
+            ProcessStackTriggers(charState, state, isSkill: false);
+
             var damage = CalculateSkillDamage(config, state, charState, normalSkill);
 
             // 데미지 적용
@@ -279,6 +281,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 쿨다운 확인
                 if (!charState.IsSkillReady(nextSkillType))
                     continue;
+
+                // 스택 트리거 처리 (공격 전)
+                ProcessStackTriggers(charState, state, isSkill: true);
 
                 // 스킬 실행
                 var damage = CalculateSkillDamage(config, state, charState, skill);
@@ -453,6 +458,140 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>
         /// 타겟 수에 따른 보스 피해감소율
         /// </summary>
+        /// <summary>
+        /// 스택 트리거 처리: 패시브의 Triggered 효과에 대해 공격 카운터 증가 및 스택 적용
+        /// </summary>
+        private void ProcessStackTriggers(CharacterBattleState charState, BattleState state, bool isSkill)
+        {
+            var passive = charState.Source.Character.Passive;
+            if (passive == null) return;
+
+            var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced);
+            if (levelData.Effects == null) return;
+
+            // 초월 Effects가 있으면 같은 StatusType을 오버라이드
+            var transcend = passive.GetTranscendBonus(charState.Source.TranscendLevel);
+            var transcendEffects = transcend?.Effects;
+
+            foreach (var baseEffect in levelData.Effects)
+            {
+                // 초월이 같은 StatusType을 정의하고 있으면 오버라이드
+                var effect = baseEffect;
+                if (transcendEffects != null)
+                {
+                    var override_ = transcendEffects.FirstOrDefault(
+                        e => e.StatusType == baseEffect.StatusType && e.StatusType != StatusEffectType.None);
+                    if (override_ != null)
+                        effect = override_;
+                }
+                if (effect.ApplyMode != ApplyMode.Triggered) continue;
+                if (effect.MaxStacks <= 0) continue;
+
+                // 트리거 조건 확인
+                bool matches = effect.TriggerCondition switch
+                {
+                    TriggerCondition.AllAttack => true,
+                    TriggerCondition.SkillOnly => isSkill,
+                    TriggerCondition.NormalOnly => !isSkill,
+                    _ => false
+                };
+                if (!matches) continue;
+
+                string effectId = $"stack:{charState.Source.Character.Name}:{effect.Type}:{effect.Target}";
+
+                // 카운터 증가
+                if (!charState.StackTriggerCounters.ContainsKey(effectId))
+                    charState.StackTriggerCounters[effectId] = 0;
+                charState.StackTriggerCounters[effectId]++;
+
+                // 트리거 횟수 도달 시 스택 부여
+                if (charState.StackTriggerCounters[effectId] >= effect.TriggerCount)
+                {
+                    charState.StackTriggerCounters[effectId] = 0;
+
+                    if (!charState.CurrentStacks.ContainsKey(effectId))
+                        charState.CurrentStacks[effectId] = 0;
+
+                    int newStacks = Math.Min(
+                        charState.CurrentStacks[effectId] + effect.StacksPerTrigger,
+                        effect.MaxStacks);
+                    charState.CurrentStacks[effectId] = newStacks;
+
+                    // 스택에 따른 효과 적용 (버프/디버프를 EffectManager에 반영)
+                    ApplyStackEffect(charState, state, effect, effectId, newStacks);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 스택 효과를 EffectManager에 적용
+        /// </summary>
+        private void ApplyStackEffect(CharacterBattleState charState, BattleState state,
+            PersistentEffect effect, string effectId, int currentStacks)
+        {
+            switch (effect.Type)
+            {
+                case PersistentEffectType.Buff:
+                    if (effect.Buff == null) break;
+                    // 기존 효과 제거 후 스택 반영된 새 효과 추가
+                    charState.Effects.RemoveBySource(effectId);
+                    var scaledBuff = ScaleBuffByStacks(effect.Buff, currentStacks);
+                    charState.Effects.AddEffect(new BattleEffect
+                    {
+                        Id = effectId,
+                        SourceName = effectId,
+                        Category = effect.Target == EffectTarget.Self
+                            ? EffectCategory.PassiveSelfBuff
+                            : EffectCategory.PassivePartyBuff,
+                        Target = effect.Target,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = true,
+                        BuffValues = scaledBuff
+                    });
+                    break;
+
+                case PersistentEffectType.Debuff:
+                    if (effect.Debuff == null) break;
+                    state.EnemyState.Effects.RemoveBySource(effectId);
+                    var scaledDebuff = ScaleDebuffByStacks(effect.Debuff, currentStacks);
+                    state.EnemyState.Effects.AddEffect(new BattleEffect
+                    {
+                        Id = effectId,
+                        SourceName = effectId,
+                        Category = EffectCategory.PassiveDebuff,
+                        Target = EffectTarget.Enemy,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = true,
+                        DebuffValues = scaledDebuff
+                    });
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// BuffSet을 스택 수에 비례하여 스케일링
+        /// </summary>
+        private BuffSet ScaleBuffByStacks(BuffSet baseBuff, int stacks)
+        {
+            if (stacks <= 1) return baseBuff;
+            var result = new BuffSet();
+            for (int i = 0; i < stacks; i++)
+                result.Add(baseBuff);
+            return result;
+        }
+
+        /// <summary>
+        /// DebuffSet을 스택 수에 비례하여 스케일링
+        /// </summary>
+        private DebuffSet ScaleDebuffByStacks(DebuffSet baseDebuff, int stacks)
+        {
+            if (stacks <= 1) return baseDebuff;
+            var result = new DebuffSet();
+            for (int i = 0; i < stacks; i++)
+                result.Add(baseDebuff);
+            return result;
+        }
+
         private double GetTargetReduction(Enemy enemy, int targetCount)
         {
             if (enemy == null) return 0;

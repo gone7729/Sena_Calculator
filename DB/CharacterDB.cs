@@ -71,12 +71,60 @@ namespace GameDamageCalculator.Database
                     MaxStacks = 8,
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 24 } } },
-                        { 1, new PassiveLevelData { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 24 } } }
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.Debuff,
+                                    StatusType = StatusEffectType.EagleClaw,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.AllAttack,
+                                    TriggerCount = 2,           // 2회 공격 시
+                                    StacksPerTrigger = 2,       // 2스택 부여
+                                    MaxStacks = 8,              // 최대 8스택
+                                    Debuff = new DebuffSet { Dmg_Taken_Increase = 3 }  // 스택당 받피증 3%
+                                }
+                            }
+                        }},
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.Debuff,
+                                    StatusType = StatusEffectType.EagleClaw,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.AllAttack,
+                                    TriggerCount = 2,
+                                    StacksPerTrigger = 2,
+                                    MaxStacks = 8,
+                                    Debuff = new DebuffSet { Dmg_Taken_Increase = 3 }
+                                }
+                            }
+                        }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { Debuff = new PermanentDebuff { Dmg_Taken_Increase = 8 } } }
+                        { 2, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.Debuff,
+                                    StatusType = StatusEffectType.EagleClaw,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.AllAttack,
+                                    TriggerCount = 2,
+                                    StacksPerTrigger = 2,
+                                    MaxStacks = 8,
+                                    Debuff = new DebuffSet { Dmg_Taken_Increase = 4 }  // 초월 시 스택당 3% → 4%
+                                }
+                            }
+                        }}
                     }
                 },
                 TranscendType = TranscendType.AtkCri

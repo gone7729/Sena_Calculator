@@ -43,8 +43,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double FinalDef { get; set; }
         public double FinalSpd { get; set; }
 
-        // 패시브 스택
-        public int PassiveStacks { get; set; }
+        // 패시브 스택 트리거 카운터
+        // Key: 효과 ID, Value: 현재 누적 공격 횟수
+        public Dictionary<string, int> StackTriggerCounters { get; set; } = new();
+        // Key: 효과 ID, Value: 현재 스택 수
+        public Dictionary<string, int> CurrentStacks { get; set; } = new();
 
         // 통합 효과 관리자 (버프/디버프/상태이상 통합)
         public EffectManager Effects { get; set; } = new();

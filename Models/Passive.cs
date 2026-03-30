@@ -303,6 +303,9 @@ namespace GameDamageCalculator.Models
         public double CoopChanceBonus { get; set; }     // 협공 확률 증가%
         public double CoopRatioBonus { get; set; }      // 협공 배율 증가%
         public double CoopHpRatioBonus { get; set; }    // 협공 HP비례 증가%
+
+        // 통합 효과 리스트 (새 방식 - 기존 Effects를 오버라이드)
+        public List<Effects.PersistentEffect> Effects { get; set; }
     }
 
     /// <summary>

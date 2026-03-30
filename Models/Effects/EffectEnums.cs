@@ -50,4 +50,25 @@ namespace GameDamageCalculator.Models.Effects
         Stack,      // 스택 증가 (상태이상)
         Replace,    // 새 효과가 기존 대체
     }
+
+    /// <summary>
+    /// 효과 적용 모드
+    /// </summary>
+    public enum ApplyMode
+    {
+        Immediate,      // 즉시 적용 (상시)
+        Triggered,      // 조건 충족 시 적용 (N회 공격 등)
+    }
+
+    /// <summary>
+    /// 스택 트리거 조건 (ApplyMode = Triggered일 때)
+    /// </summary>
+    public enum TriggerCondition
+    {
+        AllAttack,      // 모든 공격 (기본공격 + 스킬) N회
+        SkillOnly,      // 스킬 사용 N회
+        NormalOnly,     // 기본공격 N회
+        OnHit,          // 피격 N회
+        OnTurnStart,    // 턴 시작 시
+    }
 }
