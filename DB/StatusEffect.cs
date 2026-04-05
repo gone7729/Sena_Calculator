@@ -58,6 +58,7 @@ namespace GameDamageCalculator.Models
         public int Duration { get; set; }           // 지속 턴
         public int MaxStacks { get; set; } = 1;     // 최대 중첩
         public int TriggerCount { get; set; }       // 발동 횟수 (수정 결정 등)
+        public double TickDuration { get; set; } = 1.0; // DoT 틱 소요시간 (초)
         
         
         // 피해 관련

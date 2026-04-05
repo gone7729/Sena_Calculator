@@ -126,5 +126,6 @@ namespace GameDamageCalculator.Services.BattleEngine
         SkillAttack,    // 스킬 사용
         BuffApplied,    // 버프 적용
         DebuffApplied,  // 디버프 적용
+        DoTDamage,      // 상태이상 틱 데미지 (화상/출혈 등)
     }
 }

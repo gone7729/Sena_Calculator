@@ -234,6 +234,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>
         /// 아군 기본공격 실행
+        /// 흐름: DoT 처리(+1초) → 스택 트리거 → 기본공격(+2초) → 턴제 효과 턴-1 → 쿨다운 감소
         /// </summary>
         private void ExecuteAllyNormalAttack(BattleConfig config, BattleState state, int charIndex)
         {
@@ -243,17 +244,32 @@ namespace GameDamageCalculator.Services.BattleEngine
             var battleChar = charState.Source;
             var character = battleChar.Character;
 
-            // 평타 스킬 찾기
             var normalSkill = character.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
             if (normalSkill == null) return;
 
-            // 스택 트리거 처리 (공격 전)
+            double totalDuration = 0;
+
+            // 1. DoT 데미지 먼저 처리 (적에게 걸린 상태이상, +1초)
+            double dotDuration = ProcessDoTDamage(config, state, charState);
+            totalDuration += dotDuration;
+
+            // 2. 스택 트리거 처리 (공격 전)
             ProcessStackTriggers(charState, state, isSkill: false);
 
+            // 3. 기본공격 실행 (+2초)
             var damage = CalculateSkillDamage(config, state, charState, normalSkill);
-
-            // 데미지 적용
             ApplyDamage(state, charState, damage, normalSkill.Name, ActionType.NormalAttack);
+            totalDuration += normalSkill.GetActionDuration();
+
+            // 4. 경과 시간 업데이트
+            state.ElapsedSeconds += totalDuration;
+
+            // 5. 소요시간만큼 모든 스킬 쿨다운 감소
+            ReduceAllCooldowns(state, totalDuration);
+
+            // 6. 턴제 효과 턴 -1
+            state.EnemyState.Effects.TickTurn();
+            charState.Effects.TickTurn();
         }
 
         /// <summary>
@@ -289,11 +305,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var damage = CalculateSkillDamage(config, state, charState, skill);
                 ApplyDamage(state, charState, damage, skill.Name, ActionType.SkillAttack);
 
+                // 스킬 쿨다운 세팅
+                if (skill.CooldownSeconds > 0)
+                    charState.SkillCooldowns[nextSkillType] = skill.CooldownSeconds;
+
+                // 스킬 소요시간만큼 경과 및 쿨다운 감소
+                double skillDuration = skill.GetActionDuration();
+                state.ElapsedSeconds += skillDuration;
+                ReduceAllCooldowns(state, skillDuration);
+
                 // 로테이션 인덱스 증가
                 charState.RotationIndex++;
-
-                // 상대 측 쿨다운 감소 (아군 스킬 사용 → 보스의 쿨다운에는 영향 없음)
-                // 보스 스킬 사용 시 아군 쿨다운 5초 감소는 ExecuteBossSkill에서 처리
 
                 return; // 스킬은 1회만
             }
@@ -592,6 +614,92 @@ namespace GameDamageCalculator.Services.BattleEngine
             return result;
         }
 
+        /// <summary>
+        /// 적에게 걸린 DoT 상태이상 틱 데미지 처리
+        /// 기본공격 전에 먼저 실행됨
+        /// </summary>
+        /// <returns>DoT 처리 소요시간 (초). DoT 없으면 0</returns>
+        private double ProcessDoTDamage(BattleConfig config, BattleState state, CharacterBattleState charState)
+        {
+            var dotEffects = state.EnemyState.Effects.GetActiveStatusEffects()
+                .Where(e => e.Category == EffectCategory.DamageOverTime && e.StatusData != null)
+                .ToList();
+
+            if (dotEffects.Count == 0) return 0;
+
+            foreach (var dot in dotEffects)
+            {
+                double dotDamage = 0;
+                var data = dot.StatusData;
+
+                // 공격력 비례 DoT (화상, 출혈 등)
+                if (data.AtkRatio > 0)
+                {
+                    dotDamage = charState.FinalAtk * (data.AtkRatio / 100.0);
+                }
+                // 최대 HP 비례 DoT (중독, 마력역류 등)
+                else if (data.TargetMaxHpRatio > 0)
+                {
+                    dotDamage = state.EnemyState.MaxHp * (data.TargetMaxHpRatio / 100.0);
+                    if (data.AtkCap > 0)
+                        dotDamage = Math.Min(dotDamage, charState.FinalAtk * (data.AtkCap / 100.0));
+                }
+                // 현재 HP 비례 DoT (즉사 등)
+                else if (data.TargetCurrentHpRatio > 0)
+                {
+                    dotDamage = state.EnemyState.CurrentHp * (data.TargetCurrentHpRatio / 100.0);
+                }
+                // 고정 피해 (수정 결정 등)
+                else if (data.FixedDamage > 0)
+                {
+                    dotDamage = data.FixedDamage;
+                }
+
+                // 스택 수 반영
+                dotDamage *= dot.Stacks;
+
+                if (dotDamage > 0)
+                {
+                    state.EnemyState.CurrentHp -= dotDamage;
+                    state.TotalDamageDealt += dotDamage;
+                    charState.TotalDamageDealt += dotDamage;
+
+                    string dotName = dot.StatusType.HasValue
+                        ? StatusEffectDb.Get(dot.StatusType.Value)?.Name ?? dot.StatusType.ToString()
+                        : "DoT";
+
+                    state.TurnLogs.Add(new BattleTurnLog
+                    {
+                        Turn = state.CurrentTurn,
+                        ActorName = charState.Source.Character.Name,
+                        IsAlly = true,
+                        ActionType = ActionType.DoTDamage,
+                        SkillName = dotName,
+                        DamageDealt = dotDamage,
+                        Description = $"[DoT] {dotName} {dot.Stacks}스택: {dotDamage:N0}"
+                    });
+                }
+            }
+
+            // DoT 처리 소요시간: 1초 (고정)
+            return 1.0;
+        }
+
+        /// <summary>
+        /// 모든 아군 캐릭터의 스킬 쿨다운을 시간만큼 감소
+        /// </summary>
+        private void ReduceAllCooldowns(BattleState state, double seconds)
+        {
+            foreach (var charState in state.AllyStates)
+            {
+                var keys = charState.SkillCooldowns.Keys.ToList();
+                foreach (var key in keys)
+                {
+                    charState.SkillCooldowns[key] = Math.Max(0, charState.SkillCooldowns[key] - seconds);
+                }
+            }
+        }
+
         private double GetTargetReduction(Enemy enemy, int targetCount)
         {
             if (enemy == null) return 0;
@@ -609,19 +717,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         private void ProcessTurnEnd(BattleState state, BattleAction action)
         {
-            // 버프/디버프 지속시간 감소 (실제 턴 변경 시에만)
-            // 스킬은 턴 소모하지 않으므로, 기본공격 시에만 처리
-            if (!action.IsSkill)
-            {
-                // 아군 효과 턴 경과
-                foreach (var charState in state.AllyStates)
-                {
-                    charState.Effects.TickTurn();
-                }
-
-                // 적 효과 턴 경과
-                state.EnemyState.Effects.TickTurn();
-            }
+            // 기본공격의 턴제 효과/DoT/쿨다운은 ExecuteAllyNormalAttack 내에서 직접 처리
+            // 여기서는 스킬 사용 후 추가 처리만 수행 (필요 시)
         }
 
         #endregion

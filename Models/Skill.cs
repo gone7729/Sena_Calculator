@@ -30,6 +30,24 @@ namespace GameDamageCalculator.Models
         public int TargetCount { get; set; } = 1;
         public int Atk_Count { get; set; } = 1;
         public int Ticks { get; set; } = 1;
+        public double CooldownSeconds { get; set; }     // 쿨다운 (초)
+        public double ActionDuration { get; set; }      // 행동 소요시간 (초), 0이면 기본값 사용
+
+        /// <summary>
+        /// 행동 소요시간 반환 (0이면 SkillType별 기본값)
+        /// </summary>
+        public double GetActionDuration()
+        {
+            if (ActionDuration > 0) return ActionDuration;
+            return SkillType switch
+            {
+                SkillType.Normal or SkillType.Normal2 => 2.0,
+                SkillType.Skill1 or SkillType.Skill2 => 4.0,
+                SkillType.Skill3 or SkillType.Skill4 => 4.0,
+                SkillType.Ultimate => 4.0,
+                _ => 2.0
+            };
+        }
 
         // 레벨별 데이터 (0=기본, 1=강화)
         public Dictionary<int, SkillLevelData> LevelData { get; set; } = new();
