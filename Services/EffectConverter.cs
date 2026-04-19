@@ -483,7 +483,7 @@ namespace GameDamageCalculator.Services
                         effect.MergeStrategy = MergeStrategy.Stack;
                         effect.StatusType = pe.StatusType;
                         effect.Stacks = pe.Stacks;
-                        effect.StatusData = StatusEffectData.FromDbEffect(StatusEffectDb.Get(pe.StatusType));
+                        effect.StatusData = ResolvePersistentStatusData(StatusEffectDb.Get(pe.StatusType), pe);
                         effect.ApplyChance = pe.Chance;
                         break;
 
@@ -541,6 +541,19 @@ namespace GameDamageCalculator.Services
             if (sse.CustomArmorPen.HasValue) data.ArmorPen = sse.CustomArmorPen.Value;
             if (sse.CustomFixedDamage.HasValue) data.FixedDamage = sse.CustomFixedDamage.Value;
             if (sse.MaxConsume > 0) data.MaxConsume = sse.MaxConsume;
+            return data;
+        }
+
+        private static StatusEffectData ResolvePersistentStatusData(StatusEffect baseEffect, PersistentEffect pe)
+        {
+            var data = StatusEffectData.FromDbEffect(baseEffect);
+            if (pe.CustomAtkRatio.HasValue) data.AtkRatio = pe.CustomAtkRatio.Value;
+            if (pe.CustomHpRatio.HasValue) data.TargetMaxHpRatio = pe.CustomHpRatio.Value;
+            if (pe.CustomTargetMaxHpRatio.HasValue) data.TargetMaxHpRatio = pe.CustomTargetMaxHpRatio.Value;
+            if (pe.CustomAtkCap.HasValue) data.AtkCap = pe.CustomAtkCap.Value;
+            if (pe.CustomArmorPen.HasValue) data.ArmorPen = pe.CustomArmorPen.Value;
+            if (pe.CustomFixedDamage.HasValue) data.FixedDamage = pe.CustomFixedDamage.Value;
+            if (pe.MaxConsume > 0) data.MaxConsume = pe.MaxConsume;
             return data;
         }
 

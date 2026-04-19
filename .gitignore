@@ -4,3 +4,11 @@ obj/
 *.dll
 publish/nul
 ocrTest.png
+.coord/coordination/HEAD_LOCK
+.coord/coordination/dashboard-url.txt
+.coord/coordination/STOP
+.coord-backup/
+.env.local
+.env.local.wt
+run-dev.sh
+.claude/settings.local.json

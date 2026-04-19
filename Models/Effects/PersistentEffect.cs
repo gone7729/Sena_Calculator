@@ -32,6 +32,18 @@ namespace GameDamageCalculator.Models.Effects
         public int Stacks { get; set; } = 1;
         public double Chance { get; set; } = 100;
 
+        // 상태이상 커스텀 오버라이드 (SkillEffect와 동일)
+        public double? CustomAtkRatio { get; set; }
+        public double? CustomHpRatio { get; set; }
+        public double? CustomAtkCap { get; set; }
+        public double? CustomArmorPen { get; set; }
+        public double? CustomFixedDamage { get; set; }
+        public double? CustomTargetMaxHpRatio { get; set; }
+        public double? CustomTargetCurrentHpRatio { get; set; }
+        public double? CustomHpConversionRatio { get; set; }
+        public double? CustomTriggerCount { get; set; }
+        public int MaxConsume { get; set; }
+
         // === 협공 (Type = CoopAttack일 때) ===
         public CoopAttack CoopAttack { get; set; }
 

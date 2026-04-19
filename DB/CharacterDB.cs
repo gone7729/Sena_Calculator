@@ -805,17 +805,17 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            StatusEffects = new List<SkillStatusEffect> { new SkillStatusEffect{ Type = StatusEffectType.ChainDamage } },
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } },
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.StatusAilment, StatusType = StatusEffectType.ChainDamage }
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            StatusEffects = new List<SkillStatusEffect> { new SkillStatusEffect{ Type = StatusEffectType.ChainDamage, CustomTargetMaxHpRatio = 32 } },
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } },
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.StatusAilment, StatusType = StatusEffectType.ChainDamage, CustomTargetMaxHpRatio = 32 }
                             }
                         }}
                     },
@@ -3552,7 +3552,7 @@ namespace GameDamageCalculator.Database
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        {2, new PassiveTranscend{ ConditionalEffects = new List<PersistentEffect> {
+                        {2, new PassiveTranscend{ Effects = new List<PersistentEffect> {
                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 29 } }
             } }}
                     }
@@ -3670,7 +3670,7 @@ namespace GameDamageCalculator.Database
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        {2, new PassiveTranscend{ ConditionalEffects = new List<PersistentEffect> {
+                        {2, new PassiveTranscend{ Effects = new List<PersistentEffect> {
                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 29 } }
             } }}
                     }
