@@ -1,26 +1,5 @@
 # 세나리 데미지 계산기 (Sena Calculator)
 
-> **세션 컨텍스트**: [.claude/CLAUDE_MEMORY.md](.claude/CLAUDE_MEMORY.md) 참조
-> **대화 기록**: [.claude/log/](.claude/log/) (날짜별 저장)
-
-## ⚠️ Claude 작업 지시
-
-### 세션 시작 시
-1. `git pull` 실행하여 최신 작업 상황 동기화
-2. `.claude/CLAUDE_MEMORY.md` 읽어서 이전 컨텍스트 파악
-
-### 대화 중
-3. 모든 Q&A를 `.claude/log/YYYY-MM-DD.md`에 기록 (전체 내용, 요약 금지)
-   - `.claude/log/` 폴더 내 파일 생성/수정은 **확인 없이 자동 진행**
-   - 로그 파일 Edit 현황은 사용자에게 **표시하지 않음**
-
-### 세션 종료 시 (사용자가 "작업 정리" 요청 시)
-3. 당일 로그 파일 끝에 `## 📋 오늘 작업 요약` 추가
-4. `.claude/CLAUDE_MEMORY.md` 갱신 (최근 작업, 진행중 작업 업데이트)
-5. Git commit & push 실행
-
----
-
 세븐나이츠 리버스 게임의 데미지 계산기 + 배틀 시뮬레이터 WPF 애플리케이션
 
 ## 개발 환경
