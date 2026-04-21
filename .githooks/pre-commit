@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# pre-commit: wt/<sub> 브랜치에서 범위 밖 파일 커밋 차단
+# config.yml 의 subs[].scope_allowed 를 동적으로 읽어 검증
+# 우회: git commit --no-verify (꼭 필요 시에만)
+# 설치: git config core.hooksPath .githooks  (각 worktree 에서 1회)
+
+set -e
+
+BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+
+# wt/<sub> 브랜치가 아니면 스킵
+case "$BRANCH" in
+  wt/*) ;;
+  *) exit 0 ;;
+esac
+
+SUB="${BRANCH#wt/}"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# 공통 허용 (모든 sub 공유)
+COMMON='^(coordination/|\.claude/|\.githooks/|scripts/|\.gitignore|\.env\.local\.example|CLAUDE\.md|README\.md)'
+
+# Head 는 특별 — 자기 산출물만
+if [[ "$SUB" == "head" ]]; then
+  ALLOWED='^(coordination/(plans/|tasks/|reports/|review-inbox/|escalations/|STATUS\.md|token-log\.md)|\.claude/|\.githooks/|scripts/|\.env\.local\.example|templates/|docs/)'
+else
+  # config.yml 에서 sub_scope 동적 로딩
+  CONFIG_YML="$REPO_ROOT/coordination/config.yml"
+  SUB_SCOPE_REGEX=""
+
+  if [[ -f "$CONFIG_YML" ]] && command -v python3 >/dev/null 2>&1; then
+    # python 으로 scope_allowed 패턴 → regex 변환
+    SUB_SCOPE_REGEX=$(python3 -c "
+import yaml, re
+with open('$CONFIG_YML', encoding='utf-8') as f:
+    d = yaml.safe_load(f)
+for s in d.get('subs', []):
+    if s['name'] == '$SUB':
+        patterns = s.get('scope_allowed', [])
+        # glob → regex 변환
+        regex_parts = []
+        for p in patterns:
+            # ** → .*, * → [^/]*, escape dots
+            r = re.escape(p).replace(r'\*\*', '.*').replace(r'\*', '[^/]*')
+            regex_parts.append(r)
+        if regex_parts:
+            print('|'.join(f'(^{r})' for r in regex_parts))
+        break
+" 2>/dev/null)
+  fi
+
+  if [[ -n "$SUB_SCOPE_REGEX" ]]; then
+    ALLOWED="${COMMON}|${SUB_SCOPE_REGEX}"
+  else
+    # config 없거나 sub 정의 안됨 → 기본 동작 (제약 없음, ad-hoc)
+    exit 0
+  fi
+fi
+
+# staged 파일 중 범위 밖 찾기
+VIOLATIONS=$(git diff --cached --name-only --diff-filter=ACMR | grep -vE "$ALLOWED" || true)
+
+if [[ -n "$VIOLATIONS" ]]; then
+  echo ""
+  echo "❌ pre-commit: wt/$SUB 범위 밖 파일 커밋 시도 감지"
+  echo ""
+  echo "범위 이탈 파일:"
+  echo "$VIOLATIONS" | sed 's/^/  - /'
+  echo ""
+  echo "wt/$SUB 의 허용 범위: coordination/config.yml (subs.$SUB.scope_allowed) 참조"
+  echo ""
+  echo "해결:"
+  echo "  1. 다른 sub 범위면 해당 worktree 에서 작업"
+  echo "  2. 의도된 범위 확장이면: coordination/escalations/ 에 승인 요청"
+  echo "  3. 응급 우회 (비권장): git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+exit 0

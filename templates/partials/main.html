@@ -1,0 +1,220 @@
+<span id="partial-now" class="hidden">{{ data.now }}</span>
+
+{# === STOP 배너 === #}
+{% if data.stop %}
+<div class="bg-rose-100 border border-rose-300 text-rose-800 px-4 py-3 rounded-lg flex items-center gap-2">
+  <span class="text-xl">🛑</span>
+  <div>
+    <strong>STOP 시그널 활성</strong> — 모든 sub 일시 중단됨.
+    <code class="text-xs bg-rose-200 px-1 rounded">coordination/STOP</code> 파일 삭제 후 커밋으로 해제.
+  </div>
+</div>
+{% endif %}
+
+{# === 상단 카드: Plan + Token === #}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+  {# Active Plan #}
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">🎯 진행 중 Plan</h2>
+    {% if data.active_plan %}
+      <div class="space-y-2">
+        <div class="font-mono text-sm text-slate-700">{{ data.active_plan.id }}</div>
+        <div class="text-xs text-slate-500">{{ data.active_plan.file }}</div>
+        <div class="flex items-center gap-3">
+          <div class="flex-1 bg-slate-200 rounded-full h-2">
+            <div class="bg-emerald-500 h-2 rounded-full transition-all"
+                 style="width: {{ data.active_plan.percent }}%"></div>
+          </div>
+          <span class="text-sm font-bold text-slate-700">
+            {{ data.active_plan.step_done }}/{{ data.active_plan.step_total }}
+          </span>
+        </div>
+        <div class="text-xs">
+          <span class="px-2 py-0.5 rounded
+            {% if data.active_plan.status == 'in_progress' %}bg-blue-100 text-blue-700
+            {% elif data.active_plan.status == 'needs-rework' %}bg-amber-100 text-amber-700
+            {% else %}bg-rose-100 text-rose-700{% endif %}">
+            {{ data.active_plan.status }}
+          </span>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-sm text-slate-400">현재 진행 중인 plan 없음 (idle)</p>
+    {% endif %}
+  </div>
+
+  {# Token Status #}
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">📊 토큰 사용량</h2>
+    {% if data.tokens.error %}
+      <p class="text-sm text-rose-500">{{ data.tokens.error }}</p>
+    {% else %}
+      <div class="space-y-2">
+        <div class="flex items-baseline justify-between">
+          <span class="text-2xl font-bold text-slate-700">{{ data.tokens.percent }}%</span>
+          <span class="text-xs text-slate-500">
+            {{ "{:,}".format(data.tokens.used) }} / {{ "{:,}".format(data.tokens.limit) }}
+          </span>
+        </div>
+        <div class="bg-slate-200 rounded-full h-2">
+          <div class="h-2 rounded-full transition-all
+            {% if data.tokens.percent < 50 %}bg-emerald-500
+            {% elif data.tokens.percent < 80 %}bg-amber-500
+            {% else %}bg-rose-500{% endif %}"
+            style="width: {{ data.tokens.percent }}%"></div>
+        </div>
+        {% if data.tokens.next_threshold %}
+        <div class="text-xs text-slate-500">
+          다음 임계 <strong>{{ data.tokens.next_threshold }}%</strong>까지
+          {{ "{:,}".format(data.tokens.to_next_threshold) }} 토큰 여유
+        </div>
+        {% endif %}
+        <div class="text-xs text-slate-400">
+          🔄 다음 리셋: {{ data.tokens.time_to_reset }}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{# === Inbox + Escalation 알림 === #}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">📥 Inbox</h2>
+    <div class="text-2xl font-bold text-slate-700">
+      {{ data.inbox_summary.pending }}
+      <span class="text-sm font-normal text-slate-400">pending</span>
+    </div>
+    <div class="text-xs text-slate-500 mt-1">
+      processing: {{ data.inbox_summary.processing }} ·
+      merged: {{ data.inbox_summary.merged }} ·
+      total: {{ data.inbox_summary.total }}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4
+    {% if data.escalations|selectattr('status', 'eq', 'pending')|list|length > 0 %}border-amber-300 bg-amber-50{% endif %}">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">🔔 Escalation</h2>
+    {% set pending_esc = data.escalations|selectattr('status', 'eq', 'pending')|list %}
+    <div class="text-2xl font-bold {% if pending_esc %}text-amber-700{% else %}text-slate-700{% endif %}">
+      {{ pending_esc|length }}
+      <span class="text-sm font-normal">pending</span>
+    </div>
+    <div class="text-xs text-slate-500 mt-1">
+      total: {{ data.escalations|length }}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4
+    {% if data.review_pending %}border-blue-300 bg-blue-50{% endif %}">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">📝 Review 대기</h2>
+    <div class="text-2xl font-bold {% if data.review_pending %}text-blue-700{% else %}text-slate-700{% endif %}">
+      {{ data.review_pending|length }}
+    </div>
+    <div class="text-xs text-slate-500 mt-1">
+      메인 검토 필요
+    </div>
+  </div>
+</div>
+
+{# === 활성 에스컬레이션 상세 === #}
+{% if data.escalations %}
+<div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">🔔 에스컬레이션</h2>
+  <div class="space-y-2">
+    {% for esc in data.escalations %}
+    <div class="flex items-start gap-3 text-sm border-l-4 pl-3 py-1
+      {% if esc.status == 'pending' %}border-amber-400 bg-amber-50
+      {% elif esc.status == 'resolved-approved' %}border-emerald-400
+      {% elif esc.status == 'resolved-rejected' %}border-slate-400
+      {% else %}border-slate-300{% endif %}">
+      <span class="font-mono text-xs text-slate-500 whitespace-nowrap">{{ esc.id }}</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs">
+          <span class="px-1.5 rounded
+            {% if esc.status == 'pending' %}bg-amber-200 text-amber-800
+            {% elif esc.status == 'resolved-approved' %}bg-emerald-200 text-emerald-800
+            {% else %}bg-slate-200 text-slate-700{% endif %}">{{ esc.status }}</span>
+          {% if esc.source != data.work_branch %}
+          <span class="ml-1 text-rose-500">⚠ {{ esc.source }}</span>
+          {% endif %}
+        </div>
+        <div class="text-xs text-slate-600 mt-1 truncate">{{ esc.ruling }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{# === Inbox 목록 === #}
+<div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">📥 Inbox 목록</h2>
+  <div class="space-y-1.5">
+    {% for item in data.inbox|sort(attribute='id', reverse=true) %}
+    <div class="flex items-start gap-3 text-sm py-1 border-b border-slate-100 last:border-0">
+      <span class="px-1.5 py-0.5 text-xs rounded font-medium whitespace-nowrap
+        {% if item.status == 'merged' %}bg-emerald-100 text-emerald-700
+        {% elif item.status == 'pending' %}bg-amber-100 text-amber-700
+        {% elif item.status == 'processing' %}bg-blue-100 text-blue-700
+        {% else %}bg-slate-100 text-slate-700{% endif %}">
+        {{ item.status }}
+      </span>
+      <span class="font-mono text-xs text-slate-400 whitespace-nowrap">{{ item.id }}</span>
+      <span class="flex-1 truncate text-slate-700">{{ item.title }}</span>
+      {% if item.priority == 'high' %}<span class="text-rose-500 text-xs">🔥</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{# === 브랜치 + 시스템 + Hotfix === #}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">🌿 브랜치 상태</h2>
+    <div class="space-y-1.5 text-sm">
+      {% for b in data.branches %}
+      <div class="flex items-center justify-between border-b border-slate-100 last:border-0 py-1">
+        <span class="font-mono text-xs">{{ b.name }}</span>
+        <span class="text-xs text-slate-500">
+          ahead <strong>{{ b.ahead }}</strong> · behind <strong>{{ b.behind }}</strong>
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">⚙ 시스템</h2>
+    <div class="space-y-1.5 text-sm">
+      <div class="flex justify-between">
+        <span>STOP 시그널</span>
+        <span>{% if data.stop %}<span class="text-rose-600">🛑 ON</span>{% else %}<span class="text-emerald-600">✅ OFF</span>{% endif %}</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Head 실행 중</span>
+        <span>{% if data.head_lock %}<span class="text-blue-600">🔄 active</span>{% else %}<span class="text-slate-500">idle</span>{% endif %}</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Failed 보관 브랜치</span>
+        <span>{{ data.failed_branches|length }}개</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{# === 최근 Hotfixes === #}
+{% if data.hotfixes %}
+<div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">🔧 최근 Hotfixes</h2>
+  <ul class="text-sm space-y-1">
+    {% for h in data.hotfixes %}
+    <li class="text-slate-600 truncate">• {{ h.title }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}

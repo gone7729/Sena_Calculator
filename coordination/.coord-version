@@ -1,0 +1,7 @@
+# coord-template 버전 메타데이터
+# upgrade-coord.sh 가 갱신 — 수동 편집 불필요
+version: v0.32
+upgraded_at: 2026-04-21T16:03:46+09:00
+upgraded_from: v0.18
+template_url: https://github.com/gone7729/coord-template.git
+install_mode: flat

@@ -105,9 +105,20 @@ if [[ -f "$LOCK_FILE" ]]; then
 else
   # 락 생성 + head spawn (백그라운드)
   echo "$(date -Iseconds)" > "$LOCK_FILE"
+
+  # v0.13: head spawn 프롬프트에 self-review 지시 inline 추가.
+  # /inbox 가 프로젝트 고유 슬래시 명령이라 내용이 달라도, 끝에 덧붙인 지시는 head 가
+  # 처리 완료 후 반드시 /review-inbox --verdict-only 를 돌려 verdict 를 사전 기록하도록 유도.
+  HEAD_SPAWN_PROMPT="/inbox
+
+[v0.13 자동 review 지시]
+inbox 처리 완료 + review-inbox 엔트리 작성 직후, 같은 세션에서 반드시 아래를 실행:
+    /review-inbox <방금 생성한 inbox id> --verdict-only
+결과의 verdict (go / needs-fix / block) 가 review-inbox 파일 헤더에 기록되어야 이번 세션 종료 가능. 실패 시에도 verdict: block 또는 verdict: pending 을 명시 기록하고 종료."
+
   (
     cd "$HEAD_WT"
-    claude -p "/inbox" \
+    claude -p "$HEAD_SPAWN_PROMPT" \
       --permission-mode bypassPermissions \
       --model "${HEAD_MODEL:-claude-opus-4-6}" \
       --output-format json \
@@ -116,7 +127,7 @@ else
   ) &
 
   HEAD_PID=$!
-  echo "✅ head 자동 spawn 됨 (PID: $HEAD_PID, 백그라운드)"
+  echo "✅ head 자동 spawn 됨 (PID: $HEAD_PID, 백그라운드, v0.13 self-review 지시 포함)"
 fi
 ```
 
@@ -134,7 +145,16 @@ fi
 ## 품질 규칙
 
 - 제목은 `$ARGUMENTS` 첫 문장 또는 핵심 단어로 짧게 (예: "매스 꼬임 삼각분할 교체")
-- 요청이 모호하면 파일 생성 **전** 사용자에게 되물어라 (추측 금지)
+- **명확 / 모호 판정 기준 (v0.16.3+)**
+  아래 항목 중 **하나라도** 해당하면 **명확** → 즉시 inbox 생성 (되묻지 말 것):
+  - 동작 지시어 포함 — `추가 / 수정 / 삭제 / 고치다 / 해결 / 디버그 / 리팩터 / 분석 / 설명 / 테스트 / 문서화` 등
+  - 대상 지칭 포함 — 파일명, 함수명, 에러 메시지, 스택 트레이스, 로그, 코드 스니펫, 기능명
+  - 에러 / 로그 / 코드 덤프 본문이 첨부됨 (짧은 지시어 + 긴 덤프 구조)
+  - 첨부 이미지 있음 (`clipboard-to-attachment.sh` 가 자동 저장한 경우 포함)
+
+  **모호** 는 위 네 항목 **전부** 부재 (예: "뭐 해봐" / "알아서" / "그거" / 단독 헤더 한 줄 `## Error Type`).
+
+  **원칙**: 의심될 땐 되묻지 말고 일단 inbox 기록. head 가 처리 단계에서 세부 추가 질의 가능. inbox 진입 장벽이 높으면 사용자가 에러 덤프 붙여넣기 같은 **정상 케이스도 거절당함** (v0.16.1 이전 실사용 버그).
 - 이미 같은 내용의 pending 엔트리가 있으면 중복 방지 경고
 
 ## 지금 할 것

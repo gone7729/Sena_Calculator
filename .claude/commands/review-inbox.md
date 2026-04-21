@@ -18,6 +18,23 @@ while IFS= read -r s; do [[ -n "$s" ]] && SUBS+=("$s"); done < <(sub_names)
 
 너는 메인 세션의 검토자다. head 가 처리 완료한 review-inbox 엔트리를 검증한다.
 
+## 0-1. 모드 플래그 파싱 (v0.14+)
+
+`$ARGUMENTS` 안에서 아래 플래그를 **가장 먼저** 추출해 동작 범위를 결정한다:
+
+| 플래그 | 의미 | 수행 범위 |
+|--------|------|----------|
+| `--verdict-only` | 검증 + verdict 판정까지만 | 1~6 단계. **7단계 (머지) 절대 금지.** 종료. |
+| `--merge-only` | 이미 verdict: go 판정 끝난 엔트리에 머지만 | 1~6 건너뜀. **해당 엔트리의 verdict 가 `go` 인지만 확인**, 아니면 즉시 중단. 그 후 7단계 수행. |
+| `--auto-yes` | 7단계 사용자 확인 질문을 자동 yes | `--merge-only` 와 주로 함께 사용. 단독으로도 유효 (전체 흐름 중 최종 머지 확인만 자동). |
+| (없음) | 기본 — 전체 흐름 (1~8) | 기존 동작 유지. 하위 호환. |
+
+플래그를 제거하고 남은 토큰은 **inbox id** (또는 `all`) 로 간주. 플래그 2개 조합 가능 (e.g. `/review-inbox 2026-04-17-180512 --merge-only --auto-yes`).
+
+**금지**:
+- `--verdict-only` + `--merge-only` 동시 지정 → "플래그 충돌" 보고 후 중단.
+- 플래그 해석 실패 시 → 사용자에게 확인 요청, 추측 금지.
+
 ## 절차
 
 ### 1. 최신화
@@ -171,7 +188,20 @@ git log --all --grep="inbox: <id>" --oneline
   - 심각 문제면 사용자가 `/inbox-send 수정 요청 <상세>` 로 신규 엔트리 생성도 가능
 - **verdict: block** → 심각 문제, 사용자 개입 필수, 머지 절대 금지
 
+**`--verdict-only` 분기** (v0.14+): 여기서 **즉시 종료**. 5단계 보고까지만 수행하고 7단계로 진입하지 않는다. 사용자 (혹은 봇) 가 별도로 `--merge-only` 로 재호출해야 머지 진행.
+
 ### 7. work_branch 통합 머지 + 검증 (verdict: go 한정)
+
+**`--merge-only` 진입 전 사전 체크** (v0.14+): 이 섹션을 독립 실행 (1~6 스킵) 하는 경우:
+
+1. 해당 inbox id 의 review-inbox 파일을 `origin/$HEAD_BRANCH` 또는 head worktree 에서 읽기
+2. `verdict:` 헤더 확인
+   - `go` → 계속 진행
+   - `needs-fix` / `block` / `merge-conflict` / `validation-failed` → **즉시 중단**, 사용자에게 "verdict 가 go 아님 (`$verdict`) — 머지 거부" 보고
+   - verdict 헤더 없음 → **즉시 중단**, "아직 verdict 판정 안 됨 — `--verdict-only` 먼저 실행" 보고
+3. `reviewed: true` 헤더도 확인. 없으면 중단.
+
+사전 체크 통과 후에만 아래 Stage 1 진행.
 
 **전략**: `$WORK_BRANCH` 에 임시 머지 → 검증 → OK 시 push / 실패 시 reset 롤백
 (별도 head staging 브랜치 쓰지 않음 — `$WORK_BRANCH` 자체가 staging 역할)
@@ -181,6 +211,8 @@ git log --all --grep="inbox: <id>" --oneline
 "검토 결과 go. wt/<sub>들을 $WORK_BRANCH 에 순차 머지 후 검증합니다.
  실패 시 자동 롤백 됩니다. 진행? (yes/no)"
 ```
+
+**`--auto-yes` 분기** (v0.14+): 플래그가 있으면 위 확인 질문을 **건너뛰고 즉시 yes 로 간주**. 대신 채널에 "자동 yes 로 머지 진행 중" 한 줄 남기고 Stage 1 로 직행.
 
 **yes 응답 시 — Stage 1: 로컬 머지**
 
@@ -329,8 +361,12 @@ fi
 
 ## 금지
 - 검토 결과 없이 "OK" 판정 금지 (실제 diff 확인 필수)
-- 자동 머지 금지 (최종 판단은 사용자)
+- 자동 머지 금지 — **예외**: `--auto-yes` 플래그가 명시된 경우에 한해 사용자 확인 skip 허용 (v0.14+)
 - `reviewed: true` 기록 누락 시 중복 검토 발생 — 반드시 마킹
+- `--verdict-only` 로 호출됐는데 7단계까지 진입 금지 (플래그 무시 = bug)
+- `--merge-only` 로 호출됐는데 사전 체크 (verdict: go 확인) 없이 머지 진입 금지
 
 ## 지금 할 것
-`$ARGUMENTS` (비어있으면 전체) 에 해당하는 review-inbox 엔트리를 검토하라.
+1. `$ARGUMENTS` 에서 플래그 (`--verdict-only` / `--merge-only` / `--auto-yes`) 를 먼저 추출
+2. 남은 토큰은 inbox id (또는 `all`, 비어있으면 전체)
+3. 플래그에 맞춰 1~8 단계 중 해당 범위만 수행

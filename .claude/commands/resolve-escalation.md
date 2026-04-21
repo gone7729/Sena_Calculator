@@ -110,16 +110,25 @@ if [[ -f "$LOCK_FILE" ]]; then
   echo "⚠ head 이미 실행 중 — 다음 /inbox 시 1.5단계가 approval 자동 발견"
 else
   echo "$(date -Iseconds)" > "$LOCK_FILE"
+
+  # v0.13: head spawn 프롬프트에 self-review 지시 inline 추가 (inbox-send.md 와 동일)
+  HEAD_SPAWN_PROMPT="/inbox
+
+[v0.13 자동 review 지시]
+inbox 처리 완료 + review-inbox 엔트리 작성 직후, 같은 세션에서 반드시 아래를 실행:
+    /review-inbox <방금 생성한 inbox id> --verdict-only
+결과의 verdict 가 review-inbox 파일 헤더에 기록되어야 이번 세션 종료 가능."
+
   (
     cd "$HEAD_WT"
-    claude -p "/inbox" \
+    claude -p "$HEAD_SPAWN_PROMPT" \
       --permission-mode bypassPermissions \
       --model "${HEAD_MODEL:-claude-opus-4-6}" \
       --output-format json \
       > "/tmp/head-auto-$(date +%s).log" 2>&1
     rm -f "coordination/HEAD_LOCK"
   ) &
-  echo "✅ head 자동 재진입 (PID: $!)"
+  echo "✅ head 자동 재진입 (PID: $!, v0.13 self-review 지시 포함)"
 fi
 ```
 
