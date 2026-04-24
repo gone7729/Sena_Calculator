@@ -1,8 +1,0 @@
-# coord-template 버전 메타데이터
-# init.sh / upgrade-coord.sh 가 이 파일을 생성/갱신한다. 수동 편집 불필요.
-# (소비 프로젝트에 복사되는 런타임 파일이라 tracked — coord-template repo 자체엔 example 만 커밋)
-version: v0.0-unknown
-upgraded_at: 1970-01-01T00:00:00+09:00
-upgraded_from: none
-template_url: https://github.com/gone7729/coord-template.git
-install_mode: flat
