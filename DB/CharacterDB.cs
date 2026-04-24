@@ -288,19 +288,25 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 17 } }
+                                new PersistentEffect { 
+                                    Target = EffectTarget.Party, 
+                                    Type = PersistentEffectType.Buff, 
+                                    Buff = new BuffSet { Dmg_Dealt_Type = 17 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                                new PersistentEffect { 
+                                    Target = EffectTarget.Party, 
+                                    Type = PersistentEffectType.Buff, 
+                                    Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
                             }
                         }}
                     },
                         TranscendBonuses = new Dictionary<int, PassiveTranscend>
                         {
-                            { 6, new PassiveTranscend { Effect = "아군 죽음 내가 쌔짐 ㄹㅇ ㅇㅇ" } }
+                            { 6, new PassiveTranscend { Effect = "아군 사망 시 모든 피해 무효화 피격 1회, 아군 사망 시 물리 공격력 증가 39%(2턴)" } }
                         }
                 },
                 TranscendType = TranscendType.AtkCri
