@@ -1,0 +1,73 @@
+{
+  "_comment": "coord 템플릿 — 이 파일을 .claude/settings.local.json 으로 복사 후 프로젝트별로 수정. 이 파일 자체는 .gitignored 되어 커밋되지 않음.",
+
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git worktree:*)",
+      "Bash(git config:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset:*)",
+
+      "Bash(bash scripts/*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm test:*)",
+
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit",
+      "Write",
+      "WebFetch"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(sudo *)",
+      "Bash(git push * --force *main*)",
+      "Bash(git push -f *main*)"
+    ]
+  },
+
+  "_hooks_comment": "PreToolUse 사법부 (Phase 2.5) — Bash/Write/Edit 시도마다 scripts/judge-action.sh 가 3심으로 검증. 이 hook 을 비활성화하려면 hooks 섹션 자체를 제거.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/judge-action.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "_comment": "(선택) 토큰 사용량 추적 — 매 tool 호출 후 임계 % 체크",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/check-token-threshold.sh 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

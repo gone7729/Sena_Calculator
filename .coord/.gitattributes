@@ -1,0 +1,23 @@
+# 텍스트 파일은 LF 고정 — Windows Git Bash + subtree 조합에서 CRLF 오염 방지
+# (Git autocrlf=true 환경에서 체크아웃 시 CRLF 로 변환되던 쉘 스크립트가
+#  Unix 쉘에서 실행 불가능해지는 문제 예방)
+*.sh        text eol=lf
+*.py        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.md        text eol=lf
+*.json      text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.example   text eol=lf
+.githooks/* text eol=lf
+VERSION     text eol=lf
+
+# 바이너리 명시 (변환 안 됨)
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.pdf       binary
+*.zip       binary
+*.tar.gz    binary

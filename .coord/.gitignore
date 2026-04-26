@@ -1,0 +1,44 @@
+# === coord 운영 파일 (런타임 생성, 커밋 금지) ===
+coordination/HEAD_LOCK
+coordination/dashboard-url.txt
+coordination/STOP
+
+# === 업그레이드 백업 (upgrade-coord.sh 생성) ===
+.coord-backup/
+
+# === Discord Bot 레지스트리 (Phase 6 — 사용자 고유 프로젝트 경로 포함) ===
+bot/projects.yml
+bot/usage-alerts-state.json
+
+# === 환경변수 ===
+.env.local
+.env.local.wt
+.env.*.local
+
+# === Worktree 실행 스크립트 (자동 생성) ===
+run-dev.sh
+
+# === Claude Code 개인 설정 ===
+.claude/settings.local.json
+
+# === Python / FastAPI ===
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# === 로그 ===
+*.log
+/tmp/cloudflared.log
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Editor ===
+.vscode/
+.idea/
+*.swp
+# (v0.31+) CHANGELOG.md 는 commit 대상 — 개별 RELEASE_NOTES_v*.md 생성 안 함
+
