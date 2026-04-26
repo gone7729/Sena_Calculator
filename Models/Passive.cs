@@ -234,11 +234,80 @@ namespace GameDamageCalculator.Models
         // 상태이상 부여 (레거시)
         public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
         public string Effect { get; set; }
-        public List<StatScaling> StatScalings { get; set; } = new List<StatScaling>();
-        public CoopAttack CoopAttack { get; set; }
-        public MarkAttack MarkAttack { get; set; }
-        public PainEndurance PainEndurance { get; set; }
-        public BaseStatSet FlatBonus { get; set; }
+
+        // ===== 특수 메카닉 (레거시 set + Effects 리스트 fallback) =====
+        // set은 레거시 방식, get은 레거시 우선 후 Effects 리스트에서 동일 타입 검색
+        private List<StatScaling> _statScalings;
+        public List<StatScaling> StatScalings
+        {
+            get
+            {
+                if (_statScalings != null && _statScalings.Count > 0) return _statScalings;
+                if (Effects == null) return _statScalings;
+                var list = new List<StatScaling>();
+                foreach (var e in Effects)
+                    if (e.Type == PersistentEffectType.StatScaling && e.StatScaling != null)
+                        list.Add(e.StatScaling);
+                return list.Count > 0 ? list : _statScalings;
+            }
+            set => _statScalings = value;
+        }
+
+        private CoopAttack _coopAttack;
+        public CoopAttack CoopAttack
+        {
+            get
+            {
+                if (_coopAttack != null) return _coopAttack;
+                if (Effects == null) return null;
+                foreach (var e in Effects)
+                    if (e.Type == PersistentEffectType.CoopAttack) return e.CoopAttack;
+                return null;
+            }
+            set => _coopAttack = value;
+        }
+
+        private MarkAttack _markAttack;
+        public MarkAttack MarkAttack
+        {
+            get
+            {
+                if (_markAttack != null) return _markAttack;
+                if (Effects == null) return null;
+                foreach (var e in Effects)
+                    if (e.Type == PersistentEffectType.MarkAttack) return e.MarkAttack;
+                return null;
+            }
+            set => _markAttack = value;
+        }
+
+        private PainEndurance _painEndurance;
+        public PainEndurance PainEndurance
+        {
+            get
+            {
+                if (_painEndurance != null) return _painEndurance;
+                if (Effects == null) return null;
+                foreach (var e in Effects)
+                    if (e.Type == PersistentEffectType.PainEndurance) return e.PainEndurance;
+                return null;
+            }
+            set => _painEndurance = value;
+        }
+
+        private BaseStatSet _flatBonus;
+        public BaseStatSet FlatBonus
+        {
+            get
+            {
+                if (_flatBonus != null) return _flatBonus;
+                if (Effects == null) return null;
+                foreach (var e in Effects)
+                    if (e.Type == PersistentEffectType.FlatBonus) return e.FlatBonus;
+                return null;
+            }
+            set => _flatBonus = value;
+        }
 
         // ===== 통합 효과 리스트 (새 방식) =====
         public List<PersistentEffect> Effects { get; set; }

@@ -1099,23 +1099,39 @@ namespace GameDamageCalculator.Database
                     Name = "사신의 딸",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            CoopAttack = new CoopAttack
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                              TriggerChance = 25,
-                              AtkCount = 1,
-                              Ratio = 100,
-                              TargetCount = 1 
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.CoopAttack,
+                                    CoopAttack = new CoopAttack
+                                    {
+                                        TriggerChance = 25,
+                                        AtkCount = 1,
+                                        Ratio = 100,
+                                        TargetCount = 1
+                                    }
+                                }
                             },
                             Effect ="위장, 협공, 4회 공격 시 1100 고정뎀"
                         }},
-                        { 1, new PassiveLevelData { 
-                            CoopAttack = new CoopAttack
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                              TriggerChance = 30,
-                              AtkCount = 1,
-                              Ratio = 100,
-                              TargetCount = 1 
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.CoopAttack,
+                                    CoopAttack = new CoopAttack
+                                    {
+                                        TriggerChance = 30,
+                                        AtkCount = 1,
+                                        Ratio = 100,
+                                        TargetCount = 1
+                                    }
+                                }
                             },
                             Effect ="위장, 협공확률 증가, 4회 공격 시 1100 고정뎀"
                         }}
@@ -1963,26 +1979,42 @@ namespace GameDamageCalculator.Database
                     Name = "신의 저울",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            CoopAttack = new CoopAttack
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                                TriggerChance = 25,
-                                TargetCount = 3,
-                                AtkCount = 1,
-                                Ratio = 40,
-                                TargetMaxHpRatio = 7,
-                                AtkCap = 300
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.CoopAttack,
+                                    CoopAttack = new CoopAttack
+                                    {
+                                        TriggerChance = 25,
+                                        TargetCount = 3,
+                                        AtkCount = 1,
+                                        Ratio = 40,
+                                        TargetMaxHpRatio = 7,
+                                        AtkCap = 300
+                                    }
+                                }
                             }
                         }},
-                        { 1, new PassiveLevelData { 
-                            CoopAttack = new CoopAttack
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                                TriggerChance = 25,
-                                TargetCount = 3,
-                                AtkCount = 1,
-                                Ratio = 50,
-                                TargetMaxHpRatio = 9,
-                                AtkCap = 300
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.CoopAttack,
+                                    CoopAttack = new CoopAttack
+                                    {
+                                        TriggerChance = 25,
+                                        TargetCount = 3,
+                                        AtkCount = 1,
+                                        Ratio = 50,
+                                        TargetMaxHpRatio = 9,
+                                        AtkCap = 300
+                                    }
+                                }
                             }
                         }}
                     },
@@ -5340,28 +5372,38 @@ namespace GameDamageCalculator.Database
                     Name = "전투의 희열",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            PainEndurance = new PainEndurance
-                            {
-                                Threshold = 10,       // 10%
-                                ReductionRate = 75,   // 75%
-                                Duration = 5          // 5턴
-                            },
+                        { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blk = 50 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blk = 50 } },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.PainEndurance,
+                                    PainEndurance = new PainEndurance
+                                    {
+                                        Threshold = 10,       // 10%
+                                        ReductionRate = 75,   // 75%
+                                        Duration = 5          // 5턴
+                                    }
+                                }
                             }
                         }},
-                        { 1, new PassiveLevelData { 
-                            PainEndurance = new PainEndurance
-                            {
-                                Threshold = 10,       // 10%
-                                ReductionRate = 75,   // 75%
-                                Duration = 5          // 5턴
-                            },
+                        { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blk = 60 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blk = 60 } },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.PainEndurance,
+                                    PainEndurance = new PainEndurance
+                                    {
+                                        Threshold = 10,       // 10%
+                                        ReductionRate = 75,   // 75%
+                                        Duration = 5          // 5턴
+                                    }
+                                }
                             }
                         }}
                     },
