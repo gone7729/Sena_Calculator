@@ -1,0 +1,3 @@
+.coord/ export-ignore
+.coord/** merge=ours
+.claude/** merge=ours

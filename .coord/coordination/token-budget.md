@@ -1,0 +1,44 @@
+# Token Budget
+
+Claude Max 주간 한도 추정 (정확한 quota API 없음 — 사용자 설정 기반).
+
+## 설정
+
+```yaml
+plan: claude-max
+weekly_limit: 5000000        # 주간 한도 (토큰) — 사용자 조정 가능
+reset_day: monday            # 매주 월요일 00:00 KST 리셋
+reset_hour_kst: 0
+warning_thresholds: [10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 96, 97, 98, 99]
+```
+
+## 현재 주차
+
+- **week_start_ts**: 2026-04-26T18:00:14+09:00
+- **used_tokens**: 0                              # 누적 사용량 (이번 주)
+- **last_alerted_threshold**: 0                  # 마지막 알림한 % (중복 방지)
+- **last_update**: -
+
+## 사용 내역
+
+자세한 로그: [token-log.md](token-log.md)
+
+## 임계 알림 정책
+
+| 임계 | 알림 톤 |
+|------|--------|
+| 10~70% | 정보성 (info) |
+| 80% | 주의 (warning) |
+| 90% | 경고 (high) |
+| 95~99% | 임박 (critical, 1% 단위) |
+
+알림 발송 조건:
+- 사용량 % 가 임계 초과 시
+- 임계는 **한 번씩만** 알림 (last_alerted_threshold 로 추적)
+- 매주 리셋 시 카운터 0
+
+## 추정 정확도
+
+- 추적 대상: headless `claude -p ...` 호출의 JSON 출력 (input + output + cache tokens)
+- 미추적: 사용자 인터랙티브 세션 (메인 / head / sub VSCode chat)
+- 즉 **실제 사용량 ≥ 추적 사용량**. 주간 한도 보수적으로 잡기 권장.

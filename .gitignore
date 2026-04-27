@@ -7,3 +7,14 @@ ocrTest.png
 .env.local
 run-dev.sh
 .claude/settings.local.json
+# === coord-template runtime (v0.41+: 통째 ignore 는 workflow 파괴, 구체 파일만) ===
+.coord/coordination/HEAD_LOCK
+.coord/coordination/STOP
+.coord/coordination/dashboard-url.txt
+.coord/.env.local
+.coord/bot/projects.yml
+.coord/bot/usage-alerts-state.json
+.coord/.claude/settings.local.json
+.coord-backup/
+.env.local.wt
+coord
