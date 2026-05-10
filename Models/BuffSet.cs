@@ -47,6 +47,7 @@ namespace GameDamageCalculator.Models
         public double Eff_Hit { get; set; }         // 효과 적중%
         public double Shield_HpRatio { get; set; }  // 보호막%
         public double Blessing { get; set; }        // 축복 - 1회 피해 최대 HP% 제한
+        public double Coop_Chance { get; set; }     // 협공 발동 확률 가산%
 
         /// <summary>
         /// 다른 BuffSet을 현재 세트에 더함
@@ -82,6 +83,7 @@ namespace GameDamageCalculator.Models
             Eff_Hit += other.Eff_Hit;
             Shield_HpRatio += other.Shield_HpRatio;
             Blessing += other.Blessing;
+            Coop_Chance += other.Coop_Chance;
         }
 
         /// <summary>
@@ -118,6 +120,7 @@ namespace GameDamageCalculator.Models
             Eff_Hit = Math.Max(Eff_Hit, other.Eff_Hit);
             Shield_HpRatio = Math.Max(Shield_HpRatio, other.Shield_HpRatio);
             Blessing = Math.Max(Blessing, other.Blessing);
+            Coop_Chance = Math.Max(Coop_Chance, other.Coop_Chance);
         }
 
         /// <summary>
@@ -155,6 +158,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = Eff_Hit,
                 Shield_HpRatio = Shield_HpRatio,
                 Blessing = Blessing,
+                Coop_Chance = Coop_Chance,
             };
         }
 
@@ -191,6 +195,7 @@ namespace GameDamageCalculator.Models
             Eff_Hit = 0;
             Shield_HpRatio = 0;
             Blessing = 0;
+            Coop_Chance = 0;
         }
     }
 
@@ -231,6 +236,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = Eff_Hit,
                 Shield_HpRatio = Shield_HpRatio,
                 Blessing = Blessing,
+                Coop_Chance = Coop_Chance,
             };
         }
 
@@ -271,6 +277,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = timedBuff.Eff_Hit,
                 Shield_HpRatio = timedBuff.Shield_HpRatio,
                 Blessing = timedBuff.Blessing,
+                Coop_Chance = timedBuff.Coop_Chance,
             };
         }
     }
@@ -312,6 +319,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = Eff_Hit,
                 Shield_HpRatio = Shield_HpRatio,
                 Blessing = Blessing,
+                Coop_Chance = Coop_Chance,
             };
         }
     }

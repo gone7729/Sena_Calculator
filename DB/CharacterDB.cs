@@ -85,6 +85,7 @@ namespace GameDamageCalculator.Database
                                     StacksPerTrigger = 2,       // 2스택 부여
                                     MaxStacks = 8,              // 최대 8스택
                                     Debuff = new DebuffSet { Dmg_Taken_Increase = 3 }  // 스택당 받피증 3%
+                                    // 타카의 모든 공격이 2회 적중 시 매의 발톱 디버프를 2스택 부여한다. 스킬 공격은 2회 공격으로 판정한다.
                                 }
                             }
                         }},
@@ -276,7 +277,7 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { Effect = "처치 시 100% 위력으로 연속 발동" } }
+                            { 2, new SkillTranscend { OnKillRecast = new OnKillRecast { RatioPercent = 100 } } }
                         }
                     }
                 },
@@ -348,8 +349,18 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { ConditionalDmgBonus = 80, Effect = "디버프당 피해량 증가 20%" } },
-                            { 6, new SkillTranscend { ConditionalDmgBonus = 200, Effect = "디버프 1개당 피해량 증가(최대 4개)" } }
+                            { 6, new SkillTranscend {
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect {
+                                        Target = EffectTarget.Self,
+                                        Type = SkillEffectType.PerEnemyDebuffDmgBonus,
+                                        PercentPerDebuff = 50,
+                                        MaxDebuffStacks = 4
+                                    }
+                                },
+                                Effect = "상대 디버프 1개당 피해량 증가 50%(최대 4개)"
+                            }}
                         }
                     }
                 },
@@ -369,6 +380,21 @@ namespace GameDamageCalculator.Database
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Rdc = 29, Cri = 41 } }
                             }
+                        }}
+                    },
+                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
+                    {
+                        { 2, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.PerEnemyDebuffDmgBonus,
+                                    PercentPerDebuff = 20,
+                                    MaxDebuffStacks = 4
+                                }
+                            },
+                            Effect = "상대 디버프 1개당 피해량 증가 20%(최대 4개)"
                         }}
                     }
                 },
@@ -1089,8 +1115,21 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 80, Effect="처치시 70%위력 함더" } },
-                            { 1, new SkillLevelData { Ratio = 80, Effect="처치시 100%위력 함더" } }
+                            { 0, new SkillLevelData { Ratio = 95, OnKillRecast = new OnKillRecast { RatioPercent = 100 } } },
+                            { 1, new SkillLevelData {
+                                Ratio = 110,
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 },
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect
+                                    {
+                                        Target = EffectTarget.Self,
+                                        Type = SkillEffectType.Buff,
+                                        Duration = 3,
+                                        Buff = new BuffSet { Coop_Chance = 28 }
+                                    }
+                                }
+                            } }
                         }
                     }
                 },
@@ -1113,9 +1152,22 @@ namespace GameDamageCalculator.Database
                                         Ratio = 100,
                                         TargetCount = 1
                                     }
+                                },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 3,
+                                        TriggerOn = TriggerCondition.AllAttack,
+                                        FixedDamage = 1285,
+                                        TargetCount = 3,
+                                        HitCount = 1
+                                    }
                                 }
                             },
-                            Effect ="위장, 협공, 4회 공격 시 1100 고정뎀"
+                            Effect = "위장, 협공"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
@@ -1131,15 +1183,45 @@ namespace GameDamageCalculator.Database
                                         Ratio = 100,
                                         TargetCount = 1
                                     }
+                                },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 3,
+                                        TriggerOn = TriggerCondition.AllAttack,
+                                        FixedDamage = 1285,
+                                        TargetCount = 3,
+                                        HitCount = 1
+                                    }
                                 }
                             },
-                            Effect ="위장, 협공확률 증가, 4회 공격 시 1100 고정뎀"
+                            Effect = "위장, 협공확률 증가"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { Effect = "고정 피해량 1485" } },
-                        { 6, new PassiveTranscend { Effect = "4회 공격 시 모든 피해 무효 1회" } }
+                        { 2, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 3,
+                                        TriggerOn = TriggerCondition.AllAttack,
+                                        FixedDamage = 1485,
+                                        TargetCount = 3,
+                                        HitCount = 1
+                                    }
+                                }
+                            }
+                        } },
+                        { 6, new PassiveTranscend { Effect = "2회 공격 시 모든 피해 무효 1회 (미확립)" } }
                     }
                     
                 },
@@ -1242,19 +1324,99 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 31 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Wek_Dmg = 28 } },
-                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.MarkAttack, MarkAttack = new MarkAttack { MaxStacks = 2, AtkCount = 1, Ratio = 45, TargetMaxHpRatio = 16 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 40 } },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.MarkAttack,
+                                    MarkAttack = new MarkAttack
+                                    {
+                                        MaxStacks = 2,
+                                        AtkCount = 1,
+                                        TargetMaxHpRatio = 16,
+                                        StackOnNormalEvery = 2,
+                                        StackOnSkillEvery = 1,
+                                        OnMaxStackSelfBuff = new BuffSet { Wek_Dmg = 28 },
+                                        OnMaxStackSelfBuffDuration = 5
+                                    }
+                                },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 2,
+                                        TriggerOn = TriggerCondition.NormalOnly,
+                                        AtkRatio = 45,
+                                        TargetCount = 1,
+                                        HitCount = 1
+                                    }
+                                },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 1,
+                                        TriggerOn = TriggerCondition.SkillOnly,
+                                        AtkRatio = 45,
+                                        TargetCount = 1,
+                                        HitCount = 1
+                                    }
+                                }
                             },
-                            Effect = "축복, 표식:방천화극의 분노 (최대2중첩, 2중첩시 HP16%+약피28%)"
+                            Effect = "축복 40%, 표식:방천화극의 분노"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 31 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Wek_Dmg = 28 } },
-                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.MarkAttack, MarkAttack = new MarkAttack { MaxStacks = 2, AtkCount = 1, Ratio = 45, TargetMaxHpRatio = 16 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 25 } },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.MarkAttack,
+                                    MarkAttack = new MarkAttack
+                                    {
+                                        MaxStacks = 2,
+                                        AtkCount = 1,
+                                        TargetMaxHpRatio = 16,
+                                        StackOnNormalEvery = 2,
+                                        StackOnSkillEvery = 1,
+                                        OnMaxStackSelfBuff = new BuffSet { Wek_Dmg = 28 },
+                                        OnMaxStackSelfBuffDuration = 5
+                                    }
+                                },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 2,
+                                        TriggerOn = TriggerCondition.NormalOnly,
+                                        AtkRatio = 45,
+                                        TargetCount = 1,
+                                        HitCount = 1
+                                    }
+                                },
+                                new PersistentEffect
+                                {
+                                    Target = EffectTarget.Enemy,
+                                    Type = PersistentEffectType.TriggeredFixedDamage,
+                                    TriggeredFixedDamage = new TriggeredFixedDamage
+                                    {
+                                        TriggerCount = 1,
+                                        TriggerOn = TriggerCondition.SkillOnly,
+                                        AtkRatio = 45,
+                                        TargetCount = 1,
+                                        HitCount = 1
+                                    }
+                                }
                             },
-                            Effect = "축복, 표식:방천화극의 분노 (최대2중첩, 2중첩시 HP16%+약피28%)"
+                            Effect = "축복 25%, 표식:방천화극의 분노"
                         }}
                     }
                 },
@@ -2535,8 +2697,8 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
-                                Effect = "처치 시 100% 위력 한번 더"
+                            { 2, new SkillTranscend {
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 }
                             }}
                         }
                     },
@@ -2789,13 +2951,13 @@ namespace GameDamageCalculator.Database
                         Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
                                 Ratio = 72,
-                                Effect = "적군 처치 시 함 더"
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 }
                             } },
-                            { 1, new SkillLevelData { 
+                            { 1, new SkillLevelData {
                                 Ratio = 85,
-                                Effect = "적군 처치 시 함 더"
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 }
                             } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -2915,8 +3077,8 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { 
-                                Effect = "처치 시 함 더"
+                            { 6, new SkillTranscend {
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 }
                             }}
                         }
                     },

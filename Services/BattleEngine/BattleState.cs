@@ -52,6 +52,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 통합 효과 관리자 (버프/디버프/상태이상 통합)
         public EffectManager Effects { get; set; } = new();
 
+        // 받피해 분산 큐 (트루드 PainEndurance 등) — 각 발동마다 독립 누적
+        public List<PendingPainEnduranceDamage> PainEnduranceQueue { get; set; } = new();
+
         // 스킬 쿨다운 (초 기반)
         public Dictionary<SkillType, double> SkillCooldowns { get; set; } = new();
 
@@ -85,6 +88,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                     SkillCooldowns[key] = 0;
             }
         }
+    }
+
+    /// <summary>
+    /// 받피해 분산 큐의 한 항목 (트루드 PainEndurance 등 받피해를 N턴에 걸쳐 분할 적용).
+    /// 발동마다 한 항목이 등록되고, 매 턴 시작 시 PerTurnAmount만큼 차감 + RemainingTurns--.
+    /// </summary>
+    public class PendingPainEnduranceDamage
+    {
+        public double PerTurnAmount { get; set; }
+        public int RemainingTurns { get; set; }
+        public string SourceLabel { get; set; }   // 로그용 (예: "보스 광역 / 트루드")
     }
 
     /// <summary>

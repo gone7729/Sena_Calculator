@@ -8,9 +8,10 @@ namespace GameDamageCalculator.Services
 {
     /// <summary>
     /// 통합 효과 관리자
-    /// BattleEffect 인스턴스를 수집하고, 기존 StatCalculator/DamageCalculator가 사용하는
-    /// 형태(BuffSet/DebuffSet)로 집계하여 반환
-    /// BuffCalculator를 대체
+    /// BattleEffect 인스턴스를 수집하고, StatCalculator/DamageCalculator가 사용하는
+    /// 형태(BuffSet/DebuffSet)로 집계하여 반환.
+    /// 게임 룰: 한 묶음(상시/턴제/펫) 안에서 같은 BuffSet 필드는 가장 높은 값만 살아남고(MaxMerge),
+    /// 묶음 사이는 합산(Add).
     /// </summary>
     public class EffectManager
     {
@@ -53,36 +54,31 @@ namespace GameDamageCalculator.Services
         /// <summary>
         /// 분리된 버프 반환: (상시, 턴제, 펫)
         /// StatCalculator.Calculate()의 PartyPermanentBuffs/PartyTimedBuffs/PartyPetBuffs에 대응
-        /// 병합 규칙: 같은 카테고리 내 MaxMerge, 카테고리 간 Add
+        /// 게임 룰: 한 묶음(상시/턴제/펫) 안의 모든 효과를 통합해 같은 BuffSet 필드끼리 MaxMerge.
+        /// 자버프/파티버프, 패시브/스킬을 더 잘게 쪼개지 않는다 — 그렇게 하면 카테고리 간 Add가 끼어 룰을 깬다.
         /// </summary>
         public (BuffSet Permanent, BuffSet Timed, BuffSet Pet) GetSeparatedBuffs()
         {
-            // 상시 = PassiveSelfBuff + PassivePartyBuff (각각 내부 MaxMerge, 결과끼리 Add)
+            // 상시 = (PassiveSelf, PassiveParty) 한 묶음으로 통합 MaxMerge
             var permanent = AggregateBuffsByCategories(
                 EffectCategory.PassiveSelfBuff,
                 EffectCategory.PassivePartyBuff);
 
-            // 턴제 = ConditionalSelfBuff + ConditionalPartyBuff + ActiveSelfBuff + ActivePartyBuff
+            // 턴제 = (ConditionalSelf, ConditionalParty, ActiveSelf, ActiveParty) 한 묶음으로 통합 MaxMerge
             var timed = AggregateBuffsByCategories(
                 EffectCategory.ConditionalSelfBuff,
                 EffectCategory.ConditionalPartyBuff,
                 EffectCategory.ActiveSelfBuff,
                 EffectCategory.ActivePartyBuff);
 
-            // 펫 = PetBuff (항상 합산)
-            var pet = new BuffSet();
-            foreach (var effect in _effects.Where(e =>
-                e.Category == EffectCategory.PetBuff && e.IsStatBuff && !e.IsExpired))
-            {
-                pet.Add(effect.BuffValues);
-            }
+            // 펫 = PetBuff (별개 카테고리, 같은 묶음 내에서는 동일 룰 적용)
+            var pet = AggregateBuffsByCategories(EffectCategory.PetBuff);
 
             return (permanent, timed, pet);
         }
 
         /// <summary>
         /// 전체 버프 합산 (상시 + 턴제 + 펫)
-        /// BuffCalculator.CalculateTotalBuffs() 대응
         /// </summary>
         public BuffSet GetTotalBuffs()
         {
@@ -95,21 +91,19 @@ namespace GameDamageCalculator.Services
         }
 
         /// <summary>
-        /// 여러 카테고리의 버프를 집계
-        /// 각 카테고리 내에서 MaxMerge, 카테고리 간 Add
+        /// 지정한 카테고리들의 버프를 한 묶음으로 보고 통합 MaxMerge.
+        /// 같은 BuffSet 필드(같은 종류)면 가장 높은 값만 살아남는다.
         /// </summary>
         private BuffSet AggregateBuffsByCategories(params EffectCategory[] categories)
         {
             var total = new BuffSet();
             foreach (var category in categories)
             {
-                var categoryResult = new BuffSet();
                 foreach (var effect in _effects.Where(e =>
                     e.Category == category && e.IsStatBuff && !e.IsExpired))
                 {
-                    categoryResult.MaxMerge(effect.BuffValues);
+                    total.MaxMerge(effect.BuffValues);
                 }
-                total.Add(categoryResult);
             }
             return total;
         }
@@ -120,28 +114,41 @@ namespace GameDamageCalculator.Services
 
         /// <summary>
         /// 전체 디버프 합산
-        /// 같은 카테고리 내 MaxMerge, 카테고리 간 Add
+        /// 게임 룰: (상시, 턴제, 펫) 3카테고리 — 카테고리 내 통합 MaxMerge, 카테고리 간 Add.
         /// </summary>
         public DebuffSet GetTotalDebuffs()
         {
-            var total = new DebuffSet();
-            var categories = new[]
-            {
-                EffectCategory.PassiveDebuff,
-                EffectCategory.ConditionalDebuff,
-                EffectCategory.ActiveDebuff,
-                EffectCategory.PetDebuff
-            };
+            // 상시 = PassiveDebuff
+            var permanent = AggregateDebuffsByCategories(EffectCategory.PassiveDebuff);
 
+            // 턴제 = ConditionalDebuff + ActiveDebuff 한 묶음으로 통합 MaxMerge
+            var timed = AggregateDebuffsByCategories(
+                EffectCategory.ConditionalDebuff,
+                EffectCategory.ActiveDebuff);
+
+            // 펫 = PetDebuff (별개 카테고리)
+            var pet = AggregateDebuffsByCategories(EffectCategory.PetDebuff);
+
+            var total = new DebuffSet();
+            total.Add(permanent);
+            total.Add(timed);
+            total.Add(pet);
+            return total;
+        }
+
+        /// <summary>
+        /// 지정한 카테고리들의 디버프를 한 묶음으로 보고 통합 MaxMerge.
+        /// </summary>
+        private DebuffSet AggregateDebuffsByCategories(params EffectCategory[] categories)
+        {
+            var total = new DebuffSet();
             foreach (var category in categories)
             {
-                var categoryResult = new DebuffSet();
                 foreach (var effect in _effects.Where(e =>
                     e.Category == category && e.IsStatDebuff && !e.IsExpired))
                 {
-                    categoryResult.MaxMerge(effect.DebuffValues);
+                    total.MaxMerge(effect.DebuffValues);
                 }
-                total.Add(categoryResult);
             }
             return total;
         }
@@ -178,6 +185,38 @@ namespace GameDamageCalculator.Services
             return _effects
                 .Where(e => e.StatusType == type && !e.IsExpired)
                 .Sum(e => e.Stacks);
+        }
+
+        /// <summary>
+        /// 게임 표기 기준 활성 디버프 개수
+        /// = 합산 디버프셋의 활성 필드 수 + 활성 상태이상 종류 수
+        /// (스택은 1개로 카운트, 같은 종류의 여러 인스턴스도 1개)
+        /// </summary>
+        public int GetActiveDebuffCount()
+        {
+            int count = 0;
+            var debuffs = GetTotalDebuffs();
+            if (debuffs.Def_Reduction > 0) count++;
+            if (debuffs.Atk_Reduction > 0) count++;
+            if (debuffs.Spd_Reduction > 0) count++;
+            if (debuffs.Dmg_Reduction > 0) count++;
+            if (debuffs.Cri_Dmg_Reduction > 0) count++;
+            if (debuffs.Heal_Reduction > 0) count++;
+            if (debuffs.Unrecover > 0) count++;
+            if (debuffs.Eff_Red > 0) count++;
+            if (debuffs.Eff_Hit_Red > 0) count++;
+            if (debuffs.Blk_Red > 0) count++;
+            if (debuffs.Dmg_Taken_Increase > 0) count++;
+            if (debuffs.Vulnerability > 0) count++;
+            if (debuffs.Boss_Vulnerability > 0) count++;
+
+            count += _effects
+                .Where(e => e.IsStatusEffect && !e.IsExpired && e.StatusType.HasValue)
+                .Select(e => e.StatusType.Value)
+                .Distinct()
+                .Count();
+
+            return count;
         }
 
         #endregion

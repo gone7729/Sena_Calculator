@@ -9,14 +9,13 @@ namespace GameDamageCalculator.Services.BattleEngine
 {
     /// <summary>
     /// 턴제 배틀 시뮬레이터
-    /// 기존 DamageCalculator, StatCalculator, BuffCalculator를 활용하여
+    /// DamageCalculator, StatCalculator, EffectManager를 활용하여
     /// 5인 파티 vs 보스 배틀을 시뮬레이션
     /// </summary>
     public class BattleSimulator
     {
         private readonly DamageCalculator _damageCalc = new();
         private readonly StatCalculator _statCalc = new();
-        private readonly BuffCalculator _buffCalc = new();
 
         /// <summary>
         /// 배틀 시뮬레이션 실행
@@ -128,9 +127,11 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 파티 버프 계산 (다른 파티원의 패시브/스킬 버프)
             var partyBuffConfigs = BuildPartyBuffConfigs(config, index);
-            var (partyPerm, partyTimed, partyPet) = _buffCalc.CalculateSeparatedPartyBuffs(
-                partyBuffConfigs, config.AllyPet, config.PetStar);
-            var totalDebuffs = _buffCalc.CalculateTotalDebuffs(partyBuffConfigs, config.AllyPet, config.PetStar);
+            var partyEffects = new EffectManager();
+            partyEffects.AddEffects(EffectConverter.FromBuffConfigs(
+                partyBuffConfigs, config.AllyPet, config.PetStar));
+            var (partyPerm, partyTimed, partyPet) = partyEffects.GetSeparatedBuffs();
+            var totalDebuffs = partyEffects.GetTotalDebuffs();
 
             // 진형
             var formation = new Formation
@@ -159,7 +160,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 PetOptionAtkRate = config.PetOptionAtkRate,
                 PetOptionDefRate = config.PetOptionDefRate,
                 PetOptionHpRate = config.PetOptionHpRate,
-                TotalBuffs = _buffCalc.CalculateTotalBuffs(partyBuffConfigs, config.AllyPet, config.PetStar),
+                TotalBuffs = partyEffects.GetTotalBuffs(),
                 TotalDebuffs = totalDebuffs,
                 PartyPermanentBuffs = partyPerm,
                 PartyTimedBuffs = partyTimed,
@@ -253,7 +254,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             double dotDuration = ProcessDoTDamage(config, state, charState);
             totalDuration += dotDuration;
 
-            // 2. 스택 트리거 처리 (공격 전)
+            // 2. PainEndurance 분산 큐 1회 처리 (본인 보유분만, 평타 직전)
+            //    룰: 트리거 시 즉시 25% 받고, 그 다음 본인 평타 차례에 분산 1회 적용 후 평타.
+            TickPainEnduranceQueue(state, charState);
+
+            // 3. 스택 트리거 처리 (공격 전)
             ProcessStackTriggers(charState, state, isSkill: false);
 
             // 3. 기본공격 실행 (+2초)
@@ -322,7 +327,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 보스 스킬 실행
+        /// 보스 스킬 실행 — 모든 아군에게 받피해 적용 (광역 가정).
+        /// 받피해는 DamageCalculator를 attacker=보스/target=아군 의미로 호출하고,
+        /// 적용은 ApplyIncomingDamage로 — PainEndurance 트리거 시 분산 큐에 등록된다.
         /// </summary>
         private void ExecuteEnemySkill(BattleConfig config, BattleState state)
         {
@@ -332,23 +339,61 @@ namespace GameDamageCalculator.Services.BattleEngine
                 charState.ReduceCooldowns(5);
             }
 
-            // 보스 로테이션에서 현재 스킬 가져오기
-            if (config.EnemyRotation != null && config.EnemyRotation.Count > 0)
+            var enemySkill = ResolveEnemySkill(config, state);
+            string enemyName = config.TargetEnemy?.Name ?? "보스";
+            string skillName = enemySkill?.Name ?? "보스 스킬";
+
+            if (enemySkill != null)
             {
-                // TODO: 보스 스킬 로테이션 인덱스 관리
-                // 현재는 쿨다운 감소만 처리
+                foreach (var charState in state.AllyStates)
+                {
+                    if (charState.CurrentHp <= 0) continue;
+
+                    double damage = CalculateIncomingDamage(config, state, charState, enemySkill);
+                    if (damage <= 0) continue;
+
+                    ApplyIncomingDamage(state, charState, damage, $"{enemyName} {skillName}");
+                }
             }
 
             state.TurnLogs.Add(new BattleTurnLog
             {
                 Turn = state.CurrentTurn,
-                ActorName = config.TargetEnemy?.Name ?? "보스",
+                ActorName = enemyName,
                 IsAlly = false,
                 ActionType = ActionType.SkillAttack,
-                SkillName = "보스 스킬",
+                SkillName = skillName,
                 DamageDealt = 0,
-                Description = "보스 스킬 사용 (아군 쿨다운 5초 감소)"
+                Description = $"보스 스킬 사용 ({skillName}, 아군 쿨다운 5초 감소)"
             });
+        }
+
+        /// <summary>
+        /// 보스의 다음 행동(스킬)을 결정. enemy.Skills가 있으면 첫 스킬 사용.
+        /// 없으면 임시 fallback (보스 ATK × 100% 광역 공격) 생성.
+        /// 추후 EnemyRotation 인덱스 관리/스킬 데이터 연동으로 확장.
+        /// </summary>
+        private Skill ResolveEnemySkill(BattleConfig config, BattleState state)
+        {
+            var enemy = config.TargetEnemy;
+            if (enemy?.Skills != null && enemy.Skills.Count > 0)
+            {
+                // 단순화: 첫 번째 스킬 사용. 추후 로테이션 인덱스 관리.
+                return enemy.Skills[0];
+            }
+
+            // Fallback: 기본 광역 공격 (보스 ATK × 100%)
+            return new Skill
+            {
+                Name = "보스 광역 공격",
+                SkillType = SkillType.Skill1,
+                TargetCount = 5,
+                Atk_Count = 1,
+                LevelData = new Dictionary<int, SkillLevelData>
+                {
+                    { 0, new SkillLevelData { Ratio = 100 } }
+                }
+            };
         }
 
         /// <summary>
@@ -362,6 +407,11 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 적 디버프 합산 (EffectManager 통합)
             var enemyDebuffs = state.EnemyState.Effects.GetTotalDebuffs();
+            int enemyDebuffCount = state.EnemyState.Effects.GetActiveDebuffCount();
+
+            // 디버프당 동적 피증 (PerEnemyDebuffDmgBonus) — 패시브+스킬에서 합산
+            var perDebuffBonus = PerDebuffBonusExtractor.From(
+                battleChar.Character, skill, battleChar.IsSkillEnhanced, battleChar.TranscendLevel);
 
             // 타겟 수에 따른 보스 피해감소
             double targetReduction = GetTargetReduction(config.TargetEnemy, skill.TargetCount);
@@ -412,7 +462,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsSkillConditionMet = true,
                 Mode = BattleMode.Boss,
                 IsTargetBoss = config.TargetEnemy?.IsBoss ?? true,
-                SelfMaxHp = charState.MaxHp
+                SelfMaxHp = charState.MaxHp,
+
+                // 디버프당 동적 피증
+                TargetDebuffCount = enemyDebuffCount,
+                PerDebuffBonusPercent = perDebuffBonus.PercentPerDebuff,
+                PerDebuffBonusMaxStacks = perDebuffBonus.MaxStacks
             };
 
             var result = _damageCalc.Calculate(damageInput);
@@ -439,6 +494,164 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = damage,
                 Description = $"{charState.Source.Character.Name} → {skillName}: {damage:N0}"
             });
+        }
+
+        /// <summary>
+        /// 아군이 받은 직접 피해를 적용한다.
+        /// PainEndurance(트루드 「전투의 희열」) 트리거 조건(rawDamage >= 최대 HP × Threshold%) 충족 시
+        /// 즉시 (100 - ReductionRate)% 만 받고, ReductionRate% 는 Duration 턴에 걸쳐 매 턴 균등 분산.
+        /// 발동마다 큐 항목이 독립 등록되어 자연스럽게 누적된다.
+        /// </summary>
+        private void ApplyIncomingDamage(BattleState state, CharacterBattleState target,
+            double rawDamage, string sourceLabel)
+        {
+            if (rawDamage <= 0) return;
+
+            var painEndurance = GetActivePainEndurance(target);
+            bool triggers = painEndurance != null
+                            && painEndurance.Duration > 0
+                            && rawDamage >= target.MaxHp * (painEndurance.Threshold / 100.0);
+
+            double immediateDamage;
+            if (triggers)
+            {
+                double immediateRatio = (100.0 - painEndurance.ReductionRate) / 100.0;
+                double deferredRatio = painEndurance.ReductionRate / 100.0;
+                immediateDamage = rawDamage * immediateRatio;
+                double perTurn = (rawDamage * deferredRatio) / painEndurance.Duration;
+
+                target.PainEnduranceQueue.Add(new PendingPainEnduranceDamage
+                {
+                    PerTurnAmount = perTurn,
+                    RemainingTurns = painEndurance.Duration,
+                    SourceLabel = sourceLabel
+                });
+
+                state.TurnLogs.Add(new BattleTurnLog
+                {
+                    Turn = state.CurrentTurn,
+                    ActorName = target.Source.Character.Name,
+                    IsAlly = true,
+                    ActionType = ActionType.BuffApplied,
+                    SkillName = "고통 인내 발동",
+                    DamageDealt = 0,
+                    Description = $"{sourceLabel} 피격 {rawDamage:N0} → 즉시 {immediateDamage:N0}, 매 턴 {perTurn:N0}씩 {painEndurance.Duration}턴 분산"
+                });
+            }
+            else
+            {
+                immediateDamage = rawDamage;
+            }
+
+            target.CurrentHp = Math.Max(0, target.CurrentHp - immediateDamage);
+        }
+
+        /// <summary>
+        /// 매 턴 시작 시 호출 — PainEnduranceQueue의 각 항목에서 PerTurnAmount만큼 차감,
+        /// RemainingTurns 1 감소, 만료 항목 제거.
+        /// 누적된 여러 발동의 분산 피해를 한 번에 합산해 받는다.
+        /// </summary>
+        private void TickPainEnduranceQueue(BattleState state, CharacterBattleState charState)
+        {
+            if (charState.PainEnduranceQueue.Count == 0) return;
+
+            double totalThisTurn = 0;
+            foreach (var pending in charState.PainEnduranceQueue)
+            {
+                totalThisTurn += pending.PerTurnAmount;
+                pending.RemainingTurns--;
+            }
+            charState.PainEnduranceQueue.RemoveAll(p => p.RemainingTurns <= 0);
+
+            if (totalThisTurn <= 0) return;
+
+            charState.CurrentHp = Math.Max(0, charState.CurrentHp - totalThisTurn);
+
+            state.TurnLogs.Add(new BattleTurnLog
+            {
+                Turn = state.CurrentTurn,
+                ActorName = charState.Source.Character.Name,
+                IsAlly = true,
+                ActionType = ActionType.DoTDamage,
+                SkillName = "고통 인내 분산",
+                DamageDealt = totalThisTurn,
+                Description = $"분산 합계 {totalThisTurn:N0}"
+            });
+        }
+
+        /// <summary>
+        /// 캐릭터 패시브에서 활성 PainEndurance 데이터를 조회 (없으면 null).
+        /// </summary>
+        private PainEndurance GetActivePainEndurance(CharacterBattleState charState)
+        {
+            var passive = charState.Source.Character.Passive;
+            if (passive == null) return null;
+
+            var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced);
+            return levelData?.PainEndurance;
+        }
+
+        /// <summary>
+        /// 보스가 한 명의 아군을 공격할 때 발생하는 1회 받피해를 계산한다.
+        /// DamageCalculator를 attacker=보스, target=아군 의미로 호출.
+        /// "Boss" prefix가 붙은 입력 필드는 의미상 "target" — 그대로 아군 데이터로 채워 사용.
+        /// </summary>
+        private double CalculateIncomingDamage(BattleConfig config, BattleState state,
+            CharacterBattleState target, Skill enemySkill, bool isCritical = false, bool isWeakpoint = false)
+        {
+            var enemy = config.TargetEnemy;
+            if (enemy == null || enemySkill == null) return 0;
+
+            // 아군이 보유한 받피감 (자버프 자체 받피감 합산)
+            var (targetPerm, targetTimed, targetPet) = target.Effects.GetSeparatedBuffs();
+            double targetDmgRdc = targetPerm.Dmg_Rdc + targetTimed.Dmg_Rdc + targetPet.Dmg_Rdc;
+
+            // 아군에게 걸린 디버프 (받피증/취약)
+            var targetDebuffs = target.Effects.GetTotalDebuffs();
+
+            var damageInput = new DamageCalculator.DamageInput
+            {
+                // === attacker 측 = 보스 ===
+                Character = null,                 // 보스는 Character 모델이 없음 (DamageCalculator는 ?. 처리)
+                Skill = enemySkill,
+                IsSkillEnhanced = false,
+                TranscendLevel = 0,
+                FinalAtk = enemy.Stats.Atk,
+                FinalDef = 0,
+                FinalHp = enemy.Stats.Hp,
+                CritDamage = enemy.Stats.Cri_Dmg,
+                DmgDealt = enemy.Stats.Dmg_Dealt,
+                DmgDealtType = enemy.Stats.Dmg_Dealt_Type,
+                DmgDealtBoss = 0,                 // 아군 대상 → 보스피증 미적용
+                ArmorPen = enemy.Stats.Arm_Pen,
+                WeakpointDmg = enemy.Stats.Wek_Dmg,
+
+                // === target 측 = 아군 ("Boss*" 필드는 의미상 target) ===
+                BossDef = target.FinalDef,
+                BossDefIncrease = 0,
+                BossDmgReduction = targetDmgRdc,  // 아군의 받피감
+                BossTargetReduction = 0,          // n인기 감쇄는 보스 전용 개념, 아군엔 미적용
+                BossHp = target.MaxHp,
+                TargetHp = target.MaxHp,
+                TargetCurrentHp = target.CurrentHp,
+
+                // 아군에게 걸린 디버프 → 받는 피해 증가 (취약/받피증)
+                DefReduction = targetDebuffs.Def_Reduction,
+                DmgTakenIncrease = targetDebuffs.Dmg_Taken_Increase,
+                Vulnerability = targetDebuffs.Vulnerability,
+                BossVulnerability = 0,            // 아군 대상이라 미적용
+
+                // 전투 옵션 (보스 측 치명/약점은 호출자가 지정)
+                IsCritical = isCritical,
+                IsWeakpoint = isWeakpoint,
+                IsSkillConditionMet = false,
+                IsLostHpConditionMet = false,
+                IsTargetBoss = false,             // 핵심 — Dmg_Dealt_Bos 미적용
+                SelfMaxHp = enemy.Stats.Hp,
+                Mode = BattleMode.Boss
+            };
+
+            return _damageCalc.Calculate(damageInput).FinalDamage;
         }
 
         #endregion

@@ -36,6 +36,12 @@ namespace GameDamageCalculator.Models
                 result.ConditionalPartyBuff.Add(kvp.Value.ConditionalPartyBuff);
                 result.ConditionalDebuff.Add(kvp.Value.ConditionalDebuff);
                 result.Effect = kvp.Value.Effect;
+
+                if (kvp.Value.Effects != null && kvp.Value.Effects.Count > 0)
+                {
+                    result.Effects ??= new List<Effects.PersistentEffect>();
+                    result.Effects.AddRange(kvp.Value.Effects);
+                }
             }
             return result;
         }
@@ -332,9 +338,18 @@ namespace GameDamageCalculator.Models
     public class MarkAttack
     {
         public int MaxStacks { get; set; }               // 최대 중첩 수
-        public int AtkCount { get; set; } = 1;           // 타수
-        public double Ratio { get; set; }                // 공격력 배율%
+        public int AtkCount { get; set; } = 1;           // 타수 (최대 중첩 발동 시)
+        public double Ratio { get; set; }                // 공격력 배율% (최대 중첩 발동 시)
         public double TargetMaxHpRatio { get; set; }     // 최대 중첩 시 대상 최대 HP%
+        public double AtkCap { get; set; }               // 공격력 제한% (HP비례 피해 상한, 0이면 무제한)
+
+        // === 스택 누적 트리거 (각 0이면 해당 채널 비활성) ===
+        public int StackOnNormalEvery { get; set; }      // 기본공격 N회마다 1중첩 부여 (예: 여포 = 2)
+        public int StackOnSkillEvery { get; set; }       // 스킬 N회마다 1중첩 부여 (예: 여포 = 1)
+
+        // === 최대 중첩 발동 시 본인 자버프 ===
+        public BuffSet OnMaxStackSelfBuff { get; set; }  // 부여할 자버프 스탯
+        public int OnMaxStackSelfBuffDuration { get; set; } // 자버프 지속 턴 (0이면 자버프 없음)
     }
 
     /// <summary>

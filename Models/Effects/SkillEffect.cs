@@ -43,6 +43,11 @@ namespace GameDamageCalculator.Models.Effects
         public double? CustomHpConversionRatio { get; set; }
         public double? CustomTriggerCount { get; set; }
         public int MaxConsume { get; set; }
+
+        // === PerEnemyDebuffDmgBonus 전용 (Type = PerEnemyDebuffDmgBonus일 때) ===
+        // 적 디버프 1개당 피증%, 카운트 상한
+        public double PercentPerDebuff { get; set; }
+        public int MaxDebuffStacks { get; set; }
     }
 
     /// <summary>
@@ -53,5 +58,6 @@ namespace GameDamageCalculator.Models.Effects
         Buff,           // 버프 (아군 스탯 증가)
         Debuff,         // 디버프 (적 스탯 감소)
         StatusAilment,  // 상태이상 (화상, 기절 등)
+        PerEnemyDebuffDmgBonus, // 적 디버프 1개당 피해량 증가 (동적 피증)
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
 
 namespace GameDamageCalculator.Services
@@ -76,6 +77,14 @@ namespace GameDamageCalculator.Services
             // ===== 스택소모 스킬용 =====
             // 자버프 타입피증 (스택소모 시에만 적용, 스킬피해에는 미적용)
             public double SelfBuffTypeDmg { get; set; }
+
+            // ===== 적 디버프당 동적 피증 (PerEnemyDebuffDmgBonus) =====
+            // 적이 보유한 디버프(상태이상 포함) 개수
+            public int TargetDebuffCount { get; set; }
+            // 디버프 1개당 피증% (패시브+스킬 합산값)
+            public double PerDebuffBonusPercent { get; set; }
+            // 카운트 상한 (모든 효과 중 최대)
+            public int PerDebuffBonusMaxStacks { get; set; }
         }
 
         public class DamageResult
@@ -322,6 +331,15 @@ namespace GameDamageCalculator.Services
                 conditionalDmgBonus = skillTranscend.ConditionalDmgBonus;
             }
 
+            // 적 디버프당 동적 피증 (PerEnemyDebuffDmgBonus)
+            double perDebuffBonus = 0;
+            if (input.PerDebuffBonusPercent > 0 && input.PerDebuffBonusMaxStacks > 0 && input.TargetDebuffCount > 0)
+            {
+                int effectiveCount = Math.Min(input.TargetDebuffCount, input.PerDebuffBonusMaxStacks);
+                perDebuffBonus = input.PerDebuffBonusPercent * effectiveCount;
+                conditionalDmgBonus += perDebuffBonus;
+            }
+
             // 인기 피증
             double targetTypeDmg = 0;
             int targetCount = 0;
@@ -344,7 +362,10 @@ namespace GameDamageCalculator.Services
 
             debugLog.AppendLine($"    기본피증: {input.DmgDealt}%");
             debugLog.AppendLine($"    타입피증: {input.DmgDealtType}%");
-            debugLog.AppendLine($"    조건부: {conditionalDmgBonus}%");
+            debugLog.AppendLine($"    조건부: {conditionalDmgBonus}%"
+                + (perDebuffBonus > 0
+                    ? $" (디버프당 {input.PerDebuffBonusPercent}% × {Math.Min(input.TargetDebuffCount, input.PerDebuffBonusMaxStacks)}개 = {perDebuffBonus}% 포함)"
+                    : ""));
             debugLog.AppendLine($"    보스피증: {bossDmg}%");
             debugLog.AppendLine($"    {targetCount}인기피증: {targetTypeDmg}%");
             debugLog.AppendLine($"    피감합계: {reductionTotal}% (보스{input.BossDmgReduction}% + 인기{input.BossTargetReduction}%)");

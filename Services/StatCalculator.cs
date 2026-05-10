@@ -230,12 +230,16 @@ namespace GameDamageCalculator.Services
             double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
             double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
 
-            double flatAtk = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk 
-                           + petBaseStats.Atk + equipmentStats.MainStats.Atk;
-            double flatDef = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def 
-                           + petBaseStats.Def + equipmentStats.MainStats.Def;
-            double flatHp = equipFlatHp + potentialStats.Hp + equipmentStats.SubStats.Hp 
-                          + petBaseStats.Hp + equipmentStats.MainStats.Hp;
+            // 패시브 FlatBonus (예: 밀리아 「광채의 수정비늘」 Def +1009, Hp +3929)
+            var passiveLevelData = input.Character?.Passive?.GetLevelData(input.IsSkillEnhanced);
+            var passiveFlatBonus = passiveLevelData?.FlatBonus ?? new BaseStatSet();
+
+            double flatAtk = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk
+                           + petBaseStats.Atk + equipmentStats.MainStats.Atk + passiveFlatBonus.Atk;
+            double flatDef = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def
+                           + petBaseStats.Def + equipmentStats.MainStats.Def + passiveFlatBonus.Def;
+            double flatHp = equipFlatHp + potentialStats.Hp + equipmentStats.SubStats.Hp
+                          + petBaseStats.Hp + equipmentStats.MainStats.Hp + passiveFlatBonus.Hp;
 
             // ========== 속공 계산 ==========
             double totalSpd = characterStats.Spd + equipmentStats.SubStats.Spd;

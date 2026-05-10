@@ -268,6 +268,9 @@ namespace GameDamageCalculator.Models
         public int? TargetCountOverride { get; set; }
         public ConsumeExtraDamage ConsumeExtra { get; set; }
         public double FixedDamage { get; set; }
+
+        // 처치 시 같은 스킬 1회 재시전 (모든 효과 재적용, 연쇄 없음)
+        public OnKillRecast OnKillRecast { get; set; }
     }
 
     /// <summary>
@@ -337,6 +340,20 @@ namespace GameDamageCalculator.Models
 
         public double HealAtkRatio { get; set; }
         public string Effect { get; set; }
+
+        // 처치 시 같은 스킬 1회 재시전 (모든 효과 재적용, 연쇄 없음)
+        public OnKillRecast OnKillRecast { get; set; }
+    }
+
+    /// <summary>
+    /// 처치 시 같은 스킬을 n% 위력으로 1회 추가 발동
+    /// 적 종류(일반몹/영웅/보스) 무관하게 트리거. 재발동된 스킬의 처치로는 재시전되지 않음(연쇄 없음).
+    /// 데미지·버프·디버프·상태이상 등 스킬의 모든 효과가 다시 적용됨.
+    /// </summary>
+    public class OnKillRecast
+    {
+        public double RatioPercent { get; set; } = 100;   // 원본 배율 대비 % (70 = 0.7배)
+        public double Chance { get; set; } = 100;         // 발동 확률%
     }
 
     /// <summary>

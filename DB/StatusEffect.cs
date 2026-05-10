@@ -1,50 +1,8 @@
-using System;
 using System.Collections.Generic;
+using GameDamageCalculator.Models;
 
-namespace GameDamageCalculator.Models
+namespace GameDamageCalculator.Database
 {
-    /// <summary>
-    /// 상태이상 타입
-    /// </summary>
-    public enum StatusEffectType
-    {
-        None,
-        
-        // === CC (행동 불가) ===
-        Stun,           // 기절
-        Silence,        // 침묵
-        Freeze,         // 빙결
-        Petrify,        // 석화
-        IceExtreme,     // 빙극
-        Paralysis,      // 마비
-        Shock,          // 감전
-        Sleep,          // 수면
-        Confusion,      // 혼란
-        Concussion,     // 진탕
-        
-        // === DoT (지속 피해) ===
-        Burn,           // 화상
-        InstantDeath,   // 즉사
-        ManaBackflow,   // 마력 역류
-        Bleeding, // 출혈
-        Poison, // 중독
-        ChainDamage, // 카일꺼
-        
-        // === 패시브 스택형 ===
-        EagleClaw,      // 매의 발톱 (타카)
-
-        // === 특수 ===
-        Bomb,           // 폭탄
-        BombDetonation, // 폭탄 폭파
-        BleedExplosion, // 출혈 폭발
-        Crystal,        // 수정 결정
-        CrystalResonance,  // 수정 공명
-        Miss,           // 빗나감
-        HealBlock,      // 회복 불가
-        HpConversion,   // 생명력 전환
-        Regeneration,   // 재생 (턴제 회복)
-    }
-
     /// <summary>
     /// 상태이상 데이터
     /// </summary>
@@ -53,14 +11,14 @@ namespace GameDamageCalculator.Models
         public StatusEffectType Type { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        
+
         // 지속 시간/횟수
         public int Duration { get; set; }           // 지속 턴
         public int MaxStacks { get; set; } = 1;     // 최대 중첩
         public int TriggerCount { get; set; }       // 발동 횟수 (수정 결정 등)
         public double TickDuration { get; set; } = 1.0; // DoT 틱 소요시간 (초)
-        
-        
+
+
         // 피해 관련
         public double AtkRatio { get; set; }        // 공격력 비례% (화상 80%, 석화 120%)
         public double TargetMaxHpRatio { get; set; } // 대상 최대 HP 비례% (빙결 40%, 빙극 60%, 마력역류 12%)
@@ -69,7 +27,7 @@ namespace GameDamageCalculator.Models
         public double ArmorPen { get; set; }        // 방어 무시% (빙결 40%, 폭탄 40%)
         public double FixedDamage { get; set; }     // 고정 피해 (수정 결정 2435)
         public double  ChainDamage { get; set; }     // 카일꺼
-        
+
         // 추가 효과
         public double HealRatio { get; set; }       // 회복량% (빙극 100%)
         public bool IsGuaranteedCrit { get; set; }  // 확정 치명타 (수면)
@@ -80,7 +38,7 @@ namespace GameDamageCalculator.Models
         public bool BlocksAction { get; set; }      // 행동 불가
         public bool BlocksActiveSkill { get; set; } // 액티브 스킬 불가 (침묵)
         public double WakeUpThreshold { get; set; } // 해제 조건 HP% (수면 7%)
-        
+
         // 생명력 전환
         public double HpConversionAmount { get; set; } // 전환량
 
@@ -99,7 +57,7 @@ namespace GameDamageCalculator.Models
         public static Dictionary<StatusEffectType, StatusEffect> Effects = new Dictionary<StatusEffectType, StatusEffect>
         {
             // === CC (행동 불가) ===
-            
+
             { StatusEffectType.Stun, new StatusEffect
             {
                 Type = StatusEffectType.Stun,
@@ -107,7 +65,7 @@ namespace GameDamageCalculator.Models
                 Description = "지속시간 동안 행동할 수 없다",
                 BlocksAction = true
             }},
-            
+
             { StatusEffectType.Silence, new StatusEffect
             {
                 Type = StatusEffectType.Silence,
@@ -115,7 +73,7 @@ namespace GameDamageCalculator.Models
                 Description = "지속시간 동안 액티브 스킬 사용 불가",
                 BlocksActiveSkill = true
             }},
-            
+
             { StatusEffectType.Freeze, new StatusEffect
             {
                 Type = StatusEffectType.Freeze,
@@ -126,7 +84,7 @@ namespace GameDamageCalculator.Models
                 ArmorPen = 40,
                 AtkCap = 300
             }},
-            
+
             { StatusEffectType.Petrify, new StatusEffect
             {
                 Type = StatusEffectType.Petrify,
@@ -135,7 +93,7 @@ namespace GameDamageCalculator.Models
                 BlocksAction = true,
                 AtkRatio = 120
             }},
-            
+
             { StatusEffectType.IceExtreme, new StatusEffect
             {
                 Type = StatusEffectType.IceExtreme,
@@ -146,7 +104,7 @@ namespace GameDamageCalculator.Models
                 ArmorPen = 40,
                 HealRatio = 100
             }},
-            
+
             { StatusEffectType.Paralysis, new StatusEffect
             {
                 Type = StatusEffectType.Paralysis,
@@ -155,7 +113,7 @@ namespace GameDamageCalculator.Models
                 BlocksAction = true,
                 BlocksBlock = true
             }},
-            
+
             { StatusEffectType.Shock, new StatusEffect
             {
                 Type = StatusEffectType.Shock,
@@ -164,7 +122,7 @@ namespace GameDamageCalculator.Models
                 BlocksAction = true,
                 AtkRatio = 40
             }},
-            
+
             { StatusEffectType.Sleep, new StatusEffect
             {
                 Type = StatusEffectType.Sleep,
@@ -174,7 +132,7 @@ namespace GameDamageCalculator.Models
                 IsGuaranteedCrit = true,
                 WakeUpThreshold = 7
             }},
-            
+
             { StatusEffectType.Confusion, new StatusEffect
             {
                 Type = StatusEffectType.Confusion,
@@ -183,7 +141,7 @@ namespace GameDamageCalculator.Models
                 MissChanceIncrease = 100,
                 DamageReduction = 20
             }},
-            
+
             { StatusEffectType.Concussion, new StatusEffect
             {
                 Type = StatusEffectType.Concussion,
@@ -191,9 +149,9 @@ namespace GameDamageCalculator.Models
                 Description = "지속시간 동안 행동할 수 없다",
                 BlocksAction = true
             }},
-            
+
             // === DoT (지속 피해) ===
-            
+
             { StatusEffectType.Burn, new StatusEffect
             {
                 Type = StatusEffectType.Burn,
@@ -201,7 +159,7 @@ namespace GameDamageCalculator.Models
                 Description = "매 턴마다 시전자 공격력의 80% 피해",
                 AtkRatio = 80
             }},
-            
+
             { StatusEffectType.InstantDeath, new StatusEffect
             {
                 Type = StatusEffectType.InstantDeath,
@@ -210,7 +168,7 @@ namespace GameDamageCalculator.Models
                 Duration = 3,
                 TargetCurrentHpRatio = 20
             }},
-            
+
             { StatusEffectType.ManaBackflow, new StatusEffect
             {
                 Type = StatusEffectType.ManaBackflow,
@@ -237,9 +195,9 @@ namespace GameDamageCalculator.Models
                 TargetMaxHpRatio = 6,
                 AtkCap = 150,
             }},
-            
+
             // === 특수 ===
-            
+
             { StatusEffectType.Bomb, new StatusEffect
             {
                 Type = StatusEffectType.Bomb,
@@ -249,7 +207,7 @@ namespace GameDamageCalculator.Models
                 ArmorPen = 40,
                 MaxStacks = 3
             }},
-            
+
             { StatusEffectType.BombDetonation, new StatusEffect
             {
                 Type = StatusEffectType.BombDetonation,
@@ -281,7 +239,7 @@ namespace GameDamageCalculator.Models
                 AtkCap = 100,
                 MaxStacks = 1
             }},
-            
+
             { StatusEffectType.Crystal, new StatusEffect
             {
                 Type = StatusEffectType.Crystal,
@@ -298,7 +256,7 @@ namespace GameDamageCalculator.Models
                 Description = "지정 횟수만큼 수정 결정 감소",
                 MaxConsume = 4
             }},
-            
+
             { StatusEffectType.Miss, new StatusEffect
             {
                 Type = StatusEffectType.Miss,
@@ -306,7 +264,7 @@ namespace GameDamageCalculator.Models
                 Description = "지속시간 동안 공격 시 빗나감 확률 발생 (피해 20% 감소, 치명타/효과적중 0%)",
                 DamageReduction = 20
             }},
-            
+
             { StatusEffectType.HealBlock, new StatusEffect
             {
                 Type = StatusEffectType.HealBlock,
@@ -314,7 +272,7 @@ namespace GameDamageCalculator.Models
                 Description = "지속시간 동안 생명력을 회복할 수 없다",
                 BlocksHeal = true
             }},
-            
+
             { StatusEffectType.HpConversion, new StatusEffect
             {
                 Type = StatusEffectType.HpConversion,

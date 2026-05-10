@@ -18,7 +18,6 @@ namespace GameDamageCalculator.Services.Optimizer
     {
         private readonly DamageCalculator _damageCalc = new();
         private readonly StatCalculator _statCalc = new();
-        private readonly BuffCalculator _buffCalc = new();
 
         /// <summary>
         /// 서브옵션 총 티어 한도 (4장비 × 4슬롯 × 평균 3~4티어)
@@ -405,10 +404,11 @@ namespace GameDamageCalculator.Services.Optimizer
 
             // 파티 버프 (간소화: 패시브만 고려)
             var partyBuffConfigs = BuildPartyBuffConfigs(config, charIndex);
-            var (partyPerm, partyTimed, partyPet) = _buffCalc.CalculateSeparatedPartyBuffs(
-                partyBuffConfigs, config.AllyPet, config.PetStar);
-            var totalDebuffs = _buffCalc.CalculateTotalDebuffs(
-                partyBuffConfigs, config.AllyPet, config.PetStar);
+            var partyEffects = new EffectManager();
+            partyEffects.AddEffects(EffectConverter.FromBuffConfigs(
+                partyBuffConfigs, config.AllyPet, config.PetStar));
+            var (partyPerm, partyTimed, partyPet) = partyEffects.GetSeparatedBuffs();
+            var totalDebuffs = partyEffects.GetTotalDebuffs();
 
             var formation = new Formation
             {
@@ -435,7 +435,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 PetOptionAtkRate = config.PetOptionAtkRate,
                 PetOptionDefRate = config.PetOptionDefRate,
                 PetOptionHpRate = config.PetOptionHpRate,
-                TotalBuffs = _buffCalc.CalculateTotalBuffs(partyBuffConfigs, config.AllyPet, config.PetStar),
+                TotalBuffs = partyEffects.GetTotalBuffs(),
                 TotalDebuffs = totalDebuffs,
                 PartyPermanentBuffs = partyPerm,
                 PartyTimedBuffs = partyTimed,

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Models.Effects;
 
@@ -31,6 +32,13 @@ namespace GameDamageCalculator.Services
             if (levelData.Effects != null && levelData.Effects.Count > 0)
             {
                 effects.AddRange(FromPersistentEffects(levelData.Effects, characterName, isConditionMet));
+
+                // 초월 보너스에 별도 Effects 리스트가 있으면 함께 변환
+                var transcendNew = passive.GetTranscendBonus(transcendLevel);
+                if (transcendNew?.Effects != null && transcendNew.Effects.Count > 0)
+                {
+                    effects.AddRange(FromPersistentEffects(transcendNew.Effects, characterName, isConditionMet));
+                }
                 return effects;
             }
 
@@ -425,6 +433,10 @@ namespace GameDamageCalculator.Services
                         effect.StatusData = data;
                         effect.RemainingTurns = se.Duration > 0 ? se.Duration : baseEffect?.Duration ?? 2;
                         break;
+
+                    case SkillEffectType.PerEnemyDebuffDmgBonus:
+                        // BattleEffect로 변환 안 함 — PerDebuffBonusExtractor가 동적으로 소비
+                        continue;
                 }
 
                 results.Add(effect);
@@ -492,8 +504,15 @@ namespace GameDamageCalculator.Services
                     case PersistentEffectType.StatScaling:
                     case PersistentEffectType.PainEndurance:
                     case PersistentEffectType.FlatBonus:
-                        // 특수 메카닉은 BattleEffect로 직접 변환하지 않음
-                        // 별도 처리 경로 유지 (DamageCalculator/StatCalculator에서 직접 참조)
+                    case PersistentEffectType.PerEnemyDebuffDmgBonus:
+                        // 의도된 스킵 — 이 메카닉들은 BuffSet/DebuffSet/StatusType 추상화에
+                        // 안 맞으므로 BattleEffect로 변환하지 않는다.
+                        // 소비 위치:
+                        //   CoopAttack/MarkAttack       → DamageCalculator
+                        //   StatScaling/FlatBonus       → StatCalculator
+                        //   PainEndurance               → 받피해 처리 경로 (현재 미연결)
+                        //   PerEnemyDebuffDmgBonus      → PerDebuffBonusExtractor가 동적으로 소비
+                        // 데이터는 Passive.LevelData의 fallback getter로 노출된다.
                         continue;
                 }
 
@@ -579,8 +598,8 @@ namespace GameDamageCalculator.Services
         #region BuffConfig → BattleEffect (UI 호환)
 
         /// <summary>
-        /// UI의 BuffConfig 리스트 + 펫을 BattleEffect 리스트로 변환
-        /// BuffCalculator.CalculateTotalBuffs/CalculateSeparatedPartyBuffs/CalculateTotalDebuffs를 대체
+        /// UI의 BuffConfig 리스트 + 펫을 BattleEffect 리스트로 변환.
+        /// EffectManager에 흘려보내면 GetSeparatedBuffs/GetTotalBuffs/GetTotalDebuffs로 집계 가능.
         /// </summary>
         public static List<BattleEffect> FromBuffConfigs(
             IEnumerable<BuffConfig> buffConfigs, Pet pet, int petStar)

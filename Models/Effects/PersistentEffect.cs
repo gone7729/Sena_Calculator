@@ -58,20 +58,60 @@ namespace GameDamageCalculator.Models.Effects
 
         // === 고정 스탯 보너스 (Type = FlatBonus일 때) ===
         public BaseStatSet FlatBonus { get; set; }
+
+        // === PerEnemyDebuffDmgBonus 전용 (Type = PerEnemyDebuffDmgBonus일 때) ===
+        // 적 디버프 1개당 피증%, 카운트 상한
+        public double PercentPerDebuff { get; set; }
+        public int MaxDebuffStacks { get; set; }
+
+        // === 트리거형 고정 데미지 (Type = TriggeredFixedDamage일 때) ===
+        public TriggeredFixedDamage TriggeredFixedDamage { get; set; }
     }
 
     /// <summary>
     /// 지속 효과 유형
+    ///
+    /// 두 그룹이 한 enum에 모여 있다:
+    ///   (1) BattleEffect 추상화에 들어가는 것 — Buff / Debuff / StatusAilment.
+    ///       EffectManager가 BuffSet/DebuffSet/StatusType으로 집계.
+    ///   (2) BattleEffect로 표현하기에 본질이 다른 특수 메카닉 — 추가 공격, 스탯 변환,
+    ///       피해 분산, 깡스탯 보너스. EffectConverter.FromPersistentEffects가 이들은
+    ///       BattleEffect로 변환하지 않고 (continue), Passive.LevelData의 fallback
+    ///       getter(_coopAttack, _markAttack, _statScalings, _painEndurance, _flatBonus)
+    ///       를 통해 DamageCalculator/StatCalculator가 직접 소비한다.
+    ///   같은 enum 안에 둔 이유: CharacterDB 데이터를 한 List(Effects)로 통일하기 위함.
     /// </summary>
     public enum PersistentEffectType
     {
+        // (1) BattleEffect로 변환되는 효과
         Buff,           // 패시브 버프 (공격력%, 피해량% 등)
         Debuff,         // 패시브 디버프 (방깎, 받피증 등)
         StatusAilment,  // 패시브 상태이상 (카일 체인데미지 등)
-        CoopAttack,     // 협공
-        MarkAttack,     // 표식
-        StatScaling,    // 스탯 변환 (속공→공격력 등)
-        PainEndurance,  // 고통 인내
-        FlatBonus,      // 고정 스탯 보너스
+
+        // (2) BattleEffect로 변환되지 않는 특수 메카닉 (별도 채널 소비)
+        CoopAttack,     // 협공 — DamageCalculator가 직접 소비
+        MarkAttack,     // 표식 — DamageCalculator가 직접 소비
+        StatScaling,    // 스탯 변환 (속공→공격력 등) — StatCalculator가 직접 소비
+        PainEndurance,  // 고통 인내 (받피해 분산)
+        FlatBonus,      // 고정 스탯 보너스 — StatCalculator가 직접 소비
+        PerEnemyDebuffDmgBonus, // 적 디버프 1개당 피증 — DamageCalculator가 직접 소비 (동적)
+        TriggeredFixedDamage,   // N회 공격마다 적군 N명에게 고정 데미지 (발리스타 등)
+    }
+
+    /// <summary>
+    /// N회 공격마다 적군 N명에게 추가 피해를 주는 패시브 메카닉
+    /// 피해는 고정값(FixedDamage) 또는 공격력 비례(AtkRatio) 중 한 가지를 사용.
+    ///   예) 발리스타 - 모든 공격 3회 발동 시 적군 3명에게 1285 고정 데미지 (FixedDamage 사용)
+    ///   예) 여포 - 기본공격 2회마다 1명에게 공격력 45% 추가 피해 (AtkRatio 사용)
+    /// 동일 효과가 base/초월 양쪽에 정의된 경우 가장 나중 값(높은 초월)이 이김.
+    /// </summary>
+    public class TriggeredFixedDamage
+    {
+        public int TriggerCount { get; set; }                                          // 발동에 필요한 횟수 (3 = 3회마다)
+        public TriggerCondition TriggerOn { get; set; } = TriggerCondition.AllAttack;  // 무엇을 카운트하는지
+        public double FixedDamage { get; set; }                                        // 1회 발동 시 고정 데미지값
+        public double AtkRatio { get; set; }                                           // 1회 발동 시 시전자 공격력 비례% (FixedDamage 대신 사용 가능)
+        public int TargetCount { get; set; } = 1;                                      // 적 명수
+        public int HitCount { get; set; } = 1;                                         // 발동당 타격 횟수
     }
 }

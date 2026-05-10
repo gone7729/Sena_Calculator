@@ -1,17 +1,30 @@
-# 프로젝트 컨텍스트 (최종 갱신: 2026-02-06)
+# 프로젝트 컨텍스트 (최종 갱신: 2026-05-10)
 
 > 대화 기록: `.claude/log/YYYY-MM-DD.md`
 
 ## 프로젝트 개요
 - **이름**: 세나리 데미지 계산기 (세븐나이츠 리버스)
-- **기술**: .NET 8.0, WPF, C# 12
-- **목적**: 게임 내 데미지와 일치하는 정확한 계산기
+- **현재 상태**: WPF 데스크톱 → 웹(Next.js + TS, Vercel) 서비스로 이전 결정 (2026-05-10)
+- **현 단계**: WPF exe 빌드 중단. 핵심 로직(Services/, Models/, DB/)을 정합성 확보 후 TS로 포팅 예정
 
-## 현재 상태
-- 핵심 데미지 계산 로직 구현 완료
-- 빠른 비교 기능 (4가지 시나리오 자동 계산)
-- 테스트 오차율: 에스파다 0.003%, 타카 1.6%, 루리 0.9%
-- 배틀 시뮬레이터 & 장비 옵티마이저 구현 완료 (2026-03-29)
+## 게임 룰 — 데미지 계산 정확도의 근간
+
+### 버프/디버프 합산 (β 해석 확정 2026-05-10)
+- **3카테고리 — 상시 / 턴제 / 펫(진형)**.
+- 카테고리 내: 같은 BuffSet 필드끼리 **MaxMerge** (가장 높은 값만).
+- 카테고리 간: **Add** (합산).
+- "같은 종류"는 BuffSet 필드 단위. 게임 내부 분류명이 다르면 별도 필드(예: Mark_Purify, Mark_Energeia)로 분리되어 있어 자동으로 Add 처리됨.
+
+### 턴제 효과 차감 시점 (2026-05-10 추가, **다음 라운드 적용 예정**)
+- 모든 턴제 디/버프 + 상태이상의 턴 차감은 **이펙트 보유자가 평타할 때 발생**.
+- 상태이상: 평타 **전** 효과 적용 + 턴 차감.
+- 디/버프: 평타 **후** 턴 차감.
+
+### 트루드 PainEndurance 룰
+- 직접 피해 ≥ 최대 HP 10% 시 발동.
+- 25% 즉시 + 75% 5턴 분산 (15%/턴).
+- 발동 누적 가능 (각자 독립 큐).
+- 분산은 트리거된 평타 직후가 아니라 **다음 본인 평타 차례 시작 시** 1회 처리 후 평타.
 
 ## 핵심 공식
 ```
@@ -19,56 +32,45 @@ BaseDamage = (공/방계수) × 스킬배율 × 치명계수 × 약점계수 × 
 방어계수 = 1 + (보스방어 × (1+방증-방깎) × (1-방무)) / 467
 피증계수 = 1 + (기본+타입+조건부+보스+인기-피감) / 100  [합연산]
 최종피해 = (스킬피해 + HP비례 + 스택소모) × (1 + 취약/100)
-버프 적용 = 1 + (상시 + 턴제 + 펫) / 100  [합연산]
+버프 적용 = 1 + (상시 + 턴제 + 펫) / 100  [3카테고리 합연산]
 ```
-
-## 스택소모 스킬 주의사항
-- 스킬피해: SkillDmgMultiplier (자버프 타입피증 제외)
-- 스택소모피해: DamageMultiplier (자버프 타입피증 포함)
-- GetSelfBuffTypeDmg: Dmg_Dealt_Type + Mark_Energeia + Mark_Purify 모두 포함
 
 ## 주요 파일
 | 파일 | 설명 |
 |------|------|
-| `Services/DamageCalculator.cs` | 데미지 계산 핵심 |
-| `Services/StatCalculator.cs` | 스탯 계산 (합연산 방식) |
-| `Services/BuffCalculator.cs` | 버프/디버프 합산 |
-| `Services/BattleEngine/BattleSimulator.cs` | 배틀 시뮬 메인 루프 |
-| `Services/BattleEngine/TurnManager.cs` | 턴 순서/행동 큐 |
+| `Services/DamageCalculator.cs` | 데미지 계산 핵심 (보스→아군에도 재사용) |
+| `Services/StatCalculator.cs` | 스탯 계산 (FlatBonus 적용 추가됨) |
+| `Services/EffectManager.cs` | 통합 효과 집계 (BuffCalculator 대체, 룰 일치) |
+| `Services/EffectConverter.cs` | Skill/Passive → BattleEffect 변환 |
+| `Services/BattleEngine/BattleSimulator.cs` | 시뮬 메인 + 받피해 흐름 |
+| `Services/BattleEngine/BattleState.cs` | PainEnduranceQueue 보유 |
 | `Services/Optimizer/EquipmentOptimizer.cs` | 장비 최적화 |
-| `DB/CharacterDB.cs` | 캐릭터/스킬 데이터 |
-| `UI/MainWindow.xaml.cs` | UI 이벤트, 계산 호출 |
-| `UI/SimulatorWindow.xaml.cs` | 시뮬레이터 UI |
+| `DB/CharacterDB.cs` | 캐릭터/스킬 데이터 (사용자가 보스 스킬 DB 추가 예정) |
 
-## 최근 작업 (2026-03-29)
-- 배틀 시뮬레이터 구현: 5인 파티 턴제 배틀 (TurnManager, BattleSimulator)
-- 장비 옵티마이저 구현: 세트/메인옵/서브옵 그리디 탐색 (EquipmentOptimizer)
-- SimulatorWindow UI: 파티 구성, 보스 선택, 시뮬/최적화 실행
-- EquipmentLoadout 모델: 장비 한벌 관리 (무기2+방어구2+장신구1)
-- Boss → Enemy 리네이밍 반영 (유저 수정)
+## 코드 구조 변화 (2026-05-10 세션)
+- **BuffCalculator 완전 제거** (-233 LOC). EffectManager가 단일 집계기.
+- **EffectManager 집계 의미** 게임 룰과 일치하도록 수정 (카테고리 묶음 통합 MaxMerge).
+- **StatusEffect 분리** — enum은 Models/StatusEffectType.cs, class+DB는 DB/StatusEffect.cs (namespace = Database).
+- **SubOptionDb 분리** — Models/Equipment.cs에서 DB/SubOptionDb.cs로.
+- **FlatBonus 소비 코드 추가** — 밀리아 「광채의 수정비늘」 정상 적용.
+- **PainEndurance 인프라** — BattleSimulator에 `ApplyIncomingDamage` / `TickPainEnduranceQueue` / `CalculateIncomingDamage` / `ResolveEnemySkill` 추가.
 
-### 이전 작업 (2026-02-06)
-- 여포 패시브 시스템: FoolhardyBravery, MarkAttack, WekBonusDmgPerHit
-- 버프 합연산 방식으로 수정 (곱연산→합연산)
-- 에스파다 Mark_Purify 자버프 타입피증 인식 수정 (오차 0.003%)
-- 라이언 광풍참 잃은HP 비례 피해 구현 (LostHpAssumedRemaining 모델)
+## 다음 세션 진행 후보 (우선순위)
+- [ ] **A. 턴제 효과 차감 시점 룰** — EffectManager에 시전자 필터 + 카테고리별 TickTurn. 광범위 변경. 다른 룰의 기반.
+- [ ] **B. 아군 사망 + 부활** — HP 0 = 행동 불능. 부활 스킬 데이터 모델링 (SkillEffectType.Revive 등).
+- [ ] **C. 상태이상 부여 흐름 + 보스 면역 가드** — 보스 = CC 면역 + 즉사 면역. 한 줄 가드.
+- [ ] **D. Stage → 다중 페이즈 + PartyConfig 분리** — Stage.Phases / BossPhase / PartyConfig 신설.
+- [ ] **E. 보스 기본공격 신설 + 스킬 로테이션 인덱스 관리** — 사용자가 보스 스킬 DB 추가 후 진행.
+- [ ] **F. 옵티마이저 풀 시뮬 호출 연결** — D + E 완료 후. 페이즈별 파티 최적화.
 
-## 잃은HP 비례 피해 주의사항
-- SkillLevelData.LostHpAssumedRemaining: 특정조건 체크 시 가정할 대상 잔여HP%
-- 값이 0이면 LostHpBonusDmgMax 그대로 적용 (최대 보너스)
-- SkillDmgMultiplier와 DamageMultiplier 모두에 적용 필수
-- 라이언 광풍참: 보스 HP 최저치 고정 기믹 → 잃은HP 100% → 50% 최대 보너스 (인게임 일치)
+## 미확인 사항 (인게임 검증 필요)
+- 다중 캐릭터에서 같은 속성을 조건부 패시브 + 액티브 스킬로 동시에 부여하는 빌드의 실제 데미지 (단일 카테고리 MaxMerge 가정 검증)
+- PainEndurance 분산 시작 타이밍 — 사용자 진술 그대로 "다음 본인 평타 차례"로 구현됨, 인게임 검증 필요
 
-## 버프 중복 주의
-- 캐릭터 선택 시 패시브 자버프가 자동 적용됨
-- UI 버프 리스트에서 동일 캐릭터 버프를 체크하면 중복 적용 발생
-- 딜러로 선택한 캐릭터의 버프는 리스트에서 체크하지 말 것
-
-## 진행중/예정 작업
-- [ ] 배틀 시뮬레이터 자동 최적화 모드 (스킬 순서 자동 탐색)
-- [ ] 쿨다운 세부사항 반영 (유저 제공 대기)
-- [ ] 옵티마이저 성능 최적화 (EvaluateDamage 캐싱)
-- [ ] 추가 캐릭터 데이터 입력
-- [ ] 다른 캐릭터 인게임 검증
-- [x] 라이언 광풍참 인게임 검증 완료 (50% 보너스, 오차 ~0%)
-- [x] 배틀 시뮬레이터 & 장비 옵티마이저 기본 구현 완료
+## 테스트 결과 (이전)
+| 캐릭터 | 오차 | 상태 |
+|--------|------|------|
+| 에스파다 | 0.003% | ✅ |
+| 루리 (약점) | 0.9% | ✅ |
+| 타카 | 1.6% | ✅ |
+| 라이언 광풍참 | ~0% | ✅ |

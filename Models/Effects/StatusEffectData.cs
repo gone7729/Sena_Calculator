@@ -1,3 +1,5 @@
+using GameDamageCalculator.Database;
+
 namespace GameDamageCalculator.Models.Effects
 {
     /// <summary>

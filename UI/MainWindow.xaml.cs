@@ -21,7 +21,6 @@ namespace GameDamageCalculator.UI
         private bool _isInitialized = false;
         private readonly DamageCalculator _calculator;
         private readonly StatCalculator _statCalculator;
-        private readonly BuffCalculator _buffCalculator; // 레거시 (검증용)
         private readonly EffectManager _effectManager = new();
         private Formation _currentFormation = new Formation();
         private PresetManager[] _presetManagers = new PresetManager[2];
@@ -78,7 +77,6 @@ namespace GameDamageCalculator.UI
             InitializeEquipments();
             _calculator = new DamageCalculator();
             _statCalculator = new StatCalculator();
-            _buffCalculator = new BuffCalculator();
             InitializeComboBoxes();  // 이 시점에 컨트롤들이 준비되어 있어야 함
             InitializeBuffConfigs();
             DataContext = this;
@@ -754,6 +752,21 @@ namespace GameDamageCalculator.UI
                     Mode = mode,
                     IsTargetBoss = mode == BattleMode.Boss
                 };
+
+                // 적 디버프당 동적 피증 (PerEnemyDebuffDmgBonus)
+                var perDebuffBonus = PerDebuffBonusExtractor.From(
+                    character, selectedSkill,
+                    chkMySkillEnhanced.IsChecked == true,
+                    cboMyTranscend.SelectedIndex);
+                if (perDebuffBonus.IsActive)
+                {
+                    baseInput.PerDebuffBonusPercent = perDebuffBonus.PercentPerDebuff;
+                    baseInput.PerDebuffBonusMaxStacks = perDebuffBonus.MaxStacks;
+                    // _currentDebuffs의 활성 필드 + 강제 상태이상 1개로 추정 (단독 계산 한정)
+                    int debuffCount = DebuffCounter.CountFields(_currentDebuffs);
+                    if (chkMyStatusEffect.IsChecked == true) debuffCount += 1;
+                    baseInput.TargetDebuffCount = debuffCount;
+                }
 
                 // ===== 빠른 비교: 4가지 시나리오 계산 =====
                 // 1. 치명 + 약점 (디버그 파일 출력)
