@@ -719,7 +719,7 @@
             
                 <!-- 서브옵션 드롭다운 -->
                 <ComboBox Grid.Column="0" 
-                          ItemsSource="{Binding Source={x:Static db:SubOptionDb.AllStatNames}}"
+                          ItemsSource="{Binding Source={x:Static db:EquipmentDb+SubStatDb.AllStatNames}}"
                           SelectedItem="{Binding StatName, Mode=TwoWay}"
                           IsEditable="True"
                           IsTextSearchEnabled="True"

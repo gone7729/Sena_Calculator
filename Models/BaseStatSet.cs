@@ -7,7 +7,8 @@ namespace GameDamageCalculator.Models
     public class BaseStatSet
     {
         // ===== 기본 스탯 =====
-        public double Atk { get; set; }         // 공격력
+        public double Atk { get; set; }         // 공격력 (공격형 캐릭터·물리 무기 전용)
+        public double MagicAtk { get; set; }    // 마법 공격력 (마법형 캐릭터·마법 무기 전용)
         public double Def { get; set; }         // 방어력
         public double Hp { get; set; }          // 생명력
         public double Spd { get; set; }         // 속공
@@ -57,6 +58,7 @@ namespace GameDamageCalculator.Models
             if (other == null) return;
 
             Atk += other.Atk;
+            MagicAtk += other.MagicAtk;
             Def += other.Def;
             Hp += other.Hp;
             Spd += other.Spd;
@@ -92,6 +94,7 @@ namespace GameDamageCalculator.Models
             switch (statName)
             {
                 case "공격력": Atk += value; break;
+                case "마법공격력": MagicAtk += value; break;
                 case "공격력%": Atk_Rate += value; break;
                 case "방어력": Def += value; break;
                 case "방어력%": Def_Rate += value; break;
@@ -125,6 +128,7 @@ namespace GameDamageCalculator.Models
             return new BaseStatSet
             {
                 Atk = this.Atk,
+                MagicAtk = this.MagicAtk,
                 Def = this.Def,
                 Hp = this.Hp,
                 Spd = this.Spd,
@@ -159,6 +163,7 @@ namespace GameDamageCalculator.Models
         public void Clear()
         {
             Atk = 0;
+            MagicAtk = 0;
             Def = 0;
             Hp = 0;
             Spd = 0;
@@ -192,6 +197,7 @@ namespace GameDamageCalculator.Models
             {
                 // 기본 스탯
                 Atk = this.Atk * multiplier,
+                MagicAtk = this.MagicAtk * multiplier,
                 Def = this.Def * multiplier,
                 Hp = this.Hp * multiplier,
                 Spd = this.Spd * multiplier,

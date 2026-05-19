@@ -8,7 +8,8 @@ namespace GameDamageCalculator.Models
     public class BuffSet
     {
         // ===== 기본 스탯 % =====
-        public double Atk_Rate { get; set; }        // 공격력%
+        public double Atk_Rate { get; set; }        // 공격력% (공격형 캐릭터 전용 버프)
+        public double MagicAtk_Rate { get; set; }   // 마법 공격력% (마법형 캐릭터 전용 버프)
         public double Def_Rate { get; set; }        // 방어력%
         public double Hp_Rate { get; set; }         // 체력%
 
@@ -57,6 +58,7 @@ namespace GameDamageCalculator.Models
             if (other == null) return;
 
             Atk_Rate += other.Atk_Rate;
+            MagicAtk_Rate += other.MagicAtk_Rate;
             Def_Rate += other.Def_Rate;
             Hp_Rate += other.Hp_Rate;
             Cri += other.Cri;
@@ -94,6 +96,7 @@ namespace GameDamageCalculator.Models
             if (other == null) return;
 
             Atk_Rate = Math.Max(Atk_Rate, other.Atk_Rate);
+            MagicAtk_Rate = Math.Max(MagicAtk_Rate, other.MagicAtk_Rate);
             Def_Rate = Math.Max(Def_Rate, other.Def_Rate);
             Hp_Rate = Math.Max(Hp_Rate, other.Hp_Rate);
             Cri = Math.Max(Cri, other.Cri);
@@ -131,6 +134,7 @@ namespace GameDamageCalculator.Models
             return new BuffSet
             {
                 Atk_Rate = Atk_Rate,
+                MagicAtk_Rate = MagicAtk_Rate,
                 Def_Rate = Def_Rate,
                 Hp_Rate = Hp_Rate,
                 Cri = Cri,
@@ -168,6 +172,7 @@ namespace GameDamageCalculator.Models
         public void Clear()
         {
             Atk_Rate = 0;
+            MagicAtk_Rate = 0;
             Def_Rate = 0;
             Hp_Rate = 0;
             Cri = 0;
@@ -209,6 +214,7 @@ namespace GameDamageCalculator.Models
             return new PermanentBuff
             {
                 Atk_Rate = Atk_Rate,
+                MagicAtk_Rate = MagicAtk_Rate,
                 Def_Rate = Def_Rate,
                 Hp_Rate = Hp_Rate,
                 Cri = Cri,
@@ -250,6 +256,7 @@ namespace GameDamageCalculator.Models
             return new PermanentBuff
             {
                 Atk_Rate = timedBuff.Atk_Rate,
+                MagicAtk_Rate = timedBuff.MagicAtk_Rate,
                 Def_Rate = timedBuff.Def_Rate,
                 Hp_Rate = timedBuff.Hp_Rate,
                 Cri = timedBuff.Cri,
@@ -292,6 +299,7 @@ namespace GameDamageCalculator.Models
             return new TimedBuff
             {
                 Atk_Rate = Atk_Rate,
+                MagicAtk_Rate = MagicAtk_Rate,
                 Def_Rate = Def_Rate,
                 Hp_Rate = Hp_Rate,
                 Cri = Cri,

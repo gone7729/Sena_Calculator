@@ -57,7 +57,7 @@ namespace GameDamageCalculator.UI
         
 
         public ObservableCollection<Equipment> Equipments { get; private set; }
-        public List<string> AllSubStatNames => SubOptionDb.AllStatNames;
+        public List<string> AllSubStatNames => EquipmentDb.SubStatDb.AllStatNames;
     
 
         // 버프 컨트롤 동적 접근 헬퍼

@@ -223,7 +223,7 @@ namespace GameDamageCalculator.Models
             get
             {
                 if (string.IsNullOrEmpty(StatName) || Tier <= 0) return "0";
-                if (SubOptionDb.TierValues.TryGetValue(StatName, out int perTier))
+                if (EquipmentDb.SubStatDb.TierValues.TryGetValue(StatName, out int perTier))
                 {
                     return (perTier * Tier).ToString();
                 }

@@ -53,12 +53,12 @@ namespace GameDamageCalculator.Database
         }
 
         /// <summary>
-        /// 장비 부옵션 (티어별 수치)
+        /// 장비 부옵션 (티어별 수치 + 드롭다운 목록)
         /// </summary>
         public static class SubStatDb
         {
             // Key: 스탯 종류, Value: 1단계 기본값 (단계 × 기본값 = 최종값)
-            public static readonly Dictionary<string, BaseStatSet> SubStatBase = 
+            public static readonly Dictionary<string, BaseStatSet> SubStatBase =
                 new Dictionary<string, BaseStatSet>
             {
                 { "공격력%", new BaseStatSet { Atk_Rate = 5 } },
@@ -74,6 +74,33 @@ namespace GameDamageCalculator.Database
                 { "막기확률%", new BaseStatSet { Blk = 4 } },
                 { "효과적중%", new BaseStatSet { Eff_Hit = 5 } },
                 { "효과저항%", new BaseStatSet { Eff_Res = 5 } }
+            };
+
+            // 티어당 정수값 (DisplayValue 표시용)
+            public static readonly Dictionary<string, int> TierValues = new()
+            {
+                { "공격력%", 5 },
+                { "공격력", 50 },
+                { "치명타확률%", 4 },
+                { "치명타피해%", 6 },
+                { "약점공격확률%", 5 },
+                { "속공", 4 },
+                { "막기확률%", 4 },
+                { "효과적중%", 5 },
+                { "효과저항%", 5 },
+                { "방어력%", 5 },
+                { "방어력", 30 },
+                { "생명력%", 5 },
+                { "생명력", 180 },
+            };
+
+            // 드롭다운 목록 (UI 바인딩용)
+            public static readonly List<string> AllStatNames = new()
+            {
+                "",
+                "공격력%", "공격력", "방어력%", "방어력", "생명력%", "생명력",
+                "치명타확률%", "치명타피해%", "약점공격확률%", "막기확률%",
+                "효과적중%", "효과저항%", "받피감%", "속공"
             };
         }
 
@@ -178,7 +205,7 @@ namespace GameDamageCalculator.Database
         };
     
         // 부옵션 값 (성급별)
-        public static readonly Dictionary<int, Dictionary<string, BaseStatSet>> SubOptions = 
+        public static readonly Dictionary<int, Dictionary<string, BaseStatSet>> SubOptions =
             new Dictionary<int, Dictionary<string, BaseStatSet>>
         {
             { 6, new Dictionary<string, BaseStatSet> {

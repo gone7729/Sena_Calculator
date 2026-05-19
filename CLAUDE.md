@@ -18,7 +18,7 @@ Sena_Calculator/
 │   ├── EnemyDB.cs               # 적 (보스/일반몹) 정보
 │   ├── BasicStatDB.cs           # 기본 스탯, 초월 보너스, 진형
 │   ├── PetDB.cs                 # 펫 정보
-│   ├── EquipmentDB.cs           # 장비 세트 효과, 메인/서브옵션
+│   ├── EquipmentDB.cs           # 장비 세트 효과, 메인옵션, 서브옵션
 │   └── StatusEffect.cs          # 상태이상 DB (CC/DoT/특수)
 │
 ├── Models/                      # 데이터 모델
@@ -39,6 +39,7 @@ Sena_Calculator/
 │   ├── Pet.cs                   # 펫 모델
 │   ├── Preset.cs                # 프리셋 저장
 │   ├── Enums.cs                 # BattleMode 등
+│   ├── StatusEffectType.cs      # 상태이상 타입 enum
 │   └── Effects/                 # 통합 효과 시스템 (신규)
 │       ├── BattleEffect.cs      # 통합 효과 래퍼
 │       ├── SkillEffect.cs       # 스킬 턴제 효과 정의
@@ -49,9 +50,9 @@ Sena_Calculator/
 ├── Services/                    # 계산 로직
 │   ├── DamageCalculator.cs      # 데미지 계산 핵심 (19단계)
 │   ├── StatCalculator.cs        # 최종 스탯 계산
-│   ├── BuffCalculator.cs        # 버프 합산 (레거시, EffectManager가 대체)
 │   ├── EffectManager.cs         # 통합 효과 집계/관리
 │   ├── EffectConverter.cs       # Skill/Passive → BattleEffect 변환
+│   ├── PerDebuffBonusExtractor.cs # 디버프 수당 보너스 추출
 │   ├── PresetManager.cs         # 프리셋 저장/로드
 │   ├── BattleEngine/            # 배틀 시뮬레이터
 │   │   ├── BattleSimulator.cs   # 메인 배틀 루프
@@ -114,8 +115,8 @@ Sena_Calculator/
 
 | 케이스 | 설명 |
 |--------|------|
-| 스택소모 스킬 | 스킬피해는 SkillDmgMultiplier(타입피증 제외), 스택소모는 DamageMultiplier(타입피증 포함) |
-| 잃은HP 비례 | `LostHpBonusDmgMax × (100 - 잔여HP%) / 100`으로 피증계수에 곱연산 |
+| 스택소모 스킬 | 스킬피해는 SkillDmgMultiplier(타입피증 제외), 스택소모는 DamageMultiplier(타입피증 포함, **잃은HP 보너스 제외**) |
+| 잃은HP 비례 | `LostHpBonusDmgMax × (100 - 잔여HP%) / 100`으로 피증계수에 곱연산 (스택소모 피해에는 미적용) |
 | 보스피증 | `IsTargetBoss = true`일 때만 DmgDealtBoss 적용 |
 | PreCastBuff | 스킬 발동 전 임시 공격력 보정 (스킬 계산에만 적용) |
 

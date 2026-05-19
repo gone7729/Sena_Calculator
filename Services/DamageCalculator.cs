@@ -100,6 +100,7 @@ namespace GameDamageCalculator.Services
             public double DamageMultiplier { get; set; }
             public double SkillDmgMultiplier { get; set; } // 스킬피해용 (자버프 타입피증 제외)
             public double ExtraDmgMultiplier { get; set; } // 조건부 추가피해용 (n인기피증 제외)
+            public double LostHpMultiplier { get; set; } = 1.0; // 잃은HP 보너스 배수 (스택소모에서는 제거하여 적용)
 
             public int AtkCount { get; set; }
 
@@ -204,11 +205,12 @@ namespace GameDamageCalculator.Services
             // 7. 피해 증가 계수
             result.DamageMultiplier = CalcDamageMultiplier(input, levelData, result);
 
-            // 8. 잃은 HP 비례 피해 증가
+            // 8. 잃은 HP 비례 피해 증가 (스택소모에는 미적용 — LostHpMultiplier로 분리 보관)
             double lostHpBonus = CalcLostHpBonusDmg(input, levelData);
             if (lostHpBonus > 0)
             {
                 double lostHpMul = 1 + lostHpBonus / 100.0;
+                result.LostHpMultiplier = lostHpMul;
                 result.DebugLog.AppendLine($"[9] 잃은HP 보너스: +{lostHpBonus}% (×{lostHpMul:F4})");
                 result.DamageMultiplier *= lostHpMul;
                 result.SkillDmgMultiplier *= lostHpMul;
@@ -538,12 +540,13 @@ namespace GameDamageCalculator.Services
             if (totalAtkRatio > 0)
                 damage += atkOverDef * (totalAtkRatio / 100.0);
 
-            // 스택소모 HP비례 피해: 피증/치명/약점 적용, 취약 미적용
-            double fullMultiplier = result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+            // 스택소모 HP비례 피해: 피증/치명/약점 적용, 취약·잃은HP 미적용
+            double damageMulNoLostHp = result.DamageMultiplier / result.LostHpMultiplier;
+            double fullMultiplier = damageMulNoLostHp * result.CritMultiplier * result.WeakpointMultiplier;
             result.ConsumeExtraDmg = damage * fullMultiplier;
             result.DebugLog.AppendLine($"    HP비례{totalHpRatio}% 공비례{totalAtkRatio}% 공제한{totalAtkCap}%");
-            result.DebugLog.AppendLine($"    × 피증{result.DamageMultiplier:F4} × 치명{result.CritMultiplier:F4} × 약점{result.WeakpointMultiplier:F4}");
-            result.DebugLog.AppendLine($"    = {result.ConsumeExtraDmg:N0} (취약 미적용)");
+            result.DebugLog.AppendLine($"    × 피증{damageMulNoLostHp:F4} × 치명{result.CritMultiplier:F4} × 약점{result.WeakpointMultiplier:F4}");
+            result.DebugLog.AppendLine($"    = {result.ConsumeExtraDmg:N0} (취약·잃은HP 미적용)");
         }
 
         #endregion

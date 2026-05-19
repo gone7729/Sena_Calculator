@@ -19,6 +19,15 @@ namespace GameDamageCalculator.Models
     }
 
     /// <summary>
+    /// 공격 타입 — 데미지 계산에 사용할 공격력 종류
+    /// </summary>
+    public enum AttackType
+    {
+        Physical,   // 물리 공격력 (Atk)
+        Magic       // 마법 공격력 (MagicAtk)
+    }
+
+    /// <summary>
     /// 캐릭터
     /// </summary>
     public class Character
@@ -27,6 +36,7 @@ namespace GameDamageCalculator.Models
         public string Name { get; set; }
         public string Grade { get; set; }       // 전설, 영웅
         public string Type { get; set; }        // 공격형, 마법형, 만능형, 지원형, 방어형
+        public AttackType AttackType { get; set; } = AttackType.Physical;  // 물리 또는 마법 (CharacterDB에서 명시)
 
         public List<Skill> Skills { get; set; } = new List<Skill>();
         public Passive Passive { get; set; }

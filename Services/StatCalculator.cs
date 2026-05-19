@@ -91,6 +91,9 @@ namespace GameDamageCalculator.Services
             var result = new StatCalculationResult();
             result.CurrentDebuffs = input.TotalDebuffs ?? new DebuffSet();
 
+            // 캐릭터 공격 타입 (Physical/Magic) — 버프에서 Atk_Rate ↔ MagicAtk_Rate 선택에 사용
+            AttackType atkType = input.Character?.AttackType ?? AttackType.Physical;
+
             // ========== 캐릭터 기본 스탯 ==========
             BaseStatSet characterStats = input.Character?.GetBaseStats() ?? new BaseStatSet();
             double baseAtk = characterStats.Atk;
@@ -267,13 +270,14 @@ namespace GameDamageCalculator.Services
             // ========== 버프% (지속끼리 Max, 턴제+펫 합연산) ==========
             result.DebugLog.AppendLine("\n[버프% 중복 처리 - 지속/턴제+펫 분리]");
 
-            // 공격력%
-            result.DebugLog.AppendLine($"  [공%] 파티지속: {partyPermanentBuff.Atk_Rate}%, 자버프지속: {selfPermanentBuff.Atk_Rate}%");
-            result.DebugLog.AppendLine($"  [공%] 파티턴제: {partyTimedBuff.Atk_Rate}%, 자버프턴제: {selfTimedBuff.Atk_Rate}%");
-            result.DebugLog.AppendLine($"  [공%] 펫스킬: {partyPetBuff.Atk_Rate}%");
-            double permanentAtkRate = Math.Max(partyPermanentBuff.Atk_Rate, selfPermanentBuff.Atk_Rate);
-            double timedAtkRate = Math.Max(partyTimedBuff.Atk_Rate, selfTimedBuff.Atk_Rate);
-            double petAtkRate = partyPetBuff.Atk_Rate;
+            // 공격력% — 캐릭터 AttackType에 따라 Atk_Rate 또는 MagicAtk_Rate 선택
+            string atkLabel = atkType == AttackType.Magic ? "마공%" : "공%";
+            result.DebugLog.AppendLine($"  [{atkLabel}] 파티지속: {EffAtkRate(partyPermanentBuff, atkType)}%, 자버프지속: {EffAtkRate(selfPermanentBuff, atkType)}%");
+            result.DebugLog.AppendLine($"  [{atkLabel}] 파티턴제: {EffAtkRate(partyTimedBuff, atkType)}%, 자버프턴제: {EffAtkRate(selfTimedBuff, atkType)}%");
+            result.DebugLog.AppendLine($"  [{atkLabel}] 펫스킬: {EffAtkRate(partyPetBuff, atkType)}%");
+            double permanentAtkRate = Math.Max(EffAtkRate(partyPermanentBuff, atkType), EffAtkRate(selfPermanentBuff, atkType));
+            double timedAtkRate = Math.Max(EffAtkRate(partyTimedBuff, atkType), EffAtkRate(selfTimedBuff, atkType));
+            double petAtkRate = EffAtkRate(partyPetBuff, atkType);
             double totalBuffAtkRate = permanentAtkRate + timedAtkRate + petAtkRate;
             double atkMultiplier = 1 + totalBuffAtkRate / 100.0;
             result.DebugLog.AppendLine($"  ★ 지속: {permanentAtkRate}% + 턴제: {timedAtkRate}% + 펫: {petAtkRate}% = {totalBuffAtkRate}% → {atkMultiplier:F4}x");
@@ -357,6 +361,16 @@ namespace GameDamageCalculator.Services
         }
 
         #region Private Helper Methods
+
+        /// <summary>
+        /// 캐릭터 AttackType에 맞는 effective 공격력% 추출.
+        /// Magic 캐릭터는 MagicAtk_Rate를, Physical은 Atk_Rate를 사용.
+        /// </summary>
+        private static double EffAtkRate(BuffSet buff, AttackType type)
+        {
+            if (buff == null) return 0;
+            return type == AttackType.Magic ? buff.MagicAtk_Rate : buff.Atk_Rate;
+        }
 
         /// <summary>
         /// 캐릭터 패시브 자버프를 지속/턴제 분리하여 반환
