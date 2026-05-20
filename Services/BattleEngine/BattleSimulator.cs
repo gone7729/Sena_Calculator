@@ -453,7 +453,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TargetHp = enemyState.MaxHp,
                 TargetCurrentHp = enemyState.CurrentHp,
                 DefReduction = enemyDebuffs.Def_Reduction,
-                DmgTakenIncrease = enemyDebuffs.Dmg_Taken_Increase,
+                DmgTakenIncrease = enemyDebuffs.GetEffectiveDmgTakenIncrease(battleChar.Character.AttackType),
                 Vulnerability = enemyDebuffs.Vulnerability + config.TargetEnemy.Vulnerability,
                 BossVulnerability = enemyDebuffs.Boss_Vulnerability,
                 // 시뮬에서는 치명/약점을 확률적으로 처리하거나 항상 발동으로 설정

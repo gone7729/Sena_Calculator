@@ -1,0 +1,8071 @@
+[
+  {
+    "id": 1,
+    "name": "타카",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "매의 발톱",
+      "maxStacks": 8
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "바람의 칼날",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "죽음의 무도",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피증",
+      "치피증"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "라이언",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "쾌속의 마검사",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "강자 사냥",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 130
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 155
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 155
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "광풍참",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      }
+    ],
+    "tags": [
+      "1-3인기"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "델론즈",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "죽음의 경계",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "사신강림",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "죽음의 일격",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 5,
+            "ratio": 119
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 5,
+            "ratio": 158
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 5,
+            "ratio": 158
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물피증"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "세인",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "악마의 힘",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "귀신 베기",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 570
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 690
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 690
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피감"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "비담",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "화랑의 후예",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 55
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 65
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 65
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "거궁신포",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 72
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 85
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 85
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "태전포화",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 175
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 205
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 205
+          }
+        }
+      }
+    ],
+    "tags": [
+      "피증"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "카구라",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "팔사의 저주",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "해방-팔사검",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "해방-뱀 사냥",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물피증",
+      "받회감",
+      "치피증"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "태오",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCriDmg",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 174,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 174,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "까마귀 눈동자",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "관-통-데미지!",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 130
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 170
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "까악-까악-",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 65
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 85
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 85
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공증"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "클라한",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "호랑이의 용맹",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "먼저쓰면안됨",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 150
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 150
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "먼저쓰셈",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 165
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 165
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공증"
+    ]
+  },
+  {
+    "id": 9,
+    "name": "카일",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "소검쌍무",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "철쇄폭압",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 72
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 72
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "사슬의 무덤",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 90
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 90
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 10,
+    "name": "콜트",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "방랑의 사냥꾼",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 55
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 70
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 70
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "빠르고, 멋있게",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 40
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 50
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 50
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "어때, 화려하지?",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 125
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 150
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 150
+          }
+        }
+      }
+    ],
+    "tags": [
+      "피감",
+      "효적증"
+    ]
+  },
+  {
+    "id": 11,
+    "name": "아멜리아",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "첨단 나노 슈트",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "통행금지",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 70
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 70
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "위기대응",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 135
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 165
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 2,
+            "ratio": 165
+          }
+        }
+      }
+    ],
+    "tags": [
+      "효적증"
+    ]
+  },
+  {
+    "id": 12,
+    "name": "발리스타",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "사신의 딸",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "죽음의 그림자",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 95
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 110
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 110
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 13,
+    "name": "여포",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "초인적인 힘",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 80
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 100
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "혈풍벽파",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "적토질풍격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 52
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 60
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공증"
+    ]
+  },
+  {
+    "id": 14,
+    "name": "백룡",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "전설의 부활",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "섬광십무",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 410
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 410
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "쌍절태풍격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 475
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 575
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 575
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 51,
+    "name": "풍연",
+    "grade": "영웅",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1389,
+      "def": 533,
+      "hp": 3174,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1764,
+      "def": 533,
+      "hp": 3618,
+      "spd": 25,
+      "cri": 19,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1931,
+      "def": 597,
+      "hp": 3999,
+      "spd": 25,
+      "cri": 19,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "검의 결계",
+      "maxStacks": 8
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "구음검격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 155
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 190
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 190
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "이기어검",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 175
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 210
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 210
+          }
+        }
+      }
+    ],
+    "tags": [
+      "치피증"
+    ]
+  },
+  {
+    "id": 52,
+    "name": "쥬피",
+    "grade": "영웅",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1389,
+      "def": 533,
+      "hp": 3174,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1764,
+      "def": 533,
+      "hp": 3618,
+      "spd": 25,
+      "cri": 19,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1931,
+      "def": 597,
+      "hp": 3999,
+      "spd": 25,
+      "cri": 19,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "매의 눈",
+      "maxStacks": 8
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "연사",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 370
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 440
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 440
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "저격",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 315
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 375
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 375
+          }
+        }
+      }
+    ],
+    "tags": [
+      "치피증"
+    ]
+  },
+  {
+    "id": 101,
+    "name": "파스칼",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCriDmg",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 174,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 174,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "천재의 권능",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "어둠의 문",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "파괴의 거인",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 390
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 470
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 470
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증",
+      "치피증"
+    ]
+  },
+  {
+    "id": 102,
+    "name": "루리",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "뒷거래",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "근거리 연사",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 75
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 90
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 90
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "폭격 지원",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마피증"
+    ]
+  },
+  {
+    "id": 103,
+    "name": "미호",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "호시탐탐",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "살율의 춤",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "교만의 일격",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 160
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 185
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 185
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마법취약",
+      "약피증"
+    ]
+  },
+  {
+    "id": 104,
+    "name": "연희",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "혜안",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "파괴의 손짓",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 43
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 51
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 51
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "종말의 영면",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 41
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 55
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 55
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증"
+    ]
+  },
+  {
+    "id": 105,
+    "name": "쥬리",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "신의 저울",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 55
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 70
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 70
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "천상의 심판",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 65
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 77
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 77
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "최고 판결",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎"
+    ]
+  },
+  {
+    "id": 106,
+    "name": "벨리카",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "흑월의 축복",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "메테오",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 105
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "어둠의 환영",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 105
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마법취약"
+    ]
+  },
+  {
+    "id": 107,
+    "name": "에스파다",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "마력 정화",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "정화탄",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "신의 심판",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 425
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 515
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 515
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마법취약",
+      "마피증"
+    ]
+  },
+  {
+    "id": 108,
+    "name": "데이지",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "기민한 움직임",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "비화선",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 270
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 330
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 330
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "불나비",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 155
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 155
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증"
+    ]
+  },
+  {
+    "id": 109,
+    "name": "바네사",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "사막의 마법사",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "모래열풍",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 95
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 110
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 110
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "메마른 해일",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 82
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 82
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎"
+    ]
+  },
+  {
+    "id": 110,
+    "name": "키리엘",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "별의 축제",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "레굴루스",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 220
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 267
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 267
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "유성우",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마피증"
+    ]
+  },
+  {
+    "id": 111,
+    "name": "멜키르",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "타락한 마법사",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "어둠 강탈",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 70
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 70
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "금지된 실험",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 52
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 60
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받회감",
+      "효저깎"
+    ]
+  },
+  {
+    "id": 112,
+    "name": "실베스타",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "기사의 의지",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "정의의 단죄",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 72
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 85
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 85
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "정화의 일격",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 75
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 75
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 113,
+    "name": "프레이야",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "아름다운 지배자",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "고결한 금풍",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "금빛 검우",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증",
+      "효적증"
+    ]
+  },
+  {
+    "id": 114,
+    "name": "린",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "홍린포",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "용린성하",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "용제의 진노",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 90
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 2,
+            "ratio": 90
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 115,
+    "name": "밀리아",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "광채의 수정비늘",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 30
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 30
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 30
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "수정룡의 거울",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "수정의 숨결",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마법취약"
+    ]
+  },
+  {
+    "id": 116,
+    "name": "유신",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "신선의 가르침",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "뇌운 흑영랑",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 80
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 92
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 92
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "번뇌",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받회감",
+      "효저깎",
+      "효적증"
+    ]
+  },
+  {
+    "id": 117,
+    "name": "소교",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "전장의 공주",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "우후죽순",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 270
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 330
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 330
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "호접지몽",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증",
+      "마법취약",
+      "마피증"
+    ]
+  },
+  {
+    "id": 151,
+    "name": "유리",
+    "grade": "영웅",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1389,
+      "def": 533,
+      "hp": 3174,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1764,
+      "def": 533,
+      "hp": 3618,
+      "spd": 25,
+      "cri": 19,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1931,
+      "def": 597,
+      "hp": 3999,
+      "spd": 25,
+      "cri": 19,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "여우의 매력",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "정기 흡수",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 285
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "마력의 구슬",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 285
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 152,
+    "name": "아리엘",
+    "grade": "영웅",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCriDmg",
+    "baseStats": {
+      "atk": 1389,
+      "def": 533,
+      "hp": 3174,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1764,
+      "def": 533,
+      "hp": 3618,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 164,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1931,
+      "def": 597,
+      "hp": 3999,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 164,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "신의 은총",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "빛의 심판",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 120
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "눈부신 빛",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 120
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마피증",
+      "방깎"
+    ]
+  },
+  {
+    "id": 153,
+    "name": "노호",
+    "grade": "영웅",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkDmgRdc",
+    "baseStats": {
+      "atk": 1389,
+      "def": 533,
+      "hp": 3174,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1764,
+      "def": 533,
+      "hp": 3618,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1931,
+      "def": 597,
+      "hp": 3999,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "칼보다 강한 펜",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "잘못된 기록",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "파멸의 고서",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 80
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 95
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 95
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증"
+    ]
+  },
+  {
+    "id": 201,
+    "name": "비스킷",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1095,
+      "def": 918,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1226,
+      "def": 999,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "대장장이의 강화",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "장비 강화",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "리프 어택",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 115
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 115
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎",
+      "보피증",
+      "피감"
+    ]
+  },
+  {
+    "id": 202,
+    "name": "리나",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1095,
+      "def": 918,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1226,
+      "def": 999,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "불협화음",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "행진가",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "따뜻한 울림",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎",
+      "피증",
+      "효저증"
+    ]
+  },
+  {
+    "id": 203,
+    "name": "오를리",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1095,
+      "def": 918,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1226,
+      "def": 999,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "통찰의 빛",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "고결한 유성",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "빛의 일갈",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 20
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 22
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 22
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎",
+      "치피증"
+    ]
+  },
+  {
+    "id": 204,
+    "name": "플라튼",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1095,
+      "def": 918,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1226,
+      "def": 999,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "네스트라의 가호",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "심판대행",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 42
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 50
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 50
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "이계의 빛",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공감"
+    ]
+  },
+  {
+    "id": 205,
+    "name": "로지",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1095,
+      "def": 918,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1226,
+      "def": 999,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "망자의 축복",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 30
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 30
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 30
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "달빛의 심판",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 37
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 37
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "성령의 기도",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "효저깎",
+      "효적증"
+    ]
+  },
+  {
+    "id": 206,
+    "name": "엘리스",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1095,
+      "def": 918,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1226,
+      "def": 999,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "나, 너, 로맨틱",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "비밀의 문",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "내 카드 속엔?",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방어"
+    ]
+  },
+  {
+    "id": 251,
+    "name": "유이",
+    "grade": "영웅",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1035,
+      "def": 632,
+      "hp": 4248,
+      "spd": 16,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1035,
+      "def": 803,
+      "hp": 4843,
+      "spd": 16,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1159,
+      "def": 878,
+      "hp": 5352,
+      "spd": 16,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "전장의 마에스트로",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "축복의 선율",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "전장의 선율",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공감"
+    ]
+  },
+  {
+    "id": 276,
+    "name": "카론",
+    "grade": "영웅",
+    "type": "지원형",
+    "attackType": "Physical",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1035,
+      "def": 632,
+      "hp": 4248,
+      "spd": 16,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1035,
+      "def": 803,
+      "hp": 4843,
+      "spd": 16,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1159,
+      "def": 878,
+      "hp": 5352,
+      "spd": 16,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "자연의 보호",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "자연의 회복",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "자연의 숨결",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 301,
+    "name": "레이첼",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "화염의 힘",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "염화",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 102
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 122
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 122
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "불새",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 160
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 160
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 160
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공감",
+      "물리취약",
+      "방깎",
+      "피감"
+    ]
+  },
+  {
+    "id": 302,
+    "name": "아일린",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "포디나의 분노",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "뇌제의 분노",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 3,
+            "ratio": 113
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 3,
+            "ratio": 136
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 3,
+            "ratio": 136
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "청천벽력",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 87
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 87
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공증"
+    ]
+  },
+  {
+    "id": 303,
+    "name": "지크",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "나만 믿어",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "부숴버려!",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 375
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 375
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 375
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "봉인해제!",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 545
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 655
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 655
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공증",
+      "피감"
+    ]
+  },
+  {
+    "id": 304,
+    "name": "에이스",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "불굴의 지휘",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "달빛 베기",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 85
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 85
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "일도천화엽",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 140
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 140
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 140
+          }
+        }
+      }
+    ],
+    "tags": [
+      "막기확률감소",
+      "물리취약",
+      "받회감",
+      "방깎"
+    ]
+  },
+  {
+    "id": 305,
+    "name": "엘리시아",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkDmgRdc",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "혁명단의 인도자",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "천공의 빛",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 80
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 80
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 80
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "별빛 낙하",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎"
+    ]
+  },
+  {
+    "id": 306,
+    "name": "크리스",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "영혼 흡수",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "어둠의 일격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 305
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 370
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 370
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "어둠의 속삭임",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 307,
+    "name": "제이브",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkDmgRdc",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "복수의 갑옷",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "분노의 일격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 150
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 150
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "용의 분노",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 70
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 308,
+    "name": "트루드",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "전투의 희열",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "한 방이면 끝!",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 1,
+            "ratio": 125
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 1,
+            "ratio": 150
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 4,
+            "atk": 1,
+            "ratio": 150
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "놀아 볼까!",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 58
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 68
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 68
+          }
+        }
+      }
+    ],
+    "tags": [
+      "막기확률",
+      "치피증"
+    ]
+  },
+  {
+    "id": 309,
+    "name": "스파이크",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1306,
+      "def": 896,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1463,
+      "def": 975,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "혹한의 심장",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 65
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 65
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "혹한의 일격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 195
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 195
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 195
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "혹한의 지진",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 32
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 40
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 40
+          }
+        }
+      }
+    ],
+    "tags": [
+      "효저증",
+      "효적증"
+    ]
+  },
+  {
+    "id": 310,
+    "name": "챈슬러",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1306,
+      "def": 896,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1463,
+      "def": 975,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "위압감",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "분쇄",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 145
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 145
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "대지 파괴",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 75
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 85
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 85
+          }
+        }
+      }
+    ],
+    "tags": [
+      "방깎",
+      "피감"
+    ]
+  },
+  {
+    "id": 311,
+    "name": "겔리두스",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1306,
+      "def": 896,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1463,
+      "def": 975,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "얼음 여왕의 가호",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "패왕의 기억",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 65
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 75
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 75
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "창공의 패왕",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 30
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 35
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 35
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피감"
+    ]
+  },
+  {
+    "id": 312,
+    "name": "팔라누스",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1306,
+      "def": 896,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1463,
+      "def": 975,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "지휘관의 저력",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "강고한 검격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "작전명 : 섬멸",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 77
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 90
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 90
+          }
+        }
+      }
+    ],
+    "tags": []
+  },
+  {
+    "id": 313,
+    "name": "관우",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Physical",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "만인지적",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "청룡월파참",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 390
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 470
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 470
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "진두지휘",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물피증"
+    ]
+  },
+  {
+    "id": 326,
+    "name": "카르마",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1306,
+      "def": 896,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1463,
+      "def": 975,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "타락한 신선",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "과오의 화옥",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 25
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 28
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 28
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "절망의 폭풍",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 20
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 23
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 23
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피감",
+      "피감",
+      "피증"
+    ]
+  },
+  {
+    "id": 327,
+    "name": "손오공",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Magic",
+    "transcendType": "AtkDmgRdc",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "미후분신술",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "평타-분신",
+        "skillType": "Normal2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 75
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 75
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "대봉승타격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 53
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 62
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 62
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "여의난참무",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 43
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 43
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 43
+          }
+        }
+      },
+      {
+        "id": 5,
+        "name": "환.대봉승타격",
+        "skillType": "Skill3",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 86
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 102
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 3,
+            "ratio": 102
+          }
+        }
+      },
+      {
+        "id": 6,
+        "name": "환.여의난참무",
+        "skillType": "Skill4",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 68
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 82
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 3,
+            "ratio": 82
+          }
+        }
+      }
+    ],
+    "tags": [
+      "막기확률감소",
+      "받피감"
+    ]
+  },
+  {
+    "id": 328,
+    "name": "니아",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Magic",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "예비 전력",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "100만 볼트",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 90
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 110
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 110
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "시간 조작",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 115
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135
+          }
+        }
+      }
+    ],
+    "tags": [
+      "효적증"
+    ]
+  },
+  {
+    "id": 376,
+    "name": "빅토리아",
+    "grade": "희귀",
+    "type": "만능형",
+    "attackType": "Magic",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 0,
+      "def": 0,
+      "hp": 0,
+      "spd": 0,
+      "cri": 0,
+      "criDmg": 0,
+      "wek": 0,
+      "wekDmg": 0
+    },
+    "transcend6": {
+      "atk": 0,
+      "def": 0,
+      "hp": 0,
+      "spd": 0,
+      "cri": 18,
+      "criDmg": 0,
+      "wek": 0,
+      "wekDmg": 0
+    },
+    "transcend12": {
+      "atk": 0,
+      "def": 0,
+      "hp": 0,
+      "spd": 0,
+      "cri": 18,
+      "criDmg": 0,
+      "wek": 0,
+      "wekDmg": 0
+    },
+    "passive": {
+      "name": "해적왕의 위엄",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "권총 사격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 285
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 110
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 110
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "사기 진작",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증",
+      "마법취약"
+    ]
+  },
+  {
+    "id": 401,
+    "name": "루디",
+    "grade": "전설",
+    "type": "방어형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 727,
+      "def": 892,
+      "hp": 4825,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 727,
+      "def": 1213,
+      "hp": 5694,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 814,
+      "def": 1320,
+      "hp": 6272,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "견고한 방패",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 65
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 65
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "돌격",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 170
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 205
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 205
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "방어 준비",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피감",
+      "방어"
+    ]
+  },
+  {
+    "id": 402,
+    "name": "아킬라",
+    "grade": "전설",
+    "type": "방어형",
+    "attackType": "Physical",
+    "transcendType": "DefDmgRdc",
+    "baseStats": {
+      "atk": 727,
+      "def": 892,
+      "hp": 4825,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 727,
+      "def": 1213,
+      "hp": 5694,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 814,
+      "def": 1320,
+      "hp": 6272,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "어둠의 인도자",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "잔혹한 폭풍",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 15
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 15
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 15
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "칠흑의 장막",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 35
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 35
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 35
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피감",
+      "효저깎"
+    ]
+  },
+  {
+    "id": 403,
+    "name": "녹스",
+    "grade": "전설",
+    "type": "방어형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 727,
+      "def": 892,
+      "hp": 4825,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 727,
+      "def": 1213,
+      "hp": 5694,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 814,
+      "def": 1320,
+      "hp": 6272,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "지옥의 기사",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "지옥의 방패",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "지옥의 일격",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 80
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 80
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 80
+          }
+        }
+      }
+    ],
+    "tags": [
+      "효저깎"
+    ]
+  },
+  {
+    "id": 404,
+    "name": "아라곤",
+    "grade": "전설",
+    "type": "방어형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 727,
+      "def": 892,
+      "hp": 4825,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 727,
+      "def": 1213,
+      "hp": 5694,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 814,
+      "def": 1320,
+      "hp": 6272,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "노장의 위엄",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "포격 지원",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 110
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 130
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공감"
+    ]
+  },
+  {
+    "id": 405,
+    "name": "룩",
+    "grade": "전설",
+    "type": "방어형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 727,
+      "def": 892,
+      "hp": 4825,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 727,
+      "def": 1213,
+      "hp": 5694,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 814,
+      "def": 1320,
+      "hp": 6272,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "공성 방패",
+      "maxStacks": 1
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "투창",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 315
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 380
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 380
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "진형 굳히기",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0
+          }
+        }
+      }
+    ],
+    "tags": [
+      "막기확률",
+      "받피감"
+    ]
+  }
+]

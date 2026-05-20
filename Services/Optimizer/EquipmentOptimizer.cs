@@ -474,7 +474,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 Dmg1to3 = statResult.DisplayStats.Dmg_Dealt_1to3,
                 Dmg4to5 = statResult.DisplayStats.Dmg_Dealt_4to5,
                 DefReduction = totalDebuffs.Def_Reduction,
-                DmgTakenIncrease = totalDebuffs.Dmg_Taken_Increase,
+                DmgTakenIncrease = totalDebuffs.GetEffectiveDmgTakenIncrease(character.AttackType),
                 Vulnerability = totalDebuffs.Vulnerability + (enemy?.Vulnerability ?? 0),
                 BossVulnerability = totalDebuffs.Boss_Vulnerability,
                 BossDef = enemy?.Stats?.Def ?? 0,

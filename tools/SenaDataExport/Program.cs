@@ -1,0 +1,157 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using GameDamageCalculator.Database;
+using GameDamageCalculator.Models;
+
+// 영웅 데이터를 웹용 JSON으로 추출
+// 출력: web/src/data/characters.json
+
+var heroes = CharacterDb.Characters.Select(c =>
+{
+    var bs = c.GetBaseStats(); // 등급/타입별 기본 스탯
+    var t6 = c.GetTranscendStats(6);   // 1~6초월 누적 보너스
+    var t12 = c.GetTranscendStats(12); // 1~12초월 누적 보너스
+
+    // 초월 보너스(%·고정)를 기본 스탯에 적용한 최종 스탯 (장비/버프 제외)
+    object Stat(BaseStatSet t) => new
+    {
+        atk = Math.Round(bs.Atk * (1 + t.Atk_Rate / 100.0) + t.Atk),
+        def = Math.Round(bs.Def * (1 + t.Def_Rate / 100.0) + t.Def),
+        hp = Math.Round(bs.Hp * (1 + t.Hp_Rate / 100.0) + t.Hp),
+        spd = bs.Spd + t.Spd,
+        cri = bs.Cri + t.Cri,
+        criDmg = bs.Cri_Dmg + t.Cri_Dmg,
+        wek = bs.Wek + t.Wek,
+        wekDmg = bs.Wek_Dmg + t.Wek_Dmg,
+    };
+
+    // ===== 스킬·패시브 효과 → 버프/디버프 필터 태그 =====
+    var tags = new SortedSet<string>();
+    bool isMagic = c.AttackType == AttackType.Magic;
+
+    void AddBuff(BuffSet b)
+    {
+        if (b == null) return;
+        if (b.Atk_Rate > 0) tags.Add("물공증");
+        if (b.MagicAtk_Rate > 0) tags.Add("마공증");
+        if (b.Dmg_Dealt > 0) tags.Add("피증");
+        if (b.Dmg_Dealt_Type > 0 || b.Mark_Energeia > 0 || b.Mark_Purify > 0)
+            tags.Add(isMagic ? "마피증" : "물피증");
+        if (b.Cri_Dmg > 0) tags.Add("치피증");
+        if (b.Wek_Dmg > 0) tags.Add("약피증");
+        if (b.Dmg_Dealt_1to3 > 0) tags.Add("1-3인기");
+        if (b.Dmg_Dealt_4to5 > 0) tags.Add("4-5인기");
+        if (b.Dmg_Dealt_Bos > 0) tags.Add("보피증");
+        if (b.Def_Rate > 0) tags.Add("방어");
+        if (b.Blk > 0) tags.Add("막기확률");
+        if (b.Dmg_Rdc > 0 || b.Phys_Dmg_Rdc > 0 || b.Mag_Dmg_Rdc > 0 || b.Dmg_Rdc_Multi > 0)
+            tags.Add("받피감");
+        if (b.Heal_Bonus > 0) tags.Add("받회증");
+        if (b.Eff_Hit > 0) tags.Add("효적증");
+        if (b.Eff_Res > 0) tags.Add("효저증");
+    }
+
+    void AddDebuff(DebuffSet d)
+    {
+        if (d == null) return;
+        if (d.Def_Reduction > 0) tags.Add("방깎");
+        if (d.Vulnerability > 0) tags.Add(isMagic ? "마법취약" : "물리취약");
+        if (d.Dmg_Taken_Increase > 0) tags.Add("받피증");
+        if (d.Phys_Dmg_Taken_Increase > 0) tags.Add("받물피증");
+        if (d.Mag_Dmg_Taken_Increase > 0) tags.Add("받마피증");
+        if (d.Atk_Reduction > 0) tags.Add(isMagic ? "마공감" : "물공감");
+        if (d.Dmg_Reduction > 0) tags.Add("피감");
+        if (d.Blk_Red > 0) tags.Add("막기확률감소");
+        if (d.Cri_Dmg_Reduction > 0) tags.Add("치피감");
+        if (d.Heal_Reduction > 0) tags.Add("받회감");
+        if (d.Eff_Red > 0) tags.Add("효저깎");
+    }
+
+    var pas = c.Passive;
+    if (pas != null)
+    {
+        AddBuff(pas.GetTotalSelfBuff(true, 12));
+        AddBuff(pas.GetPartyBuff(true, 12));
+        AddBuff(pas.GetConditionalSelfBuff(true, 12));
+        AddBuff(pas.GetConditionalPartyBuff(true, 12));
+        AddDebuff(pas.GetDebuff(true, 12));
+        AddDebuff(pas.GetConditionalDebuff(true, 12));
+    }
+    foreach (var sk in c.Skills)
+    {
+        foreach (var lvl in new[] { sk.GetLevelData(false), sk.GetLevelData(true) })
+        {
+            if (lvl == null) continue;
+            AddBuff(lvl.Bonus);
+            AddBuff(lvl.SelfBuff);
+            AddBuff(lvl.PartyBuff);
+            AddBuff(lvl.PreCastBuff);
+            AddDebuff(lvl.DebuffEffect);
+            if (lvl.Effects != null)
+                foreach (var e in lvl.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); }
+        }
+        var st = sk.GetTranscendBonus(12);
+        AddBuff(st.Bonus);
+        AddBuff(st.PartyBuff);
+        AddDebuff(st.Debuff);
+        if (st.Effects != null)
+            foreach (var e in st.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); }
+    }
+
+    return new
+    {
+        id = c.Id,
+        name = c.Name,
+        grade = c.Grade,                     // 전설 / 영웅 / 희귀
+        type = c.Type,                       // 공격형 / 마법형 / 만능형 / 지원형 / 방어형
+        attackType = c.AttackType.ToString(), // Physical / Magic
+        transcendType = c.TranscendType.ToString(),
+        baseStats = Stat(new BaseStatSet()),
+        transcend6 = Stat(t6),
+        transcend12 = Stat(t12),
+    passive = c.Passive == null ? null : new
+    {
+        name = c.Passive.Name,
+        description = c.Passive.Description,
+        maxStacks = c.Passive.MaxStacks
+    },
+    skills = c.Skills.Select(s =>
+    {
+        var l0 = s.GetLevelData(false);
+        var l1 = s.GetLevelData(true);
+        var tr = s.GetTranscendBonus(12);
+        return new
+        {
+            id = s.Id,
+            name = s.Name,
+            skillType = s.SkillType.ToString(),
+            tiers = new
+            {
+                @base = new { cooldown = s.CooldownSeconds, target = s.TargetCount, atk = s.Atk_Count, ratio = l0.Ratio },
+                enhanced = new { cooldown = s.CooldownSeconds, target = s.TargetCount, atk = s.Atk_Count, ratio = l1.Ratio },
+                transcend = new { cooldown = s.CooldownSeconds, target = tr.TargetCountOverride ?? s.TargetCount, atk = s.Atk_Count, ratio = l1.Ratio },
+            },
+        };
+    }).ToList(),
+        tags = tags.ToList(),
+    };
+}).ToList();
+
+var options = new JsonSerializerOptions
+{
+    WriteIndented = true,
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+};
+
+string json = JsonSerializer.Serialize(heroes, options);
+
+// tools/SenaDataExport/bin/... 에서 실행되므로 리포 루트 기준 경로 계산
+string repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+string outDir = Path.Combine(repoRoot, "web", "src", "data");
+Directory.CreateDirectory(outDir);
+string outPath = Path.Combine(outDir, "characters.json");
+File.WriteAllText(outPath, json);
+
+Console.WriteLine($"Exported {heroes.Count} heroes → {outPath}");

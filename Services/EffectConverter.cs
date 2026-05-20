@@ -799,6 +799,7 @@ namespace GameDamageCalculator.Services
         {
             if (debuff == null) return true;
             return debuff.Def_Reduction == 0 && debuff.Dmg_Taken_Increase == 0
+                && debuff.Phys_Dmg_Taken_Increase == 0 && debuff.Mag_Dmg_Taken_Increase == 0
                 && debuff.Vulnerability == 0 && debuff.Boss_Vulnerability == 0
                 && debuff.Atk_Reduction == 0 && debuff.Spd_Reduction == 0
                 && debuff.Dmg_Reduction == 0 && debuff.Cri_Dmg_Reduction == 0

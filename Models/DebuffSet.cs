@@ -12,7 +12,9 @@ namespace GameDamageCalculator.Models
         public double Blk_Red { get; set; }             // 막기 확률 감소%
 
         // ===== 피해 관련 =====
-        public double Dmg_Taken_Increase { get; set; }  // 받는 피해 증가%
+        public double Dmg_Taken_Increase { get; set; }       // 받는 피해 증가% (전체)
+        public double Phys_Dmg_Taken_Increase { get; set; }  // 받는 물리 피해 증가%
+        public double Mag_Dmg_Taken_Increase { get; set; }   // 받는 마법 피해 증가%
         public double Vulnerability { get; set; }       // 취약%
         public double Boss_Vulnerability { get; set; }  // 보스 취약%
         public double Dmg_Reduction { get; set; }       // 주는 피해량 감소%
@@ -39,6 +41,8 @@ namespace GameDamageCalculator.Models
 
             Def_Reduction += other.Def_Reduction;
             Dmg_Taken_Increase += other.Dmg_Taken_Increase;
+            Phys_Dmg_Taken_Increase += other.Phys_Dmg_Taken_Increase;
+            Mag_Dmg_Taken_Increase += other.Mag_Dmg_Taken_Increase;
             Vulnerability += other.Vulnerability;
             Boss_Vulnerability += other.Boss_Vulnerability;
             Atk_Reduction += other.Atk_Reduction;
@@ -61,6 +65,8 @@ namespace GameDamageCalculator.Models
 
             Def_Reduction = Math.Max(Def_Reduction, other.Def_Reduction);
             Dmg_Taken_Increase = Math.Max(Dmg_Taken_Increase, other.Dmg_Taken_Increase);
+            Phys_Dmg_Taken_Increase = Math.Max(Phys_Dmg_Taken_Increase, other.Phys_Dmg_Taken_Increase);
+            Mag_Dmg_Taken_Increase = Math.Max(Mag_Dmg_Taken_Increase, other.Mag_Dmg_Taken_Increase);
             Vulnerability = Math.Max(Vulnerability, other.Vulnerability);
             Boss_Vulnerability = Math.Max(Boss_Vulnerability, other.Boss_Vulnerability);
             Atk_Reduction = Math.Max(Atk_Reduction, other.Atk_Reduction);
@@ -83,6 +89,8 @@ namespace GameDamageCalculator.Models
             {
                 Def_Reduction = Def_Reduction,
                 Dmg_Taken_Increase = Dmg_Taken_Increase,
+                Phys_Dmg_Taken_Increase = Phys_Dmg_Taken_Increase,
+                Mag_Dmg_Taken_Increase = Mag_Dmg_Taken_Increase,
                 Vulnerability = Vulnerability,
                 Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,
@@ -104,6 +112,8 @@ namespace GameDamageCalculator.Models
         {
             Def_Reduction = 0;
             Dmg_Taken_Increase = 0;
+            Phys_Dmg_Taken_Increase = 0;
+            Mag_Dmg_Taken_Increase = 0;
             Vulnerability = 0;
             Boss_Vulnerability = 0;
             Atk_Reduction = 0;
@@ -115,6 +125,15 @@ namespace GameDamageCalculator.Models
             Eff_Red = 0;
             Eff_Hit_Red = 0;
             Blk_Red = 0;
+        }
+
+        /// <summary>
+        /// 공격자 타입에 맞는 받는 피해 증가 합산 (일반 받피증 + 물리/마법 받피증)
+        /// </summary>
+        public double GetEffectiveDmgTakenIncrease(AttackType attackType)
+        {
+            return Dmg_Taken_Increase
+                + (attackType == AttackType.Magic ? Mag_Dmg_Taken_Increase : Phys_Dmg_Taken_Increase);
         }
     }
 
@@ -129,6 +148,8 @@ namespace GameDamageCalculator.Models
             {
                 Def_Reduction = Def_Reduction,
                 Dmg_Taken_Increase = Dmg_Taken_Increase,
+                Phys_Dmg_Taken_Increase = Phys_Dmg_Taken_Increase,
+                Mag_Dmg_Taken_Increase = Mag_Dmg_Taken_Increase,
                 Vulnerability = Vulnerability,
                 Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,
@@ -155,6 +176,8 @@ namespace GameDamageCalculator.Models
             {
                 Def_Reduction = Def_Reduction,
                 Dmg_Taken_Increase = Dmg_Taken_Increase,
+                Phys_Dmg_Taken_Increase = Phys_Dmg_Taken_Increase,
+                Mag_Dmg_Taken_Increase = Mag_Dmg_Taken_Increase,
                 Vulnerability = Vulnerability,
                 Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,

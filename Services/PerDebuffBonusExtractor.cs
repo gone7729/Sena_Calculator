@@ -130,6 +130,8 @@ namespace GameDamageCalculator.Services
             if (d.Eff_Hit_Red > 0) n++;
             if (d.Blk_Red > 0) n++;
             if (d.Dmg_Taken_Increase > 0) n++;
+            if (d.Phys_Dmg_Taken_Increase > 0) n++;
+            if (d.Mag_Dmg_Taken_Increase > 0) n++;
             if (d.Vulnerability > 0) n++;
             if (d.Boss_Vulnerability > 0) n++;
             return n;

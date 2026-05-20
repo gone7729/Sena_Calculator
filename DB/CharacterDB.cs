@@ -6769,13 +6769,20 @@ namespace GameDamageCalculator.Database
 
             #region 영웅 - 만능형 - 물리 351~
 
+            
+
+            #endregion
+
+            #region 영웅 - 만능형 - 마법 376~
+
             // 빅토리아
             new Character
             {
-                Id = 351,
+                Id = 376,
                 Name = "빅토리아",
                 Grade = "희귀",
                 Type = "만능형",
+                AttackType = AttackType.Magic,
                 Skills = new List<Skill>
                 {
                     new Skill
@@ -6831,13 +6838,13 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Atk_Rate = 29 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 29 } }
                                 }
                             }},
                             { 1, new SkillLevelData {
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Atk_Rate = 35 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 35 } }
                                 }
                             }}
                         },
@@ -6871,10 +6878,6 @@ namespace GameDamageCalculator.Database
                 },
                 TranscendType = TranscendType.DefDmgRdc
             },
-
-            #endregion
-
-            #region 영웅 - 만능형 - 마법 376~
 
             // 라니아
 

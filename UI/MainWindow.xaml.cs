@@ -722,7 +722,7 @@ namespace GameDamageCalculator.UI
 
                     // 디버프
                     DefReduction = _currentDebuffs.Def_Reduction,
-                    DmgTakenIncrease = _currentDebuffs.Dmg_Taken_Increase,
+                    DmgTakenIncrease = _currentDebuffs.GetEffectiveDmgTakenIncrease(character?.AttackType ?? AttackType.Physical),
                     Vulnerability = _currentDebuffs.Vulnerability,
                     BossVulnerability = _currentDebuffs.Boss_Vulnerability,
                     HealReduction = _currentDebuffs.Heal_Reduction,

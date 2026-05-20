@@ -207,6 +207,8 @@ namespace GameDamageCalculator.Services
             if (debuffs.Eff_Hit_Red > 0) count++;
             if (debuffs.Blk_Red > 0) count++;
             if (debuffs.Dmg_Taken_Increase > 0) count++;
+            if (debuffs.Phys_Dmg_Taken_Increase > 0) count++;
+            if (debuffs.Mag_Dmg_Taken_Increase > 0) count++;
             if (debuffs.Vulnerability > 0) count++;
             if (debuffs.Boss_Vulnerability > 0) count++;
 

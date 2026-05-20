@@ -2,3 +2,4 @@
 - [장비 DB 설계 의도](project_equipment_db_design.md) — 메인/서브 변수명 공유, AccessoryDb 4/5성 미구현, SubStatBase+TierValues 중복은 모두 의도된 설계
 - [회귀 테스트 계획](project_regression_test_plan.md) — 4명 테스트 캐릭터 회귀 측정은 옵티마이저 확장 시 자동화 패턴으로 통합 예정
 - [공격력 타입 분리](project_atk_type_split.md) — 물리 Atk/마법 MagicAtk 분리 Phase 1-5 완료, Phase 6(옵티마이저 필터) 미진행
+- [웹 공략 사이트 (Next.js)](project_web_nextjs.md) — web/ Next.js 16, Turbopack 한글경로 버그로 webpack 고정, 영웅 데이터는 C# export 도구로 생성
