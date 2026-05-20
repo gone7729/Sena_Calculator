@@ -33,4 +33,10 @@
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
+  <!-- 중첩 프로젝트(콘솔 export 도구, 웹)는 WPF 컴파일 대상에서 제외 -->
+  <ItemGroup>
+    <Compile Remove="tools/**/*.cs" />
+    <Compile Remove="web/**/*.cs" />
+  </ItemGroup>
+
 </Project>

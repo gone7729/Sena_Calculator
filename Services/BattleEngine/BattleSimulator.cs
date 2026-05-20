@@ -310,9 +310,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var damage = CalculateSkillDamage(config, state, charState, skill);
                 ApplyDamage(state, charState, damage, skill.Name, ActionType.SkillAttack);
 
-                // 스킬 쿨다운 세팅
-                if (skill.CooldownSeconds > 0)
-                    charState.SkillCooldowns[nextSkillType] = skill.CooldownSeconds;
+                // 스킬 쿨다운 세팅 (티어별)
+                double cooldown = skill.GetCooldown(charState.Source.IsSkillEnhanced, charState.Source.TranscendLevel);
+                if (cooldown > 0)
+                    charState.SkillCooldowns[nextSkillType] = cooldown;
 
                 // 스킬 소요시간만큼 경과 및 쿨다운 감소
                 double skillDuration = skill.GetActionDuration();

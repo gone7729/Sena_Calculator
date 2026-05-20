@@ -75,7 +75,10 @@ namespace GameDamageCalculator.Models
         
         if (kvp.Value.TargetCountOverride.HasValue)
             result.TargetCountOverride = kvp.Value.TargetCountOverride;
-        
+
+        if (kvp.Value.Cooldown > 0)
+            result.Cooldown = kvp.Value.Cooldown;
+
         result.Effect = kvp.Value.Effect;
         
         // ✅ ConsumeExtra 합산 추가
@@ -100,6 +103,20 @@ namespace GameDamageCalculator.Models
         {
             var bonus = GetTranscendBonus(transcendLevel);
             return bonus.TargetCountOverride ?? TargetCount;
+        }
+
+        /// <summary>
+        /// 티어별 쿨타임 반환. 우선순위: 초월 오버라이드 > 레벨별 쿨타임 > Skill.CooldownSeconds 폴백
+        /// </summary>
+        public double GetCooldown(bool isEnhanced, int transcendLevel)
+        {
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.Cooldown > 0) return transcend.Cooldown;
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.Cooldown > 0) return levelData.Cooldown;
+
+            return CooldownSeconds;
         }
 
         /// <summary>
@@ -183,6 +200,9 @@ namespace GameDamageCalculator.Models
         public double DefRatio { get; set; }            // 방어력 비례
         public double HpRatio { get; set; }             // 생명력 비례
         public double SpdRatio { get; set; }            // 속공 비례
+
+        // ===== 쿨타임 (티어별, 0이면 Skill.CooldownSeconds로 폴백) =====
+        public double Cooldown { get; set; }            // 쿨다운 (초)
 
         // ===== 조건부 효과 =====
         public double ConditionalRatioBonus { get; set; }
@@ -285,6 +305,9 @@ namespace GameDamageCalculator.Models
         public TimedBuff PartyBuff { get; set; } = new TimedBuff();
         public TimedDebuff Debuff { get; set; } = new TimedDebuff();
         public int? TargetCountOverride { get; set; }
+
+        // 쿨타임 (초월 시 변경, 0이면 강화 레벨 쿨타임 유지)
+        public double Cooldown { get; set; }
 
         // 조건부 효과
         public double ConditionalDmgBonus { get; set; }
