@@ -72,19 +72,19 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 145
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 170
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 170

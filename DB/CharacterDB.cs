@@ -26,12 +26,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100, ConditionalExtraDmg = 45, ConditionalDesc = "체력 30% 미만" } },
-                            { 1, new SkillLevelData { Ratio = 120, ConditionalExtraDmg = 55, ConditionalDesc = "체력 30% 미만" } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                ConditionalExtraDmg = 45,
+                                Effect = "대상 현재 생명력 30% 이하일 경우 공격력45% 추가피해"
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                ConditionalExtraDmg = 55,
+                                Effect = "대상 현재 생명력 30% 이하일 경우 공격력55% 추가피해"
+                                } }
                         }
                     },
                     new Skill
@@ -39,12 +49,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "바람의 칼날",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 145, Bonus = new BuffSet { Cri_Dmg = 37 } } },
-                            { 1, new SkillLevelData { Ratio = 170, Bonus = new BuffSet { Cri_Dmg = 46 } } }
+                            { 0, new SkillLevelData { 
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 84,
+                                Ratio = 145, 
+                                Bonus = new BuffSet { Cri_Dmg = 37 }, 
+                                Effect = "" 
+                                } },
+                            { 1, new SkillLevelData { 
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 84,
+                                Ratio = 170, 
+                                Bonus = new BuffSet { Cri_Dmg = 46 }, 
+                                Effect = "" 
+                                } }
                         }
                     },
                     new Skill
@@ -52,12 +74,26 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "죽음의 무도",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 145, ConditionalExtraDmg = 260, ConditionalDesc = "체력 30% 미만" } },
-                            { 1, new SkillLevelData { Ratio = 170, ConditionalExtraDmg = 260, ConditionalDesc = "체력 30% 미만" } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 145,
+                                ConditionalExtraDmg = 260,
+                                ConditionalDesc = "체력 30% 미만",
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 170,
+                                ConditionalExtraDmg = 260,
+                                ConditionalDesc = "체력 30% 미만",
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -145,12 +181,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -158,12 +202,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "강자 사냥",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 130 } },
-                            { 1, new SkillLevelData { Ratio = 155 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 130,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 155,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -175,24 +229,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "광풍참",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 145,
                                 LostHpBonusDmgMax = 50,
                                 LostHpAssumedRemaining = 0,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
-                                Bonus = new BuffSet { WekBonusDmg = 230 }
-                            }},
+                                Bonus = new BuffSet { WekBonusDmg = 230 },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 170,
                                 LostHpBonusDmgMax = 50,
                                 LostHpAssumedRemaining = 0,
                                 ConditionalDesc = "잃은 생명력 비례 최대 50%",
-                                Bonus = new BuffSet { WekBonusDmg = 270 }
-                            }}
+                                Bonus = new BuffSet { WekBonusDmg = 270 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -238,12 +298,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -251,12 +319,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "사신강림",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 115 } },
-                            { 1, new SkillLevelData { Ratio = 135 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 115,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 135,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -268,12 +346,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "죽음의 일격",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 119 }},
-                            { 1, new SkillLevelData { Ratio = 158 }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 5,
+                                Cooldown = 0,
+                                Ratio = 119,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 5,
+                                Cooldown = 0,
+                                Ratio = 158,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -327,12 +415,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -340,12 +436,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "귀신 베기",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 570 } },
-                            { 1, new SkillLevelData { Ratio = 690 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 570,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 690,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -415,12 +521,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 55 } },
-                            { 1, new SkillLevelData { Ratio = 65 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 55,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 65,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -428,24 +542,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "거궁신포",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 72,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 55 }
-                                }
-                            } },
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 85,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 60 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -457,24 +577,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "태전포화",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 175,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BleedExplosion }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 205,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BleedExplosion }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -524,12 +650,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -537,18 +671,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "해방-팔사검",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 62, Effects = new List<SkillEffect>
-                            {
-                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 52 } }
-                            }}},
-                            { 1, new SkillLevelData { Ratio = 62, Effects = new List<SkillEffect>
-                            {
-                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 68 } }
-                            }}}
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 62,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 52 } }
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 62,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 68 } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -563,12 +709,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "해방-뱀 사냥",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 57 }},
-                            { 1, new SkillLevelData { Ratio = 57 }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 57,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 57,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -622,12 +778,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -635,12 +799,23 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "관-통-데미지!",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 130, Bonus = new BuffSet { Cri = 30 } } },
-                            { 1, new SkillLevelData { Ratio = 170 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 130,
+                                Bonus = new BuffSet { Cri = 30 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 170,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -652,12 +827,23 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "까악-까악-",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 65, Bonus = new BuffSet { Cri = 30 } }},
-                            { 1, new SkillLevelData { Ratio = 85 }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 65,
+                                Bonus = new BuffSet { Cri = 30 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 85,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -703,12 +889,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -716,12 +910,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "먼저쓰면안됨",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 115, ConditionalExtraDmg = 100 } },
-                            { 1, new SkillLevelData { Ratio = 150, ConditionalExtraDmg = 100 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 115,
+                                ConditionalExtraDmg = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 150,
+                                ConditionalExtraDmg = 100,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -733,12 +939,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "먼저쓰셈",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 115, ConditionalExtraDmg = 125 } },
-                            { 1, new SkillLevelData { Ratio = 165, ConditionalExtraDmg = 125 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 115,
+                                ConditionalExtraDmg = 125,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 165,
+                                ConditionalExtraDmg = 125,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -788,12 +1006,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100, ConditionalExtraDmg = 130 } },
-                            { 1, new SkillLevelData { Ratio = 130, ConditionalExtraDmg = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                ConditionalExtraDmg = 130,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                ConditionalExtraDmg = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -801,12 +1029,28 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "철쇄폭압",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 60, TargetMaxHpRatio = 8,  AtkCap = 75, ConditionalExtraDmg = 65 } },
-                            { 1, new SkillLevelData { Ratio = 72, TargetMaxHpRatio = 10, AtkCap = 75, ConditionalExtraDmg = 65 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 60,
+                                TargetMaxHpRatio = 8,
+                                AtkCap = 75,
+                                ConditionalExtraDmg = 65,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 72,
+                                TargetMaxHpRatio = 10,
+                                AtkCap = 75,
+                                ConditionalExtraDmg = 65,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -818,12 +1062,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "사슬의 무덤",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 70, ConditionalExtraDmg = 65 } },
-                            { 1, new SkillLevelData { Ratio = 90, ConditionalExtraDmg = 65 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 70,
+                                ConditionalExtraDmg = 65,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 90,
+                                ConditionalExtraDmg = 65,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -873,12 +1129,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 55 } },
-                            { 1, new SkillLevelData { Ratio = 70 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 55,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 70,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -886,24 +1150,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "빠르고, 멋있게",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 40,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bomb, Stacks = 1, Chance = 35 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 50,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bomb, Stacks = 1, Chance = 45 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -911,27 +1181,33 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "어때, 화려하지?",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 125,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bomb, Stacks = 1, Chance = 50 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BombDetonation }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 150,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bomb, Stacks = 1, Chance = 50 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.BombDetonation },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 13 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -998,12 +1274,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1011,24 +1295,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "통행금지",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Concussion, Stacks = 1, Chance = 60 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Concussion, Stacks = 1, Chance = 60 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1036,24 +1326,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "위기대응",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 135,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Duration = 2, Stacks = 1, Chance = 100 }
-                                }
-                            } },
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 165,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Duration = 2, Stacks = 1, Chance = 100 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1098,12 +1394,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1111,12 +1415,20 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "죽음의 그림자",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 95, OnKillRecast = new OnKillRecast { RatioPercent = 100 } } },
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 95,
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 110,
                                 OnKillRecast = new OnKillRecast { RatioPercent = 100 },
                                 Effects = new List<SkillEffect>
@@ -1128,8 +1440,9 @@ namespace GameDamageCalculator.Database
                                         Duration = 3,
                                         Buff = new BuffSet { Coop_Chance = 28 }
                                     }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -1242,12 +1555,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 80 } },
-                            { 1, new SkillLevelData { Ratio = 100 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 80,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1255,24 +1576,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "혈풍벽파",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 57,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 57,
                                 Bonus = new BuffSet { WekBonusDmg = 25, WekBonusDmgPerHit = true },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { Ratio = 67,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 67,
                                 Bonus = new BuffSet { WekBonusDmg = 25, WekBonusDmgPerHit = true },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 55 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1291,16 +1620,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "적토질풍격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 52,
-                                Bonus = new BuffSet { WekBonusDmg = 27, WekBonusDmgPerHit = true }
-                            }},
-                            { 1, new SkillLevelData { Ratio = 60,
-                                Bonus = new BuffSet { WekBonusDmg = 32, WekBonusDmgPerHit = true }
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 52,
+                                Bonus = new BuffSet { WekBonusDmg = 27, WekBonusDmgPerHit = true },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 60,
+                                Bonus = new BuffSet { WekBonusDmg = 32, WekBonusDmgPerHit = true },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1437,12 +1774,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1450,18 +1795,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "섬광십무",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 340, 
-                                Bonus = new BuffSet{ Arm_Pen = 40 }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 410, 
-                                Bonus = new BuffSet{ Arm_Pen = 40 }
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 340,
+                                Bonus = new BuffSet{ Arm_Pen = 40 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 410,
+                                Bonus = new BuffSet{ Arm_Pen = 40 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1474,18 +1825,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "쌍절태풍격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 475, 
-                                Bonus = new BuffSet{ Arm_Pen = 40 } 
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 575, 
-                                Bonus = new BuffSet{ Arm_Pen = 40 } 
-                              } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 475,
+                                Bonus = new BuffSet{ Arm_Pen = 40 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 575,
+                                Bonus = new BuffSet{ Arm_Pen = 40 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1534,12 +1891,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1547,12 +1912,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "구음검격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 155  } },
-                            { 1, new SkillLevelData { Ratio = 190 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 155,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 190,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1566,12 +1941,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "이기어검",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 175 } },
-                            { 1, new SkillLevelData { Ratio = 210 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 175,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 210,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1611,24 +1996,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 40 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1636,12 +2025,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "연사",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 370 } },
-                            { 1, new SkillLevelData { Ratio = 440 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 370,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 440,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1649,18 +2048,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "저격",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 315, 
-                                ConditionalExtraDmg = 155
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 375, 
-                                ConditionalExtraDmg = 155
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 315,
+                                ConditionalExtraDmg = 155,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 375,
+                                ConditionalExtraDmg = 155,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1712,12 +2117,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1725,11 +2138,20 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "어둠의 문",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 0,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Effect = "파괴의 거인 쿨초기화, 피해무효 1회" } },
-                            { 1, new SkillLevelData { Effect = "파괴의 거인 쿨초기화, 피해무효 2회" } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 0,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Effect = "파괴의 거인 쿨초기화, 피해무효 1회"
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 0,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Effect = "파괴의 거인 쿨초기화, 피해무효 2회"
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1741,12 +2163,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "파괴의 거인",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 390, Bonus = new BuffSet { Cri = 50 } } },
-                            { 1, new SkillLevelData { Ratio = 470, Bonus = new BuffSet { Cri = 50 } } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 390,
+                                Bonus = new BuffSet { Cri = 50 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 470,
+                                Bonus = new BuffSet { Cri = 50 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1796,12 +2230,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1809,12 +2251,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "근거리 연사",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 75, Bonus = new BuffSet { WekBonusDmg = 35 } } },
-                            { 1, new SkillLevelData { Ratio = 90, Bonus = new BuffSet { WekBonusDmg = 42 } } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 75,
+                                Bonus = new BuffSet { WekBonusDmg = 35 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 90,
+                                Bonus = new BuffSet { WekBonusDmg = 42 },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1822,12 +2276,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "폭격 지원",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 145, Bonus = new BuffSet { WekBonusDmg = 130 } } },
-                            { 1, new SkillLevelData { Ratio = 170, Bonus = new BuffSet { WekBonusDmg = 155 } } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 145,
+                                Bonus = new BuffSet { WekBonusDmg = 130 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 170,
+                                Bonus = new BuffSet { WekBonusDmg = 155 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1884,12 +2350,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -1897,22 +2371,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "살율의 춤",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 145,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 22 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { Ratio = 170,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 170,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 22 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1926,12 +2408,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "교만의 일격",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 160 } },
-                            { 1, new SkillLevelData { Ratio = 185 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 160,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 185,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -1978,28 +2470,32 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Sleep, Stacks = 1, Chance = 40 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 130,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Sleep, Stacks = 1, Chance = 40 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
+                            { 2, new SkillTranscend {
                                 TargetCountOverride = 2
                             }}
                         }
@@ -2009,12 +2505,26 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "파괴의 손짓",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 43, TargetMaxHpRatio = 6, AtkCap = 100 } },
-                            { 1, new SkillLevelData { Ratio = 51, TargetMaxHpRatio = 7, AtkCap = 100 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 43,
+                                TargetMaxHpRatio = 6,
+                                AtkCap = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 51,
+                                TargetMaxHpRatio = 7,
+                                AtkCap = 100,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2022,24 +2532,32 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "종말의 영면",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 41, Bonus = new BuffSet { Arm_Pen = 40 },
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 41,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Sleep, Stacks = 1, Chance = 50 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 55, Bonus = new BuffSet { Arm_Pen = 40 },
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 55,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Sleep, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -2088,16 +2606,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 55
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 70
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 55,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 70,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2105,22 +2627,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "천상의 심판",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 65,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 65,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 20 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { Ratio = 77,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 77,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 29 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2128,16 +2658,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "최고 판결",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 70, Effect = "영멸(님 부활못함ㅋ)"
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 80, Effect = "영멸(님 부활못함ㅋ)"
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 70,
+                                Effect = "영멸(님 부활못함ㅋ)"
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 80,
+                                Effect = "영멸(님 부활못함ㅋ)"
+                                } }
                         }
                     }
                 },
@@ -2213,16 +2749,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2230,24 +2770,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "메테오",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 105, Bonus = new BuffSet{ CriBonusDmg = 40 },
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 105,
+                                Bonus = new BuffSet{ CriBonusDmg = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 60 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120, Bonus = new BuffSet{ CriBonusDmg = 50 },
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 120,
+                                Bonus = new BuffSet{ CriBonusDmg = 50 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 60 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2255,24 +2803,32 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "어둠의 환영",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 105, Bonus = new BuffSet{ CriBonusDmg = 55 },
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 105,
+                                Bonus = new BuffSet{ CriBonusDmg = 55 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 17 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120, Bonus = new BuffSet{ CriBonusDmg = 55 },
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 120,
+                                Bonus = new BuffSet{ CriBonusDmg = 55 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 22 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2330,16 +2886,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2347,24 +2907,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "정화탄",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 340,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 340,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 33 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2372,28 +2938,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "신의 심판",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 425,
                                 ConsumeExtra = new ConsumeExtraDamage
                                 {
                                     ConsumeCount = 4,
                                     TargetMaxHpRatio = 26,
                                     AtkCap = 1300
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 515,
                                 ConsumeExtra = new ConsumeExtraDamage
                                 {
                                     ConsumeCount = 4,
                                     TargetMaxHpRatio = 26,
                                     AtkCap = 1300
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2454,16 +3026,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2471,16 +3047,26 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "비화선",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 270, TargetMaxHpRatio = 20, AtkCap = 350
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 330, TargetMaxHpRatio = 20, AtkCap = 350
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 270,
+                                TargetMaxHpRatio = 20,
+                                AtkCap = 350,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 330,
+                                TargetMaxHpRatio = 20,
+                                AtkCap = 350,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2494,24 +3080,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "불나비",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 130,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 27 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 155,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 33 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -2560,16 +3152,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 130
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2577,16 +3173,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "모래열풍",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 95, Effect = "70%확률 쿨타임 증가 19초"
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 110, Effect = "70%확률 쿨타임 증가 23초"
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 95,
+                                Effect = "70%확률 쿨타임 증가 19초"
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 110,
+                                Effect = "70%확률 쿨타임 증가 23초"
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2603,24 +3205,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "메마른 해일",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 40 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 82,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2673,20 +3281,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 35 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2694,16 +3306,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "레굴루스",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 220, ConditionalDmgBonus = 160
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 267, ConditionalDmgBonus = 160
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 220,
+                                ConditionalDmgBonus = 160,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 267,
+                                ConditionalDmgBonus = 160,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2717,24 +3337,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "유성우",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 57,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 30 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 67,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 35 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -2803,24 +3429,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.ManaBackflow, Stacks = 1, Chance = 45 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.ManaBackflow, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2837,24 +3467,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "어둠 강탈",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 55 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2862,26 +3498,32 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "금지된 실험",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 52,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.ManaBackflow, Stacks = 1, Chance = 40 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 44 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.ManaBackflow, Stacks = 1, Chance = 50 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 44 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2942,16 +3584,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 130
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -2959,18 +3605,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "정의의 단죄",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 72,
-                                OnKillRecast = new OnKillRecast { RatioPercent = 100 }
-                            } },
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 85,
-                                OnKillRecast = new OnKillRecast { RatioPercent = 100 }
-                            } }
+                                OnKillRecast = new OnKillRecast { RatioPercent = 100 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -2984,16 +3636,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "정화의 일격",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 60
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 75
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 60,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 75,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3046,20 +3704,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3067,26 +3729,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "고결한 금풍",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 57,
                                 DispelDefReduction = 22,
                                 PreCastBuff = new BuffSet{ MagicAtk_Rate = 10 },
                                 Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
-                            } },
-                            { 1, new SkillLevelData { 
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 67,
                                 DispelDefReduction = 22,
                                 PreCastBuff = new BuffSet { MagicAtk_Rate = 10 },
-                                Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 75 }
-                                }
-                            } }
+                                },
+                                Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3100,26 +3766,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "금빛 검우",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 60,
-                                Effect = "항상 4중첩 유지",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 52 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = "항상 4중첩 유지"
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 80,
-                                Effect = "항상 4중첩 유지",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 39 }
-                                }
-                            } }
+                                },
+                                Effect = "항상 4중첩 유지"
+                                } }
                         }
                     }
                 },
@@ -3168,24 +3838,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 45 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3193,18 +3867,23 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "용린성하",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 62
-                            } },
-                            { 1, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 62,
-                                Bonus = new BuffSet { CriBonusDmg = 74, CriBonusDmgPerHit = true }
-                                
-                            } }
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 62,
+                                Bonus = new BuffSet { CriBonusDmg = 74, CriBonusDmgPerHit = true },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3218,28 +3897,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "용제의 진노",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 4,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 70,
                                 ConditionalExtraDmg = 30,
                                 ConditionalExtraDmgPerHit = true,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 100 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 90,
                                 ConditionalExtraDmg = 42,
                                 ConditionalExtraDmgPerHit = true,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 100 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -3300,24 +3985,30 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 30,
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 30,
+                                DefRatio = 30,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 30 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 30,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 30,
+                                DefRatio = 30,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 35 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3334,26 +4025,34 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "수정룡의 거울",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 32,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 30,
+                                DefRatio = 32,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 50 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.CrystalResonance, Stacks = 1, Chance = 100 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 32,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 30,
+                                DefRatio = 32,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 65 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.CrystalResonance, Stacks = 1, Chance = 100 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3370,28 +4069,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "수정의 숨결",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 32,
-                                Effect = "빗나감 확률 36%",
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 30,
+                                DefRatio = 32,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 35 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 32,
-                                Effect = "빗나감 확률 48%",
+                                },
+                                Effect = "빗나감 확률 36%"
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 30,
+                                DefRatio = 32,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 45 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
-                                }
-                            } }
+                                },
+                                Effect = "빗나감 확률 48%"
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3440,24 +4145,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 13 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 16 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3465,24 +4174,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "뇌운 흑영랑",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 80,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 40 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 92,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 40 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3496,26 +4211,32 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "번뇌",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 115,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 45 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 44 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 135,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 55 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 44 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3564,16 +4285,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3581,19 +4306,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "우후죽순",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 270,
-                                Bonus = new BuffSet{ Arm_Pen = 40, WekBonusDmg = 215 }
-                                
-                            } },
-                            { 1, new SkillLevelData { 
+                                Bonus = new BuffSet{ Arm_Pen = 40, WekBonusDmg = 215 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 330,
-                                Bonus = new BuffSet{ Arm_Pen = 40, WekBonusDmg = 215 }
-                            } }
+                                Bonus = new BuffSet{ Arm_Pen = 40, WekBonusDmg = 215 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3607,28 +4337,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "호접지몽",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 340,
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 25 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 340,
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 31 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3687,24 +4423,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3712,24 +4452,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "정기 흡수",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 285,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 340,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3741,12 +4487,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "마력의 구슬",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 285, ConditionalExtraDmg = 170 } },
-                            { 1, new SkillLevelData { Ratio = 340, ConditionalExtraDmg = 170 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 285,
+                                ConditionalExtraDmg = 170,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 340,
+                                ConditionalExtraDmg = 170,
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -3793,16 +4551,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3810,24 +4572,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "빛의 심판",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 75 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 75 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3844,22 +4612,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "눈부신 빛",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 120,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 20 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { Ratio = 145,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 20 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3912,16 +4688,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, HpRatio = 12
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 60, HpRatio = 14
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                HpRatio = 14,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -3929,21 +4711,28 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "잘못된 기록",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 35 }
-                                }
-                            } },
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 25 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -3960,12 +4749,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "파멸의 고서",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 80, HpRatio = 19 } },
-                            { 1, new SkillLevelData { Ratio = 95, HpRatio = 22 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 80,
+                                HpRatio = 19,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 95,
+                                HpRatio = 22,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4020,17 +4821,26 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 50, DefRatio = 60 } },
-                            { 1, new SkillLevelData { Ratio = 50, DefRatio = 60,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 6 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4038,23 +4848,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "장비 강화",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 } }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4066,12 +4883,26 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "리프 어택",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100, DefRatio = 115, Bonus = new BuffSet { Arm_Pen = 40 } } },
-                            { 1, new SkillLevelData { Ratio = 115, DefRatio = 135, Bonus = new BuffSet { Arm_Pen = 40 } } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 100,
+                                DefRatio = 115,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 115,
+                                DefRatio = 135,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -4123,12 +4954,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4138,8 +4977,20 @@ namespace GameDamageCalculator.Database
                         SkillType = SkillType.Skill1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { HealHpRatio = 21 } },
-                            { 1, new SkillLevelData { HealHpRatio = 24 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealHpRatio = 21,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealHpRatio = 24,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4147,23 +4998,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "따뜻한 울림",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 34 } },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt = 23 } }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 34 } },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt = 28 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4226,16 +5084,23 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 50, HpRatio = 12 } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 50, HpRatio = 12,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
                                 HealHpRatio = 15,
                                 Effect = "생명력 회복 15% 지속 1턴"
-                            } }
+                                } }
                         }
                     },
                     new Skill
@@ -4243,17 +5108,28 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "고결한 유성",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 60, HpRatio = 14 } },
-                            { 1, new SkillLevelData { Ratio = 60, HpRatio = 14,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 60,
+                                HpRatio = 14,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 60,
+                                HpRatio = 14,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 36 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4261,16 +5137,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "빛의 일갈",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 20, HpRatio = 5
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 22, HpRatio = 6
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 20,
+                                HpRatio = 5,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 22,
+                                HpRatio = 6,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4324,22 +5208,30 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 50, DefRatio = 60,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 7 } }
-                                }
-                            } },
-                            { 1, new SkillLevelData { Ratio = 60, DefRatio = 75,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                DefRatio = 75,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 9 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4347,12 +5239,26 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "심판대행",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 42, DefRatio = 47, HealDmgRatio = 32 } },
-                            { 1, new SkillLevelData { Ratio = 50, DefRatio = 55, HealDmgRatio = 43 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 42,
+                                DefRatio = 47,
+                                HealDmgRatio = 32,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 50,
+                                DefRatio = 55,
+                                HealDmgRatio = 43,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4360,22 +5266,28 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "이계의 빛",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 32 }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 25 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -4419,18 +5331,26 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 2,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 30, HpRatio = 7 } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 30, HpRatio = 7,
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 30,
+                                HpRatio = 7,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Ratio = 30,
+                                HpRatio = 7,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 16 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4438,24 +5358,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "달빛의 심판",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 30, HpRatio = 7,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 30,
+                                HpRatio = 7,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 25 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 37, HpRatio = 10,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 37,
+                                HpRatio = 10,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 35 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4463,16 +5391,20 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "성령의 기도",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Effect = "아군 2명 부활, 적군 턴감 2턴"
-                            }},
-                            { 1, new SkillLevelData { 
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Effect = "아군 2명 부활, 적군 턴감 2턴, 부활 시 권능 2턴"
-                            }}
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4549,18 +5481,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                            } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
+                            { 2, new SkillTranscend {
                                 HealHpRatio = 15
                             }}
                         }
@@ -4570,23 +5508,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "비밀의 문",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 31 } }
-                                }
-                            } },
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 39 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4602,15 +5547,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "내 카드 속엔?",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                HealHpRatio = 29
-                            }},
-                            { 1, new SkillLevelData { 
-                                HealHpRatio = 33
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealHpRatio = 29,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealHpRatio = 33,
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -4655,18 +5607,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 11 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4674,11 +5632,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "축복의 선율",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { HealHpRatio = 15 } },
-                            { 1, new SkillLevelData { HealHpRatio = 15 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealHpRatio = 15,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealHpRatio = 15,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4695,15 +5664,20 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "전장의 선율",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "두명 부활"
-                            }},
-                            { 1, new SkillLevelData { 
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 2,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "두명 부활"
-                            }}
+                                } }
                         }
                     }
                 },
@@ -4741,12 +5715,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4754,11 +5736,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "자연의 회복",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { HealAtkRatio = 180 } },
-                            { 1, new SkillLevelData { HealAtkRatio = 230 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealAtkRatio = 180,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealAtkRatio = 230,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4772,11 +5765,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "자연의 숨결",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { HealAtkRatio = 105 } },
-                            { 1, new SkillLevelData { HealAtkRatio = 125 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealAtkRatio = 105,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                HealAtkRatio = 125,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4828,12 +5832,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4841,26 +5853,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "염화",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 102,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 22,
                                     Dmg_Reduction = 17 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 122,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 22,
                                     Dmg_Reduction = 17 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4875,24 +5893,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "불새",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 160,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 29, Vulnerability = 22 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 160,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 36, Vulnerability = 28 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4938,12 +5962,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -4951,24 +5983,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "뇌제의 분노",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 3,
+                                Cooldown = 0,
                                 Ratio = 113,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 3,
+                                Cooldown = 0,
                                 Ratio = 136,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 45 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -4982,24 +6020,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "청천벽력",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 30 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 87,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 30 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5048,12 +6092,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5061,24 +6113,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "부숴버려!",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 375,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 17 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 375,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 23 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5086,18 +6144,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "봉인해제!",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 545,
-                                HealAtkRatio = 25
-                            }},
-                            { 1, new SkillLevelData { 
+                                HealAtkRatio = 25,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 655,
-                                HealAtkRatio = 30
-                            }}
+                                HealAtkRatio = 30,
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5141,12 +6205,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5154,18 +6226,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "달빛 베기",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 70,
-                                Bonus = new BuffSet { Arm_Pen = 40 }
-                            }},
-                            { 1, new SkillLevelData { 
+                                Bonus = new BuffSet { Arm_Pen = 40 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 85,
-                                Bonus = new BuffSet { Arm_Pen = 40 }
-                            }}
+                                Bonus = new BuffSet { Arm_Pen = 40 },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5181,25 +6259,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "일도천화엽",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 140,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 17, Blk_Red = 25 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 140,
-                                Effect = "아군 디버프 해제",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 17, Blk_Red = 33 } }
-                                }
-                            }}
+                                },
+                                Effect = "아군 디버프 해제"
+                                } }
                         }
                     }
                 },
@@ -5247,12 +6330,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 130 } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 130,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5260,24 +6351,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "천공의 빛",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 80, FixedDamage = 775,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 80,
+                                FixedDamage = 775,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Silence, Stacks = 1, Chance = 50 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 80, FixedDamage = 1285,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 80,
+                                FixedDamage = 1285,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Silence, Stacks = 1, Chance = 60 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5285,24 +6384,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "별빛 낙하",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 115,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5354,17 +6459,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100 } },
-                            { 1, new SkillLevelData { Ratio = 120,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 20 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5372,24 +6484,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "어둠의 일격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 305,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 50 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 370,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 60 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5404,24 +6522,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "어둠의 속삭임",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 25 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 115,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 25 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -5461,22 +6585,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { Ratio = 120,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5484,24 +6614,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "분노의 일격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 115,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 150,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5509,24 +6645,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "용의 분노",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
                                 Ratio = 80,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -5589,14 +6731,21 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 100
-                             } },
-                            { 1, new SkillLevelData { Ratio = 120, HealAtkRatio = 20
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                HealAtkRatio = 20,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5604,16 +6753,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "한 방이면 끝!",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 4,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 125
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 150, Effect="행동제어면역3턴"
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 125,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 4,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 150,
+                                Effect = "행동제어면역3턴"
+                                } }
                         }
                     },
                     new Skill
@@ -5621,24 +6776,30 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "놀아 볼까!",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 3,
+                                Cooldown = 0,
                                 Ratio = 58,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 28 } }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                } },
                             { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 3,
+                                Cooldown = 0,
                                 Ratio = 68,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 37 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         }
                     }
                 },
@@ -5709,14 +6870,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 50, HpRatio = 12
-                             } },
-                            { 1, new SkillLevelData { Ratio = 65, HpRatio = 15
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 65,
+                                HpRatio = 15,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5724,26 +6893,34 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "혹한의 일격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 195, HpRatio = 47,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 195,
+                                HpRatio = 47,
                                 ConditionalExtraDmgSelfHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 100 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 195, HpRatio = 47,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 195,
+                                HpRatio = 47,
                                 ConditionalExtraDmgSelfHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 100 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5755,26 +6932,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "혹한의 지진",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 32, HpRatio = 8,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 32,
+                                HpRatio = 8,
                                 ConditionalExtraDmgSelfHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 40 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 40, HpRatio = 9,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 40,
+                                HpRatio = 9,
                                 ConditionalExtraDmgSelfHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 50 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5847,16 +7032,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, DefRatio = 60
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 60, DefRatio = 70
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                DefRatio = 70,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -5864,24 +7055,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "분쇄",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
-                                Ratio = 120, DefRatio = 135,
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 120,
+                                DefRatio = 135,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 34 } }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                }},
                             { 1, new SkillLevelData {
-                                Ratio = 145, DefRatio = 165,
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 145,
+                                DefRatio = 165,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 44 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -5889,24 +7088,32 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "대지 파괴",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 75, DefRatio = 85,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 75,
+                                DefRatio = 85,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 85, DefRatio = 100,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 85,
+                                DefRatio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5959,24 +7166,30 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, DefRatio = 60,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.IceExtreme, Stacks = 1, Chance = 45 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 60, DefRatio = 70,
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                DefRatio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.IceExtreme, Stacks = 1, Chance = 50 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -5992,24 +7205,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "패왕의 기억",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 65, DefRatio = 70,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 65,
+                                DefRatio = 70,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.IceExtreme, Stacks = 1, Chance = 60 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 75, DefRatio = 85,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 75,
+                                DefRatio = 85,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.IceExtreme, Stacks = 1, Chance = 70 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -6017,26 +7238,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "창공의 패왕",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 30, DefRatio = 33,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 30,
+                                DefRatio = 33,
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.IceExtreme, Stacks = 1, Chance = 60 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 35, DefRatio = 38,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 35,
+                                DefRatio = 38,
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.IceExtreme, Stacks = 1, Chance = 70 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     }
                 },
@@ -6110,19 +7339,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100, HealDmgRatio = 17,
-                                Bonus = new BuffSet{ Arm_Pen = 65 }
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 100, HealDmgRatio = 17,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                HealDmgRatio = 17,
+                                Bonus = new BuffSet{ Arm_Pen = 65 },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                HealDmgRatio = 17,
                                 Bonus = new BuffSet{ Arm_Pen = 65 },
                                 Effect = "아군 방어형, 지원형 1명씩 있을 시 50%확률로 표식 1중첩"
-                             } }
+                                } }
                         }
                     },
                     new Skill
@@ -6130,18 +7364,26 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "강고한 검격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 57, HealDmgRatio = 24,
-                                Bonus = new BuffSet{ Arm_Pen = 65 }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 67, HealDmgRatio = 24,
-                                Bonus = new BuffSet{ Arm_Pen = 65 }
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 57,
+                                HealDmgRatio = 24,
+                                Bonus = new BuffSet{ Arm_Pen = 65 },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 67,
+                                HealDmgRatio = 24,
+                                Bonus = new BuffSet{ Arm_Pen = 65 },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6153,18 +7395,26 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "작전명 : 섬멸",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 77, HealDmgRatio = 24,
-                                Bonus = new BuffSet{ Arm_Pen = 65 }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 90, HealDmgRatio = 24,
-                                Bonus = new BuffSet{ Arm_Pen = 65 }
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 77,
+                                HealDmgRatio = 24,
+                                Bonus = new BuffSet{ Arm_Pen = 65 },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 90,
+                                HealDmgRatio = 24,
+                                Bonus = new BuffSet{ Arm_Pen = 65 },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6230,22 +7480,24 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                                
-                             } },
-                            { 1, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
-                                Effect = "회복불가 추가",
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Unrecover = 1 } }
-                                }
-                            } }
+                                },
+                                Effect = "회복불가 추가"
+                                } }
                         }
                     },
                     new Skill
@@ -6253,16 +7505,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "청룡월파참",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 390 
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 470
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 390,
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 470,
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6274,16 +7532,20 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "진두지휘",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(2턴), 해제가능한 디버프가 있어야 사용가능"
-                            }},
-                            { 1, new SkillLevelData { 
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(2턴), 해제가능한 디버프가 있어야 사용가능, 모든피해면역(1턴)"
-                            }}
+                                }}
                         }
                     }
                 },
@@ -6338,18 +7600,26 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { Ratio = 50, DefRatio = 60
-                             } },
-                            { 1, new SkillLevelData { Ratio = 50, DefRatio = 60,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 6 } }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -6357,16 +7627,26 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "과오의 화옥",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 25, DefRatio = 28, Bonus = new BuffSet{Arm_Pen = 40}
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 28, DefRatio = 33, Bonus = new BuffSet{Arm_Pen = 40}
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 25,
+                                DefRatio = 28,
+                                Bonus = new BuffSet{Arm_Pen = 40},
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 28,
+                                DefRatio = 33,
+                                Bonus = new BuffSet{Arm_Pen = 40},
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -6374,30 +7654,40 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "절망의 폭풍",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 20, DefRatio = 23, HealDmgRatio = 31,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 20,
+                                DefRatio = 23,
+                                HealDmgRatio = 31,
                                 ConsumeExtra = new ConsumeExtraDamage
                                 {
                                     AtkRatio = 39,
                                     DefRatio = 39,
                                     Arm_Pen = 45,
                                     ConsumeCount = 4
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 23, DefRatio = 26, HealDmgRatio = 37,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 23,
+                                DefRatio = 26,
+                                HealDmgRatio = 37,
                                 ConsumeExtra = new ConsumeExtraDamage
                                 {
                                     AtkRatio = 39,
                                     DefRatio = 39,
                                     Arm_Pen = 45,
                                     ConsumeCount = 4
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6450,24 +7740,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 130,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -6475,26 +7769,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "평타-분신",
                         SkillType = SkillType.Normal2,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Bonus = new BuffSet{ Cri = 50 },
                                 Ratio = 60,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Bonus = new BuffSet{ Cri = 50 },
                                 Ratio = 75,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6506,16 +7804,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "대봉승타격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 53, HealAtkRatio = 35
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 62, HealAtkRatio = 35
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 53,
+                                HealAtkRatio = 35,
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 62,
+                                HealAtkRatio = 35,
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -6523,26 +7829,34 @@ namespace GameDamageCalculator.Database
                         Id = 4,
                         Name = "여의난참무",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 43, HealAtkRatio = 35,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 43,
+                                HealAtkRatio = 35,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 40 },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Rdc = 11 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 43, HealAtkRatio = 35,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Ratio = 43,
+                                HealAtkRatio = 35,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 40 },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Rdc = 15 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -6550,18 +7864,30 @@ namespace GameDamageCalculator.Database
                         Id = 5,
                         Name = "환.대봉승타격",
                         SkillType = SkillType.Skill3,
-                        TargetCount = 3,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
                                 Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 },
-                                Ratio = 86, TargetMaxHpRatio = 6, AtkCap = 100, HealAtkRatio = 35
-                            }},
-                            { 1, new SkillLevelData { 
+                                Ratio = 86,
+                                TargetMaxHpRatio = 6,
+                                AtkCap = 100,
+                                HealAtkRatio = 35,
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 3,
+                                Cooldown = 0,
                                 Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 },
-                                Ratio = 102, TargetMaxHpRatio = 7, AtkCap = 100, HealAtkRatio = 35
-                            }}
+                                Ratio = 102,
+                                TargetMaxHpRatio = 7,
+                                AtkCap = 100,
+                                HealAtkRatio = 35,
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6573,24 +7899,34 @@ namespace GameDamageCalculator.Database
                         Id = 6,
                         Name = "환.여의난참무",
                         SkillType = SkillType.Skill4,
-                        TargetCount = 5,
-                        Atk_Count = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
-                                Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 }, Ratio = 68, HealAtkRatio = 35,
+                                TargetCount = 5,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 },
+                                Ratio = 68,
+                                HealAtkRatio = 35,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Blk_Red = 25 } }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                }},
                             { 1, new SkillLevelData {
-                                Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 }, Ratio = 82, HealAtkRatio = 35,
+                                TargetCount = 5,
+                                AtkCount = 3,
+                                Cooldown = 0,
+                                Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 },
+                                Ratio = 82,
+                                HealAtkRatio = 35,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Blk_Red = 33 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6657,24 +7993,28 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 30 }
-                                }
-                            } },
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35 }
-                                }
-                            } }
+                                },
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -6682,24 +8022,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "100만 볼트",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 90,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 40 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 110,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 50 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6718,18 +8064,22 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "시간 조작",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 115,
                                 Effect = "쿨증, 턴감"
-                            }},
-                            { 1, new SkillLevelData { 
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 135,
                                 Effect = "쿨증, 턴감"
-                            }}
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6790,16 +8140,20 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 100
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 120
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 100,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 120,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -6807,24 +8161,30 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "권총 사격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 285,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 22 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Ratio = 110,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 22 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -6832,21 +8192,28 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "사기 진작",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 29 } }
-                                }
-                            }},
+                                },
+                                Effect = ""
+                                }},
                             { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 35 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6899,16 +8266,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, DefRatio = 60
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 65, DefRatio = 75
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 65,
+                                DefRatio = 75,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -6916,24 +8289,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "돌격",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 170, DefRatio = 195,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 170,
+                                DefRatio = 195,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 85 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 205, DefRatio = 235,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 205,
+                                DefRatio = 235,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 100 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     },
                     new Skill
@@ -6941,19 +8322,24 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "방어 준비",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "링크"
-                            }},
-                            { 1, new SkillLevelData { 
-                                Effect = "링크",
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Rdc = 10 } }
-                                }
-                            }}
+                                },
+                                Effect = "링크"
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -6999,16 +8385,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, HpRatio = 12
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 60, HpRatio = 14
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                HpRatio = 14,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -7016,18 +8408,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "잔혹한 폭풍",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 5,
-                        Atk_Count = 2,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 15, DefRatio = 4,
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 15,
+                                DefRatio = 4,
                                 Effect = "상대 약확 22% 감소, 즉사 턴감"
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 15, DefRatio = 4,
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 2,
+                                Cooldown = 0,
+                                Ratio = 15,
+                                DefRatio = 4,
                                 Effect = "상대 약확 30% 감소, 즉사 턴감"
-                            }}
+                                }}
                         }
                     },
                     new Skill
@@ -7035,27 +8433,33 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "칠흑의 장막",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 35, HpRatio = 9,
-                                Effect = "링크",
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 35,
+                                HpRatio = 9,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 35 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 35, HpRatio = 9,
-                                Effect = "링크",
+                                },
+                                Effect = "링크"
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 35,
+                                HpRatio = 9,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 40 },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Rdc = 10 } }
-                                }
-                            }}
+                                },
+                                Effect = "링크"
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -7103,16 +8507,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, HpRatio = 12
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 60, HpRatio = 14
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                HpRatio = 14,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -7120,17 +8530,22 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "지옥의 방패",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 HealHpRatio = 15,
                                 Effect = "도발, 피면, 아군 지속 힐"
-                            }},
-                            { 1, new SkillLevelData { 
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 HealHpRatio = 20,
                                 Effect = "도발, 피면, 아군 지속 힐"
-                            }}
+                                }}
                         }
                     },
                     new Skill
@@ -7138,26 +8553,34 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "지옥의 일격",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 80, HpRatio = 19,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 80,
+                                HpRatio = 19,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 35 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 37 } }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 80, HpRatio = 19,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 80,
+                                HpRatio = 19,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 40 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 37 } }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         }
                     }
                 },
@@ -7198,17 +8621,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, DefRatio = 60
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 50, DefRatio = 60,
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                DefRatio = 60,
                                 Effect = "평타 시 9초쿨감"
-                             } }
+                                } }
                         }
                     },
                     new Skill
@@ -7216,24 +8644,32 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "포격 지원",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 3,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 110, DefRatio = 130,
+                            { 0, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 110,
+                                DefRatio = 130,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 60 }
-                                }
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 130, DefRatio = 150,
+                                },
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 3,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 130,
+                                DefRatio = 150,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 60 }
-                                }
-                            }}
+                                },
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -7282,16 +8718,22 @@ namespace GameDamageCalculator.Database
                         Id = 1,
                         Name = "평타",
                         SkillType = SkillType.Normal,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 50, HpRatio = 12
-                             } },
-                            { 1, new SkillLevelData { 
-                                Ratio = 60, HpRatio = 14
-                             } }
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 50,
+                                HpRatio = 12,
+                                Effect = ""
+                                } },
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Ratio = 60,
+                                HpRatio = 14,
+                                Effect = ""
+                                } }
                         }
                     },
                     new Skill
@@ -7299,16 +8741,24 @@ namespace GameDamageCalculator.Database
                         Id = 2,
                         Name = "투창",
                         SkillType = SkillType.Skill1,
-                        TargetCount = 1,
-                        Atk_Count = 1,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
-                                Ratio = 315, HpRatio = 75
-                            }},
-                            { 1, new SkillLevelData { 
-                                Ratio = 380, HpRatio = 91
-                            }}
+                            { 0, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 315,
+                                HpRatio = 75,
+                                Effect = ""
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 1,
+                                AtkCount = 1,
+                                Cooldown = 0,
+                                Ratio = 380,
+                                HpRatio = 91,
+                                Effect = ""
+                                }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
@@ -7320,15 +8770,20 @@ namespace GameDamageCalculator.Database
                         Id = 3,
                         Name = "진형 굳히기",
                         SkillType = SkillType.Skill2,
-                        TargetCount = 5,
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
-                            { 0, new SkillLevelData { 
+                            { 0, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "파티 보호막"
-                            }},
-                            { 1, new SkillLevelData { 
+                                }},
+                            { 1, new SkillLevelData {
+                                TargetCount = 5,
+                                AtkCount = 1,
+                                Cooldown = 0,
                                 Effect = "파티 보호막"
-                            }}
+                                }}
                         }
                     }
                 },

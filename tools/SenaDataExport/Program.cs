@@ -121,6 +121,7 @@ var heroes = CharacterDb.Characters.Select(c =>
         var l0 = s.GetLevelData(false);
         var l1 = s.GetLevelData(true);
         var tr = s.GetTranscendBonus(12);
+        // target은 선언된 레벨값을 그대로 노출 (0 = 대상 없는 유틸 스킬 → 웹에서 빈칸 표시)
         return new
         {
             id = s.Id,
@@ -128,9 +129,9 @@ var heroes = CharacterDb.Characters.Select(c =>
             skillType = s.SkillType.ToString(),
             tiers = new
             {
-                @base = new { cooldown = s.GetCooldown(false, 0), target = s.TargetCount, atk = s.Atk_Count, ratio = l0.Ratio },
-                enhanced = new { cooldown = s.GetCooldown(true, 0), target = s.TargetCount, atk = s.Atk_Count, ratio = l1.Ratio },
-                transcend = new { cooldown = s.GetCooldown(true, 12), target = tr.TargetCountOverride ?? s.TargetCount, atk = s.Atk_Count, ratio = l1.Ratio },
+                @base = new { cooldown = s.GetCooldown(false, 0), target = l0.TargetCount, atk = s.GetAtkCount(false, 0), ratio = l0.Ratio },
+                enhanced = new { cooldown = s.GetCooldown(true, 0), target = l1.TargetCount, atk = s.GetAtkCount(true, 0), ratio = l1.Ratio },
+                transcend = new { cooldown = s.GetCooldown(true, 12), target = tr.TargetCountOverride ?? l1.TargetCount, atk = s.GetAtkCount(true, 12), ratio = l1.Ratio },
             },
         };
     }).ToList(),

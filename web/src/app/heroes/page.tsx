@@ -279,7 +279,7 @@ export default function HeroesPage() {
                           {(
                             [
                               ["쿨타임", (t: SkillTier) => `${t.cooldown}`],
-                              ["대상 수", (t: SkillTier) => `${t.target}`],
+                              ["대상 수", (t: SkillTier) => (t.target > 0 ? `${t.target}` : "-")],
                               ["공격 횟수", (t: SkillTier) => `${t.atk}`],
                               ["배율", (t: SkillTier) => `${t.ratio}%`],
                             ] as [string, (t: SkillTier) => string][]
