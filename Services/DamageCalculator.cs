@@ -172,7 +172,7 @@ namespace GameDamageCalculator.Services
 
             // 1. 스킬 발동 전 버프
             ApplyPreCastBuff(input, levelData, result);
-            result.AtkCount = input.Skill?.Atk_Count ?? 1;
+            result.AtkCount = input.Skill?.GetAtkCount(input.IsSkillEnhanced, input.TranscendLevel) ?? 1;
             result.DebugLog.AppendLine($"\n[2] PreCast 후 공격력: {result.FinalAtk:N0}, 타수: {result.AtkCount}");
 
             // 2. 스킬 배율
@@ -347,7 +347,7 @@ namespace GameDamageCalculator.Services
             int targetCount = 0;
             if (input.Skill != null)
             {
-                targetCount = input.Skill.GetTargetCount(input.TranscendLevel);
+                targetCount = input.Skill.GetTargetCount(input.IsSkillEnhanced, input.TranscendLevel);
                 targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3 : (targetCount >= 4) ? input.Dmg4to5 : 0;
             }
 
@@ -468,7 +468,7 @@ namespace GameDamageCalculator.Services
                 double extraRatio = levelData.ConditionalExtraDmg / 100.0;
 
                 // 피증 구성요소 개별 출력 (소거법용)
-                int targetCount = input.Skill?.GetTargetCount(input.TranscendLevel) ?? 0;
+                int targetCount = input.Skill?.GetTargetCount(input.IsSkillEnhanced, input.TranscendLevel) ?? 0;
                 double targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3 : (targetCount >= 4) ? input.Dmg4to5 : 0;
                 double bossDmg = input.IsTargetBoss ? input.DmgDealtBoss : 0;
                 result.DebugLog.AppendLine($"    [피증분석] 기본:{input.DmgDealt}% 타입:{input.DmgDealtType}% 보스:{bossDmg}% {targetCount}인기:{targetTypeDmg}%");
@@ -616,7 +616,7 @@ namespace GameDamageCalculator.Services
                 if (baseEffect == null) continue;
 
                 double applyChance = CalcStatusEffectChance(input, effectToUse);
-                int atkCount = input.Skill?.Atk_Count ?? 1;
+                int atkCount = input.Skill?.GetAtkCount(input.IsSkillEnhanced, input.TranscendLevel) ?? 1;
                 int maxStacks = baseEffect.MaxStacks > 0 ? baseEffect.MaxStacks : 99;
                 double expectedStacks = CalcExpectedStacks(input, effectToUse, atkCount, maxStacks);
 

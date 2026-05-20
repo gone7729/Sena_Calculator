@@ -480,7 +480,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 BossDef = enemy?.Stats?.Def ?? 0,
                 BossDefIncrease = enemy?.DefenseIncrease ?? 0,
                 BossDmgReduction = enemy?.DamageReduction ?? 0,
-                BossTargetReduction = GetTargetReduction(enemy, bestSkill.TargetCount),
+                BossTargetReduction = GetTargetReduction(enemy, bestSkill.GetTargetCount(battleChar.IsSkillEnhanced, battleChar.TranscendLevel)),
                 BossHp = enemy?.Stats?.Hp ?? 0,
                 TargetHp = enemy?.Stats?.Hp ?? 0,
                 TargetCurrentHp = enemy?.Stats?.Hp ?? 0,

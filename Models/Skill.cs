@@ -76,6 +76,9 @@ namespace GameDamageCalculator.Models
         if (kvp.Value.TargetCountOverride.HasValue)
             result.TargetCountOverride = kvp.Value.TargetCountOverride;
 
+        if (kvp.Value.AtkCountOverride.HasValue)
+            result.AtkCountOverride = kvp.Value.AtkCountOverride;
+
         if (kvp.Value.Cooldown > 0)
             result.Cooldown = kvp.Value.Cooldown;
 
@@ -99,10 +102,32 @@ namespace GameDamageCalculator.Models
     return result;
 }
 
-        public int GetTargetCount(int transcendLevel)
+        /// <summary>
+        /// 티어별 대상 수. 우선순위: 초월 오버라이드 > 레벨별 > Skill.TargetCount
+        /// </summary>
+        public int GetTargetCount(bool isEnhanced, int transcendLevel)
         {
-            var bonus = GetTranscendBonus(transcendLevel);
-            return bonus.TargetCountOverride ?? TargetCount;
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.TargetCountOverride.HasValue) return transcend.TargetCountOverride.Value;
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.TargetCount > 0) return levelData.TargetCount;
+
+            return TargetCount;
+        }
+
+        /// <summary>
+        /// 티어별 공격 횟수. 우선순위: 초월 오버라이드 > 레벨별 > Skill.Atk_Count
+        /// </summary>
+        public int GetAtkCount(bool isEnhanced, int transcendLevel)
+        {
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.AtkCountOverride.HasValue) return transcend.AtkCountOverride.Value;
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.AtkCount > 0) return levelData.AtkCount;
+
+            return Atk_Count;
         }
 
         /// <summary>
@@ -203,6 +228,10 @@ namespace GameDamageCalculator.Models
 
         // ===== 쿨타임 (티어별, 0이면 Skill.CooldownSeconds로 폴백) =====
         public double Cooldown { get; set; }            // 쿨다운 (초)
+
+        // ===== 대상 수 / 공격 횟수 (티어별, 0이면 Skill 기본값으로 폴백) =====
+        public int TargetCount { get; set; }            // 대상 수
+        public int AtkCount { get; set; }               // 공격 횟수(타수)
 
         // ===== 조건부 효과 =====
         public double ConditionalRatioBonus { get; set; }
@@ -305,6 +334,7 @@ namespace GameDamageCalculator.Models
         public TimedBuff PartyBuff { get; set; } = new TimedBuff();
         public TimedDebuff Debuff { get; set; } = new TimedDebuff();
         public int? TargetCountOverride { get; set; }
+        public int? AtkCountOverride { get; set; }      // 초월 시 공격 횟수 변경
 
         // 쿨타임 (초월 시 변경, 0이면 강화 레벨 쿨타임 유지)
         public double Cooldown { get; set; }

@@ -415,7 +415,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 battleChar.Character, skill, battleChar.IsSkillEnhanced, battleChar.TranscendLevel);
 
             // 타겟 수에 따른 보스 피해감소
-            double targetReduction = GetTargetReduction(config.TargetEnemy, skill.TargetCount);
+            double targetReduction = GetTargetReduction(config.TargetEnemy,
+                skill.GetTargetCount(battleChar.IsSkillEnhanced, battleChar.TranscendLevel));
 
             // 적 방어력 (스택 포함)
             double enemyDef = config.TargetEnemy.Stats.Def;
