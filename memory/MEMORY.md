@@ -1,3 +1,4 @@
 - [웹 마이그레이션 우선순위](project_web_migration_priority.md) — DB·Services 정합성 최우선, XAML/UI 후순위
 - [장비 DB 설계 의도](project_equipment_db_design.md) — 메인/서브 변수명 공유, AccessoryDb 4/5성 미구현, SubStatBase+TierValues 중복은 모두 의도된 설계
 - [회귀 테스트 계획](project_regression_test_plan.md) — 4명 테스트 캐릭터 회귀 측정은 옵티마이저 확장 시 자동화 패턴으로 통합 예정
+- [공격력 타입 분리](project_atk_type_split.md) — 물리 Atk/마법 MagicAtk 분리 Phase 1-5 완료, Phase 6(옵티마이저 필터) 미진행

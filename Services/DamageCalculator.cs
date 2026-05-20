@@ -412,7 +412,8 @@ namespace GameDamageCalculator.Services
 
         private void ApplyPreCastBuff(DamageInput input, SkillLevelData levelData, DamageResult result)
         {
-            double preCastAtkBonus = levelData?.PreCastBuff?.Atk_Rate ?? 0;
+            // 물리/마법 공격력% 합산 (한 캐릭터는 둘 중 하나만 보유하므로 안전)
+            double preCastAtkBonus = (levelData?.PreCastBuff?.Atk_Rate ?? 0) + (levelData?.PreCastBuff?.MagicAtk_Rate ?? 0);
             if (preCastAtkBonus > input.AtkBuff)
             {
                 double additionalBonus = preCastAtkBonus - input.AtkBuff;

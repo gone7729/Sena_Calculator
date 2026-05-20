@@ -782,7 +782,7 @@ namespace GameDamageCalculator.Services
         private static bool IsEmpty(BuffSet buff)
         {
             if (buff == null) return true;
-            return buff.Atk_Rate == 0 && buff.Def_Rate == 0 && buff.Hp_Rate == 0
+            return buff.Atk_Rate == 0 && buff.MagicAtk_Rate == 0 && buff.Def_Rate == 0 && buff.Hp_Rate == 0
                 && buff.Cri == 0 && buff.Cri_Dmg == 0 && buff.CriBonusDmg == 0
                 && buff.Wek == 0 && buff.Wek_Dmg == 0 && buff.WekBonusDmg == 0
                 && buff.Dmg_Dealt == 0 && buff.Dmg_Dealt_Type == 0 && buff.Dmg_Dealt_Bos == 0
@@ -790,7 +790,9 @@ namespace GameDamageCalculator.Services
                 && buff.Mark_Energeia == 0 && buff.Mark_Purify == 0
                 && buff.Arm_Pen == 0 && buff.Dmg_Rdc == 0 && buff.Blk == 0
                 && buff.Heal_Bonus == 0 && buff.Eff_Res == 0 && buff.Eff_Hit == 0
-                && buff.Shield_HpRatio == 0 && buff.Blessing == 0;
+                && buff.Shield_HpRatio == 0 && buff.Blessing == 0
+                && buff.Phys_Dmg_Rdc == 0 && buff.Mag_Dmg_Rdc == 0
+                && buff.Dmg_Rdc_Multi == 0 && buff.Coop_Chance == 0;
         }
 
         private static bool IsEmptyDebuff(DebuffSet debuff)

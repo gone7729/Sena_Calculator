@@ -1364,7 +1364,7 @@
                             <!-- 기본 공/방/생 -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock Text="기본" Foreground="#64748b" Width="30" VerticalAlignment="Center" FontSize="10"/>
-                                <TextBlock Text="공" Foreground="#64748b" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lblMyAtkBase" Text="공" Foreground="#64748b" Width="16" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtMyStatAtkBase" Text="0" Width="50" FontWeight="SemiBold" Foreground="#94a3b8"/>
                                 <TextBlock Text="방" Foreground="#64748b" Width="16" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtMyStatDefBase" Text="0" Width="50" FontWeight="SemiBold" Foreground="#94a3b8"/>
@@ -1378,7 +1378,7 @@
                             <!-- 최종 공/방/생 -->
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="최종" Foreground="#94a3b8" Width="30" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold"/>
-                                <TextBlock Text="공" Foreground="#f87171" Width="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lblMyAtkFinal" Text="공" Foreground="#f87171" Width="16" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtMyStatAtk" Text="0" Width="50" FontWeight="Bold" FontSize="13" Foreground="#f87171"/>
                                 <TextBlock Text="방" Foreground="#60a5fa" Width="16" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtMyStatDef" Text="0" Width="50" FontWeight="Bold" FontSize="13" Foreground="#60a5fa"/>
@@ -1437,7 +1437,7 @@
                         <TextBox x:Name="txtMyStatWekDmg" Grid.Row="3" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>
                         
                         <!-- 공격력 증가 / 피해 증가 -->
-                        <TextBlock Text="공격력 증가" Grid.Row="4" Grid.Column="0" Style="{StaticResource LabelText}"/>
+                        <TextBlock x:Name="lblMyAtkRate" Text="공격력 증가" Grid.Row="4" Grid.Column="0" Style="{StaticResource LabelText}"/>
                         <TextBlock Text="피해 증가" Grid.Row="4" Grid.Column="1" Style="{StaticResource LabelText}"/>
                         <TextBox x:Name="txtMyStatAtkRate" Grid.Row="5" Grid.Column="0" Text="0" Style="{StaticResource OutputBox}" Margin="0,0,5,5"/>
                         <TextBox x:Name="txtMyStatDmgDealt" Grid.Row="5" Grid.Column="1" Text="0%" Style="{StaticResource OutputBox}" Margin="5,0,0,5"/>

@@ -1236,6 +1236,12 @@ namespace GameDamageCalculator.UI
             txtMyStatHp.Text = result.FinalHp.ToString("N0");
             txtMyStatSpd.Text = result.FinalSpd.ToString("N0");
 
+            // 마법형 캐릭터는 공격력 레이블을 마법공격력으로 표시
+            bool isMagic = character?.AttackType == AttackType.Magic;
+            lblMyAtkBase.Text = isMagic ? "마공" : "공";
+            lblMyAtkFinal.Text = isMagic ? "마공" : "공";
+            lblMyAtkRate.Text = isMagic ? "마법공격력 증가" : "공격력 증가";
+
             UpdateStatDisplay(result.DisplayStats);
             UpdateBossDebuffDisplay();
         }
