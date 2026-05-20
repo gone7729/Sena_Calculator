@@ -1766,14 +1766,14 @@ namespace GameDamageCalculator.Database
                             Effect = "자신 공격력 27% 증가, 치피 40% 증가",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 27, Cri_Dmg = 40 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 27, Cri_Dmg = 40 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effect = "자신 공격력 33% 증가, 치피 40% 증가",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 33, Cri_Dmg = 40 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 33, Cri_Dmg = 40 } }
                             }
                         }}
                     }
@@ -2051,13 +2051,13 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 19 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 19 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 25 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 25 } }
                             }
                         }}
                     },
@@ -2502,14 +2502,14 @@ namespace GameDamageCalculator.Database
                                 Ratio = 130,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Atk_Rate = 27 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 27 } }
                                 }
                             } },
                             { 1, new SkillLevelData { 
                                 Ratio = 155,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Atk_Rate = 33 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 33 } }
                                 }
                             } }
                         }
@@ -2524,14 +2524,14 @@ namespace GameDamageCalculator.Database
                             Effect = "공격력 높은 아군 2명",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 21 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 21 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effect = "공격력 높은 아군 2명",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 27 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 27 } }
                             }
                         }}
                     },
@@ -3074,13 +3074,13 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData { 
                                 Ratio = 57,
                                 DispelDefReduction = 22,
-                                PreCastBuff = new BuffSet{ Atk_Rate = 10 },
+                                PreCastBuff = new BuffSet{ MagicAtk_Rate = 10 },
                                 Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
                             } },
                             { 1, new SkillLevelData { 
                                 Ratio = 67,
                                 DispelDefReduction = 22,
-                                PreCastBuff = new BuffSet { Atk_Rate = 10 },
+                                PreCastBuff = new BuffSet { MagicAtk_Rate = 10 },
                                 Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)",
                                 Effects = new List<SkillEffect>
                                 {
@@ -3617,7 +3617,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Atk_Rate = 25 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 25 } }
                                 }
                             } },
                             { 1, new SkillLevelData { 
@@ -3626,7 +3626,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Atk_Rate = 31 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 31 } }
                                 }
                             } }
                         },
@@ -3983,13 +3983,13 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Atk_Rate = 19 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { MagicAtk_Rate = 19 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Atk_Rate = 21 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { MagicAtk_Rate = 21 } }
                             }
                         }}
                     },
