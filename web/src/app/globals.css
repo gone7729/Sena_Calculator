@@ -370,7 +370,57 @@ html, body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 10px;
+  align-content: start;
+  padding: 12px;
 }
+
+/* 영웅 카드 (이미지 + 이름) */
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.hero-card:hover { background: var(--hover); }
+
+.hero-card.selected {
+  border-color: var(--accent);
+  background: var(--brand-soft);
+}
+
+.hero-card-img {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px dashed var(--border-strong);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 10px;
+  background: #fbfaf6;
+}
+
+.hero-card-name {
+  font-size: 12px;
+  text-align: center;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-card.selected .hero-card-name { color: var(--brand); font-weight: 600; }
 
 .hero-row {
   display: flex;

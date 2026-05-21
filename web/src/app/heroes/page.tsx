@@ -71,8 +71,6 @@ const STATUS_TAGS = [
   "실명", "도발", "화상", "출혈", "중독", "즉사", "폭탄",
 ];
 
-const BUFF_SET = new Set(BUFF_TAGS);
-const STATUS_SET = new Set(STATUS_TAGS);
 
 const SKILL_TYPE_LABEL: Record<string, string> = {
   Normal: "평타",
@@ -243,30 +241,11 @@ export default function HeroesPage() {
                 <button
                   key={h.id}
                   type="button"
-                  className={`hero-row${selectedId === h.id ? " selected" : ""}`}
+                  className={`hero-card${selectedId === h.id ? " selected" : ""}`}
                   onClick={() => setSelectedId(h.id)}
                 >
-                  <span className="hero-row-name">{h.name}</span>
-                  <span className="hero-row-tags">
-                    <span className={`tag${h.grade === "전설" ? " grade-legend" : ""}`}>
-                      {h.grade}
-                    </span>
-                    <span
-                      className={`tag ${h.attackType === "Magic" ? "atk-magic" : "atk-physical"}`}
-                    >
-                      {h.type}
-                    </span>
-                    {h.tags?.map((t) => (
-                      <span
-                        key={t}
-                        className={`tag ${
-                          BUFF_SET.has(t) ? "tag-buff" : STATUS_SET.has(t) ? "tag-status" : "tag-debuff"
-                        }`}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </span>
+                  <div className="hero-card-img">이미지</div>
+                  <div className="hero-card-name">{h.name}</div>
                 </button>
               ))
             )}
