@@ -130,7 +130,7 @@ namespace GameDamageCalculator.Database
                         }},
                         { 1, new PassiveLevelData {
                             MaxStacks = 8,
-                            Effect = "모든 공격 2회 시 2스택 부여, 자신의 스킬 1회 발동 시 모든 피해 무효화[피격 1회]",
+                            Effect = "모든 공격 2회 시 2스택 부여[상시], 자신의 스킬 1회 발동 시 모든 피해 무효화[피격 1회]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -160,7 +160,7 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend {
-                            Effect = "초월 시 스택 당 물리 취약 4%",
+                            Effect = "초월 시 스택 당 물리 취약 4%[상시]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -302,7 +302,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            Effect = "모든 아군 3인 공격기 피해량 25% 증가, 아군 화상 면역[2턴], 자신의 기본 공격 1회 발동 시 아군 화상 면역[2턴]",
+                            Effect = "모든 아군 3인 공격기 피해량 25% 증가[상시], 아군 화상 면역[2턴], 자신의 기본 공격 1회 발동 시 아군 화상 면역[2턴]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 25 } },
@@ -310,7 +310,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "모든 아군 3인 공격기 피해량 31% 증가, 아군 화상 면역[2턴], 자신의 기본 공격 1회 발동 시 아군 화상 면역[2턴]",
+                            Effect = "모든 아군 3인 공격기 피해량 31% 증가[상시], 아군 화상 면역[2턴], 자신의 기본 공격 1회 발동 시 아군 화상 면역[2턴]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 31 } },
@@ -424,7 +424,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            Effect = "자신 모든 피해 무효화[피겨 3회]",
+                            Effect = "자신 모든 피해 무효화[피격 3회]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { 
@@ -435,7 +435,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "자신 모든 피해 무효화[피겨 4회]",
+                            Effect = "자신 모든 피해 무효화[피격 4회]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { 
@@ -449,7 +449,7 @@ namespace GameDamageCalculator.Database
                         TranscendBonuses = new Dictionary<int, PassiveTranscend>
                         {
                             { 6, new PassiveTranscend { 
-                                Effect = "아군 사망 시 모든 피해 무효화 피격 1회, 아군 사망 시 물리 공격력 증가 39%(2턴)",
+                                Effect = "아군 사망 시 모든 피해 무효화 [피격 1회], 아군 사망 시 물리 공격력 증가 (39%)[2턴]",
                                 Effects = new List<PersistentEffect>
                                 {
                                     new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllyDeath, TriggerCount = 1, DamageNullification = new DamageNullification { HitCount = 1, Type = DamageNullType.All } },
@@ -535,7 +535,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            Effect = "마법 감쇄(감쇄 = 받는 피해 감소, 마법과 물리 감쇄 구현안되있으면 해야함), 치확 증가, 자신의 모든 공격 3회 발동 시 물공 100% 1회 피해",
+                            Effect = "마법 감쇄(24%)[상시], 치확 증가(35%)[상시], 자신의 모든 공격 3회 발동 시 물공 100% 1회 피해",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { 
@@ -546,7 +546,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "마법 감쇄(감쇄 = 받는 피해 감소, 마법과 물리 감쇄 구현안되있으면 해야함), 치확 증가, 자신의 모든 공격 3회 발동 시 물공 100% 1회 피해",
+                            Effect = "마법 감쇄(29%)[상시], 치확 증가(41%)[상시], 자신의 모든 공격 3회 발동 시 물공 100% 1회 피해",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { 
@@ -662,7 +662,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Chance = 100, Duration = 3, RequiresStatusType = StatusEffectType.Bleeding }
                                 },
-                                Effect = "쿨 55초 변경, 상대 출혈 시 확정 출혈[3턴]" } }
+                                Effect = "쿨 55초 변경, 상대 출혈 시 출혈(100%)[3턴]" } }
                         }
                     },
                     new Skill
@@ -720,7 +720,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            Effect = "자신의 스킬 1회 발동 시 자신에게 물피증 29%(3턴)(스킬 1회시 발동으로 수정 구현해야함), 모든 공격 3회 발동 후 시전자 물공 50%만큼 생명력 회복(구현해야함)",
+                            Effect = "자신의 스킬 1회 발동 시 자신에게 물피증 (29%)(3턴), 모든 공격 3회 발동 후 시전자 물공 (50%)만큼 생명력 회복",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, Buff = new BuffSet { Dmg_Dealt_Type = 29 } },
@@ -728,7 +728,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "자신의 스킬 1회 발동 시 자신에게 물피증 35%(3턴)(스킬 1회시 발동으로 수정 구현해야함), 모든 공격 3회 발동 후 시전자 물공 55%만큼 생명력 회복(구현해야함)",
+                            Effect = "자신의 스킬 1회 발동 시 자신에게 물피증 (35%)(3턴), 모든 공격 3회 발동 후 시전자 물공 (55%)만큼 생명력 회복",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, Buff = new BuffSet { Dmg_Dealt_Type = 35 } },
@@ -789,7 +789,7 @@ namespace GameDamageCalculator.Database
                                         Type = SkillEffectType.Debuff, 
                                         Debuff = new DebuffSet { Heal_Reduction = 52 } }
                                 },
-                                Effect = "받는회복량감소52%[3턴]"
+                                Effect = "받는회복량감소(52%)[3턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 4,
@@ -800,7 +800,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 68 } }
                                 },
-                                Effect = "받는회복량감소68%[3턴]"
+                                Effect = "받는회복량감소(68%)[3턴]"
                                 } }
                         },
                     },
@@ -816,14 +816,14 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 0,
                                 Ratio = 57,
-                                Effect = "석화(45%확률)[2턴]",
+                                Effect = "석화(45%)[2턴]",
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
                                 Cooldown = 0,
                                 Ratio = 57,
-                                Effect = "석화(55%확률)[2턴]"
+                                Effect = "석화(55%)[2턴]"
                                 } }
                         },
                     }
@@ -834,7 +834,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            Effect = "사망시 불굴[피격 8회], 아군(공격형,만능형) 치피증(28%), 아군(공격형,만능형) 불굴 발동 시 디버프 해제(2개) 및 물피증(20%)[3턴]",
+                            Effect = "사망시 불굴(전투당 1회)[피격 8회], 아군(공격형,만능형) 치피증(28%), 아군(공격형,만능형) 불굴 발동 시 디버프 해제(2개) 및 물피증(20%)[3턴]",
                             Effects = new List<PersistentEffect>
                             {
                                 // 아군(공격형,만능형) 치피증 28%
@@ -879,7 +879,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "사망시 불굴[피격 8회], 아군(공격형,만능형) 치피증(34%), 아군(공격형,만능형) 불굴 발동 시 디버프 해제(2개) 및 물피증(20%)[3턴]",
+                            Effect = "사망시 불굴(전투당 1회)[피격 8회], 아군(공격형,만능형) 치피증(34%), 아군(공격형,만능형) 불굴 발동 시 디버프 해제(2개) 및 물피증(20%)[3턴]",
                             Effects = new List<PersistentEffect>
                             {
                                 // 아군(공격형,만능형) 치피증 34%
@@ -927,7 +927,7 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend {
-                            Effect = "아군(공격형, 만능형) 불굴 발동 시 시전자 물공 65%만큼 피회복",
+                            Effect = "아군(공격형, 만능형) 불굴 발동 시 시전자 물공 (65%)만큼 피회복",
                             Effects = new List<PersistentEffect>
                             {
                                 // 불굴 발동 시 아군(공격형,만능형): 시전자 물공 65% 비례 피회복
@@ -941,7 +941,7 @@ namespace GameDamageCalculator.Database
                             }
                         } },
                         { 6, new PassiveTranscend {
-                            Effect = "스킬 1회 발동 시 물리 취약[100%][2턴] 모든 적군",
+                            Effect = "스킬 1회 발동 시 물리 취약(24%)[2턴] 모든 적군",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.Debuff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, Chance = 100, Duration = 2, Debuff = new DebuffSet { Phys_Dmg_Taken_Increase = 24 } }
@@ -992,22 +992,17 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
-                                Ratio = 130,
-                                Bonus = new BuffSet { Cri = 30 },
-                                Effect = ""
+                                Cooldown = 88,
+                                Ratio = 150,
+                                Effect = "관통"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 88,
                                 Ratio = 170,
-                                Effect = ""
+                                Effect = "관통"
                                 } }
-                        },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            { 6, new SkillTranscend { Bonus = new BuffSet { Cri = 100 } } }
                         }
                     },
                     new Skill
@@ -1020,23 +1015,18 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
-                                Ratio = 65,
-                                Bonus = new BuffSet { Cri = 30 },
-                                Effect = ""
+                                Cooldown = 88,
+                                Ratio = 77,
+                                Effect = "대상 턴제 버프 감소(100% 확률)[2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
-                                Ratio = 85,
-                                Effect = ""
+                                Cooldown = 88,
+                                Ratio = 90,
+                                Effect = "대상 턴제 버프 감소(100% 확률)[2턴]"
                                 } }
                         },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            { 6, new SkillTranscend { Bonus = new BuffSet { Cri = 100 } } }
-                        }
                     }
                 },
                 Passive = new Passive
@@ -1045,19 +1035,31 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData { 
-                            Effect = "피해무효화 3회, 불사 3턴"
-                        }},
-                        { 1, new PassiveLevelData { 
-                            Effect = "피해무효화 3회, 불사 3턴",
+                            Effect = "피해무효화[피격 3회], 사망 시 불사 상태로 부활[2턴](전투당1회), 치명타확률 증가(27%)[상시], 적군 4명 사망 시 2스킬 발동 -> 대상 턴제 버프 감소[2턴], Ratio=77%, AtkCount=2 해당 스킬은 본래의 스킬과 별개 취급(라운드당 1회)",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Atk_Rate = 39 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } }
                             }
+                        }},
+                        { 1, new PassiveLevelData { 
+                            Effect = "피해무효화[피격 3회], 사망 시 불사 상태로 부활[2턴](전투당1회), 치명타확률 증가(27%)[상시], 적군 4명 사망 시 2스킬 발동 -> 대상 턴제 버프 감소[2턴], Ratio=90%, AtkCount=2 해당 스킬은 본래의 스킬과 별개 취급(라운드당 1회) 불사 발동 시 물공증(39%)[2턴]",
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Atk_Rate = 39 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } },
+                            },
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { Effect = "불사 쿨초" } }
+                        { 2, new PassiveTranscend { Effect = "불사 발동 시 스킬 쿨타임 초기화" } },
+                        { 6, new PassiveTranscend { 
+                            Effect = "치명타 확률 증가(100%)[상시]",
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 100 } },
+                            },
+                             } },
                     }
                 },
                 TranscendType = TranscendType.AtkCriDmg
@@ -6249,9 +6251,9 @@ namespace GameDamageCalculator.Database
                             { 2, new SkillTranscend { Effect = "관통 추가" } },
                             { 6, new SkillTranscend { 
                                 Effects = new List<SkillEffect>
-                {
-                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Chance = 10 }
-                } } }
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Chance = 10 }
+                                } } }
                         }
                     }
                 },
