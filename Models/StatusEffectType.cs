@@ -18,6 +18,8 @@ namespace GameDamageCalculator.Models
         Sleep,          // 수면
         Confusion,      // 혼란
         Concussion,     // 진탕
+        Blind,          // 실명 (공격 빗나감 유발)
+        Taunt,          // 도발 (시전자만 공격 대상이 됨)
 
         // === DoT (지속 피해) ===
         Burn,           // 화상

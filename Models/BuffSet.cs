@@ -49,6 +49,7 @@ namespace GameDamageCalculator.Models
         public double Shield_HpRatio { get; set; }  // 보호막%
         public double Blessing { get; set; }        // 축복 - 1회 피해 최대 HP% 제한
         public double Coop_Chance { get; set; }     // 협공 발동 확률 가산%
+        public double Cooldown_Reduction { get; set; } // 아군 스킬 쿨타임 감소(초)
 
         /// <summary>
         /// 다른 BuffSet을 현재 세트에 더함
@@ -86,6 +87,7 @@ namespace GameDamageCalculator.Models
             Shield_HpRatio += other.Shield_HpRatio;
             Blessing += other.Blessing;
             Coop_Chance += other.Coop_Chance;
+            Cooldown_Reduction += other.Cooldown_Reduction;
         }
 
         /// <summary>
@@ -124,6 +126,7 @@ namespace GameDamageCalculator.Models
             Shield_HpRatio = Math.Max(Shield_HpRatio, other.Shield_HpRatio);
             Blessing = Math.Max(Blessing, other.Blessing);
             Coop_Chance = Math.Max(Coop_Chance, other.Coop_Chance);
+            Cooldown_Reduction = Math.Max(Cooldown_Reduction, other.Cooldown_Reduction);
         }
 
         /// <summary>
@@ -163,6 +166,7 @@ namespace GameDamageCalculator.Models
                 Shield_HpRatio = Shield_HpRatio,
                 Blessing = Blessing,
                 Coop_Chance = Coop_Chance,
+                Cooldown_Reduction = Cooldown_Reduction,
             };
         }
 
@@ -201,6 +205,7 @@ namespace GameDamageCalculator.Models
             Shield_HpRatio = 0;
             Blessing = 0;
             Coop_Chance = 0;
+            Cooldown_Reduction = 0;
         }
     }
 
@@ -243,6 +248,7 @@ namespace GameDamageCalculator.Models
                 Shield_HpRatio = Shield_HpRatio,
                 Blessing = Blessing,
                 Coop_Chance = Coop_Chance,
+                Cooldown_Reduction = Cooldown_Reduction,
             };
         }
 
@@ -285,6 +291,7 @@ namespace GameDamageCalculator.Models
                 Shield_HpRatio = timedBuff.Shield_HpRatio,
                 Blessing = timedBuff.Blessing,
                 Coop_Chance = timedBuff.Coop_Chance,
+                Cooldown_Reduction = timedBuff.Cooldown_Reduction,
             };
         }
     }
@@ -328,6 +335,7 @@ namespace GameDamageCalculator.Models
                 Shield_HpRatio = Shield_HpRatio,
                 Blessing = Blessing,
                 Coop_Chance = Coop_Chance,
+                Cooldown_Reduction = Cooldown_Reduction,
             };
         }
     }

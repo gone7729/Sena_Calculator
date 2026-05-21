@@ -48,6 +48,12 @@ namespace GameDamageCalculator.Models.Effects
         // 적 디버프 1개당 피증%, 카운트 상한
         public double PercentPerDebuff { get; set; }
         public int MaxDebuffStacks { get; set; }
+
+        // === 피해 무효화 (Type = DamageNullification일 때) ===
+        public DamageNullification DamageNullification { get; set; }
+
+        // === 상태이상 면역 (Type = Immunity일 때) ===
+        public StatusImmunity StatusImmunity { get; set; }
     }
 
     /// <summary>
@@ -59,5 +65,7 @@ namespace GameDamageCalculator.Models.Effects
         Debuff,         // 디버프 (적 스탯 감소)
         StatusAilment,  // 상태이상 (화상, 기절 등)
         PerEnemyDebuffDmgBonus, // 적 디버프 1개당 피해량 증가 (동적 피증)
+        DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
+        Immunity,               // 상태이상 면역 (화상 면역 등)
     }
 }

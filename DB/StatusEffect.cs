@@ -37,6 +37,7 @@ namespace GameDamageCalculator.Database
         public bool BlocksHeal { get; set; }        // 회복 불가
         public bool BlocksAction { get; set; }      // 행동 불가
         public bool BlocksActiveSkill { get; set; } // 액티브 스킬 불가 (침묵)
+        public bool IsTaunt { get; set; }           // 도발 (시전자만 공격 대상이 됨)
         public double WakeUpThreshold { get; set; } // 해제 조건 HP% (수면 7%)
 
         // 생명력 전환
@@ -148,6 +149,22 @@ namespace GameDamageCalculator.Database
                 Name = "진탕",
                 Description = "지속시간 동안 행동할 수 없다",
                 BlocksAction = true
+            }},
+
+            { StatusEffectType.Blind, new StatusEffect
+            {
+                Type = StatusEffectType.Blind,
+                Name = "실명",
+                Description = "지속시간 동안 일정 확률로 공격이 빗나간다",
+                // 빗나감 확률(MissChanceIncrease)은 게임 수치 확정 시 입력
+            }},
+
+            { StatusEffectType.Taunt, new StatusEffect
+            {
+                Type = StatusEffectType.Taunt,
+                Name = "도발",
+                Description = "지속시간 동안 시전자만 공격 대상이 된다",
+                IsTaunt = true
             }},
 
             // === DoT (지속 피해) ===
