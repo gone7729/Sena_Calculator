@@ -140,9 +140,9 @@ var heroes = CharacterDb.Characters.Select(c =>
             skillType = s.SkillType.ToString(),
             tiers = new
             {
-                @base = new { cooldown = s.GetCooldown(false, 0), target = l0.TargetCount, atk = s.GetAtkCount(false, 0), ratio = l0.Ratio },
-                enhanced = new { cooldown = s.GetCooldown(true, 0), target = l1.TargetCount, atk = s.GetAtkCount(true, 0), ratio = l1.Ratio },
-                transcend = new { cooldown = s.GetCooldown(true, 12), target = tr.TargetCountOverride ?? l1.TargetCount, atk = s.GetAtkCount(true, 12), ratio = l1.Ratio },
+                @base = new { cooldown = s.GetCooldown(false, 0), target = l0.TargetCount, atk = s.GetAtkCount(false, 0), ratio = l0.Ratio, effect = l0.Effect },
+                enhanced = new { cooldown = s.GetCooldown(true, 0), target = l1.TargetCount, atk = s.GetAtkCount(true, 0), ratio = l1.Ratio, effect = l1.Effect },
+                transcend = new { cooldown = s.GetCooldown(true, 12), target = tr.TargetCountOverride ?? l1.TargetCount, atk = s.GetAtkCount(true, 12), ratio = l1.Ratio, effect = tr.Effect },
             },
         };
     }).ToList(),

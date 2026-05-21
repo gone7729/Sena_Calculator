@@ -8,6 +8,7 @@ interface SkillTier {
   target: number;
   atk: number;
   ratio: number;
+  effect?: string;
 }
 
 interface Skill {
@@ -317,6 +318,15 @@ export default function HeroesPage() {
                             </Fragment>
                           ))}
                         </div>
+                        {s.tiers.enhanced.effect && (
+                          <div className="tt-effect">{s.tiers.enhanced.effect}</div>
+                        )}
+                        {s.tiers.transcend.effect &&
+                          s.tiers.transcend.effect !== s.tiers.enhanced.effect && (
+                            <div className="tt-effect tt-effect-tr">
+                              초월: {s.tiers.transcend.effect}
+                            </div>
+                          )}
                       </div>
                     </div>
                   ))}
