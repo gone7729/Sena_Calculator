@@ -700,21 +700,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 4,
             "atk": 2,
             "ratio": 62,
-            "effect": ""
+            "effect": "받는회복량감소52%[3턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 4,
             "atk": 2,
             "ratio": 62,
-            "effect": ""
+            "effect": "받는회복량감소68%[3턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 4,
             "atk": 2,
             "ratio": 62
@@ -731,14 +731,14 @@
             "target": 5,
             "atk": 2,
             "ratio": 57,
-            "effect": ""
+            "effect": "석화(45%확률)[2턴]"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
             "ratio": 57,
-            "effect": ""
+            "effect": "석화(55%확률)[2턴]"
           },
           "transcend": {
             "cooldown": 0,

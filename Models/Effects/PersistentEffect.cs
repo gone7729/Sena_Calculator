@@ -22,6 +22,7 @@ namespace GameDamageCalculator.Models.Effects
         public int TriggerCount { get; set; } = 1;              // 트리거에 필요한 횟수
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
+        public int Duration { get; set; }                       // 부여 효과 지속 턴 (트리거 디버프/버프, 0이면 무기한)
 
         // === 버프/디버프 스탯 (Type = Buff 또는 Debuff일 때) ===
         public BuffSet Buff { get; set; }

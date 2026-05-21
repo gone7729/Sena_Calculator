@@ -780,33 +780,30 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 4,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 88,
                                 Ratio = 62,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 52 } }
+                                    new SkillEffect { 
+                                        Target = EffectTarget.Enemy, 
+                                        Type = SkillEffectType.Debuff, 
+                                        Debuff = new DebuffSet { Heal_Reduction = 52 } }
                                 },
-                                Effect = ""
+                                Effect = "받는회복량감소52%[3턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 4,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 88,
                                 Ratio = 62,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 68 } }
                                 },
-                                Effect = ""
+                                Effect = "받는회복량감소68%[3턴]"
                                 } }
                         },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            { 6, new SkillTranscend { Effects = new List<SkillEffect>
-                            {
-                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 24 } }
-                            }}}
-                        }
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>()
                     },
                     new Skill
                     {
@@ -820,23 +817,17 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 0,
                                 Ratio = 57,
-                                Effect = ""
+                                Effect = "석화(45%확률)[2턴]",
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
                                 Cooldown = 0,
                                 Ratio = 57,
-                                Effect = ""
+                                Effect = "석화(55%확률)[2턴]"
                                 } }
                         },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            { 6, new SkillTranscend { Effects = new List<SkillEffect>
-                            {
-                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 24 } }
-                            }}}
-                        }
+                        TranscendBonuses = new Dictionary<int, SkillTranscend>()
                     }
                 },
                 Passive = new Passive
@@ -862,7 +853,13 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend { Effect = "뒤지면 파티 힐" } },
-                        { 6, new PassiveTranscend { Effect = "스킬 발동 시 취약" } }
+                        { 6, new PassiveTranscend {
+                            Effect = "스킬 1회 발동 시 물리 취약[100%][2턴] 모든 적군",
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.Debuff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, Chance = 100, Duration = 2, Debuff = new DebuffSet { Phys_Dmg_Taken_Increase = 24 } }
+                            }
+                        } }
                     }
                 },
                 TranscendType = TranscendType.AtkEff
