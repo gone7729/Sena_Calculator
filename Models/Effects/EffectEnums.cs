@@ -5,11 +5,12 @@ namespace GameDamageCalculator.Models.Effects
     /// </summary>
     public enum EffectTarget
     {
-        Self,           // 시전자 본인
-        Party,          // 아군 전체
-        SingleAlly,     // 아군 1명
-        Enemy,          // 적 1명
-        AllEnemies      // 적 전체
+        Self,                   // 시전자 본인
+        Party,                  // 아군 전체
+        SingleAlly,             // 아군 1명
+        Enemy,                  // 적 1명
+        AllEnemies,             // 적 전체
+        SelfAndHighestAtkAlly,  // 자신 + 공격력이 가장 높은 아군 (런타임 선정)
     }
 
     /// <summary>

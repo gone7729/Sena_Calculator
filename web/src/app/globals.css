@@ -423,6 +423,12 @@ html, body {
   background: #fbeeea;
 }
 
+.tag.tag-status {
+  color: #6b4ea8;
+  border-color: #c3b2e0;
+  background: #f1ecf9;
+}
+
 .tag {
   display: inline-flex;
   align-items: center;

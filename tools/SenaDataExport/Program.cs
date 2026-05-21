@@ -68,6 +68,13 @@ var heroes = CharacterDb.Characters.Select(c =>
         if (d.Eff_Red > 0) tags.Add("효저깎");
     }
 
+    void AddStatus(StatusEffectType st)
+    {
+        if (st == StatusEffectType.None) return;
+        if (StatusEffectDb.Effects.TryGetValue(st, out var sd) && !string.IsNullOrEmpty(sd.Name))
+            tags.Add(sd.Name);
+    }
+
     var pas = c.Passive;
     if (pas != null)
     {
@@ -77,6 +84,10 @@ var heroes = CharacterDb.Characters.Select(c =>
         AddBuff(pas.GetConditionalPartyBuff(true, 12));
         AddDebuff(pas.GetDebuff(true, 12));
         AddDebuff(pas.GetConditionalDebuff(true, 12));
+        foreach (var plv in new[] { pas.GetLevelData(false), pas.GetLevelData(true) })
+            if (plv?.Effects != null) foreach (var e in plv.Effects) AddStatus(e.StatusType);
+        var pt = pas.GetTranscendBonus(12);
+        if (pt?.Effects != null) foreach (var e in pt.Effects) AddStatus(e.StatusType);
     }
     foreach (var sk in c.Skills)
     {
@@ -89,14 +100,14 @@ var heroes = CharacterDb.Characters.Select(c =>
             AddBuff(lvl.PreCastBuff);
             AddDebuff(lvl.DebuffEffect);
             if (lvl.Effects != null)
-                foreach (var e in lvl.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); }
+                foreach (var e in lvl.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); AddStatus(e.StatusType); }
         }
         var st = sk.GetTranscendBonus(12);
         AddBuff(st.Bonus);
         AddBuff(st.PartyBuff);
         AddDebuff(st.Debuff);
         if (st.Effects != null)
-            foreach (var e in st.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); }
+            foreach (var e in st.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); AddStatus(e.StatusType); }
     }
 
     return new

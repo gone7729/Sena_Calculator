@@ -205,7 +205,7 @@ namespace GameDamageCalculator.Database
                                 Effect = "자신과 공격력이 가장 높은 아군 스킬 쿨타임 8초 감소",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 8 } }
+                                    new SkillEffect { Target = EffectTarget.SelfAndHighestAtkAlly, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 8 } }
                                 }
                                 } },
                             { 1, new SkillLevelData {
@@ -215,7 +215,7 @@ namespace GameDamageCalculator.Database
                                 Effect = "자신과 공격력이 가장 높은 아군 스킬 쿨타임 9초 감소",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 9 } }
+                                    new SkillEffect { Target = EffectTarget.SelfAndHighestAtkAlly, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 9 } }
                                 }
                                 } }
                         }
@@ -657,6 +657,11 @@ namespace GameDamageCalculator.Database
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             { 2, new SkillTranscend { 
+                                Cooldown = 55,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Chance = 100, Duration = 3, RequiresStatusType = StatusEffectType.Bleeding }
+                                },
                                 Effect = "쿨 55초 변경, 상대 출혈 시 확정 출혈[3턴]" } }
                         }
                     },

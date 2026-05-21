@@ -64,7 +64,14 @@ const DEBUFF_TAGS = [
   "버프해제", "턴감",
 ];
 
+// 상태이상 태그 (StatusEffect.Name 기준)
+const STATUS_TAGS = [
+  "기절", "침묵", "빙결", "석화", "빙극", "마비", "감전", "수면", "혼란", "진탕",
+  "실명", "도발", "화상", "출혈", "중독", "즉사", "폭탄",
+];
+
 const BUFF_SET = new Set(BUFF_TAGS);
+const STATUS_SET = new Set(STATUS_TAGS);
 
 const SKILL_TYPE_LABEL: Record<string, string> = {
   Normal: "평타",
@@ -196,6 +203,22 @@ export default function HeroesPage() {
             ))}
           </div>
         </div>
+
+        <div className="filter-row">
+          <span className="filter-label">상태이상</span>
+          <div className="chip-group">
+            {STATUS_TAGS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`chip${selectedTags.has(t) ? " active" : ""}`}
+                onClick={() => toggleTag(t)}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ===== Two columns ===== */}
@@ -235,7 +258,9 @@ export default function HeroesPage() {
                     {h.tags?.map((t) => (
                       <span
                         key={t}
-                        className={`tag ${BUFF_SET.has(t) ? "tag-buff" : "tag-debuff"}`}
+                        className={`tag ${
+                          BUFF_SET.has(t) ? "tag-buff" : STATUS_SET.has(t) ? "tag-status" : "tag-debuff"
+                        }`}
                       >
                         {t}
                       </span>

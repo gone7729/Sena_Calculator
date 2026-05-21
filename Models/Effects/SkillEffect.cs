@@ -24,6 +24,9 @@ namespace GameDamageCalculator.Models.Effects
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
 
+        // === 발동 조건: 대상이 특정 상태이상일 때만 적용 (예: 상대 출혈 시 확정 출혈) ===
+        public StatusEffectType? RequiresStatusType { get; set; }
+
         // === 버프/디버프 스탯 (Type = Buff 또는 Debuff일 때) ===
         public BuffSet Buff { get; set; }
         public DebuffSet Debuff { get; set; }
