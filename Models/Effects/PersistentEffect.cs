@@ -107,6 +107,7 @@ namespace GameDamageCalculator.Models.Effects
         TriggeredFixedDamage,   // N회 공격마다 적군 N명에게 고정 데미지 (발리스타 등)
         DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
         Immunity,               // 상태이상 면역 (화상 면역 등)
+        TriggeredHeal,          // 트리거 시 시전자 공격력 비례 회복 (TriggeredHealAtkRatio)
     }
 
     /// <summary>

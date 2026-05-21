@@ -118,7 +118,7 @@
       }
     ],
     "tags": [
-      "받피증",
+      "받물피증",
       "치피증"
     ]
   },
@@ -195,19 +195,19 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 130
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 155
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 155
@@ -220,7 +220,7 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 105,
             "target": 3,
             "atk": 1,
             "ratio": 145
@@ -317,19 +317,19 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 115
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 135
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 135
@@ -342,19 +342,19 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 5,
             "ratio": 119
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 5,
             "ratio": 158
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 5,
             "ratio": 158
@@ -439,19 +439,19 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 38,
             "target": 1,
             "atk": 1,
             "ratio": 570
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 38,
             "target": 1,
             "atk": 1,
             "ratio": 690
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 38,
             "target": 1,
             "atk": 1,
             "ratio": 690
@@ -536,19 +536,19 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 72
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 85
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 85
@@ -561,19 +561,19 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 175
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 205
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 205
@@ -582,7 +582,7 @@
       }
     ],
     "tags": [
-      "피증"
+      "물피증"
     ]
   },
   {
