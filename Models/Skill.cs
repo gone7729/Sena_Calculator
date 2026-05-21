@@ -70,7 +70,8 @@ namespace GameDamageCalculator.Models
 
     foreach (var kvp in TranscendBonuses.Where(t => t.Key <= level).OrderBy(t => t.Key))
     {
-        result.Bonus.Add(kvp.Value.Bonus);
+        // 초월 Bonus는 필드별 override (겹치는 필드는 초월값으로 덮어씀, 안 겹치면 유지). 높은 초월이 이김.
+        result.Bonus.Override(kvp.Value.Bonus);
         result.Debuff.Add(kvp.Value.Debuff);
         
         if (kvp.Value.TargetCountOverride.HasValue)
@@ -145,7 +146,8 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 스킬 레벨 + 초월 보너스 합산된 BuffSet 반환 (스킬 계산 전용)
+        /// 스킬 레벨 보너스에 초월 보너스를 필드별 override한 BuffSet 반환 (스킬 계산 전용)
+        /// 겹치는 필드는 초월값이 기본값을 덮어씀(예: 기본 Cri 30 → 초월 Cri 100 = 100), 안 겹치면 유지.
         /// </summary>
         public BuffSet GetTotalBonus(bool isEnhanced, int transcendLevel)
         {
@@ -155,7 +157,7 @@ namespace GameDamageCalculator.Models
             if (levelData.Bonus != null) result.Add(levelData.Bonus);
 
             var transcend = GetTranscendBonus(transcendLevel);
-            if (transcend.Bonus != null) result.Add(transcend.Bonus);
+            if (transcend.Bonus != null) result.Override(transcend.Bonus);
 
             return result;
         }

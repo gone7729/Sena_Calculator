@@ -38,7 +38,12 @@
     },
     "passive": {
       "name": "매의 발톱",
-      "maxStacks": 8
+      "maxStacks": 8,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -169,7 +174,18 @@
     },
     "passive": {
       "name": "쾌속의 마검사",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealt1to3": 25
+        },
+        "enhanced": {
+          "dmgDealt1to3": 31
+        },
+        "transcend": {
+          "dmgDealt1to3": 31
+        }
+      }
     },
     "skills": [
       {
@@ -301,7 +317,18 @@
     },
     "passive": {
       "name": "죽음의 경계",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 17
+        },
+        "enhanced": {
+          "dmgDealtType": 20
+        },
+        "transcend": {
+          "dmgDealtType": 20
+        }
+      }
     },
     "skills": [
       {
@@ -430,7 +457,21 @@
     },
     "passive": {
       "name": "악마의 힘",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 35,
+          "magDmgRdc": 24
+        },
+        "enhanced": {
+          "cri": 41,
+          "magDmgRdc": 29
+        },
+        "transcend": {
+          "cri": 41,
+          "magDmgRdc": 29
+        }
+      }
     },
     "skills": [
       {
@@ -532,7 +573,18 @@
     },
     "passive": {
       "name": "화랑의 후예",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 29
+        },
+        "enhanced": {
+          "dmgDealtType": 35
+        },
+        "transcend": {
+          "dmgDealtType": 35
+        }
+      }
     },
     "skills": [
       {
@@ -586,7 +638,7 @@
             "target": 3,
             "atk": 2,
             "ratio": 85,
-            "effect": "쿨 55초 변경, 상대 출혈 시 확정 출혈[3턴]"
+            "effect": "쿨 55초 변경, 상대 출혈 시 출혈(100%)[3턴]"
           }
         }
       },
@@ -664,7 +716,21 @@
     },
     "passive": {
       "name": "팔사의 저주",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "criDmg": 28,
+          "dmgDealtType": 20
+        },
+        "enhanced": {
+          "criDmg": 34,
+          "dmgDealtType": 20
+        },
+        "transcend": {
+          "criDmg": 34,
+          "dmgDealtType": 20
+        }
+      }
     },
     "skills": [
       {
@@ -704,14 +770,14 @@
             "target": 4,
             "atk": 2,
             "ratio": 62,
-            "effect": "받는회복량감소52%[3턴]"
+            "effect": "받는회복량감소(52%)[3턴]"
           },
           "enhanced": {
             "cooldown": 88,
             "target": 4,
             "atk": 2,
             "ratio": 62,
-            "effect": "받는회복량감소68%[3턴]"
+            "effect": "받는회복량감소(68%)[3턴]"
           },
           "transcend": {
             "cooldown": 88,
@@ -731,14 +797,14 @@
             "target": 5,
             "atk": 2,
             "ratio": 57,
-            "effect": "석화(45%확률)[2턴]"
+            "effect": "석화(45%)[2턴]"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
             "ratio": 57,
-            "effect": "석화(55%확률)[2턴]"
+            "effect": "석화(55%)[2턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -794,7 +860,18 @@
     },
     "passive": {
       "name": "까마귀 눈동자",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 27
+        },
+        "enhanced": {
+          "cri": 27
+        },
+        "transcend": {
+          "cri": 100
+        }
+      }
     },
     "skills": [
       {
@@ -830,21 +907,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 1,
-            "ratio": 130,
-            "effect": ""
+            "ratio": 150,
+            "effect": "관통"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 1,
             "ratio": 170,
-            "effect": ""
+            "effect": "관통"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 1,
             "ratio": 170
@@ -857,24 +934,24 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
-            "ratio": 65,
-            "effect": ""
+            "ratio": 77,
+            "effect": "대상 턴제 버프 감소(100% 확률)[2턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
-            "ratio": 85,
-            "effect": ""
+            "ratio": 90,
+            "effect": "대상 턴제 버프 감소(100% 확률)[2턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
-            "ratio": 85
+            "ratio": 90
           }
         }
       }
@@ -922,7 +999,18 @@
     },
     "passive": {
       "name": "호랑이의 용맹",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "atkRate": 27
+        },
+        "enhanced": {
+          "atkRate": 33
+        },
+        "transcend": {
+          "atkRate": 33
+        }
+      }
     },
     "skills": [
       {
@@ -1050,7 +1138,18 @@
     },
     "passive": {
       "name": "소검쌍무",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 27
+        },
+        "enhanced": {
+          "cri": 27
+        },
+        "transcend": {
+          "cri": 27
+        }
+      }
     },
     "skills": [
       {
@@ -1178,7 +1277,18 @@
     },
     "passive": {
       "name": "방랑의 사냥꾼",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 28
+        },
+        "enhanced": {
+          "effHit": 34
+        },
+        "transcend": {
+          "effHit": 34
+        }
+      }
     },
     "skills": [
       {
@@ -1309,7 +1419,18 @@
     },
     "passive": {
       "name": "첨단 나노 슈트",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 40
+        },
+        "enhanced": {
+          "effHit": 49
+        },
+        "transcend": {
+          "effHit": 49
+        }
+      }
     },
     "skills": [
       {
@@ -1440,7 +1561,12 @@
     },
     "passive": {
       "name": "사신의 딸",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -1539,7 +1665,21 @@
     },
     "passive": {
       "name": "초인적인 힘",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "atkRate": 31,
+          "blessing": 40
+        },
+        "enhanced": {
+          "atkRate": 31,
+          "blessing": 25
+        },
+        "transcend": {
+          "atkRate": 31,
+          "blessing": 25
+        }
+      }
     },
     "skills": [
       {
@@ -1668,7 +1808,21 @@
     },
     "passive": {
       "name": "전설의 부활",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 27,
+          "armPen": 5
+        },
+        "enhanced": {
+          "cri": 33,
+          "armPen": 10
+        },
+        "transcend": {
+          "cri": 33,
+          "armPen": 10
+        }
+      }
     },
     "skills": [
       {
@@ -1794,7 +1948,16 @@
     },
     "passive": {
       "name": "검의 결계",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {
+          "criDmg": 40
+        },
+        "transcend": {
+          "criDmg": 40
+        }
+      }
     },
     "skills": [
       {
@@ -1922,7 +2085,18 @@
     },
     "passive": {
       "name": "매의 눈",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "criDmg": 31
+        },
+        "enhanced": {
+          "criDmg": 40
+        },
+        "transcend": {
+          "criDmg": 40
+        }
+      }
     },
     "skills": [
       {
@@ -2051,7 +2225,21 @@
     },
     "passive": {
       "name": "천재의 권능",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "magicAtkRate": 27,
+          "criDmg": 40
+        },
+        "enhanced": {
+          "magicAtkRate": 33,
+          "criDmg": 40
+        },
+        "transcend": {
+          "magicAtkRate": 33,
+          "criDmg": 40
+        }
+      }
     },
     "skills": [
       {
@@ -2182,7 +2370,19 @@
     },
     "passive": {
       "name": "뒷거래",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 24
+        },
+        "enhanced": {
+          "dmgDealtType": 29
+        },
+        "transcend": {
+          "wek": 39,
+          "dmgDealtType": 29
+        }
+      }
     },
     "skills": [
       {
@@ -2311,7 +2511,18 @@
     },
     "passive": {
       "name": "호시탐탐",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "wekDmg": 23
+        },
+        "enhanced": {
+          "wekDmg": 23
+        },
+        "transcend": {
+          "wekDmg": 23
+        }
+      }
     },
     "skills": [
       {
@@ -2440,7 +2651,19 @@
     },
     "passive": {
       "name": "혜안",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "magicAtkRate": 19
+        },
+        "enhanced": {
+          "magicAtkRate": 25
+        },
+        "transcend": {
+          "magicAtkRate": 25,
+          "dmgDealtType": 35
+        }
+      }
     },
     "skills": [
       {
@@ -2527,6 +2750,7 @@
     ],
     "tags": [
       "마공증",
+      "마피증",
       "수면"
     ]
   },
@@ -2569,7 +2793,12 @@
     },
     "passive": {
       "name": "신의 저울",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -2697,7 +2926,18 @@
     },
     "passive": {
       "name": "흑월의 축복",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 27
+        },
+        "enhanced": {
+          "cri": 33
+        },
+        "transcend": {
+          "cri": 33
+        }
+      }
     },
     "skills": [
       {
@@ -2826,7 +3066,22 @@
     },
     "passive": {
       "name": "마력 정화",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 40,
+          "markPurify": 32
+        },
+        "enhanced": {
+          "cri": 40,
+          "markPurify": 40
+        },
+        "transcend": {
+          "cri": 40,
+          "markPurify": 40,
+          "dmgRdc": 29
+        }
+      }
     },
     "skills": [
       {
@@ -2913,7 +3168,8 @@
     ],
     "tags": [
       "마법취약",
-      "마피증"
+      "마피증",
+      "받피감"
     ]
   },
   {
@@ -2955,7 +3211,18 @@
     },
     "passive": {
       "name": "기민한 움직임",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "magicAtkRate": 21
+        },
+        "enhanced": {
+          "magicAtkRate": 27
+        },
+        "transcend": {
+          "magicAtkRate": 27
+        }
+      }
     },
     "skills": [
       {
@@ -3083,7 +3350,12 @@
     },
     "passive": {
       "name": "사막의 마법사",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -3212,7 +3484,18 @@
     },
     "passive": {
       "name": "별의 축제",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 17
+        },
+        "enhanced": {
+          "dmgDealtType": 20
+        },
+        "transcend": {
+          "dmgDealtType": 20
+        }
+      }
     },
     "skills": [
       {
@@ -3341,7 +3624,18 @@
     },
     "passive": {
       "name": "타락한 마법사",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "blessing": 40
+        },
+        "enhanced": {
+          "blessing": 25
+        },
+        "transcend": {
+          "blessing": 25
+        }
+      }
     },
     "skills": [
       {
@@ -3472,7 +3766,18 @@
     },
     "passive": {
       "name": "기사의 의지",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "blessing": 40
+        },
+        "enhanced": {
+          "blessing": 25
+        },
+        "transcend": {
+          "blessing": 25
+        }
+      }
     },
     "skills": [
       {
@@ -3598,7 +3903,21 @@
     },
     "passive": {
       "name": "아름다운 지배자",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 31,
+          "blessing": 40
+        },
+        "enhanced": {
+          "effHit": 37,
+          "blessing": 25
+        },
+        "transcend": {
+          "effHit": 37,
+          "blessing": 25
+        }
+      }
     },
     "skills": [
       {
@@ -3729,7 +4048,12 @@
     },
     "passive": {
       "name": "홍린포",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -3858,7 +4182,12 @@
     },
     "passive": {
       "name": "광채의 수정비늘",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -3990,7 +4319,18 @@
     },
     "passive": {
       "name": "신선의 가르침",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 28
+        },
+        "enhanced": {
+          "effHit": 34
+        },
+        "transcend": {
+          "effHit": 34
+        }
+      }
     },
     "skills": [
       {
@@ -4122,7 +4462,19 @@
     },
     "passive": {
       "name": "전장의 공주",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 24
+        },
+        "enhanced": {
+          "dmgDealtType": 29
+        },
+        "transcend": {
+          "wek": 39,
+          "dmgDealtType": 29
+        }
+      }
     },
     "skills": [
       {
@@ -4253,7 +4605,18 @@
     },
     "passive": {
       "name": "여우의 매력",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 21
+        },
+        "enhanced": {
+          "cri": 21
+        },
+        "transcend": {
+          "cri": 21
+        }
+      }
     },
     "skills": [
       {
@@ -4382,7 +4745,18 @@
     },
     "passive": {
       "name": "신의 은총",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 11
+        },
+        "enhanced": {
+          "dmgDealtType": 15
+        },
+        "transcend": {
+          "dmgDealtType": 15
+        }
+      }
     },
     "skills": [
       {
@@ -4512,7 +4886,12 @@
     },
     "passive": {
       "name": "칼보다 강한 펜",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -4641,7 +5020,14 @@
     },
     "passive": {
       "name": "대장장이의 강화",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {
+          "dmgRdcMulti": 20
+        }
+      }
     },
     "skills": [
       {
@@ -4728,6 +5114,7 @@
       }
     ],
     "tags": [
+      "받피감",
       "방깎",
       "보피증",
       "피감"
@@ -4772,7 +5159,22 @@
     },
     "passive": {
       "name": "불협화음",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effRes": 28,
+          "shieldHpRatio": 39
+        },
+        "enhanced": {
+          "effRes": 34,
+          "shieldHpRatio": 45
+        },
+        "transcend": {
+          "criDmg": 34,
+          "effRes": 34,
+          "shieldHpRatio": 45
+        }
+      }
     },
     "skills": [
       {
@@ -4860,6 +5262,7 @@
     ],
     "tags": [
       "방깎",
+      "치피증",
       "피증",
       "효저증"
     ]
@@ -4903,7 +5306,21 @@
     },
     "passive": {
       "name": "통찰의 빛",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 17,
+          "criDmg": 25
+        },
+        "enhanced": {
+          "cri": 17,
+          "criDmg": 25
+        },
+        "transcend": {
+          "cri": 17,
+          "criDmg": 25
+        }
+      }
     },
     "skills": [
       {
@@ -5033,7 +5450,12 @@
     },
     "passive": {
       "name": "네스트라의 가호",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -5162,7 +5584,18 @@
     },
     "passive": {
       "name": "망자의 축복",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 20
+        },
+        "enhanced": {
+          "effHit": 20
+        },
+        "transcend": {
+          "effHit": 6
+        }
+      }
     },
     "skills": [
       {
@@ -5293,7 +5726,12 @@
     },
     "passive": {
       "name": "나, 너, 로맨틱",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -5421,7 +5859,12 @@
     },
     "passive": {
       "name": "전장의 마에스트로",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -5549,7 +5992,12 @@
     },
     "passive": {
       "name": "자연의 보호",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -5675,7 +6123,18 @@
     },
     "passive": {
       "name": "화염의 힘",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "wek": 22
+        },
+        "enhanced": {
+          "wek": 27
+        },
+        "transcend": {
+          "wek": 27
+        }
+      }
     },
     "skills": [
       {
@@ -5808,7 +6267,18 @@
     },
     "passive": {
       "name": "포디나의 분노",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "atkRate": 19
+        },
+        "enhanced": {
+          "atkRate": 25
+        },
+        "transcend": {
+          "atkRate": 25
+        }
+      }
     },
     "skills": [
       {
@@ -5938,7 +6408,12 @@
     },
     "passive": {
       "name": "나만 믿어",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -6067,7 +6542,14 @@
     },
     "passive": {
       "name": "불굴의 지휘",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {
+          "effHit": 64
+        }
+      }
     },
     "skills": [
       {
@@ -6156,7 +6638,8 @@
       "막기확률감소",
       "물리취약",
       "받회감",
-      "방깎"
+      "방깎",
+      "효적증"
     ]
   },
   {
@@ -6198,7 +6681,12 @@
     },
     "passive": {
       "name": "혁명단의 인도자",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -6329,7 +6817,12 @@
     },
     "passive": {
       "name": "영혼 흡수",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -6457,7 +6950,12 @@
     },
     "passive": {
       "name": "복수의 갑옷",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -6586,7 +7084,19 @@
     },
     "passive": {
       "name": "전투의 희열",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "blk": 50
+        },
+        "enhanced": {
+          "blk": 60
+        },
+        "transcend": {
+          "cri": 100,
+          "blk": 60
+        }
+      }
     },
     "skills": [
       {
@@ -6715,7 +7225,21 @@
     },
     "passive": {
       "name": "혹한의 심장",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effRes": 28,
+          "effHit": 28
+        },
+        "enhanced": {
+          "effRes": 28,
+          "effHit": 28
+        },
+        "transcend": {
+          "effRes": 28,
+          "effHit": 28
+        }
+      }
     },
     "skills": [
       {
@@ -6845,7 +7369,12 @@
     },
     "passive": {
       "name": "위압감",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -6975,7 +7504,18 @@
     },
     "passive": {
       "name": "얼음 여왕의 가호",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgRdc": 16
+        },
+        "enhanced": {
+          "dmgRdc": 16
+        },
+        "transcend": {
+          "dmgRdc": 16
+        }
+      }
     },
     "skills": [
       {
@@ -7105,7 +7645,14 @@
     },
     "passive": {
       "name": "지휘관의 저력",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {
+          "healBonus": 28
+        }
+      }
     },
     "skills": [
       {
@@ -7190,7 +7737,9 @@
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "받회증"
+    ]
   },
   {
     "id": 313,
@@ -7231,7 +7780,19 @@
     },
     "passive": {
       "name": "만인지적",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 20
+        },
+        "enhanced": {
+          "dmgDealtType": 20
+        },
+        "transcend": {
+          "criDmg": 40,
+          "dmgDealtType": 20
+        }
+      }
     },
     "skills": [
       {
@@ -7317,7 +7878,8 @@
       }
     ],
     "tags": [
-      "물피증"
+      "물피증",
+      "치피증"
     ]
   },
   {
@@ -7359,7 +7921,22 @@
     },
     "passive": {
       "name": "타락한 신선",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealt": 12,
+          "dmgRdc": 20
+        },
+        "enhanced": {
+          "dmgDealt": 15,
+          "dmgRdc": 20
+        },
+        "transcend": {
+          "dmgDealt": 15,
+          "dmgRdc": 20,
+          "blk": 33
+        }
+      }
     },
     "skills": [
       {
@@ -7445,6 +8022,7 @@
       }
     ],
     "tags": [
+      "막기확률",
       "받피감",
       "피감",
       "피증"
@@ -7489,7 +8067,12 @@
     },
     "passive": {
       "name": "미후분신술",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -7700,7 +8283,18 @@
     },
     "passive": {
       "name": "예비 전력",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 40
+        },
+        "enhanced": {
+          "effHit": 49
+        },
+        "transcend": {
+          "effHit": 49
+        }
+      }
     },
     "skills": [
       {
@@ -7830,7 +8424,14 @@
     },
     "passive": {
       "name": "해적왕의 위엄",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {
+          "dmgRdc": 22
+        }
+      }
     },
     "skills": [
       {
@@ -7918,7 +8519,8 @@
     ],
     "tags": [
       "마공증",
-      "마법취약"
+      "마법취약",
+      "받피감"
     ]
   },
   {
@@ -7960,7 +8562,21 @@
     },
     "passive": {
       "name": "견고한 방패",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "defRate": 20,
+          "dmgRdc": 16
+        },
+        "enhanced": {
+          "defRate": 24,
+          "dmgRdc": 20
+        },
+        "transcend": {
+          "defRate": 24,
+          "dmgRdc": 20
+        }
+      }
     },
     "skills": [
       {
@@ -8091,7 +8707,12 @@
     },
     "passive": {
       "name": "어둠의 인도자",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -8222,7 +8843,12 @@
     },
     "passive": {
       "name": "지옥의 기사",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -8351,7 +8977,12 @@
     },
     "passive": {
       "name": "노장의 위엄",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
     },
     "skills": [
       {
@@ -8454,7 +9085,21 @@
     },
     "passive": {
       "name": "공성 방패",
-      "maxStacks": 1
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgRdc": 24,
+          "blk": 19
+        },
+        "enhanced": {
+          "dmgRdc": 24,
+          "blk": 23
+        },
+        "transcend": {
+          "dmgRdc": 24,
+          "blk": 23
+        }
+      }
     },
     "skills": [
       {

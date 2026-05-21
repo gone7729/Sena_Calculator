@@ -7,6 +7,45 @@ using GameDamageCalculator.Models;
 // 영웅 데이터를 웹용 JSON으로 추출
 // 출력: web/src/data/characters.json
 
+// BuffSet의 0이 아닌 필드만 camelCase 키 딕셔너리로 변환 (웹 표시용)
+static Dictionary<string, double> NonZeroBuff(BuffSet b)
+{
+    var d = new Dictionary<string, double>();
+    if (b == null) return d;
+    void Put(string k, double v) { if (v != 0) d[k] = v; }
+    Put("atkRate", b.Atk_Rate);
+    Put("magicAtkRate", b.MagicAtk_Rate);
+    Put("defRate", b.Def_Rate);
+    Put("hpRate", b.Hp_Rate);
+    Put("cri", b.Cri);
+    Put("criDmg", b.Cri_Dmg);
+    Put("criBonusDmg", b.CriBonusDmg);
+    Put("wek", b.Wek);
+    Put("wekDmg", b.Wek_Dmg);
+    Put("wekBonusDmg", b.WekBonusDmg);
+    Put("dmgDealt", b.Dmg_Dealt);
+    Put("dmgDealtType", b.Dmg_Dealt_Type);
+    Put("markEnergeia", b.Mark_Energeia);
+    Put("markPurify", b.Mark_Purify);
+    Put("dmgDealtBoss", b.Dmg_Dealt_Bos);
+    Put("dmgDealt1to3", b.Dmg_Dealt_1to3);
+    Put("dmgDealt4to5", b.Dmg_Dealt_4to5);
+    Put("armPen", b.Arm_Pen);
+    Put("dmgRdc", b.Dmg_Rdc);
+    Put("physDmgRdc", b.Phys_Dmg_Rdc);
+    Put("magDmgRdc", b.Mag_Dmg_Rdc);
+    Put("dmgRdcMulti", b.Dmg_Rdc_Multi);
+    Put("blk", b.Blk);
+    Put("healBonus", b.Heal_Bonus);
+    Put("effRes", b.Eff_Res);
+    Put("effHit", b.Eff_Hit);
+    Put("shieldHpRatio", b.Shield_HpRatio);
+    Put("blessing", b.Blessing);
+    Put("coopChance", b.Coop_Chance);
+    Put("cooldownReduction", b.Cooldown_Reduction);
+    return d;
+}
+
 var heroes = CharacterDb.Characters.Select(c =>
 {
     var bs = c.GetBaseStats(); // 등급/타입별 기본 스탯
@@ -125,7 +164,14 @@ var heroes = CharacterDb.Characters.Select(c =>
     {
         name = c.Passive.Name,
         description = c.Passive.Description,
-        maxStacks = c.Passive.GetMaxStacks(true, 12)
+        maxStacks = c.Passive.GetMaxStacks(true, 12),
+        // 티어별 패시브 버프 값 (자버프+파티버프 합산 스냅샷, override 반영). 비0 필드만.
+        buffTiers = new
+        {
+            @base = NonZeroBuff(c.Passive.GetTotalSelfBuff(false, 0)),
+            enhanced = NonZeroBuff(c.Passive.GetTotalSelfBuff(true, 0)),
+            transcend = NonZeroBuff(c.Passive.GetTotalSelfBuff(true, 12)),
+        }
     },
     skills = c.Skills.Select(s =>
     {

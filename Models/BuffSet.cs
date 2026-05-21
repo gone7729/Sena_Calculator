@@ -130,6 +130,49 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
+        /// 필드별 덮어쓰기 — other의 0이 아닌 필드만 현재 세트를 대체.
+        /// 초월 패시브 버프가 "선언값 = 최종값"으로 동작하게 한다 (예: 기본 Cri 20 → 초월 Cri 100).
+        /// other에서 0인 필드는 현재 값을 유지하므로, 초월이 새 스탯을 더하는 경우 합산과 동일하게 동작.
+        /// </summary>
+        public void Override(BuffSet other)
+        {
+            if (other == null) return;
+
+            if (other.Atk_Rate != 0) Atk_Rate = other.Atk_Rate;
+            if (other.MagicAtk_Rate != 0) MagicAtk_Rate = other.MagicAtk_Rate;
+            if (other.Def_Rate != 0) Def_Rate = other.Def_Rate;
+            if (other.Hp_Rate != 0) Hp_Rate = other.Hp_Rate;
+            if (other.Cri != 0) Cri = other.Cri;
+            if (other.Cri_Dmg != 0) Cri_Dmg = other.Cri_Dmg;
+            if (other.CriBonusDmg != 0) CriBonusDmg = other.CriBonusDmg;
+            if (other.CriBonusDmgPerHit) CriBonusDmgPerHit = other.CriBonusDmgPerHit;
+            if (other.Wek != 0) Wek = other.Wek;
+            if (other.Wek_Dmg != 0) Wek_Dmg = other.Wek_Dmg;
+            if (other.WekBonusDmg != 0) WekBonusDmg = other.WekBonusDmg;
+            if (other.WekBonusDmgPerHit) WekBonusDmgPerHit = other.WekBonusDmgPerHit;
+            if (other.Dmg_Dealt != 0) Dmg_Dealt = other.Dmg_Dealt;
+            if (other.Dmg_Dealt_Type != 0) Dmg_Dealt_Type = other.Dmg_Dealt_Type;
+            if (other.Mark_Energeia != 0) Mark_Energeia = other.Mark_Energeia;
+            if (other.Mark_Purify != 0) Mark_Purify = other.Mark_Purify;
+            if (other.Dmg_Dealt_Bos != 0) Dmg_Dealt_Bos = other.Dmg_Dealt_Bos;
+            if (other.Dmg_Dealt_1to3 != 0) Dmg_Dealt_1to3 = other.Dmg_Dealt_1to3;
+            if (other.Dmg_Dealt_4to5 != 0) Dmg_Dealt_4to5 = other.Dmg_Dealt_4to5;
+            if (other.Arm_Pen != 0) Arm_Pen = other.Arm_Pen;
+            if (other.Dmg_Rdc != 0) Dmg_Rdc = other.Dmg_Rdc;
+            if (other.Phys_Dmg_Rdc != 0) Phys_Dmg_Rdc = other.Phys_Dmg_Rdc;
+            if (other.Mag_Dmg_Rdc != 0) Mag_Dmg_Rdc = other.Mag_Dmg_Rdc;
+            if (other.Dmg_Rdc_Multi != 0) Dmg_Rdc_Multi = other.Dmg_Rdc_Multi;
+            if (other.Blk != 0) Blk = other.Blk;
+            if (other.Heal_Bonus != 0) Heal_Bonus = other.Heal_Bonus;
+            if (other.Eff_Res != 0) Eff_Res = other.Eff_Res;
+            if (other.Eff_Hit != 0) Eff_Hit = other.Eff_Hit;
+            if (other.Shield_HpRatio != 0) Shield_HpRatio = other.Shield_HpRatio;
+            if (other.Blessing != 0) Blessing = other.Blessing;
+            if (other.Coop_Chance != 0) Coop_Chance = other.Coop_Chance;
+            if (other.Cooldown_Reduction != 0) Cooldown_Reduction = other.Cooldown_Reduction;
+        }
+
+        /// <summary>
         /// 복사본 생성
         /// </summary>
         public virtual BuffSet Clone()

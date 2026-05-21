@@ -29,8 +29,9 @@ namespace GameDamageCalculator.Models
 
             foreach (var kvp in TranscendBonuses.Where(t => t.Key <= level).OrderBy(t => t.Key))
             {
-                result.SelfBuff.Add(kvp.Value.SelfBuff);
-                result.PartyBuff.Add(kvp.Value.PartyBuff);
+                // 상시 자/파티 버프는 필드별 override (초월 선언값 = 최종값). 높은 초월 단계가 이김.
+                result.SelfBuff.Override(kvp.Value.SelfBuff);
+                result.PartyBuff.Override(kvp.Value.PartyBuff);
                 result.Debuff.Add(kvp.Value.Debuff);
                 result.ConditionalSelfBuff.Add(kvp.Value.ConditionalSelfBuff);
                 result.ConditionalPartyBuff.Add(kvp.Value.ConditionalPartyBuff);
@@ -44,6 +45,18 @@ namespace GameDamageCalculator.Models
                 {
                     result.Effects ??= new List<Effects.PersistentEffect>();
                     result.Effects.AddRange(kvp.Value.Effects);
+                    // 새 Effects 방식의 "상시(Immediate)" 비조건부 Self/Party 버프만 초월 상시 버프로 override 반영
+                    // (기존엔 transcend.Effects 버프가 GetTotalSelfBuff/GetPartyBuff에서 누락되던 갭 수정)
+                    // ApplyMode.Triggered(아군 사망 시 등)는 상시 버프가 아니므로 제외
+                    foreach (var e in kvp.Value.Effects)
+                    {
+                        if (e.Type == Effects.PersistentEffectType.Buff && !e.IsConditional
+                            && e.ApplyMode == Effects.ApplyMode.Immediate && e.Buff != null)
+                        {
+                            if (e.Target == Effects.EffectTarget.Self) result.SelfBuff.Override(e.Buff);
+                            else if (e.Target == Effects.EffectTarget.Party) result.PartyBuff.Override(e.Buff);
+                        }
+                    }
                 }
             }
             return result;
@@ -89,8 +102,9 @@ namespace GameDamageCalculator.Models
             }
 
             var transcend = GetTranscendBonus(transcendLevel);
-            if (transcend.SelfBuff != null) result.Add(transcend.SelfBuff);
-            if (transcend.PartyBuff != null) result.Add(transcend.PartyBuff);
+            // 초월 버프는 override (선언값 = 최종값, 예: 기본 Cri 20 → 초월 Cri 100)
+            if (transcend.SelfBuff != null) result.Override(transcend.SelfBuff);
+            if (transcend.PartyBuff != null) result.Override(transcend.PartyBuff);
 
             return result;
         }
@@ -149,7 +163,8 @@ namespace GameDamageCalculator.Models
             }
 
             var transcend = GetTranscendBonus(transcendLevel);
-            if (transcend.PartyBuff != null) result.Add(transcend.PartyBuff);
+            // 초월 버프는 override (선언값 = 최종값)
+            if (transcend.PartyBuff != null) result.Override(transcend.PartyBuff);
 
             return result;
         }
