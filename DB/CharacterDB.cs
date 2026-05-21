@@ -803,7 +803,6 @@ namespace GameDamageCalculator.Database
                                 Effect = "받는회복량감소68%[3턴]"
                                 } }
                         },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>()
                     },
                     new Skill
                     {
@@ -827,7 +826,6 @@ namespace GameDamageCalculator.Database
                                 Effect = "석화(55%확률)[2턴]"
                                 } }
                         },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>()
                     }
                 },
                 Passive = new Passive
@@ -836,23 +834,112 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            Effect = "사망시 불굴[피격 8회], 아군(공격형,만능형) 치피증(28%), 아군(공격형,만능형) 불굴 발동 시 디버프 해제(2개) 및 물피증(20%)[3턴]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 28 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                                // 아군(공격형,만능형) 치피증 28%
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.Buff,
+                                    Buff = new BuffSet { Cri_Dmg = 28 } },
+                                new PersistentEffect {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.Buff,
+                                    IsConditional = true,
+                                    Buff = new BuffSet { Dmg_Dealt_Type = 20 } },
+                                // 불굴: 사망 시 생명력 1로 부활, 피격 8회까지 사망 무효 (전투당 1회). 적군 사망 시 잔여 피격 횟수 +1 (8 상한)
+                                new PersistentEffect {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.Revival,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.SelfDeath,
+                                    Revival = new Revival {
+                                        HitCount = 8, ReviveHp = 1,
+                                        OncePerBattle = true,
+                                        HitCountGainOnEnemyDeath = 1,
+                                        MaxHitCount = 8 } },
+                                // 불굴 발동 시 아군(공격형,만능형): 디버프 2개 해제
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.DebuffCleanse,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.OnRevival,
+                                    DispelDebuffCount = 2 },
+                                // 불굴 발동 시 아군(공격형,만능형): 물피증 20% [3턴]
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.Buff,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.OnRevival,
+                                    Duration = 3,
+                                    Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
+                            Effect = "사망시 불굴[피격 8회], 아군(공격형,만능형) 치피증(34%), 아군(공격형,만능형) 불굴 발동 시 디버프 해제(2개) 및 물피증(20%)[3턴]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 34 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                                // 아군(공격형,만능형) 치피증 34%
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.Buff,
+                                    Buff = new BuffSet { Cri_Dmg = 34 } },
+                                new PersistentEffect {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.Buff,
+                                    IsConditional = true,
+                                    Buff = new BuffSet { Dmg_Dealt_Type = 20 } },
+                                // 불굴: 사망 시 생명력 1로 부활, 피격 8회까지 사망 무효 (전투당 1회). 적군 사망 시 잔여 피격 횟수 +1 (8 상한)
+                                new PersistentEffect {
+                                    Target = EffectTarget.Self,
+                                    Type = PersistentEffectType.Revival,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.SelfDeath,
+                                    Revival = new Revival {
+                                        HitCount = 8, ReviveHp = 1,
+                                        OncePerBattle = true,
+                                        HitCountGainOnEnemyDeath = 1,
+                                        MaxHitCount = 8 } },
+                                // 불굴 발동 시 아군(공격형,만능형): 디버프 2개 해제
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.DebuffCleanse,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.OnRevival,
+                                    DispelDebuffCount = 2 },
+                                // 불굴 발동 시 아군(공격형,만능형): 물피증 20% [3턴]
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.Buff,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.OnRevival,
+                                    Duration = 3,
+                                    Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
                             }
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { Effect = "뒤지면 파티 힐" } },
+                        { 2, new PassiveTranscend {
+                            Effect = "아군(공격형, 만능형) 불굴 발동 시 시전자 물공 65%만큼 피회복",
+                            Effects = new List<PersistentEffect>
+                            {
+                                // 불굴 발동 시 아군(공격형,만능형): 시전자 물공 65% 비례 피회복
+                                new PersistentEffect {
+                                    Target = EffectTarget.Party,
+                                    TargetClasses = new[] { "공격형", "만능형" },
+                                    Type = PersistentEffectType.TriggeredHeal,
+                                    ApplyMode = ApplyMode.Triggered,
+                                    TriggerCondition = TriggerCondition.OnRevival,
+                                    TriggeredHealAtkRatio = 65 }
+                            }
+                        } },
                         { 6, new PassiveTranscend {
                             Effect = "스킬 1회 발동 시 물리 취약[100%][2턴] 모든 적군",
                             Effects = new List<PersistentEffect>

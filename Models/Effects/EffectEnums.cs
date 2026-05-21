@@ -72,6 +72,8 @@ namespace GameDamageCalculator.Models.Effects
         OnHit,          // 피격 N회
         OnTurnStart,    // 턴 시작 시
         AllyDeath,      // 아군 사망 시
+        SelfDeath,      // 본인 사망 시 (불굴/부활 트리거)
+        OnRevival,      // 불굴/부활 발동 시 (부활 직후 연계 효과)
     }
 
     /// <summary>

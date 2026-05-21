@@ -505,6 +505,9 @@ namespace GameDamageCalculator.Services
                     case PersistentEffectType.PainEndurance:
                     case PersistentEffectType.FlatBonus:
                     case PersistentEffectType.PerEnemyDebuffDmgBonus:
+                    case PersistentEffectType.Revival:
+                    case PersistentEffectType.DebuffCleanse:
+                    case PersistentEffectType.TriggeredHeal:
                         // 의도된 스킵 — 이 메카닉들은 BuffSet/DebuffSet/StatusType 추상화에
                         // 안 맞으므로 BattleEffect로 변환하지 않는다.
                         // 소비 위치:

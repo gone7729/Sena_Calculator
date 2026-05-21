@@ -8,6 +8,9 @@ namespace GameDamageCalculator.Models.Effects
     {
         // === 대상 ===
         public EffectTarget Target { get; set; }     // Self, Party, Enemy
+        // 직업군 제한 (Party 대상일 때만 의미) — null/빈 배열이면 전체 아군.
+        // Character.Type 문자열 매칭 (예: "공격형", "만능형", "마법형", "지원형", "방어형")
+        public string[] TargetClasses { get; set; }
 
         // === 유형 ===
         public PersistentEffectType Type { get; set; }
@@ -76,6 +79,12 @@ namespace GameDamageCalculator.Models.Effects
 
         // === 트리거 회복 (ApplyMode = Triggered, 시전자 공격력 비례 회복%) ===
         public double TriggeredHealAtkRatio { get; set; }
+
+        // === 불굴/부활 (Type = Revival일 때) ===
+        public Revival Revival { get; set; }
+
+        // === 디버프 해제 (Type = DebuffCleanse일 때) — 대상의 디버프 N개 제거 ===
+        public int DispelDebuffCount { get; set; }
     }
 
     /// <summary>
@@ -109,6 +118,8 @@ namespace GameDamageCalculator.Models.Effects
         DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
         Immunity,               // 상태이상 면역 (화상 면역 등)
         TriggeredHeal,          // 트리거 시 시전자 공격력 비례 회복 (TriggeredHealAtkRatio)
+        Revival,                // 불굴/부활 (사망 시 부활 + 피격 N회 사망 무효)
+        DebuffCleanse,          // 디버프 해제 (대상 디버프 N개 제거, DispelDebuffCount)
     }
 
     /// <summary>
@@ -149,5 +160,20 @@ namespace GameDamageCalculator.Models.Effects
     {
         public StatusEffectType[] Types { get; set; }   // 면역 대상 상태이상
         public int Duration { get; set; }               // 지속 턴
+    }
+
+    /// <summary>
+    /// 불굴/부활 — 사망 시 일정 생명력으로 부활하여 지정 피격 횟수 동안 사망하지 않음.
+    ///   예) 카구라 「팔사의 저주」 - 사망 시 불굴[피격 8회]로 부활(생명력 1), 전투당 1회.
+    ///       적군 사망 시 불굴의 잔여 피격 횟수 +1 (8 상한).
+    /// 런타임 동작(사망 감지·부활·피격 카운트 소비·적사망 시 증가)은 추후 구현.
+    /// </summary>
+    public class Revival
+    {
+        public int HitCount { get; set; }                  // 부활 후 사망 무효 피격 횟수 (불굴 = 8)
+        public double ReviveHp { get; set; } = 1;          // 부활 시 생명력 (고정값, 기본 1)
+        public bool OncePerBattle { get; set; } = true;    // 전투당 1회만 발동
+        public int HitCountGainOnEnemyDeath { get; set; }  // 적군 사망 시 잔여 피격 횟수 증가량 (0이면 없음)
+        public int MaxHitCount { get; set; }               // 잔여 피격 횟수 상한 (0이면 HitCount와 동일)
     }
 }
