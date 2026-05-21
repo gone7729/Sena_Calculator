@@ -50,13 +50,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": "대상 현재 생명력 30% 이하일 경우 공격력45% 추가피해"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": "대상 현재 생명력 30% 이하일 경우 공격력55% 추가피해"
           },
           "transcend": {
             "cooldown": 0,
@@ -75,13 +77,15 @@
             "cooldown": 84,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": "치피 37% 추가 적용"
           },
           "enhanced": {
             "cooldown": 84,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": "치피 46% 추가 적용"
           },
           "transcend": {
             "cooldown": 84,
@@ -97,28 +101,32 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": "체력 30% 미만일 경우 추가 피해 260%"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": "체력 30% 미만일 경우 추가 피해 260%"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": "방어력 40% 무시"
           }
         }
       }
     ],
     "tags": [
-      "받피증",
+      "매의 발톱",
+      "받물피증",
       "치피증"
     ]
   },
@@ -173,13 +181,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": "자신과 공격력이 가장 높은 아군 스킬 쿨타임 8초 감소"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": "자신과 공격력이 가장 높은 아군 스킬 쿨타임 9초 감소"
           },
           "transcend": {
             "cooldown": 0,
@@ -195,22 +205,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": "실명[2턴], 도발[2턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
-            "ratio": 155
+            "ratio": 155,
+            "effect": "실명[2턴], 도발[2턴], 물리 피해 면역[2턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
-            "ratio": 155
+            "ratio": 155,
+            "effect": "방어력 40% 무시"
           }
         }
       },
@@ -220,28 +233,33 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 105,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": "잃은 체력 비례 최대 50% 피해량 증가, 약점 공격 시 물공 230%만큼 추가 피해(대상 잃체비 최대 50% 피해량 증가)"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": "잃은 체력 비례 최대 50% 피해량 증가, 약점 공격 시 물공 230%만큼 추가 피해(대상 잃체비 최대 50% 피해량 증가)"
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": "방어력 40% 무시"
           }
         }
       }
     ],
     "tags": [
-      "1-3인기"
+      "1-3인기",
+      "도발",
+      "실명"
     ]
   },
   {
@@ -295,13 +313,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": "침묵(45% 확률)[1턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -317,19 +337,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": "침묵(50% 확률)[2턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
-            "ratio": 135
+            "ratio": 135,
+            "effect": "침묵(60% 확률)[2턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 135
@@ -342,19 +364,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 5,
-            "ratio": 119
+            "ratio": 119,
+            "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 5,
-            "ratio": 158
+            "ratio": 158,
+            "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 5,
             "ratio": 158
@@ -363,7 +387,8 @@
       }
     ],
     "tags": [
-      "물피증"
+      "물피증",
+      "침묵"
     ]
   },
   {
@@ -417,13 +442,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -439,22 +466,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 38,
             "target": 1,
             "atk": 1,
-            "ratio": 570
+            "ratio": 570,
+            "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 38,
             "target": 1,
             "atk": 1,
-            "ratio": 690
+            "ratio": 690,
+            "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 38,
             "target": 1,
             "atk": 1,
-            "ratio": 690
+            "ratio": 690,
+            "effect": "상대 디버프 1개당 피해량 증가 50%(최대 4개)"
           }
         }
       }
@@ -514,13 +544,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 55
+            "ratio": 55,
+            "effect": "출혈(35%확률)[2턴]"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 65
+            "ratio": 65,
+            "effect": "출혈(40%확률)[2턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -536,22 +568,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
-            "ratio": 72
+            "ratio": 72,
+            "effect": "각 공격마다 출혈(55% 확률)[3턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
-            "ratio": 85
+            "ratio": 85,
+            "effect": "각 공격마다 출혈(60% 확률)[3턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 55,
             "target": 3,
             "atk": 2,
-            "ratio": 85
+            "ratio": 85,
+            "effect": "쿨 55초 변경, 상대 출혈 시 확정 출혈[3턴]"
           }
         }
       },
@@ -561,28 +596,33 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 175
+            "ratio": 175,
+            "effect": "대상에게 적용된 출혈 효과를 폭발시켜 피해를 입힙니다. 출혈 효과의 개수와 남은 턴에 비례하여 피해를 입히며 효과는 소모됩니다."
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 205
+            "ratio": 205,
+            "effect": "대상에게 적용된 출혈 효과를 폭발시켜 피해를 입힙니다. 출혈 효과의 개수와 남은 턴에 비례하여 피해를 입히며 효과는 소모됩니다."
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 205
+            "ratio": 205,
+            "effect": "출혈폭발 대미지 120% -> 150%"
           }
         }
       }
     ],
     "tags": [
-      "피증"
+      "물피증",
+      "출혈",
+      "출혈 폭발"
     ]
   },
   {
@@ -636,13 +676,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -658,19 +700,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 4,
             "atk": 2,
-            "ratio": 62
+            "ratio": 62,
+            "effect": "받는회복량감소52%[3턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 4,
             "atk": 2,
-            "ratio": 62
+            "ratio": 62,
+            "effect": "받는회복량감소68%[3턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 4,
             "atk": 2,
             "ratio": 62
@@ -686,13 +730,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 57
+            "ratio": 57,
+            "effect": "석화(45%확률)[2턴]"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 57
+            "ratio": 57,
+            "effect": "석화(55%확률)[2턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -760,13 +806,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -785,13 +833,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -810,13 +860,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 65
+            "ratio": 65,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 85
+            "ratio": 85,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -882,13 +934,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -907,13 +961,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 150
+            "ratio": 150,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -932,13 +988,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 165
+            "ratio": 165,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1004,13 +1062,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1029,13 +1089,15 @@
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 72
+            "ratio": 72,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1054,13 +1116,15 @@
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 90
+            "ratio": 90,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1071,7 +1135,9 @@
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "카일꺼"
+    ]
   },
   {
     "id": 10,
@@ -1124,13 +1190,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 55
+            "ratio": 55,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1149,13 +1217,15 @@
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 40
+            "ratio": 40,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1174,13 +1244,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 125
+            "ratio": 125,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 150
+            "ratio": 150,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1192,6 +1264,8 @@
       }
     ],
     "tags": [
+      "폭탄",
+      "폭탄 폭파",
       "피감",
       "효적증"
     ]
@@ -1247,13 +1321,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1272,13 +1348,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1297,24 +1375,29 @@
             "cooldown": 0,
             "target": 1,
             "atk": 2,
-            "ratio": 135
+            "ratio": 135,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 2,
-            "ratio": 165
+            "ratio": 165,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 2,
             "atk": 2,
-            "ratio": 165
+            "ratio": 165,
+            "effect": "생명력전환 55%"
           }
         }
       }
     ],
     "tags": [
+      "진탕",
+      "회복 불가",
       "효적증"
     ]
   },
@@ -1369,13 +1452,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1394,13 +1479,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 95
+            "ratio": 95,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 110
+            "ratio": 110,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1464,13 +1551,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1489,13 +1578,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 57
+            "ratio": 57,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 67
+            "ratio": 67,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1514,13 +1605,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 52
+            "ratio": 52,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1532,6 +1625,7 @@
       }
     ],
     "tags": [
+      "기절",
       "물공증"
     ]
   },
@@ -1586,13 +1680,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1611,13 +1707,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 410
+            "ratio": 410,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1636,13 +1734,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 475
+            "ratio": 475,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 575
+            "ratio": 575,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1694,7 +1794,7 @@
     },
     "passive": {
       "name": "검의 결계",
-      "maxStacks": 8
+      "maxStacks": 1
     },
     "skills": [
       {
@@ -1706,13 +1806,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1731,13 +1833,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 155
+            "ratio": 155,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 190
+            "ratio": 190,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1756,13 +1860,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 175
+            "ratio": 175,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 210
+            "ratio": 210,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1816,7 +1922,7 @@
     },
     "passive": {
       "name": "매의 눈",
-      "maxStacks": 8
+      "maxStacks": 1
     },
     "skills": [
       {
@@ -1828,13 +1934,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1853,13 +1961,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 370
+            "ratio": 370,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 440
+            "ratio": 440,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1878,13 +1988,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 315
+            "ratio": 315,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 375
+            "ratio": 375,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1896,6 +2008,7 @@
       }
     ],
     "tags": [
+      "중독",
       "치피증"
     ]
   },
@@ -1950,13 +2063,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -1975,19 +2090,22 @@
             "cooldown": 0,
             "target": 0,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "파괴의 거인 쿨초기화, 피해무효 1회"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 0,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "파괴의 거인 쿨초기화, 피해무효 2회"
           },
           "transcend": {
             "cooldown": 0,
             "target": 0,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "쿨타임 40초 감소"
           }
         }
       },
@@ -2000,19 +2118,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 390
+            "ratio": 390,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 470
+            "ratio": 470,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 470
+            "ratio": 470,
+            "effect": "치명타 확정, 방어력 65% 무시"
           }
         }
       }
@@ -2073,13 +2194,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2098,13 +2221,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 75
+            "ratio": 75,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 90
+            "ratio": 90,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2123,19 +2248,22 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": "방어력 40% 무시"
           }
         }
       }
@@ -2195,13 +2323,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2220,13 +2350,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2245,13 +2377,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 160
+            "ratio": 160,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 185
+            "ratio": 185,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2318,13 +2452,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2343,13 +2479,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 43
+            "ratio": 43,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 51
+            "ratio": 51,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2368,13 +2506,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 3,
-            "ratio": 41
+            "ratio": 41,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 3,
-            "ratio": 55
+            "ratio": 55,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2386,7 +2526,8 @@
       }
     ],
     "tags": [
-      "마공증"
+      "마공증",
+      "수면"
     ]
   },
   {
@@ -2440,13 +2581,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 55
+            "ratio": 55,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2465,13 +2608,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 65
+            "ratio": 65,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 77
+            "ratio": 77,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2490,13 +2635,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": "영멸(님 부활못함ㅋ)"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 80
+            "ratio": 80,
+            "effect": "영멸(님 부활못함ㅋ)"
           },
           "transcend": {
             "cooldown": 0,
@@ -2562,13 +2709,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2587,13 +2736,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 105
+            "ratio": 105,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2612,13 +2763,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 105
+            "ratio": 105,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2630,7 +2783,8 @@
       }
     ],
     "tags": [
-      "마법취약"
+      "마법취약",
+      "화상"
     ]
   },
   {
@@ -2684,13 +2838,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2709,13 +2865,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2734,13 +2892,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 425
+            "ratio": 425,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 515
+            "ratio": 515,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2807,13 +2967,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2832,13 +2994,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 270
+            "ratio": 270,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 330
+            "ratio": 330,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2857,13 +3021,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 155
+            "ratio": 155,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2929,13 +3095,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2954,13 +3122,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 95
+            "ratio": 95,
+            "effect": "70%확률 쿨타임 증가 19초"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 110
+            "ratio": 110,
+            "effect": "70%확률 쿨타임 증가 23초"
           },
           "transcend": {
             "cooldown": 0,
@@ -2979,13 +3149,15 @@
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 82
+            "ratio": 82,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -2997,7 +3169,8 @@
       }
     ],
     "tags": [
-      "방깎"
+      "방깎",
+      "석화"
     ]
   },
   {
@@ -3051,13 +3224,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3076,13 +3251,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 2,
-            "ratio": 220
+            "ratio": 220,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 2,
-            "ratio": 267
+            "ratio": 267,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3101,13 +3278,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 57
+            "ratio": 57,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 67
+            "ratio": 67,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3119,6 +3298,7 @@
       }
     ],
     "tags": [
+      "마비",
       "마피증"
     ]
   },
@@ -3173,13 +3353,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3198,13 +3380,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3223,13 +3407,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 52
+            "ratio": 52,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3241,6 +3427,8 @@
       }
     ],
     "tags": [
+      "기절",
+      "마력 역류",
       "받회감",
       "효저깎"
     ]
@@ -3296,13 +3484,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3321,13 +3511,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 72
+            "ratio": 72,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 85
+            "ratio": 85,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3346,13 +3538,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 75
+            "ratio": 75,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3416,13 +3610,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3441,13 +3637,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 57
+            "ratio": 57,
+            "effect": "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 67
+            "ratio": 67,
+            "effect": "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
           },
           "transcend": {
             "cooldown": 0,
@@ -3466,13 +3664,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 60
+            "ratio": 60,
+            "effect": "항상 4중첩 유지"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 80
+            "ratio": 80,
+            "effect": "항상 4중첩 유지"
           },
           "transcend": {
             "cooldown": 0,
@@ -3485,6 +3685,8 @@
     ],
     "tags": [
       "마공증",
+      "생명력 전환",
+      "출혈",
       "효적증"
     ]
   },
@@ -3539,13 +3741,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3564,19 +3768,22 @@
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 62
+            "ratio": 62,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 62
+            "ratio": 62,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 62
+            "ratio": 62,
+            "effect": "처치 시 쿨초"
           }
         }
       },
@@ -3589,13 +3796,15 @@
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 2,
-            "ratio": 90
+            "ratio": 90,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3606,7 +3815,9 @@
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "혼란"
+    ]
   },
   {
     "id": 115,
@@ -3659,13 +3870,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3684,13 +3897,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3709,25 +3924,31 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": "빗나감 확률 36%"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": "빗나감 확률 48%"
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": "도발 2턴"
           }
         }
       }
     ],
     "tags": [
-      "마법취약"
+      "마법취약",
+      "빗나감",
+      "수정 결정",
+      "수정 공명"
     ]
   },
   {
@@ -3781,13 +4002,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3806,19 +4029,22 @@
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 92
+            "ratio": 92,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 92
+            "ratio": 92,
+            "effect": "아군 디버프 2개 해제"
           }
         }
       },
@@ -3831,13 +4057,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 135
+            "ratio": 135,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3849,6 +4077,7 @@
       }
     ],
     "tags": [
+      "마비",
       "받회감",
       "효저깎",
       "효적증"
@@ -3905,13 +4134,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -3930,19 +4161,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 270
+            "ratio": 270,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 330
+            "ratio": 330,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 330
+            "ratio": 330,
+            "effect": "아군 디버프 2개 해제"
           }
         }
       },
@@ -3955,13 +4189,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4029,13 +4265,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4054,19 +4292,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 285
+            "ratio": 285,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": "스킬 사용 시 주피증 29%"
           }
         }
       },
@@ -4079,13 +4320,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 285
+            "ratio": 285,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 340
+            "ratio": 340,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4096,7 +4339,9 @@
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "화상"
+    ]
   },
   {
     "id": 152,
@@ -4149,13 +4394,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4174,13 +4421,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4199,13 +4448,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4218,7 +4469,8 @@
     ],
     "tags": [
       "마피증",
-      "방깎"
+      "방깎",
+      "빗나감"
     ]
   },
   {
@@ -4272,13 +4524,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4297,13 +4551,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4322,13 +4578,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 95
+            "ratio": 95,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4340,7 +4598,8 @@
       }
     ],
     "tags": [
-      "마공증"
+      "마공증",
+      "생명력 전환"
     ]
   },
   {
@@ -4394,13 +4653,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4419,19 +4680,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "아군 2명"
           }
         }
       },
@@ -4444,13 +4708,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4518,13 +4784,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4543,13 +4811,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4568,19 +4838,22 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "방어력 41% 감소"
           }
         }
       }
@@ -4642,13 +4915,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": "생명력 회복 15% 지속 1턴"
           },
           "transcend": {
             "cooldown": 0,
@@ -4667,13 +4942,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4692,19 +4969,22 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 20
+            "ratio": 20,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 22
+            "ratio": 22,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 22
+            "ratio": 22,
+            "effect": "디버프 해제 2개"
           }
         }
       }
@@ -4765,13 +5045,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4790,13 +5072,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 42
+            "ratio": 42,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4815,13 +5099,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4833,7 +5119,8 @@
       }
     ],
     "tags": [
-      "마공감"
+      "마공감",
+      "생명력 전환"
     ]
   },
   {
@@ -4887,13 +5174,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4912,13 +5201,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 37
+            "ratio": 37,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -4937,24 +5228,28 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "아군 2명 부활, 적군 턴감 2턴"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "아군 2명 부활, 적군 턴감 2턴, 부활 시 권능 2턴"
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "권능 아군 전체"
           }
         }
       }
     ],
     "tags": [
+      "즉사",
       "효저깎",
       "효적증"
     ]
@@ -5010,13 +5305,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5035,13 +5332,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5060,13 +5359,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5132,13 +5433,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5157,13 +5460,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5182,13 +5487,15 @@
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "두명 부활"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "두명 부활"
           },
           "transcend": {
             "cooldown": 0,
@@ -5254,13 +5561,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5279,13 +5588,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5304,13 +5615,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5374,13 +5687,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5399,19 +5714,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 2,
-            "ratio": 102
+            "ratio": 102,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 2,
-            "ratio": 122
+            "ratio": 122,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 122
+            "ratio": 122,
+            "effect": "공격 대상 증가"
           }
         }
       },
@@ -5424,19 +5742,22 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 160
+            "ratio": 160,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 160
+            "ratio": 160,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 160
+            "ratio": 160,
+            "effect": "턴 증가"
           }
         }
       }
@@ -5499,13 +5820,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5524,19 +5847,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 3,
-            "ratio": 113
+            "ratio": 113,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 3,
-            "ratio": 136
+            "ratio": 136,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
             "atk": 3,
-            "ratio": 136
+            "ratio": 136,
+            "effect": "관통 추가"
           }
         }
       },
@@ -5549,13 +5875,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 87
+            "ratio": 87,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5567,6 +5895,7 @@
       }
     ],
     "tags": [
+      "감전",
       "물공증"
     ]
   },
@@ -5621,13 +5950,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5646,13 +5977,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 375
+            "ratio": 375,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 375
+            "ratio": 375,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5671,13 +6004,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 545
+            "ratio": 545,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 655
+            "ratio": 655,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5744,13 +6079,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5769,13 +6106,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 2,
-            "ratio": 85
+            "ratio": 85,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5794,13 +6133,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 140
+            "ratio": 140,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 140
+            "ratio": 140,
+            "effect": "아군 디버프 해제"
           },
           "transcend": {
             "cooldown": 0,
@@ -5869,13 +6210,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5894,13 +6237,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -5919,25 +6264,30 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": "턴제 감소 3턴으로 증가"
           }
         }
       }
     ],
     "tags": [
-      "방깎"
+      "방깎",
+      "빗나감",
+      "침묵"
     ]
   },
   {
@@ -5991,13 +6341,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6016,13 +6368,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 305
+            "ratio": 305,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 370
+            "ratio": 370,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6041,13 +6395,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6058,7 +6414,9 @@
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "즉사"
+    ]
   },
   {
     "id": 307,
@@ -6111,13 +6469,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6136,13 +6496,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 150
+            "ratio": 150,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6161,13 +6523,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 70
+            "ratio": 70,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6178,7 +6542,10 @@
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "기절",
+      "화상"
+    ]
   },
   {
     "id": 308,
@@ -6231,13 +6598,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6256,13 +6625,15 @@
             "cooldown": 0,
             "target": 4,
             "atk": 1,
-            "ratio": 125
+            "ratio": 125,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 4,
             "atk": 1,
-            "ratio": 150
+            "ratio": 150,
+            "effect": "행동제어면역3턴"
           },
           "transcend": {
             "cooldown": 0,
@@ -6281,13 +6652,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 3,
-            "ratio": 58
+            "ratio": 58,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 3,
-            "ratio": 68
+            "ratio": 68,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6354,13 +6727,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 65
+            "ratio": 65,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6379,13 +6754,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 195
+            "ratio": 195,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 195
+            "ratio": 195,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6404,13 +6781,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 32
+            "ratio": 32,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 40
+            "ratio": 40,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6422,6 +6801,7 @@
       }
     ],
     "tags": [
+      "빙결",
       "효저증",
       "효적증"
     ]
@@ -6477,13 +6857,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6502,13 +6884,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 145
+            "ratio": 145,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6527,13 +6911,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 75
+            "ratio": 75,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 85
+            "ratio": 85,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6546,6 +6932,7 @@
     ],
     "tags": [
       "방깎",
+      "빗나감",
       "피감"
     ]
   },
@@ -6600,19 +6987,22 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": "빙극 대상 3명"
           }
         }
       },
@@ -6625,13 +7015,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 65
+            "ratio": 65,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 75
+            "ratio": 75,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6650,13 +7042,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 30
+            "ratio": 30,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 35
+            "ratio": 35,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6668,7 +7062,8 @@
       }
     ],
     "tags": [
-      "받피감"
+      "받피감",
+      "빙극"
     ]
   },
   {
@@ -6722,13 +7117,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": "아군 방어형, 지원형 1명씩 있을 시 50%확률로 표식 1중첩"
           },
           "transcend": {
             "cooldown": 0,
@@ -6747,13 +7144,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 57
+            "ratio": 57,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 67
+            "ratio": 67,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6772,13 +7171,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 77
+            "ratio": 77,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 90
+            "ratio": 90,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6842,13 +7243,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": "회복불가 추가"
           },
           "transcend": {
             "cooldown": 0,
@@ -6867,13 +7270,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 390
+            "ratio": 390,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 470
+            "ratio": 470,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6892,13 +7297,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(2턴), 해제가능한 디버프가 있어야 사용가능"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(2턴), 해제가능한 디버프가 있어야 사용가능, 모든피해면역(1턴)"
           },
           "transcend": {
             "cooldown": 0,
@@ -6964,13 +7371,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -6989,13 +7398,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 25
+            "ratio": 25,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 28
+            "ratio": 28,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7014,13 +7425,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 20
+            "ratio": 20,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 23
+            "ratio": 23,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7088,13 +7501,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7113,13 +7528,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 75
+            "ratio": 75,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7138,13 +7555,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 53
+            "ratio": 53,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 62
+            "ratio": 62,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7163,13 +7582,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 43
+            "ratio": 43,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 43
+            "ratio": 43,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7188,13 +7609,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 86
+            "ratio": 86,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 3,
-            "ratio": 102
+            "ratio": 102,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7213,13 +7636,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 3,
-            "ratio": 68
+            "ratio": 68,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 3,
-            "ratio": 82
+            "ratio": 82,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7232,7 +7657,8 @@
     ],
     "tags": [
       "막기확률감소",
-      "받피감"
+      "받피감",
+      "석화"
     ]
   },
   {
@@ -7286,13 +7712,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7311,13 +7739,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 90
+            "ratio": 90,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 110
+            "ratio": 110,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7336,24 +7766,28 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 115
+            "ratio": 115,
+            "effect": "쿨증, 턴감"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 135
+            "ratio": 135,
+            "effect": "쿨증, 턴감"
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 135
+            "ratio": 135,
+            "effect": "쿨증 확률증"
           }
         }
       }
     ],
     "tags": [
+      "감전",
       "효적증"
     ]
   },
@@ -7408,13 +7842,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 100
+            "ratio": 100,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 120
+            "ratio": 120,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7433,13 +7869,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 285
+            "ratio": 285,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 110
+            "ratio": 110,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7458,19 +7896,22 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "1턴증가"
           }
         }
       }
@@ -7531,13 +7972,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 65
+            "ratio": 65,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7556,13 +7999,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 170
+            "ratio": 170,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 205
+            "ratio": 205,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7581,24 +8026,28 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "링크"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "링크"
           },
           "transcend": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "cc면역"
           }
         }
       }
     ],
     "tags": [
+      "기절",
       "받피감",
       "방어"
     ]
@@ -7654,13 +8103,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7679,13 +8130,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 15
+            "ratio": 15,
+            "effect": "상대 약확 22% 감소, 즉사 턴감"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 2,
-            "ratio": 15
+            "ratio": 15,
+            "effect": "상대 약확 30% 감소, 즉사 턴감"
           },
           "transcend": {
             "cooldown": 0,
@@ -7704,25 +8157,29 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 35
+            "ratio": 35,
+            "effect": "링크"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 35
+            "ratio": 35,
+            "effect": "링크"
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 35
+            "ratio": 35,
+            "effect": "cc면역"
           }
         }
       }
     ],
     "tags": [
       "받피감",
+      "즉사",
       "효저깎"
     ]
   },
@@ -7777,13 +8234,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7802,13 +8261,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "도발, 피면, 아군 지속 힐"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "도발, 피면, 아군 지속 힐"
           },
           "transcend": {
             "cooldown": 0,
@@ -7827,13 +8288,15 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 80
+            "ratio": 80,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -7845,6 +8308,7 @@
       }
     ],
     "tags": [
+      "즉사",
       "효저깎"
     ]
   },
@@ -7899,13 +8363,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": "평타 시 9초쿨감"
           },
           "transcend": {
             "cooldown": 0,
@@ -7924,24 +8390,28 @@
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 110
+            "ratio": 110,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
             "target": 3,
             "atk": 1,
-            "ratio": 130
+            "ratio": 130,
+            "effect": "턴감"
           }
         }
       }
     ],
     "tags": [
+      "기절",
       "물공감"
     ]
   },
@@ -7996,13 +8466,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 50
+            "ratio": 50,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 60
+            "ratio": 60,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -8021,13 +8493,15 @@
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 315
+            "ratio": 315,
+            "effect": ""
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
-            "ratio": 380
+            "ratio": 380,
+            "effect": ""
           },
           "transcend": {
             "cooldown": 0,
@@ -8046,13 +8520,15 @@
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "파티 보호막"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 5,
             "atk": 1,
-            "ratio": 0
+            "ratio": 0,
+            "effect": "파티 보호막"
           },
           "transcend": {
             "cooldown": 0,

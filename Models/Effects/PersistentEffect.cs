@@ -22,6 +22,7 @@ namespace GameDamageCalculator.Models.Effects
         public int TriggerCount { get; set; } = 1;              // 트리거에 필요한 횟수
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
+        public int Duration { get; set; }                       // 부여 효과 지속 턴 (트리거 디버프/버프, 0이면 무기한)
 
         // === 버프/디버프 스탯 (Type = Buff 또는 Debuff일 때) ===
         public BuffSet Buff { get; set; }
@@ -66,6 +67,15 @@ namespace GameDamageCalculator.Models.Effects
 
         // === 트리거형 고정 데미지 (Type = TriggeredFixedDamage일 때) ===
         public TriggeredFixedDamage TriggeredFixedDamage { get; set; }
+
+        // === 피해 무효화 (Type = DamageNullification일 때) ===
+        public DamageNullification DamageNullification { get; set; }
+
+        // === 상태이상 면역 (Type = Immunity일 때) ===
+        public StatusImmunity StatusImmunity { get; set; }
+
+        // === 트리거 회복 (ApplyMode = Triggered, 시전자 공격력 비례 회복%) ===
+        public double TriggeredHealAtkRatio { get; set; }
     }
 
     /// <summary>
@@ -96,6 +106,9 @@ namespace GameDamageCalculator.Models.Effects
         FlatBonus,      // 고정 스탯 보너스 — StatCalculator가 직접 소비
         PerEnemyDebuffDmgBonus, // 적 디버프 1개당 피증 — DamageCalculator가 직접 소비 (동적)
         TriggeredFixedDamage,   // N회 공격마다 적군 N명에게 고정 데미지 (발리스타 등)
+        DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
+        Immunity,               // 상태이상 면역 (화상 면역 등)
+        TriggeredHeal,          // 트리거 시 시전자 공격력 비례 회복 (TriggeredHealAtkRatio)
     }
 
     /// <summary>
@@ -113,5 +126,28 @@ namespace GameDamageCalculator.Models.Effects
         public double AtkRatio { get; set; }                                           // 1회 발동 시 시전자 공격력 비례% (FixedDamage 대신 사용 가능)
         public int TargetCount { get; set; } = 1;                                      // 적 명수
         public int HitCount { get; set; } = 1;                                         // 발동당 타격 횟수
+    }
+
+    /// <summary>
+    /// 피해 무효화 — 피격 N회 또는 N턴 동안 (특정 피해 타입 한정 가능)
+    ///   예) 타카 - 스킬 1회 발동 시 모든 피해 무효화[피격 1회]  (HitCount=1, Type=All, 트리거)
+    ///   예) 델론즈 - 자신 모든 피해 무효화[피격 3회]            (HitCount=3, Type=All)
+    ///   예) 라이언 - 물리 피해 면역[2턴]                        (Duration=2, Type=Physical)
+    /// </summary>
+    public class DamageNullification
+    {
+        public int HitCount { get; set; }                              // 무효화 피격 횟수 (0이면 턴제만)
+        public int Duration { get; set; }                              // 지속 턴 (0이면 횟수형)
+        public DamageNullType Type { get; set; } = DamageNullType.All; // 무효화 대상 피해 타입
+    }
+
+    /// <summary>
+    /// 상태이상 면역 — 지정 상태이상에 N턴 동안 면역
+    ///   예) 라이언 - 아군 화상 면역[2턴]  (Types=[Burn], Duration=2)
+    /// </summary>
+    public class StatusImmunity
+    {
+        public StatusEffectType[] Types { get; set; }   // 면역 대상 상태이상
+        public int Duration { get; set; }               // 지속 턴
     }
 }

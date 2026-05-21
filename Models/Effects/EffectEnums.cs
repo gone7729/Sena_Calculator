@@ -5,11 +5,12 @@ namespace GameDamageCalculator.Models.Effects
     /// </summary>
     public enum EffectTarget
     {
-        Self,           // 시전자 본인
-        Party,          // 아군 전체
-        SingleAlly,     // 아군 1명
-        Enemy,          // 적 1명
-        AllEnemies      // 적 전체
+        Self,                   // 시전자 본인
+        Party,                  // 아군 전체
+        SingleAlly,             // 아군 1명
+        Enemy,                  // 적 1명
+        AllEnemies,             // 적 전체
+        SelfAndHighestAtkAlly,  // 자신 + 공격력이 가장 높은 아군 (런타임 선정)
     }
 
     /// <summary>
@@ -70,5 +71,16 @@ namespace GameDamageCalculator.Models.Effects
         NormalOnly,     // 기본공격 N회
         OnHit,          // 피격 N회
         OnTurnStart,    // 턴 시작 시
+        AllyDeath,      // 아군 사망 시
+    }
+
+    /// <summary>
+    /// 피해 무효화 대상 피해 타입
+    /// </summary>
+    public enum DamageNullType
+    {
+        All,        // 모든 피해
+        Physical,   // 물리 피해만
+        Magic,      // 마법 피해만
     }
 }

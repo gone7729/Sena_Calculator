@@ -8,6 +8,7 @@ interface SkillTier {
   target: number;
   atk: number;
   ratio: number;
+  effect?: string;
 }
 
 interface Skill {
@@ -64,7 +65,12 @@ const DEBUFF_TAGS = [
   "버프해제", "턴감",
 ];
 
-const BUFF_SET = new Set(BUFF_TAGS);
+// 상태이상 태그 (StatusEffect.Name 기준)
+const STATUS_TAGS = [
+  "기절", "침묵", "빙결", "석화", "빙극", "마비", "감전", "수면", "혼란", "진탕",
+  "실명", "도발", "화상", "출혈", "중독", "즉사", "폭탄",
+];
+
 
 const SKILL_TYPE_LABEL: Record<string, string> = {
   Normal: "평타",
@@ -196,6 +202,22 @@ export default function HeroesPage() {
             ))}
           </div>
         </div>
+
+        <div className="filter-row">
+          <span className="filter-label">상태이상</span>
+          <div className="chip-group">
+            {STATUS_TAGS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`chip${selectedTags.has(t) ? " active" : ""}`}
+                onClick={() => toggleTag(t)}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ===== Two columns ===== */}
@@ -219,28 +241,11 @@ export default function HeroesPage() {
                 <button
                   key={h.id}
                   type="button"
-                  className={`hero-row${selectedId === h.id ? " selected" : ""}`}
+                  className={`hero-card${selectedId === h.id ? " selected" : ""}`}
                   onClick={() => setSelectedId(h.id)}
                 >
-                  <span className="hero-row-name">{h.name}</span>
-                  <span className="hero-row-tags">
-                    <span className={`tag${h.grade === "전설" ? " grade-legend" : ""}`}>
-                      {h.grade}
-                    </span>
-                    <span
-                      className={`tag ${h.attackType === "Magic" ? "atk-magic" : "atk-physical"}`}
-                    >
-                      {h.type}
-                    </span>
-                    {h.tags?.map((t) => (
-                      <span
-                        key={t}
-                        className={`tag ${BUFF_SET.has(t) ? "tag-buff" : "tag-debuff"}`}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </span>
+                  <div className="hero-card-img">이미지</div>
+                  <div className="hero-card-name">{h.name}</div>
                 </button>
               ))
             )}
@@ -292,6 +297,15 @@ export default function HeroesPage() {
                             </Fragment>
                           ))}
                         </div>
+                        {s.tiers.enhanced.effect && (
+                          <div className="tt-effect">{s.tiers.enhanced.effect}</div>
+                        )}
+                        {s.tiers.transcend.effect &&
+                          s.tiers.transcend.effect !== s.tiers.enhanced.effect && (
+                            <div className="tt-effect tt-effect-tr">
+                              초월: {s.tiers.transcend.effect}
+                            </div>
+                          )}
                       </div>
                     </div>
                   ))}

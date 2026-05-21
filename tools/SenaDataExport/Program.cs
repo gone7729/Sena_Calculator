@@ -68,6 +68,13 @@ var heroes = CharacterDb.Characters.Select(c =>
         if (d.Eff_Red > 0) tags.Add("효저깎");
     }
 
+    void AddStatus(StatusEffectType st)
+    {
+        if (st == StatusEffectType.None) return;
+        if (StatusEffectDb.Effects.TryGetValue(st, out var sd) && !string.IsNullOrEmpty(sd.Name))
+            tags.Add(sd.Name);
+    }
+
     var pas = c.Passive;
     if (pas != null)
     {
@@ -77,6 +84,10 @@ var heroes = CharacterDb.Characters.Select(c =>
         AddBuff(pas.GetConditionalPartyBuff(true, 12));
         AddDebuff(pas.GetDebuff(true, 12));
         AddDebuff(pas.GetConditionalDebuff(true, 12));
+        foreach (var plv in new[] { pas.GetLevelData(false), pas.GetLevelData(true) })
+            if (plv?.Effects != null) foreach (var e in plv.Effects) AddStatus(e.StatusType);
+        var pt = pas.GetTranscendBonus(12);
+        if (pt?.Effects != null) foreach (var e in pt.Effects) AddStatus(e.StatusType);
     }
     foreach (var sk in c.Skills)
     {
@@ -89,14 +100,14 @@ var heroes = CharacterDb.Characters.Select(c =>
             AddBuff(lvl.PreCastBuff);
             AddDebuff(lvl.DebuffEffect);
             if (lvl.Effects != null)
-                foreach (var e in lvl.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); }
+                foreach (var e in lvl.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); AddStatus(e.StatusType); }
         }
         var st = sk.GetTranscendBonus(12);
         AddBuff(st.Bonus);
         AddBuff(st.PartyBuff);
         AddDebuff(st.Debuff);
         if (st.Effects != null)
-            foreach (var e in st.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); }
+            foreach (var e in st.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); AddStatus(e.StatusType); }
     }
 
     return new
@@ -114,7 +125,7 @@ var heroes = CharacterDb.Characters.Select(c =>
     {
         name = c.Passive.Name,
         description = c.Passive.Description,
-        maxStacks = c.Passive.MaxStacks
+        maxStacks = c.Passive.GetMaxStacks(true, 12)
     },
     skills = c.Skills.Select(s =>
     {
@@ -129,9 +140,9 @@ var heroes = CharacterDb.Characters.Select(c =>
             skillType = s.SkillType.ToString(),
             tiers = new
             {
-                @base = new { cooldown = s.GetCooldown(false, 0), target = l0.TargetCount, atk = s.GetAtkCount(false, 0), ratio = l0.Ratio },
-                enhanced = new { cooldown = s.GetCooldown(true, 0), target = l1.TargetCount, atk = s.GetAtkCount(true, 0), ratio = l1.Ratio },
-                transcend = new { cooldown = s.GetCooldown(true, 12), target = tr.TargetCountOverride ?? l1.TargetCount, atk = s.GetAtkCount(true, 12), ratio = l1.Ratio },
+                @base = new { cooldown = s.GetCooldown(false, 0), target = l0.TargetCount, atk = s.GetAtkCount(false, 0), ratio = l0.Ratio, effect = l0.Effect },
+                enhanced = new { cooldown = s.GetCooldown(true, 0), target = l1.TargetCount, atk = s.GetAtkCount(true, 0), ratio = l1.Ratio, effect = l1.Effect },
+                transcend = new { cooldown = s.GetCooldown(true, 12), target = tr.TargetCountOverride ?? l1.TargetCount, atk = s.GetAtkCount(true, 12), ratio = l1.Ratio, effect = tr.Effect },
             },
         };
     }).ToList(),
