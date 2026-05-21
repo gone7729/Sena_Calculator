@@ -57,7 +57,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 84,
                                 Ratio = 145, 
                                 Bonus = new BuffSet { Cri_Dmg = 37 }, 
-                                Effect = "" 
+                                Effect = "치피 37% 추가 적용" 
                                 } },
                             { 1, new SkillLevelData { 
                                 TargetCount = 3,
@@ -65,7 +65,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 84,
                                 Ratio = 170, 
                                 Bonus = new BuffSet { Cri_Dmg = 46 }, 
-                                Effect = "" 
+                                Effect = "치피 46% 추가 적용" 
                                 } }
                         }
                     },
@@ -79,35 +79,38 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 145,
                                 ConditionalExtraDmg = 260,
                                 ConditionalDesc = "체력 30% 미만",
-                                Effect = ""
+                                Effect = "체력 30% 미만일 경우 추가 피해 260%"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 170,
                                 ConditionalExtraDmg = 260,
                                 ConditionalDesc = "체력 30% 미만",
-                                Effect = ""
+                                Effect = "체력 30% 미만일 경우 추가 피해 260%"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Bonus = new BuffSet { Arm_Pen = 40 }, Effect = "방어력 40% 무시" } }
+                            { 6, new SkillTranscend { 
+                                Bonus = new BuffSet { Arm_Pen = 40 }, 
+                                Effect = "방어력 40% 무시" 
+                                } }
                         }
                     }
                 },
                 Passive = new Passive
                 {
                     Name = "매의 발톱",
-                    MaxStacks = 8,
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            MaxStacks = 8,
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -126,6 +129,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
+                            MaxStacks = 8,
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -1967,7 +1971,6 @@ namespace GameDamageCalculator.Database
                 Passive = new Passive
                 {
                     Name = "검의 결계",
-                    MaxStacks = 8,
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData { Effect = "빙결 면역, 피면" } },
@@ -2076,7 +2079,6 @@ namespace GameDamageCalculator.Database
                 Passive = new Passive
                 {
                     Name = "매의 눈",
-                    MaxStacks = 8,
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {

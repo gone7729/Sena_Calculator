@@ -97,19 +97,19 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 145
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 170
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 170
@@ -1694,7 +1694,7 @@
     },
     "passive": {
       "name": "검의 결계",
-      "maxStacks": 8
+      "maxStacks": 1
     },
     "skills": [
       {
@@ -1816,7 +1816,7 @@
     },
     "passive": {
       "name": "매의 눈",
-      "maxStacks": 8
+      "maxStacks": 1
     },
     "skills": [
       {

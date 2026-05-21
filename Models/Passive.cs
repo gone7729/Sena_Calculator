@@ -37,6 +37,9 @@ namespace GameDamageCalculator.Models
                 result.ConditionalDebuff.Add(kvp.Value.ConditionalDebuff);
                 result.Effect = kvp.Value.Effect;
 
+                if (kvp.Value.MaxStacksOverride.HasValue)
+                    result.MaxStacksOverride = kvp.Value.MaxStacksOverride;
+
                 if (kvp.Value.Effects != null && kvp.Value.Effects.Count > 0)
                 {
                     result.Effects ??= new List<Effects.PersistentEffect>();
@@ -44,6 +47,20 @@ namespace GameDamageCalculator.Models
                 }
             }
             return result;
+        }
+
+        /// <summary>
+        /// 티어별 최대 스택. 우선순위: 초월 오버라이드 > 레벨별 > Passive.MaxStacks
+        /// </summary>
+        public int GetMaxStacks(bool isEnhanced, int transcendLevel)
+        {
+            var transcend = GetTranscendBonus(transcendLevel);
+            if (transcend.MaxStacksOverride.HasValue) return transcend.MaxStacksOverride.Value;
+
+            var levelData = GetLevelData(isEnhanced);
+            if (levelData.MaxStacks > 0) return levelData.MaxStacks;
+
+            return MaxStacks;
         }
 
         /// <summary>
@@ -227,6 +244,9 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveLevelData
     {
+        // 최대 스택 (0이면 Passive.MaxStacks 폴백)
+        public int MaxStacks { get; set; }
+
         // ===== 상시 버프/디버프 =====
         public PermanentBuff SelfBuff { get; set; } = new PermanentBuff();       // 본인 전용 상시
         public PermanentBuff PartyBuff { get; set; } = new PermanentBuff();      // 아군 전체 상시
@@ -367,6 +387,9 @@ namespace GameDamageCalculator.Models
     /// </summary>
     public class PassiveTranscend
     {
+        // 최대 스택 오버라이드 (초월로 스택 수 변경 시)
+        public int? MaxStacksOverride { get; set; }
+
         // ===== 상시 버프/디버프 =====
         public PermanentBuff SelfBuff { get; set; } = new PermanentBuff();       // 본인 전용 상시
         public PermanentBuff PartyBuff { get; set; } = new PermanentBuff();      // 아군 전체 상시

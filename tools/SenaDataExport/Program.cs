@@ -114,7 +114,7 @@ var heroes = CharacterDb.Characters.Select(c =>
     {
         name = c.Passive.Name,
         description = c.Passive.Description,
-        maxStacks = c.Passive.MaxStacks
+        maxStacks = c.Passive.GetMaxStacks(true, 12)
     },
     skills = c.Skills.Select(s =>
     {
