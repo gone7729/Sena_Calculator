@@ -3,3 +3,4 @@
 - [회귀 테스트 계획](project_regression_test_plan.md) — 4명 테스트 캐릭터 회귀 측정은 옵티마이저 확장 시 자동화 패턴으로 통합 예정
 - [공격력 타입 분리](project_atk_type_split.md) — 물리 Atk/마법 MagicAtk 분리 Phase 1-5 완료, Phase 6(옵티마이저 필터) 미진행
 - [웹 공략 사이트 (Next.js)](project_web_nextjs.md) — web/ Next.js 16, Turbopack 한글경로 버그로 webpack 고정, 영웅 데이터는 C# export 도구로 생성
+- [버프 해제 규칙](reference_buff_dispel_rules.md) — 적용 순서대로 해제, 피해면역·피해무효화·권능은 해제 불가

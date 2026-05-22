@@ -74,6 +74,8 @@ namespace GameDamageCalculator.Models.Effects
         AllyDeath,      // 아군 사망 시
         SelfDeath,      // 본인 사망 시 (불굴/부활 트리거)
         OnRevival,      // 불굴/부활 발동 시 (부활 직후 연계 효과)
+        EnemyDeath,     // 적군 사망 시 (누적 N명 처치 트리거)
+        OnHpBelow,      // 자신 생명력이 임계값(TriggerHpThreshold%) 이하가 될 때
     }
 
     /// <summary>

@@ -435,7 +435,13 @@ namespace GameDamageCalculator.Services
                         break;
 
                     case SkillEffectType.PerEnemyDebuffDmgBonus:
-                        // BattleEffect로 변환 안 함 — PerDebuffBonusExtractor가 동적으로 소비
+                    case SkillEffectType.DamageNullification:
+                    case SkillEffectType.Immunity:
+                    case SkillEffectType.BuffTurnReduction:
+                    case SkillEffectType.BuffDispel:
+                        // BattleEffect로 변환 안 함 — 특수 메카닉(별도 채널에서 소비).
+                        //   PerEnemyDebuffDmgBonus → PerDebuffBonusExtractor가 동적 소비
+                        //   DamageNullification/Immunity/BuffTurnReduction/BuffDispel → 런타임 추후 구현
                         continue;
                 }
 
@@ -508,6 +514,13 @@ namespace GameDamageCalculator.Services
                     case PersistentEffectType.Revival:
                     case PersistentEffectType.DebuffCleanse:
                     case PersistentEffectType.TriggeredHeal:
+                    case PersistentEffectType.TriggeredFixedDamage:
+                    case PersistentEffectType.DamageNullification:
+                    case PersistentEffectType.Immunity:
+                    case PersistentEffectType.TriggeredSkillCast:
+                    case PersistentEffectType.CooldownReset:
+                    case PersistentEffectType.BuffDispel:
+                    case PersistentEffectType.FocusTarget:
                         // 의도된 스킵 — 이 메카닉들은 BuffSet/DebuffSet/StatusType 추상화에
                         // 안 맞으므로 BattleEffect로 변환하지 않는다.
                         // 소비 위치:
@@ -515,6 +528,9 @@ namespace GameDamageCalculator.Services
                         //   StatScaling/FlatBonus       → StatCalculator
                         //   PainEndurance               → 받피해 처리 경로 (현재 미연결)
                         //   PerEnemyDebuffDmgBonus      → PerDebuffBonusExtractor가 동적으로 소비
+                        //   TriggeredFixedDamage        → DamageCalculator (발리스타 등)
+                        //   Revival/DamageNullification/Immunity/TriggeredHeal/
+                        //   DebuffCleanse/TriggeredSkillCast/CooldownReset/BuffDispel → 런타임 추후 구현
                         // 데이터는 Passive.LevelData의 fallback getter로 노출된다.
                         continue;
                 }

@@ -314,6 +314,11 @@ namespace GameDamageCalculator.Models
         // ===== 통합 효과 리스트 (새 방식) =====
         public List<SkillEffect> Effects { get; set; }
 
+        // ===== 관통 =====
+        // 대상의 피해 무효화[N턴](DamageNullification.Duration형)을 무시하고 피해를 입힌다.
+        // 피격 횟수형 피해 무효화(DamageNullification.HitCount형)는 무시하지 못한다.
+        public bool IgnoresTurnDamageImmunity { get; set; }
+
         // ===== 기타 =====
         public string Effect { get; set; }
         public int? TargetCountOverride { get; set; }

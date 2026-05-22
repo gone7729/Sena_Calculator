@@ -18,6 +18,12 @@ namespace GameDamageCalculator.Models.Effects
         public int RemainingTurns { get; set; }
         public int MaxDuration { get; set; }
 
+        // === 적용 순서 (버프 해제용) ===
+        // 턴제 버프가 영웅에게 적용될 때 각 영웅별 1부터 증가하는 ID를 부여한다 (0 = 미부여/상시).
+        // 버프 해제는 이 값이 작은 것(먼저 적용된 것)부터 제거한다. 상시 버프(IsPermanent)와
+        // 해제 불가 효과(피해 면역/피해 무효화/권능)는 대상에서 제외.
+        public int ApplyOrderId { get; set; }
+
         // === 효과 내용 (하나 이상 설정 가능) ===
 
         /// <summary>버프 스탯 (공격력%, 치피% 등)</summary>
@@ -63,6 +69,7 @@ namespace GameDamageCalculator.Models.Effects
                 IsPermanent = IsPermanent,
                 RemainingTurns = RemainingTurns,
                 MaxDuration = MaxDuration,
+                ApplyOrderId = ApplyOrderId,
                 BuffValues = BuffValues?.Clone(),
                 DebuffValues = DebuffValues?.Clone(),
                 StatusType = StatusType,
