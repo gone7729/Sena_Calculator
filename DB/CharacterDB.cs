@@ -4328,7 +4328,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 50 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 50, Duration = 2 }
                                 },
                                 Effect = ""
                                 } }
@@ -4344,24 +4344,27 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 112,
                                 Ratio = 57,
-                                DispelDefReduction = 22,
-                                PreCastBuff = new BuffSet{ MagicAtk_Rate = 10 },
-                                Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
+                                DispelDefReduction = 11,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 }
+                                },
+                                Effect = "버프 2개 해제, 해제한 버프 개수만큼 방어력 11% 감소(최대 4중첩)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 112,
                                 Ratio = 67,
-                                DispelDefReduction = 22,
-                                PreCastBuff = new BuffSet { MagicAtk_Rate = 10 },
+                                DispelDefReduction = 11,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 75 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 75, Duration = 2 }
                                 },
-                                Effect = "버프 2개 해제, 해제한 버프 개수 만큼 방어력 감소(2중첩)"
+                                Effect = "버프 2개 해제, 해제한 버프 개수만큼 방어력 11% 감소(최대 4중첩)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -4381,24 +4384,26 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
-                                Ratio = 60,
+                                Cooldown = 120,
+                                Ratio = 70,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 52 }
                                 },
-                                Effect = "항상 4중첩 유지"
+                                Effect = "신성 4개 우선 소모하여 생명력 전환, 방어 무시 40%"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 120,
                                 Ratio = 80,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 39 }
                                 },
-                                Effect = "항상 4중첩 유지"
+                                Effect = "신성 4개 우선 소모하여 생명력 전환, 방어 무시 40%"
                                 } }
                         }
                     }
@@ -4412,21 +4417,33 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 40 } },
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 31 } }
-                            }
+                                // 마법형 영웅 3명 이상 편성 시 효과 적중 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Condition = "마법형 영웅 3명 이상", Buff = new BuffSet { Eff_Hit = 31 } },
+                                // 모든 피해 무효화 [피격 3회]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 3, Type = DamageNullType.All } },
+                                // 사망 시 생명력 80%로 부활 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                            },
+                            Effect = "축복 40%, 무효화[피격3회], 생명력 50% 이하 시 마법공격력 160% 보호막[3턴](전투당1회), 모든 공격 1회당 신성 1중첩(최대6, 중첩당 마법공격력 +5%)"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 25 } },
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 37 } }
-                            }
+                                // 마법형 영웅 3명 이상 편성 시 효과 적중 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Condition = "마법형 영웅 3명 이상", Buff = new BuffSet { Eff_Hit = 37 } },
+                                // 모든 피해 무효화 [피격 3회]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 3, Type = DamageNullType.All } },
+                                // 사망 시 생명력 80%로 부활 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                            },
+                            Effect = "축복 25%(피격 제한 최대 생명력 25%), 무효화[피격3회], 생명력 50% 이하 시 마법공격력 160% 보호막[3턴](전투당1회), 모든 공격 1회당 신성 1중첩(최대6, 중첩당 마법공격력 +5%)"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { 
-                            Effect = "전투 시작 시 4중첩"
+                        { 2, new PassiveTranscend {
+                            Effect = "전투 시작 시 신성 4중첩 (최대 6중첩)"
                         }}
                     }
                 },
@@ -4451,24 +4468,24 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
-                                TargetCount = 1,
+                                TargetCount = 2,
                                 AtkCount = 1,
-                                Ratio = 100,
+                                Ratio = 55,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 45 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 2, Chance = 45 }
                                 },
-                                Effect = ""
+                                Effect = "혼란 [타격 2회]"
                                 } },
                             { 1, new SkillLevelData {
-                                TargetCount = 1,
+                                TargetCount = 2,
                                 AtkCount = 1,
-                                Ratio = 120,
+                                Ratio = 65,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 50 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 2, Chance = 50 }
                                 },
-                                Effect = ""
+                                Effect = "혼란 [타격 2회]"
                                 } }
                         }
                     },
@@ -4482,23 +4499,31 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 4,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 80,
                                 Ratio = 62,
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, TurnReduction = 2, Chance = 100 }
+                                },
+                                Effect = "대상의 턴제 버프 2턴 감소"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 4,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 80,
                                 Ratio = 62,
-                                Bonus = new BuffSet { CriBonusDmg = 74, CriBonusDmgPerHit = true },
-                                Effect = ""
+                                Bonus = new BuffSet { WekBonusDmg = 37, WekBonusDmgPerHit = true },
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, TurnReduction = 2, Chance = 100 }
+                                },
+                                Effect = "대상의 턴제 버프 2턴 감소, 약점 공격 피해 발생 시 각 공격마다 마법공격력 37% 추가 피해"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { 
-                                Effect = "처치 시 쿨초"
+                            { 6, new SkillTranscend {
+                                Effect = "직접 피해로 적군 처치 시 [용린성하] 쿨타임 초기화 (모델 미지원)"
                             }}
                         }
                     },
@@ -4512,28 +4537,30 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 4,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 96,
                                 Ratio = 70,
-                                ConditionalExtraDmg = 30,
+                                ConditionalExtraDmg = 42,
                                 ConditionalExtraDmgPerHit = true,
+                                ConditionalDesc = "대상 현재 생명력 50% 이상 시 각 공격마다 마법공격력 42% 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 3, Chance = 100 }
                                 },
-                                Effect = ""
+                                Effect = "혼란 [타격 3회]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 4,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 96,
                                 Ratio = 90,
                                 ConditionalExtraDmg = 42,
                                 ConditionalExtraDmgPerHit = true,
+                                ConditionalDesc = "대상 현재 생명력 50% 이상 시 각 공격마다 마법공격력 42% 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Confusion, Stacks = 3, Chance = 100 }
                                 },
-                                Effect = ""
+                                Effect = "혼란 [타격 3회], 약점 공격 확률 감소 30% [3턴] (모델 미지원 - 적 약확 감소)"
                                 } }
                         }
                     }
@@ -4543,37 +4570,40 @@ namespace GameDamageCalculator.Database
                     Name = "홍린포",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            StatScalings = new List<StatScaling>
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                                new StatScaling
-                                {
-                                    SourceStat = StatType.Atk,      
-                                    TargetStat = StatType.Cri,      
-                                    PerUnit = 350,                  
-                                    SourceUnit = 3,                 
-                                    MaxValue = 27                 
-                                }
-                            }
+                                // 모든 아군 약점 공격 피해량 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Wek_Dmg = 18 } },
+                                // 모든 적군 약점 공격 확률 감소 [상시] (모델 미지원 - Effect 텍스트 참조)
+                                // 모든 피해 무효화 [피격 2회]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 2, Type = DamageNullType.All } },
+                                // 사망 시 생명력 80%로 부활 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                            },
+                            Effect = "무효화[피격2회], 부활 80%, 스킬 1회당 무효화[피격2회] 증가(최대6회), 적군 약점 공격 확률 18% 감소[상시]"
                         }},
-                        { 1, new PassiveLevelData { 
-                            StatScalings = new List<StatScaling>
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
                             {
-                                new StatScaling
-                                {
-                                    SourceStat = StatType.Atk,      
-                                    TargetStat = StatType.Cri,      
-                                    PerUnit = 350,                  
-                                    SourceUnit = 3,                 
-                                    MaxValue = 33                 
-                                }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Wek_Dmg = 23 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 2, Type = DamageNullType.All } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                            },
+                            Effect = "무효화[피격2회], 부활 80%, 스킬 1회당 무효화[피격2회] 증가(최대6회), 적군 약점 공격 확률 22% 감소[상시]"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { 
-                            Effect = "부활 시 피해 무효 2회"
+                        { 2, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                // 2초월: 부활 시 생명력 100%
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 100, OncePerBattle = true } },
+                                // 2초월: 자신 부활 시 모든 피해 무효화 [피격 2회]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, DamageNullification = new DamageNullification { HitCount = 2, Type = DamageNullType.All } }
+                            },
+                            Effect = "부활 시 생명력 100%, 부활 시 무효화[피격2회]"
                         }}
                     }
                 },
@@ -4601,23 +4631,23 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 2,
                                 AtkCount = 1,
                                 Ratio = 30,
-                                DefRatio = 30,
+                                DefRatio = 35,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 30 }
                                 },
-                                Effect = ""
+                                Effect = "[마력 결속-3명] 수정 결정 [피격 6회]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
                                 Ratio = 30,
-                                DefRatio = 30,
+                                DefRatio = 35,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 35 }
                                 },
-                                Effect = ""
+                                Effect = "[마력 결속-3명] 수정 결정 [피격 6회]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -4640,7 +4670,7 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 100,
                                 Ratio = 30,
                                 DefRatio = 32,
                                 Effects = new List<SkillEffect>
@@ -4648,12 +4678,12 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 50 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.CrystalResonance, Stacks = 1, Chance = 100 }
                                 },
-                                Effect = ""
+                                Effect = "[마력 결속-3명] 수정 결정 [피격6회], 수정 공명 [피격 4회 감소]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 100,
                                 Ratio = 30,
                                 DefRatio = 32,
                                 Effects = new List<SkillEffect>
@@ -4661,7 +4691,7 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 65 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.CrystalResonance, Stacks = 1, Chance = 100 }
                                 },
-                                Effect = ""
+                                Effect = "[마력 결속-3명] 수정 결정 [피격6회], 수정 공명 [피격 4회 감소]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -4684,34 +4714,38 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 104,
                                 Ratio = 30,
                                 DefRatio = 32,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 35 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "빗나감 확률 36%"
+                                Effect = "빗나감 확률 증가 36% [3턴], [마력 결속-3명] 각 공격마다 수정 결정 [피격4회]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 104,
                                 Ratio = 30,
                                 DefRatio = 32,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Crystal, Stacks = 1, Chance = 45 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "빗나감 확률 48%"
+                                Effect = "빗나감 확률 증가 48% [3턴], [마력 결속-3명] 각 공격마다 수정 결정 [피격4회]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
-                                Effect = "도발 2턴"
+                            { 2, new SkillTranscend {
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Taunt, Stacks = 1, Chance = 100, Duration = 2 }
+                                },
+                                Effect = "자신 도발 [2턴]"
                             }}
                         }
                     }
@@ -4722,18 +4756,26 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            // 신체 강화: 수정룡 - 기본 방어력/생명력 상승 [상시]
                             FlatBonus = new BaseStatSet { Def = 1009, Hp = 3929},
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 17 } }
-                            }
+                                // 모든 적군 마법 취약 [상시]
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 17 } },
+                                // 사망 시 생명력 80%로 부활 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                            },
+                            Effect = "수정룡(깡 방어/생명), 부활 80%, [마력결속-4명] 행동제어 면역[3턴], [마력결속-5명] 마법형 아군 공격 1회당 시전자 방어력 45% 보호막[2턴]"
                         }},
                         { 1, new PassiveLevelData {
                             FlatBonus = new BaseStatSet { Def = 1009, Hp = 3929},
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 20 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 20 } },
+                                // 사망 시 생명력 100%로 부활 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 100, OncePerBattle = true } }
+                            },
+                            Effect = "수정룡(깡 방어/생명), 부활 100%, [마력결속-4명] 행동제어 면역[3턴], [마력결속-5명] 마법형 아군 공격 1회당 시전자 방어력 45% 보호막[2턴]"
                         }}
                     }
                 },
@@ -4763,9 +4805,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 13 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 2, Debuff = new DebuffSet { Eff_Red = 13 } }
                                 },
-                                Effect = ""
+                                Effect = "효과 저항 감소 [2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
@@ -4773,9 +4815,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Eff_Red = 16 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 2, Debuff = new DebuffSet { Eff_Red = 16 } }
                                 },
-                                Effect = ""
+                                Effect = "효과 저항 감소 [2턴]"
                                 } }
                         }
                     },
@@ -4789,24 +4831,24 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 81,
                                 Ratio = 80,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 40 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 40, Duration = 2 }
                                 },
-                                Effect = ""
+                                Effect = "각 공격마다 마비 [40%] [2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 81,
                                 Ratio = 92,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 40 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 40, Duration = 2 }
                                 },
-                                Effect = ""
+                                Effect = "각 공격마다 마비 [40%] [2턴]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -4826,26 +4868,26 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 88,
                                 Ratio = 115,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 45 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 44 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 45, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Heal_Reduction = 44 } }
                                 },
-                                Effect = ""
+                                Effect = "마비 [45%] [2턴], 받는 회복량 감소 44% [3턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 88,
                                 Ratio = 135,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 55 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 44 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Paralysis, Stacks = 1, Chance = 55, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Heal_Reduction = 44 } }
                                 },
-                                Effect = ""
+                                Effect = "마비 [55%] [2턴], 받는 회복량 감소 44% [3턴]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -4866,14 +4908,21 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 28 } }
-                            }
+                                // 모든 아군 효과 적중 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 28 } },
+                                // 자신 모든 피해 면역 [2턴]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
+                            },
+                            Effect = "자신 모든 피해 면역 [2턴], 아군 효과 적중 증가 [상시]"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 34 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 34 } },
+                                // 자신 모든 피해 면역 [3턴]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { Duration = 3, Type = DamageNullType.All } }
+                            },
+                            Effect = "자신 모든 피해 면역 [3턴], 아군 효과 적중 증가 [상시]"
                         }}
                     }
                 },
@@ -4921,25 +4970,19 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 84,
                                 Ratio = 270,
                                 Bonus = new BuffSet{ Arm_Pen = 40, WekBonusDmg = 215 },
-                                Effect = ""
+                                Effect = "방어 무시 40%, 약점 공격 피해 발생 시 마법공격력 215% 추가 방어 무시 피해, 모든 아군 디버프 2개 해제"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 84,
                                 Ratio = 330,
                                 Bonus = new BuffSet{ Arm_Pen = 40, WekBonusDmg = 215 },
-                                Effect = ""
+                                Effect = "방어 무시 40%, 약점 공격 피해 발생 시 마법공격력 215% 추가 방어 무시 피해, 모든 아군 디버프 2개 해제"
                                 } }
-                        },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            { 2, new SkillTranscend { 
-                                Effect = "아군 디버프 2개 해제"
-                            }}
                         }
                     },
                     new Skill
@@ -4952,36 +4995,39 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 108,
                                 Ratio = 340,
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 25 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 5, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 26 } },
+                                    // 공격력이 가장 높은 아군 2명 마법공격력 증가 [3턴] (모델엔 Party로 근사)
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { MagicAtk_Rate = 25 } }
                                 },
-                                Effect = ""
+                                Effect = "방어 무시 40%, 마법 취약 26% [5턴], 공격력 높은 아군 2명 마법공격력 증가 25% [3턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 108,
                                 Ratio = 340,
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Vulnerability = 26 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 31 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 5, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 26 } },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { MagicAtk_Rate = 31 } }
                                 },
-                                Effect = ""
+                                Effect = "방어 무시 40%, 마법 취약 26% [5턴], 공격력 높은 아군 2명 마법공격력 증가 31% [3턴]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { 
+                            { 6, new SkillTranscend {
+                                // 6초월: 공격력 높은 아군 2명 치명타 피해 증가 46% [3턴] (모델엔 Party로 근사)
                                 Effects = new List<SkillEffect> {
-                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Cri_Dmg = 46 } }
-            }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Cri_Dmg = 46 } }
+                                },
+                                Effect = "공격력 높은 아군 2명 치명타 피해 증가 46% [3턴]"
                             }}
                         }
                     }
@@ -4994,14 +5040,20 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 24 } }
-                            }
+                                // 자신 마법 피해량 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 24 } },
+                                // 모든 아군 마비 면역 [2턴]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } }
+                            },
+                            Effect = "아군 마비 면역[2턴], 기본공격 1회당 마비 면역[2턴], 스킬 1회당 시전자 마법공격력 45% 보호막[2턴]"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 29 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 29 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } }
+                            },
+                            Effect = "아군 마비 면역[2턴], 기본공격 1회당 마비 면역[2턴], 스킬 1회당 시전자 마법공격력 45% 보호막[2턴]"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
@@ -5041,9 +5093,10 @@ namespace GameDamageCalculator.Database
                                 Ratio = 100,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
+                                    // 치명타 발생 시 화상 [100% 확률] [2턴 지속]
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100, Duration = 2 }
                                 },
-                                Effect = ""
+                                Effect = "치명타 발생 시 화상"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
@@ -5051,9 +5104,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100, Duration = 2 }
                                 },
-                                Effect = ""
+                                Effect = "치명타 발생 시 화상"
                                 } }
                         }
                     },
@@ -5067,29 +5120,33 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 60,
                                 Ratio = 285,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
                                 Effect = ""
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 60,
                                 Ratio = 340,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
                                 Effect = ""
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { Effect = "스킬 사용 시 주피증 29%" } }
+                            // 2초월: 자신 마법 피해량 증가 29% [5턴 지속]
+                            { 2, new SkillTranscend { Effects = new List<SkillEffect>
+                            {
+                                new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Type = 29 } }
+                            }}}
                         }
                     },
                     new Skill
@@ -5102,18 +5159,22 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 72,
                                 Ratio = 285,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 170,
-                                Effect = ""
+                                ConditionalDesc = "대상이 화상 상태일 경우 마법 공격력의 170% 추가 피해",
+                                Effect = "방어 무시"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 72,
                                 Ratio = 340,
+                                Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 170,
-                                Effect = ""
+                                ConditionalDesc = "대상이 화상 상태일 경우 마법 공격력의 170% 추가 피해",
+                                Effect = "방어 무시"
                                 } }
                         }
                     }
@@ -5126,21 +5187,31 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
+                                // 치명타 확률 증가 21% [상시]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 21 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 21 } }
+                                // 강화: 치명타 확률 증가 27% [상시]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } }
                             }
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        {2, new PassiveTranscend{ Effects = new List<PersistentEffect> {
-                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 29 } }
-            } }}
+                        // 6초월: 사망 시 생명력 80%로 부활
+                        {6, new PassiveTranscend{ Effects = new List<PersistentEffect> {
+                            new PersistentEffect {
+                                Target = EffectTarget.Self,
+                                Type = PersistentEffectType.Revival,
+                                ApplyMode = ApplyMode.Triggered,
+                                TriggerCondition = TriggerCondition.SelfDeath,
+                                Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                        },
+                            Effect = "사망 시 생명력 80%로 부활"
+                        }}
                     }
                 },
                 TranscendType = TranscendType.AtkCri
@@ -5187,33 +5258,32 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 75 }
+                                    // 실명 [75% 확률] [2턴 지속] — 기본/반격/협공이 반드시 빗나감
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Blind, Stacks = 1, Chance = 75, Duration = 2 }
                                 },
                                 Effect = ""
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Miss, Stacks = 1, Chance = 75 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Blind, Stacks = 1, Chance = 75, Duration = 2 }
                                 },
                                 Effect = ""
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            {6, new SkillTranscend{ 
-                                Effects = new List<SkillEffect>
-                {
-                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, Chance = 25 }
-                }  
+                            // 6초월: 빗나감 확률 증가 44% [100% 확률][3턴 지속] — 대상 공격이 빗나갈 확률 증가. 모델 필드 없음 → 텍스트.
+                            {6, new SkillTranscend{
+                                Effect = "빗나감 확률 증가 44% [100% 확률][3턴 지속]"
                             }}
                         }
                     },
@@ -5227,31 +5297,35 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 20 } }
+                                    // 방어력 감소 20% [100% 확률][3턴 지속]
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 20 } }
                                 },
                                 Effect = ""
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 20 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 20 } }
                                 },
                                 Effect = ""
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
+                            // 2초월: 방어력 감소 20% → 24% (delta +4, Debuff.Add 합산)
                             {2, new SkillTranscend{ Effects = new List<SkillEffect> {
-                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 24 } }
-            } }}
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 4 } }
+                            },
+                                Effect = "방어력 감소 24%"
+                            }}
                         }
                     }
                 },
@@ -5263,21 +5337,21 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 11 } }
-                            }
+                                // 마법 피해량 증가 11% [상시]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 11 } },
+                                // 화상 면역 [2턴] (전투 시작/기본공격 1회 발동 시)
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } }
+                            },
+                            Effect = "화상 면역[2턴], 마법 피해량 증가 11%"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 15 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 15 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } }
+                            },
+                            Effect = "화상 면역[2턴], 마법 피해량 증가 15%"
                         }}
-                    },
-                    TranscendBonuses = new Dictionary<int, PassiveTranscend>
-                    {
-                        {2, new PassiveTranscend{ Effects = new List<PersistentEffect> {
-                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Dmg_Dealt_Type = 29 } }
-            } }}
                     }
                 },
                 TranscendType = TranscendType.AtkCriDmg
@@ -5326,9 +5400,10 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 77,
                                 Effects = new List<SkillEffect>
                                 {
+                                    // 생명력 전환 35% (현재 생명력보다 높게는 전환 안 됨)
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 35 }
                                 },
                                 Effect = ""
@@ -5336,22 +5411,14 @@ namespace GameDamageCalculator.Database
                             { 1, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 77,
                                 Effects = new List<SkillEffect>
                                 {
+                                    // 강화: 생명력 전환 25%
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 25 }
                                 },
                                 Effect = ""
                                 } }
-                        },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            {6, new SkillTranscend{ 
-                                Effects = new List<SkillEffect>
-                {
-                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, Chance = 25 }
-                }  
-                            }}
                         }
                     },
                     new Skill
@@ -5364,25 +5431,35 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 80,
                                 HpRatio = 19,
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    // 적군 3명(버프 많은 순)에게 버프 해제 2개 [100% 확률]
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                },
+                                Effect = "대상 선정: 버프가 많은 순"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 95,
                                 HpRatio = 22,
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                },
+                                Effect = "대상 선정: 버프가 많은 순"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
+                            // 2초월: 모든 공격력 감소 16% [100% 확률][3턴 지속]
                             {2, new SkillTranscend{ Effects = new List<SkillEffect> {
-                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 16 } }
-            } }}
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Atk_Reduction = 16 } }
+                            } }}
                         }
                     }
                 },
@@ -5394,19 +5471,27 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { MagicAtk_Rate = 19 } }
+                                // 모든 아군 마법 공격력 증가 19% [2턴 지속]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 2, Buff = new BuffSet { MagicAtk_Rate = 19 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { MagicAtk_Rate = 21 } }
+                                // 강화: 마법 공격력 증가 23%
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 2, Buff = new BuffSet { MagicAtk_Rate = 23 } }
                             }
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        {6, new PassiveTranscend{ Effect = "보호막" }}
+                        // 6초월: 자신 스킬 1회 발동 시 최대 생명력 32% 보호막 [3턴 지속]
+                        {6, new PassiveTranscend{
+                            Effects = new List<PersistentEffect> {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 32 } }
+                            },
+                            Effect = "스킬 1회 발동 시 최대 생명력 32% 보호막[3턴]"
+                        }}
                     }
                 },
                 TranscendType = TranscendType.AtkDmgRdc
@@ -5447,7 +5532,8 @@ namespace GameDamageCalculator.Database
                                 DefRatio = 60,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 6 } }
+                                    // 강화: 피해량 감소 6% [100% 확률][2턴 지속]
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 2, Debuff = new DebuffSet { Dmg_Reduction = 6 } }
                                 },
                                 Effect = ""
                                 } }
@@ -5463,29 +5549,30 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 120,
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 } }
+                                    // 대상: 공격력이 가장 높은 아군 — 보스 피해량 증가 33% + 약점 확률 증가 44% [5턴]
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 } }
                                 },
-                                Effect = ""
+                                Effect = "대상: 공격력이 가장 높은 아군 1명"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 120,
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
                                 },
-                                Effect = ""
+                                Effect = "대상: 공격력이 가장 높은 아군 1명"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Effect = "아군 2명" } }
+                            { 6, new SkillTranscend { Effect = "대상 수 변경: 공격력이 가장 높은 아군 2명" } }
                         }
                     },
                     new Skill
@@ -5498,20 +5585,29 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 60,
                                 Ratio = 100,
                                 DefRatio = 115,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    // 적군 3명(버프 많은 순) 버프 해제 2개 [100% 확률]
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                },
+                                Effect = "방어 무시, 대상 선정: 버프가 많은 순"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 60,
                                 Ratio = 115,
                                 DefRatio = 135,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                },
+                                Effect = "방어 무시, 대상 선정: 버프가 많은 순"
                                 } }
                         }
                     }
@@ -5576,7 +5672,8 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Ratio = 120,
-                                Effect = ""
+                                HealHpRatio = 7,
+                                Effect = "강화: 현재 생명력 가장 낮은 아군(자신 제외)에게 시전자 최대 생명력 7% 회복 추가"
                                 } }
                         }
                     },
@@ -5588,18 +5685,18 @@ namespace GameDamageCalculator.Database
                         LevelData = new Dictionary<int, SkillLevelData>
                         {
                             { 0, new SkillLevelData {
-                                TargetCount = 1,
+                                TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 114,
                                 HealHpRatio = 21,
-                                Effect = ""
+                                Effect = "모든 아군 회복, 지속 회복[2턴] (매턴 시전자 최대 생명력 15% 회복)"
                                 } },
                             { 1, new SkillLevelData {
-                                TargetCount = 1,
+                                TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 114,
                                 HealHpRatio = 24,
-                                Effect = ""
+                                Effect = "모든 아군 회복, 지속 회복[2턴] (매턴 시전자 최대 생명력 15% 회복)"
                                 } }
                         }
                     },
@@ -5613,33 +5710,35 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 34 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt = 23 } }
+                                    // 적군 전열 방어력 감소 34% [100% 확률][3턴], 모든 아군 피해량 증가 23% [3턴]
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 34 } },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Dmg_Dealt = 23 } }
                                 },
-                                Effect = ""
+                                Effect = "디버프 대상: 적군 전열"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 34 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt = 28 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 34 } },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Dmg_Dealt = 28 } }
                                 },
-                                Effect = ""
+                                Effect = "디버프 대상: 적군 전열"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
+                            // 6초월: 디버프 대상 적군 전체로 변경 + 방어력 감소 34% → 41% (delta +7, Debuff.Add 합산)
+                            { 6, new SkillTranscend {
                                 Effects = new List<SkillEffect> {
-                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 7 } }
-            },
-                                Effect = "방어력 41% 감소"
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 7 } }
+                                },
+                                Effect = "대상 수 변경: 적군 전체, 방어력 감소 41%"
                             }}
                         }
                     }
@@ -5650,18 +5749,18 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            Effect = "효과 저항 28% 증가, 보호막 최대체력 39%",
+                            Effect = "효과 저항 28% 증가[상시], 자신 보호막 최대체력 39%[3턴, 라운드당 1회]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 39 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 39 } },
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Res = 28 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "효과 저항 34% 증가, 보호막 최대체력 45%",
+                            Effect = "효과 저항 34% 증가[상시], 자신 보호막 최대체력 45%[3턴, 라운드당 1회]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 45 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 45 } },
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Res = 34 } }
                             }
                         }}
@@ -5723,19 +5822,24 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 60,
                                 HpRatio = 14,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 }
+                                },
                                 Effect = ""
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 70,
                                 Ratio = 60,
                                 HpRatio = 14,
                                 Effects = new List<SkillEffect>
                                 {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 36 } }
                                 },
                                 Effect = ""
@@ -5752,24 +5856,32 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 104,
                                 Ratio = 20,
                                 HpRatio = 5,
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 19 }, Duration = 2 }
+                                },
+                                Effect = "보호막 대상: 자신, 마법형 아군"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 104,
                                 Ratio = 22,
                                 HpRatio = 6,
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 23 }, Duration = 2 }
+                                },
+                                Effect = "보호막 대상: 자신, 마법형 아군"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
-                                Effect = "디버프 해제 2개"
+                            { 2, new SkillTranscend {
+                                Effect = "[자신/마법형 아군] 디버프 해제 2개"
                             }}
                         }
                     }
@@ -5780,13 +5892,14 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            Effect = "[자신] 최대 생명력 39% 보호막[3턴] (라운드당 1회). 치명타 확률/피해 증가 대상: 자신, 마법형 아군",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 17, Cri_Dmg = 25 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
-                            Effect = "보호막량 증가",
+                            Effect = "[자신] 최대 생명력 45% 보호막[3턴] (라운드당 1회). 치명타 확률/피해 증가 대상: 자신, 마법형 아군",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 17, Cri_Dmg = 25 } }
@@ -5795,8 +5908,12 @@ namespace GameDamageCalculator.Database
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 6, new PassiveTranscend { 
-                            Effect = "스킬 발동 시 아군 마법형 모든 피해 무효화 1회"
+                        { 6, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, DamageNullification = new DamageNullification { HitCount = 1, Type = DamageNullType.All } }
+                            },
+                            Effect = "[자신/마법형 아군] 스킬 1회 발동 시 모든 피해 무효화[피격 1회]"
                         }}
                     }
                 },
@@ -5854,20 +5971,20 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 96,
                                 Ratio = 42,
                                 DefRatio = 47,
                                 HealDmgRatio = 32,
-                                Effect = ""
+                                Effect = "[자신] 피해량의 32% 생명력 회복"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 96,
                                 Ratio = 50,
                                 DefRatio = 55,
                                 HealDmgRatio = 43,
-                                Effect = ""
+                                Effect = "[자신] 피해량의 43% 생명력 회복"
                                 } }
                         }
                     },
@@ -5881,22 +5998,24 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 91,
                                 Effects = new List<SkillEffect>
                                 {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 32 }
                                 },
-                                Effect = ""
+                                Effect = "대상: 적군 2명 (버프 많은 순)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 91,
                                 Effects = new List<SkillEffect>
                                 {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 25 }
                                 },
-                                Effect = ""
+                                Effect = "대상: 적군 2명 (버프 많은 순)"
                                 } }
                         }
                     }
@@ -5906,20 +6025,32 @@ namespace GameDamageCalculator.Database
                     Name = "네스트라의 가호",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            Effect = "방어력의 165% 회복, 생명력 회복 2회"
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 4, TriggerOn = TriggerCondition.OnHit, FixedDamage = 1100, TargetCount = 5, HitCount = 1 } }
+                            },
+                            Effect = "[자신] 생명력 50% 이하 시 방어력 165% 회복 (전투당 2회). 적 4회 피격당 시 적군 전체 1100 고정피해"
                         }},
-                        { 1, new PassiveLevelData { 
-                            Effect = "방어력의 190% 회복"
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 4, TriggerOn = TriggerCondition.OnHit, FixedDamage = 1100, TargetCount = 5, HitCount = 1 } }
+                            },
+                            Effect = "[자신] 생명력 50% 이하 시 방어력 190% 회복 (전투당 2회). 적 4회 피격당 시 적군 전체 1100 고정피해"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { 
-                            Effect = "생명력 회복 3회로 증가"
+                        { 2, new PassiveTranscend {
+                            Effect = "[자신] 생명력 회복 전투당 3회로 증가"
                         }},
-                        { 6, new PassiveTranscend { 
-                            Effect = "고정피해1485"
+                        { 6, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 4, TriggerOn = TriggerCondition.OnHit, FixedDamage = 1485, TargetCount = 5, HitCount = 1 } }
+                            },
+                            Effect = "적 4회 피격당 시 적군 전체 고정피해 1485"
                         }}
                     }
                 },
@@ -5973,24 +6104,24 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 80,
                                 Ratio = 30,
                                 HpRatio = 7,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 25 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 25, Duration = 3 }
                                 },
                                 Effect = ""
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
-                                Cooldown = 0,
+                                Cooldown = 80,
                                 Ratio = 37,
                                 HpRatio = 10,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 35 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.InstantDeath, Stacks = 1, Chance = 35, Duration = 3 }
                                 },
                                 Effect = ""
                                 } }
@@ -6005,21 +6136,29 @@ namespace GameDamageCalculator.Database
                         {
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
-                                AtkCount = 2,
-                                Cooldown = 0,
-                                Effect = "아군 2명 부활, 적군 턴감 2턴"
+                                AtkCount = 1,
+                                Cooldown = 112,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.AllEnemies, Type = SkillEffectType.BuffTurnReduction, TurnReduction = 2, Chance = 100 }
+                                },
+                                Effect = "[아군 2명] 사망한 대상을 생명력 40%로 부활. [적군 전체] 턴제 버프 2턴 감소"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
-                                AtkCount = 2,
-                                Cooldown = 0,
-                                Effect = "아군 2명 부활, 적군 턴감 2턴, 부활 시 권능 2턴"
+                                AtkCount = 1,
+                                Cooldown = 112,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.AllEnemies, Type = SkillEffectType.BuffTurnReduction, TurnReduction = 2, Chance = 100 }
+                                },
+                                Effect = "[아군 2명] 사망한 대상을 생명력 55%로 부활 + 권능[2턴]. [적군 전체] 턴제 버프 2턴 감소"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { 
-                                Effect = "권능 아군 전체"
+                            { 6, new SkillTranscend {
+                                Effect = "부활 대상 수: 아군 전체로 확장"
                             }}
                         }
                     }
@@ -6034,41 +6173,43 @@ namespace GameDamageCalculator.Database
                             {
                                 new StatScaling
                                 {
-                                    SourceStat = StatType.Hp,      
-                                    TargetStat = StatType.Def,      
-                                    PerUnit = 100,                  
-                                    SourceUnit = 1000,                 
-                                    MaxValue = 900                 
+                                    SourceStat = StatType.Hp,
+                                    TargetStat = StatType.Def,
+                                    PerUnit = 100,
+                                    SourceUnit = 1000,
+                                    MaxValue = 900
                                 }
                             },
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 20 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "방어형", "만능형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 20 } }
+                            },
+                            Effect = "[자신] 생명력 50% 이하 시 모든 피해 면역[2턴, 해제 불가]. 효과 적용 확률 증가 대상: 방어형/만능형 아군"
                         }},
                         { 1, new PassiveLevelData {
                             StatScalings = new List<StatScaling>
                             {
                                 new StatScaling
                                 {
-                                    SourceStat = StatType.Hp,      
-                                    TargetStat = StatType.Def,      
-                                    PerUnit = 100,                  
-                                    SourceUnit = 1000,                 
-                                    MaxValue = 900                 
+                                    SourceStat = StatType.Hp,
+                                    TargetStat = StatType.Def,
+                                    PerUnit = 100,
+                                    SourceUnit = 1000,
+                                    MaxValue = 900
                                 }
                             },
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 20 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "방어형", "만능형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 20 } }
+                            },
+                            Effect = "[자신] 생명력 50% 이하 시 모든 피해 면역[3턴, 해제 불가]. 효과 적용 확률 증가 대상: 방어형/만능형 아군"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        { 2, new PassiveTranscend { 
+                        { 2, new PassiveTranscend {
                             Effects = new List<PersistentEffect> {
-                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 6 } }
+                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "방어형", "만능형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Hit = 26 } }
             }
                         }}
                     }
@@ -6123,31 +6264,31 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 104,
                                 HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 31 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 31 }, Duration = 3 }
                                 },
-                                Effect = ""
+                                Effect = "[모든 아군] 방어력 증가[3턴] + 지속 회복(최대 생명력 15%)[2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 104,
                                 HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 39 } }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 39 }, Duration = 3 }
                                 },
-                                Effect = ""
+                                Effect = "[모든 아군] 방어력 증가[3턴] + 지속 회복(최대 생명력 15%)[2턴]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { 
+                            { 6, new SkillTranscend {
                                 Effects = new List<SkillEffect> {
-                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Heal_Bonus = 36 } }
+                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Heal_Bonus = 36 }, Duration = 3 }
             }
                             }}
                         }
@@ -6162,16 +6303,16 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 109,
                                 HealHpRatio = 29,
-                                Effect = ""
+                                Effect = "[모든 아군] 최대 생명력 29% 즉시 회복"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 109,
                                 HealHpRatio = 33,
-                                Effect = ""
+                                Effect = "[모든 아군] 최대 생명력 33% 즉시 회복"
                                 } }
                         }
                     }
@@ -6184,14 +6325,18 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Def_Rate = 31 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Def_Rate = 31 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, CustomHpRatio = 9 }
+                            },
+                            Effect = "[모든 아군] 전투 시작 시 방어력 31% 증가[1턴]. [자신] 피격 시 25% 확률 최대 생명력 9% 회복"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Def_Rate = 31 } }
-                            }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Def_Rate = 31 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, CustomHpRatio = 10 }
+                            },
+                            Effect = "[모든 아군] 전투 시작 시 방어력 31% 증가[2턴]. [자신] 피격 시 25% 확률 최대 생명력 10% 회복"
                         }}
                     }
                 },
@@ -6223,7 +6368,11 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Ratio = 100,
-                                Effect = ""
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 9 }, Duration = 2 }
+                                },
+                                Effect = "마법 공격력 감소 9%[2턴] (DebuffSet에 마공 전용 감소 없어 Atk_Reduction 사용)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
@@ -6231,9 +6380,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 11 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 11 }, Duration = 2 }
                                 },
-                                Effect = ""
+                                Effect = "마법 공격력 감소 11%[2턴] (DebuffSet에 마공 전용 감소 없어 Atk_Reduction 사용)"
                                 } }
                         }
                     },
@@ -6247,25 +6396,25 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 124,
                                 HealHpRatio = 15,
-                                Effect = ""
+                                Effect = "[모든 아군] 지속 회복(최대 생명력 15%)[2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 124,
                                 HealHpRatio = 15,
-                                Effect = ""
+                                Effect = "[모든 아군] 지속 회복(최대 생명력 15%)[3턴]"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             {2, new SkillTranscend{Effects = new List<SkillEffect> {
-                                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 19 } }
+                                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 19 }, Duration = 3 }
                             }}},
                             {6, new SkillTranscend{Effects = new List<SkillEffect> {
-                                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 24 } }
+                                new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 24 }, Duration = 3 }
                             }}}
                         }
                     },
@@ -6279,14 +6428,14 @@ namespace GameDamageCalculator.Database
                             { 0, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
-                                Cooldown = 0,
-                                Effect = "두명 부활"
+                                Cooldown = 112,
+                                Effect = "[아군 2명] 사망한 대상을 생명력 35%로 부활"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
-                                Cooldown = 0,
-                                Effect = "두명 부활"
+                                Cooldown = 112,
+                                Effect = "[아군 2명] 사망한 대상을 생명력 45%로 부활"
                                 } }
                         }
                     }
@@ -6296,11 +6445,20 @@ namespace GameDamageCalculator.Database
                     Name = "전장의 마에스트로",
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
-                        { 0, new PassiveLevelData { 
-                            Effect = "화상면역"
+                        { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } }
+                            },
+                            Effect = "[모든 아군] 화상 면역[2턴] + 자신 기본 공격 1회 발동 시 화상 면역[2턴]"
                         }},
-                        { 1, new PassiveLevelData { 
-                            Effect = "화상면역"
+                        { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, CustomHpRatio = 22 }
+                            },
+                            Effect = "[모든 아군] 화상 면역[2턴] + 자신 기본 공격 1회 발동 시 화상 면역[2턴]. [자신] 스킬 1회 발동 시 최대 생명력 22% 회복"
                         }}
                     }
                 },
