@@ -1676,14 +1676,17 @@
       "buffTiers": {
         "base": {
           "atkRate": 31,
+          "magicAtkRate": -90,
           "blessing": 40
         },
         "enhanced": {
           "atkRate": 31,
+          "magicAtkRate": -90,
           "blessing": 25
         },
         "transcend": {
           "atkRate": 31,
+          "magicAtkRate": -90,
           "blessing": 25
         }
       }
@@ -1722,21 +1725,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 2,
             "ratio": 57,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 2,
             "ratio": 67,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 2,
             "ratio": 67
@@ -1749,21 +1752,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 112,
             "target": 5,
             "atk": 2,
             "ratio": 52,
-            "effect": ""
+            "effect": "방어 무시, 직접 피해로 처치 시 100% 위력 연속 발동"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 112,
             "target": 5,
             "atk": 2,
             "ratio": 60,
-            "effect": ""
+            "effect": "방어 무시, 직접 피해로 처치 시 100% 위력 연속 발동"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 112,
             "target": 5,
             "atk": 2,
             "ratio": 60
@@ -1819,15 +1822,21 @@
       "buffTiers": {
         "base": {
           "cri": 27,
-          "armPen": 5
+          "armPen": 5,
+          "physDmgRdc": 29,
+          "magDmgRdc": -90
         },
         "enhanced": {
           "cri": 33,
-          "armPen": 10
+          "armPen": 10,
+          "physDmgRdc": 29,
+          "magDmgRdc": -90
         },
         "transcend": {
           "cri": 33,
-          "armPen": 10
+          "armPen": 10,
+          "physDmgRdc": 29,
+          "magDmgRdc": -90
         }
       }
     },
@@ -1865,24 +1874,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 81,
             "target": 1,
             "atk": 1,
             "ratio": 340,
-            "effect": ""
+            "effect": "방어 무시 (방어력 40% 무시)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 81,
             "target": 1,
             "atk": 1,
             "ratio": 410,
-            "effect": ""
+            "effect": "방어 무시 (방어력 40% 무시)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 81,
             "target": 1,
             "atk": 1,
-            "ratio": 410
+            "ratio": 410,
+            "effect": "방어 무시 효율 증가 65%"
           }
         }
       },
@@ -1892,29 +1902,32 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
-            "target": 5,
-            "atk": 2,
+            "cooldown": 60,
+            "target": 1,
+            "atk": 1,
             "ratio": 475,
-            "effect": ""
+            "effect": "단일 대상, 방어 무시 (방어력 40% 무시)"
           },
           "enhanced": {
-            "cooldown": 0,
-            "target": 5,
-            "atk": 2,
+            "cooldown": 60,
+            "target": 1,
+            "atk": 1,
             "ratio": 575,
-            "effect": ""
+            "effect": "단일 대상, 방어 무시 (방어력 40% 무시)"
           },
           "transcend": {
-            "cooldown": 0,
-            "target": 5,
-            "atk": 2,
-            "ratio": 575
+            "cooldown": 60,
+            "target": 1,
+            "atk": 1,
+            "ratio": 575,
+            "effect": "방어 무시 효율 증가 65%"
           }
         }
       }
     ],
-    "tags": []
+    "tags": [
+      "받피감"
+    ]
   },
   {
     "id": 51,
@@ -2000,24 +2013,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 155,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 190,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
-            "ratio": 190
+            "ratio": 190,
+            "effect": "방어력 24% 감소 [3턴]"
           }
         }
       },
@@ -2027,24 +2041,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 175,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 210,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
-            "ratio": 210
+            "ratio": 210,
+            "effect": "방어 무시 (방어력 40% 무시)"
           }
         }
       }
@@ -2116,14 +2131,14 @@
             "target": 1,
             "atk": 1,
             "ratio": 100,
-            "effect": ""
+            "effect": "중독 [40% 확률] [2턴]"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
             "ratio": 120,
-            "effect": ""
+            "effect": "중독 [50% 확률] [2턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -2139,24 +2154,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 66,
             "target": 1,
             "atk": 1,
             "ratio": 370,
-            "effect": ""
+            "effect": "저격 자세[6턴]→연사 변환, 치명타 확률 37%[6턴], 위장[2턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 66,
             "target": 1,
             "atk": 1,
             "ratio": 440,
-            "effect": ""
+            "effect": "저격 자세[6턴]→연사 변환, 치명타 확률 45%[6턴], 위장[2턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 66,
             "target": 1,
             "atk": 1,
-            "ratio": 440
+            "ratio": 440,
+            "effect": "저격 자세·치명타 확률 증가 지속 12턴"
           }
         }
       },
@@ -2166,24 +2182,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 1,
             "atk": 1,
             "ratio": 315,
-            "effect": ""
+            "effect": "[저격 자세] 시 공격력 155% 추가 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 1,
             "atk": 1,
             "ratio": 375,
-            "effect": ""
+            "effect": "[저격 자세] 시 공격력 155% 추가 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 1,
             "atk": 1,
-            "ratio": 375
+            "ratio": 375,
+            "effect": "[저격 자세] 시 추가 피해 185%로 상승"
           }
         }
       }
@@ -2282,25 +2299,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 0,
             "atk": 1,
             "ratio": 0,
-            "effect": "파괴의 거인 쿨초기화, 피해무효 1회"
+            "effect": "[파괴의 거인] 쿨타임 초기화, 모든 피해 무효화[피격 1회]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 0,
             "atk": 1,
             "ratio": 0,
-            "effect": "파괴의 거인 쿨초기화, 피해무효 2회"
+            "effect": "[파괴의 거인] 쿨타임 초기화, 모든 피해 무효화[피격 2회]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 40,
             "target": 0,
             "atk": 1,
             "ratio": 0,
-            "effect": "쿨타임 40초 감소"
+            "effect": "스킬 쿨타임 40초"
           }
         }
       },
@@ -2310,25 +2327,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 150,
             "target": 1,
             "atk": 1,
             "ratio": 390,
-            "effect": ""
+            "effect": "방어 무시 (방어력 65% 무시), 치명타 확률 50% 추가"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 150,
             "target": 1,
             "atk": 1,
             "ratio": 470,
-            "effect": ""
+            "effect": "방어 무시 (방어력 65% 무시), 치명타 확률 50% 추가"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 150,
             "target": 1,
             "atk": 1,
             "ratio": 470,
-            "effect": "치명타 확정, 방어력 65% 무시"
+            "effect": "치명타 확률 100% 추가 적용 (확정 치명타)"
           }
         }
       }
@@ -2380,9 +2397,11 @@
       "maxStacks": 1,
       "buffTiers": {
         "base": {
+          "wek": 32,
           "dmgDealtType": 24
         },
         "enhanced": {
+          "wek": 39,
           "dmgDealtType": 29
         },
         "transcend": {
@@ -2425,21 +2444,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 75,
-            "effect": ""
+            "effect": "약점 공격 시 공격력 35% 추가 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 90,
-            "effect": ""
+            "effect": "약점 공격 시 공격력 42% 추가 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 90
@@ -2452,25 +2471,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 145,
-            "effect": ""
+            "effect": "약점 공격 시 공격력 130% 추가 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 170,
-            "effect": ""
+            "effect": "약점 공격 시 공격력 155% 추가 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 170,
-            "effect": "방어력 40% 무시"
+            "effect": "방어 무시 (방어력 40% 무시)"
           }
         }
       }
@@ -2561,25 +2580,25 @@
       },
       {
         "id": 2,
-        "name": "살율의 춤",
+        "name": "살육의 춤",
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 145,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 170,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 170
@@ -2592,21 +2611,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 160,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 185,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 185
@@ -2615,7 +2634,7 @@
       }
     ],
     "tags": [
-      "마법취약",
+      "받마피증",
       "약피증"
     ]
   },
@@ -2706,21 +2725,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 3,
             "ratio": 43,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 3,
             "ratio": 51,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 3,
             "ratio": 51
@@ -2733,21 +2752,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 120,
             "target": 5,
             "atk": 3,
             "ratio": 41,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 120,
             "target": 5,
             "atk": 3,
             "ratio": 55,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 120,
             "target": 5,
             "atk": 3,
             "ratio": 55
@@ -2841,21 +2860,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 5,
             "atk": 2,
             "ratio": 65,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 5,
             "atk": 2,
             "ratio": 77,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 5,
             "atk": 2,
             "ratio": 77
@@ -2868,21 +2887,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 2,
             "ratio": 70,
-            "effect": "영멸(님 부활못함ㅋ)"
+            "effect": "영멸 [60% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동 (모델 없음)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 2,
             "ratio": 80,
-            "effect": "영멸(님 부활못함ㅋ)"
+            "effect": "영멸 [70% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동 (모델 없음)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 2,
             "ratio": 80
@@ -2980,21 +2999,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 105,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 120,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 120
@@ -3007,21 +3026,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 1,
             "ratio": 105,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 1,
             "ratio": 120,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 1,
             "ratio": 120
@@ -3030,7 +3049,7 @@
       }
     ],
     "tags": [
-      "마법취약",
+      "받마피증",
       "화상"
     ]
   },
@@ -3086,7 +3105,7 @@
         "transcend": {
           "cri": 40,
           "markPurify": 40,
-          "dmgRdc": 29
+          "magDmgRdc": 29
         }
       }
     },
@@ -3124,21 +3143,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 340,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 340,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 340
@@ -3151,21 +3170,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 425,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 515,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 515
@@ -3174,8 +3193,8 @@
       }
     ],
     "tags": [
-      "마법취약",
       "마피증",
+      "받마피증",
       "받피감"
     ]
   },
@@ -3265,21 +3284,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 270,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 330,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 1,
             "atk": 1,
             "ratio": 330
@@ -3292,21 +3311,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 1,
             "atk": 1,
             "ratio": 130,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 1,
             "atk": 1,
             "ratio": 155,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 1,
             "atk": 1,
             "ratio": 155
@@ -3398,21 +3417,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 2,
             "ratio": 95,
-            "effect": "70%확률 쿨타임 증가 19초"
+            "effect": "관통(피해 면역 무시), 스킬 쿨타임 증가 19초 [70% 확률]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 2,
             "ratio": 110,
-            "effect": "70%확률 쿨타임 증가 23초"
+            "effect": "관통(피해 면역 무시), 스킬 쿨타임 증가 23초 [70% 확률]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 2,
             "ratio": 110
@@ -3425,21 +3444,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 4,
             "atk": 2,
             "ratio": 70,
-            "effect": ""
+            "effect": "석화 해제 시 시전자 공격력의 120% 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 4,
             "atk": 2,
             "ratio": 82,
-            "effect": ""
+            "effect": "석화 해제 시 시전자 공격력의 120% 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 4,
             "atk": 2,
             "ratio": 82
@@ -3538,21 +3557,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 75,
             "target": 1,
             "atk": 2,
             "ratio": 220,
-            "effect": ""
+            "effect": "자신 모든 디버프 해제 후 해제 개수만큼 주는 피해량 증가(최대 4중첩)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 75,
             "target": 1,
             "atk": 2,
             "ratio": 267,
-            "effect": ""
+            "effect": "자신 모든 디버프 해제 후 해제 개수만큼 주는 피해량 증가(최대 4중첩)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 75,
             "target": 1,
             "atk": 2,
             "ratio": 267
@@ -3565,21 +3584,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 92,
             "target": 5,
             "atk": 2,
             "ratio": 57,
-            "effect": ""
+            "effect": "관통(피해 면역 무시), 각 공격마다 마비"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 92,
             "target": 5,
             "atk": 2,
             "ratio": 67,
-            "effect": ""
+            "effect": "관통(피해 면역 무시), 각 공격마다 마비"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 92,
             "target": 5,
             "atk": 2,
             "ratio": 67
@@ -3655,14 +3674,14 @@
             "target": 1,
             "atk": 1,
             "ratio": 100,
-            "effect": ""
+            "effect": "마력 역류는 전투 시작 시 아군 마법형 3명 이상일 때만 발동"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
             "ratio": 120,
-            "effect": ""
+            "effect": "마력 역류는 전투 시작 시 아군 마법형 3명 이상일 때만 발동"
           },
           "transcend": {
             "cooldown": 0,
@@ -3678,21 +3697,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 60,
-            "effect": ""
+            "effect": "보호막은 모든 마법형 아군 대상 (시전자 마법 공격력의 40%)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 70,
-            "effect": ""
+            "effect": "보호막은 모든 마법형 아군 대상 (시전자 마법 공격력의 40%)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 70
@@ -3705,21 +3724,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
             "ratio": 52,
-            "effect": ""
+            "effect": "마력 역류는 전투 시작 시 아군 마법형 3명 이상일 때 각 공격마다 발동"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
             "ratio": 60,
-            "effect": ""
+            "effect": "마력 역류는 전투 시작 시 아군 마법형 3명 이상일 때 각 공격마다 발동"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
             "ratio": 60
@@ -3820,21 +3839,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 2,
             "ratio": 72,
-            "effect": ""
+            "effect": "자신 흡혈[3턴] (피해량의 21% 회복), 직접 피해로 처치 시 100% 위력 연속 발동"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 2,
             "ratio": 85,
-            "effect": ""
+            "effect": "자신 흡혈[3턴] (피해량의 24% 회복), 직접 피해로 처치 시 100% 위력 연속 발동"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 2,
             "ratio": 85
@@ -3847,21 +3866,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
             "ratio": 60,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
             "ratio": 75,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 88,
             "target": 5,
             "atk": 2,
             "ratio": 75
