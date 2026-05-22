@@ -225,14 +225,14 @@
             "target": 3,
             "atk": 1,
             "ratio": 130,
-            "effect": "실명[2턴], 도발[2턴]"
+            "effect": "실명(100%)[2턴], 도발(100%)[2턴]"
           },
           "enhanced": {
             "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 155,
-            "effect": "실명[2턴], 도발[2턴], 물리 피해 면역[2턴]"
+            "effect": "실명(100%)[2턴], 도발(100%)[2턴], 물리 피해 면역[2턴]"
           },
           "transcend": {
             "cooldown": 84,
@@ -348,7 +348,7 @@
             "target": 1,
             "atk": 1,
             "ratio": 120,
-            "effect": "침묵(45% 확률)[1턴]"
+            "effect": "침묵(45%)[1턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -368,14 +368,14 @@
             "target": 5,
             "atk": 1,
             "ratio": 115,
-            "effect": "침묵(50% 확률)[2턴]"
+            "effect": "침묵(50%)[2턴]"
           },
           "enhanced": {
             "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 135,
-            "effect": "침묵(60% 확률)[2턴]"
+            "effect": "침묵(60%)[2턴]"
           },
           "transcend": {
             "cooldown": 80,
@@ -597,14 +597,14 @@
             "target": 2,
             "atk": 1,
             "ratio": 55,
-            "effect": "출혈(35%확률)[2턴]"
+            "effect": "출혈(35%)[2턴]"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
             "ratio": 65,
-            "effect": "출혈(40%확률)[2턴]"
+            "effect": "출혈(40%)[2턴]"
           },
           "transcend": {
             "cooldown": 0,
@@ -624,14 +624,14 @@
             "target": 3,
             "atk": 2,
             "ratio": 72,
-            "effect": "각 공격마다 출혈(55% 확률)[3턴]"
+            "effect": "각 공격마다 출혈(55%)[3턴]"
           },
           "enhanced": {
             "cooldown": 70,
             "target": 3,
             "atk": 2,
             "ratio": 85,
-            "effect": "각 공격마다 출혈(60% 확률)[3턴]"
+            "effect": "각 공격마다 출혈(60%)[3턴]"
           },
           "transcend": {
             "cooldown": 55,
@@ -770,14 +770,14 @@
             "target": 4,
             "atk": 2,
             "ratio": 62,
-            "effect": "받는회복량감소(52%)[3턴]"
+            "effect": "받는회복량감소52%[3턴]"
           },
           "enhanced": {
             "cooldown": 88,
             "target": 4,
             "atk": 2,
             "ratio": 62,
-            "effect": "받는회복량감소(68%)[3턴]"
+            "effect": "받는회복량감소68%[3턴]"
           },
           "transcend": {
             "cooldown": 88,
@@ -866,9 +866,11 @@
           "cri": 27
         },
         "enhanced": {
+          "atkRate": 39,
           "cri": 27
         },
         "transcend": {
+          "atkRate": 39,
           "cri": 100
         }
       }
@@ -1046,24 +1048,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 115,
-            "effect": ""
+            "effect": "관통, 대상 현재 생명력이 50% 이하일 시 물공 100%만큼 추가 관통 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 76,
             "target": 5,
             "atk": 1,
             "ratio": 150,
-            "effect": ""
+            "effect": "관통, 대상 현재 생명력이 50% 이하일 시 물공 100%만큼 추가 관통 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 76,
             "target": 5,
             "atk": 1,
-            "ratio": 150
+            "ratio": 150,
+            "effect": "관통, 대상 현재 생명력이 50% 이하일 시 물공 115%만큼 추가 관통 피해"
           }
         }
       },
@@ -1073,24 +1076,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
-            "ratio": 115,
-            "effect": ""
+            "ratio": 125,
+            "effect": "관통, 대상 현재 생명력이 50% 이상일 시 물공 115%만큼 추가 관통 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 165,
-            "effect": ""
+            "effect": "관통, 대상 현재 생명력이 50% 이상일 시 물공 115%만큼 추가 관통 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
-            "ratio": 165
+            "ratio": 165,
+            "effect": "관통, 대상 현재 생명력이 50% 이상일 시 물공 135%만큼 추가 관통 피해"
           }
         }
       }
@@ -1162,14 +1166,14 @@
             "target": 1,
             "atk": 1,
             "ratio": 100,
-            "effect": ""
+            "effect": "자신의 기본 공격 2회 발동 시 물공130%만큼 1회 추가 공격, (강자주시)추가 공격 시 버프해제 1개(30%)"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
             "ratio": 130,
-            "effect": ""
+            "effect": "자신의 기본 공격 2회 발동 시 물공130%만큼 1회 추가 공격, (강자주시)추가 공격 시 버프해제 1개(30%)"
           },
           "transcend": {
             "cooldown": 0,
@@ -1185,21 +1189,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 90,
             "target": 4,
             "atk": 2,
             "ratio": 60,
-            "effect": ""
+            "effect": "대상 최대 생명력8%만큼 2회 피해, 대상이  잃은 생명력에 비례해 최대 50% 피해증가, 생명력 비례 피해는 시전자 공75%제한, 단일 적군(강자주시) 물공65%만큼 추가 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 90,
             "target": 4,
             "atk": 2,
             "ratio": 72,
-            "effect": ""
+            "effect": "대상 최대 생명력10%만큼 2회 피해, 대상이  잃은 생명력에 비례해 최대 50% 피해증가, 생명력 비례 피해는 시전자 공75%제한, 단일 적군(강자주시) 물공65%만큼 추가 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 90,
             "target": 4,
             "atk": 2,
             "ratio": 72
@@ -1212,21 +1216,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 94,
             "target": 4,
             "atk": 2,
             "ratio": 70,
-            "effect": ""
+            "effect": "버프해제(100%)[2개], 관통, 단일적군(강자주시) 물공65%만큼 추가 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 94,
             "target": 4,
             "atk": 2,
             "ratio": 90,
-            "effect": ""
+            "effect": "버프해제(100%)[2개], 관통, 단일적군(강자주시) 물공65%만큼 추가 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 94,
             "target": 4,
             "atk": 2,
             "ratio": 90
@@ -1301,14 +1305,14 @@
             "target": 2,
             "atk": 1,
             "ratio": 55,
-            "effect": ""
+            "effect": "두명공격"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 2,
             "atk": 1,
             "ratio": 70,
-            "effect": ""
+            "effect": "두명공격"
           },
           "transcend": {
             "cooldown": 0,
@@ -1324,21 +1328,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 4,
             "atk": 2,
             "ratio": 40,
-            "effect": ""
+            "effect": "공격마다 폭탄(35%)[3턴] "
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 4,
             "atk": 2,
             "ratio": 50,
-            "effect": ""
+            "effect": "공격마다 폭탄(45%)[3턴] "
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 72,
             "target": 4,
             "atk": 2,
             "ratio": 50
@@ -1351,21 +1355,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 1,
             "ratio": 125,
-            "effect": ""
+            "effect": "폭탄(50%)[3턴], 150%위력으로 폭탄 폭파[최대3개], 모든 공격력 감소13%(100%)[3턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 1,
             "ratio": 150,
-            "effect": ""
+            "effect": "폭탄(50%)[3턴], 150%위력으로 폭탄 폭파[최대3개], 모든 공격력 감소18%(100%)[3턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 1,
             "ratio": 150
@@ -1374,6 +1378,7 @@
       }
     ],
     "tags": [
+      "위장",
       "폭탄",
       "폭탄 폭파",
       "피감",

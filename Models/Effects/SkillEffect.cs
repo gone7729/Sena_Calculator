@@ -17,6 +17,13 @@ namespace GameDamageCalculator.Models.Effects
         public int Duration { get; set; }            // 지속 턴 (0이면 기본값 사용)
         public double Chance { get; set; } = 100;    // 적용 확률%
 
+        // === 턴제 버프 감소 (Type = BuffTurnReduction일 때) ===
+        public int TurnReduction { get; set; }       // 대상의 활성 턴제 버프 잔여 턴을 N턴 감소
+
+        // === 버프 해제 (Type = BuffDispel일 때) — 대상(적)의 버프 N개 제거 ===
+        // 적용 순서대로(먼저 부여된 것부터) 해제. 피해 면역/피해 무효화/권능 효과는 해제 불가(스킵).
+        public int DispelBuffCount { get; set; }
+
         // === 적용 모드 & 스택 트리거 ===
         public ApplyMode ApplyMode { get; set; } = ApplyMode.Immediate;
         public TriggerCondition TriggerCondition { get; set; }  // Triggered일 때 조건
@@ -70,5 +77,7 @@ namespace GameDamageCalculator.Models.Effects
         PerEnemyDebuffDmgBonus, // 적 디버프 1개당 피해량 증가 (동적 피증)
         DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
         Immunity,               // 상태이상 면역 (화상 면역 등)
+        BuffTurnReduction,      // 대상의 활성 턴제 버프 잔여 턴 감소 (TurnReduction)
+        BuffDispel,             // 대상(적)의 버프 N개 해제 (DispelBuffCount, 적용순·면역/무효화/권능 제외)
     }
 }

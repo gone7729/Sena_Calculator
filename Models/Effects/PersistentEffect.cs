@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace GameDamageCalculator.Models.Effects
 {
     /// <summary>
@@ -23,6 +25,8 @@ namespace GameDamageCalculator.Models.Effects
         public ApplyMode ApplyMode { get; set; } = ApplyMode.Immediate;
         public TriggerCondition TriggerCondition { get; set; }  // Triggered일 때 조건
         public int TriggerCount { get; set; } = 1;              // 트리거에 필요한 횟수
+        public double TriggerHpThreshold { get; set; }          // OnHpBelow 트리거 임계 생명력% (예: 70 = 70% 이하)
+        public bool OncePerBattle { get; set; }                 // 트리거 효과를 전투당 1회만 발동
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
         public int Duration { get; set; }                       // 부여 효과 지속 턴 (트리거 디버프/버프, 0이면 무기한)
@@ -85,6 +89,22 @@ namespace GameDamageCalculator.Models.Effects
 
         // === 디버프 해제 (Type = DebuffCleanse일 때) — 대상의 디버프 N개 제거 ===
         public int DispelDebuffCount { get; set; }
+
+        // === 버프 해제 (Type = BuffDispel일 때) — 대상(적)의 버프 N개 제거 ===
+        // 적용 순서대로(먼저 부여된 것부터) 해제. 피해 면역/피해 무효화/권능 효과는 해제 불가(스킵).
+        public int DispelBuffCount { get; set; }
+
+        // === 트리거 스킬 발동 (Type = TriggeredSkillCast일 때) — 적군 사망 등 트리거로 스킬 시전 ===
+        public TriggeredSkillCast TriggeredSkillCast { get; set; }
+
+        // === 쿨타임 초기화 (Type = CooldownReset일 때) — 불사 발동 등 트리거로 쿨타임 초기화 ===
+        public CooldownReset CooldownReset { get; set; }
+
+        // === 강자주시 (Type = FocusTarget일 때) — 특정 적군 고정 타게팅 ===
+        public FocusTarget FocusTarget { get; set; }
+
+        // === 권능 (Type = Authority일 때) — 치명적 피해 시 1회 생존 ===
+        public Authority Authority { get; set; }
     }
 
     /// <summary>
@@ -118,8 +138,13 @@ namespace GameDamageCalculator.Models.Effects
         DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
         Immunity,               // 상태이상 면역 (화상 면역 등)
         TriggeredHeal,          // 트리거 시 시전자 공격력 비례 회복 (TriggeredHealAtkRatio)
-        Revival,                // 불굴/부활 (사망 시 부활 + 피격 N회 사망 무효)
+        Revival,                // 불굴/부활 (사망 시 부활 + 피격 N회 또는 N턴 사망 무효)
         DebuffCleanse,          // 디버프 해제 (대상 디버프 N개 제거, DispelDebuffCount)
+        TriggeredSkillCast,     // 트리거 시 스킬 시전 (적군 N명 사망 → 별개 스킬 발동, TriggeredSkillCast)
+        CooldownReset,          // 트리거 시 쿨타임 초기화/감소 (불사 발동 등, CooldownReset)
+        BuffDispel,             // 대상(적)의 버프 N개 해제 (DispelBuffCount, 적용순·면역/무효화/권능 제외)
+        FocusTarget,            // 강자주시 — 특정 적군 고정 타게팅 (FocusTarget)
+        Authority,              // 권능 — 현재 생명력 이상 피해 시 생명력 1로 1회 생존 (Authority)
     }
 
     /// <summary>
@@ -137,6 +162,8 @@ namespace GameDamageCalculator.Models.Effects
         public double AtkRatio { get; set; }                                           // 1회 발동 시 시전자 공격력 비례% (FixedDamage 대신 사용 가능)
         public int TargetCount { get; set; } = 1;                                      // 적 명수
         public int HitCount { get; set; } = 1;                                         // 발동당 타격 횟수
+        public int DispelBuffCount { get; set; }                                       // 발동 공격 시 대상 버프 해제 개수 (0이면 없음)
+        public double DispelBuffChance { get; set; } = 100;                            // 버프 해제 확률%
     }
 
     /// <summary>
@@ -163,17 +190,89 @@ namespace GameDamageCalculator.Models.Effects
     }
 
     /// <summary>
-    /// 불굴/부활 — 사망 시 일정 생명력으로 부활하여 지정 피격 횟수 동안 사망하지 않음.
-    ///   예) 카구라 「팔사의 저주」 - 사망 시 불굴[피격 8회]로 부활(생명력 1), 전투당 1회.
-    ///       적군 사망 시 불굴의 잔여 피격 횟수 +1 (8 상한).
-    /// 런타임 동작(사망 감지·부활·피격 카운트 소비·적사망 시 증가)은 추후 구현.
+    /// 불굴/불사/부활 — 사망 시 일정 생명력으로 부활하여 일정 동안 사망하지 않음.
+    /// 무적 지속 방식 두 가지 (둘 중 하나 사용):
+    ///   - HitCount > 0    : 피격 N회 동안 사망 무효 (불굴). 예) 카구라 「팔사의 저주」 [피격 8회]
+    ///   - ImmortalTurns>0 : N턴 동안 사망 무효 (불사). 예) 태오 「까마귀 눈동자」 [2턴]
+    /// OncePerBattle = true 이면 전투당 1회만 발동한다. 한 번 소비된 뒤에는 다른 부활 수단으로
+    /// 다시 살아난 후 또 사망하더라도 이 효과는 재발동하지 않는다 (전투 단위로 1회 소진).
+    /// 런타임 동작(사망 감지·부활·카운트/턴 소비·적사망 시 증가)은 추후 구현.
     /// </summary>
     public class Revival
     {
-        public int HitCount { get; set; }                  // 부활 후 사망 무효 피격 횟수 (불굴 = 8)
+        public int HitCount { get; set; }                  // 부활 후 사망 무효 피격 횟수 (불굴 = 8, 0이면 턴제)
+        public int ImmortalTurns { get; set; }             // 부활 후 사망 무효 지속 턴 (불사 = 2, 0이면 횟수형)
         public double ReviveHp { get; set; } = 1;          // 부활 시 생명력 (고정값, 기본 1)
         public bool OncePerBattle { get; set; } = true;    // 전투당 1회만 발동
         public int HitCountGainOnEnemyDeath { get; set; }  // 적군 사망 시 잔여 피격 횟수 증가량 (0이면 없음)
         public int MaxHitCount { get; set; }               // 잔여 피격 횟수 상한 (0이면 HitCount와 동일)
+    }
+
+    /// <summary>
+    /// 트리거 스킬 발동 — 특정 트리거(예: 적군 N명 사망) 시 별개의 스킬을 시전한다.
+    ///   예) 태오 「까마귀 눈동자」 - 적군 4명 사망 시 2스킬과 같은 효과의 스킬 발동(라운드당 1회).
+    /// 본래 스킬과 별개 취급: 쿨타임을 공유하지 않으며, 본래 스킬의 강화로 오른 공격력 보너스를
+    /// 물려받지 않는다. 단, 패시브를 강화하면 본래 스킬 강화와 같은 수치(배율 등)를 갖는다 →
+    /// 이를 위해 base/enhanced PassiveLevelData에 각각 해당 티어 수치로 선언한다.
+    /// 런타임 동작(트리거 카운트·스킬 시전·쿨타임 분리)은 추후 구현.
+    /// </summary>
+    public class TriggeredSkillCast
+    {
+        public TriggerCondition TriggerOn { get; set; } = TriggerCondition.EnemyDeath; // 트리거 조건
+        public int TriggerCount { get; set; }              // 발동에 필요한 누적 횟수 (적군 4명 사망 = 4)
+        public bool OncePerRound { get; set; } = true;     // 라운드당 1회만 발동
+        public double Ratio { get; set; }                  // 시전 스킬 배율 (공격력 비례%)
+        public int AtkCount { get; set; } = 1;             // 타수
+        public int TargetCount { get; set; } = 1;          // 대상 수
+        public List<SkillEffect> Effects { get; set; }     // 시전 스킬의 부가 효과 (턴제 버프 감소 등)
+    }
+
+    /// <summary>
+    /// 쿨타임 초기화/감소 — 트리거 발동 시 시전자(또는 대상)의 스킬 쿨타임을 조정한다.
+    ///   예) 태오 「까마귀 눈동자」 2초월 - 불사 발동 시 스킬 쿨타임 초기화 (AllSkills=true, ReduceSeconds=0)
+    /// ReduceSeconds=0이면 전체 초기화(잔여 쿨 0), >0이면 해당 초만큼만 감소.
+    /// 대상 스킬은 SkillType으로 한정 가능(null이면 평타 제외 전 스킬). 런타임 동작은 추후 구현.
+    /// </summary>
+    public class CooldownReset
+    {
+        public bool AllSkills { get; set; } = true;        // 평타 제외 모든 스킬 대상
+        public SkillType? OnlySkillType { get; set; }      // 특정 스킬만 대상 (null이면 AllSkills 기준)
+        public double ReduceSeconds { get; set; }          // 감소 초 (0이면 전체 초기화)
+    }
+
+    /// <summary>
+    /// 강자주시 — 시전자가 특정 적군을 주시(고정 타게팅)하여 우선 공격하고, 지정 스킬 사용 시
+    /// 그 대상에게 추가 피해를 준다(추가 피해 자체는 스킬의 ConditionalExtraDmg로 표현).
+    ///   예) 카일 「소검쌍무」 - 공격력이 가장 높은 적군을 강자주시. 라운드당 한 대상 고정,
+    ///       강자주시 대상 사망 시 다른 대상으로 전이하지 않음. 1·2스킬은 그 대상에 추가 피해.
+    /// 런타임 동작(대상 선정·우선 공격·라운드 고정·비전이)은 추후 구현.
+    /// </summary>
+    public class FocusTarget
+    {
+        public FocusTargetSelector Selector { get; set; } = FocusTargetSelector.HighestAtkEnemy; // 대상 선정 기준
+        public bool PriorityAttack { get; set; } = true;    // 시전자가 그 대상을 우선 공격
+        public bool LockPerRound { get; set; } = true;      // 라운드 내 한 대상에만 고정
+        public bool NoTransferOnDeath { get; set; } = true; // 대상 사망 시 다른 대상으로 전이 안 함
+    }
+
+    /// <summary>강자주시 대상 선정 기준</summary>
+    public enum FocusTargetSelector
+    {
+        HighestAtkEnemy,    // 공격력이 가장 높은 적군
+    }
+
+    /// <summary>
+    /// 권능 — 현재 생명력 이상의 피해를 입었을 때 생명력 ReviveHp로 1회 생존(전투당 1회).
+    /// 불굴/불사(Revival, 사망 후 부활)와 달리 사망을 막아(치명타 방지) 즉시 생존시킨다.
+    /// 버프 해제로 제거되지 않는다(해제 불가). [[reference-buff-dispel-rules]]
+    ///   예) 콜트 2초월 - 권능(전투당 1회) + 발동 시 시전자 물공 155% 비례 보호막[3턴].
+    /// 발동 연계 보호막은 ShieldAtkRatio/ShieldDuration으로 함께 표현. 런타임 동작은 추후 구현.
+    /// </summary>
+    public class Authority
+    {
+        public double ReviveHp { get; set; } = 1;        // 생존 시 남는 생명력 (고정값)
+        public bool OncePerBattle { get; set; } = true;  // 전투당 1회
+        public double ShieldAtkRatio { get; set; }       // 발동 시 시전자 공격력 비례 보호막% (0이면 없음)
+        public int ShieldDuration { get; set; }          // 보호막 지속 턴
     }
 }
