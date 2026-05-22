@@ -38,6 +38,7 @@ namespace GameDamageCalculator.Database
         public bool BlocksAction { get; set; }      // 행동 불가
         public bool BlocksActiveSkill { get; set; } // 액티브 스킬 불가 (침묵)
         public bool IsTaunt { get; set; }           // 도발 (시전자만 공격 대상이 됨)
+        public bool IsUntargetableBySingle { get; set; } // 1인(단일) 공격의 대상이 되지 않음 (위장)
         public double WakeUpThreshold { get; set; } // 해제 조건 HP% (수면 7%)
 
         // 생명력 전환
@@ -304,6 +305,16 @@ namespace GameDamageCalculator.Database
                 Name = "재생",
                 Description = "턴 시작 시 일정량의 생명력을 회복한다",
                 HealRatio = 0  // 캐릭터별 커스텀 값 사용
+            }},
+
+            { StatusEffectType.Disguise, new StatusEffect
+            {
+                Type = StatusEffectType.Disguise,
+                Name = "위장",
+                Description = "1인(단일) 공격의 대상이 되지 않으며, 위장 중 피격 시 확정 빗나감(100%)",
+                Duration = 2,
+                IsUntargetableBySingle = true,
+                MissChanceIncrease = 100  // 확정 빗나감 — 빗나감 모델 연결
             }},
 
             // === 패시브 스택형 ===

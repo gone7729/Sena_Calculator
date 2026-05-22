@@ -42,5 +42,6 @@ namespace GameDamageCalculator.Models
         HealBlock,        // 회복 불가
         HpConversion,     // 생명력 전환
         Regeneration,     // 재생 (턴제 회복)
+        Disguise,         // 위장 (1인 공격 비대상 + 위장 중 피격 확정 빗나감)
     }
 }

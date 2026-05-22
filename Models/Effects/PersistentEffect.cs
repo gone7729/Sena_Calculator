@@ -102,6 +102,9 @@ namespace GameDamageCalculator.Models.Effects
 
         // === 강자주시 (Type = FocusTarget일 때) — 특정 적군 고정 타게팅 ===
         public FocusTarget FocusTarget { get; set; }
+
+        // === 권능 (Type = Authority일 때) — 치명적 피해 시 1회 생존 ===
+        public Authority Authority { get; set; }
     }
 
     /// <summary>
@@ -141,6 +144,7 @@ namespace GameDamageCalculator.Models.Effects
         CooldownReset,          // 트리거 시 쿨타임 초기화/감소 (불사 발동 등, CooldownReset)
         BuffDispel,             // 대상(적)의 버프 N개 해제 (DispelBuffCount, 적용순·면역/무효화/권능 제외)
         FocusTarget,            // 강자주시 — 특정 적군 고정 타게팅 (FocusTarget)
+        Authority,              // 권능 — 현재 생명력 이상 피해 시 생명력 1로 1회 생존 (Authority)
     }
 
     /// <summary>
@@ -255,5 +259,20 @@ namespace GameDamageCalculator.Models.Effects
     public enum FocusTargetSelector
     {
         HighestAtkEnemy,    // 공격력이 가장 높은 적군
+    }
+
+    /// <summary>
+    /// 권능 — 현재 생명력 이상의 피해를 입었을 때 생명력 ReviveHp로 1회 생존(전투당 1회).
+    /// 불굴/불사(Revival, 사망 후 부활)와 달리 사망을 막아(치명타 방지) 즉시 생존시킨다.
+    /// 버프 해제로 제거되지 않는다(해제 불가). [[reference-buff-dispel-rules]]
+    ///   예) 콜트 2초월 - 권능(전투당 1회) + 발동 시 시전자 물공 155% 비례 보호막[3턴].
+    /// 발동 연계 보호막은 ShieldAtkRatio/ShieldDuration으로 함께 표현. 런타임 동작은 추후 구현.
+    /// </summary>
+    public class Authority
+    {
+        public double ReviveHp { get; set; } = 1;        // 생존 시 남는 생명력 (고정값)
+        public bool OncePerBattle { get; set; } = true;  // 전투당 1회
+        public double ShieldAtkRatio { get; set; }       // 발동 시 시전자 공격력 비례 보호막% (0이면 없음)
+        public int ShieldDuration { get; set; }          // 보호막 지속 턴
     }
 }
