@@ -1930,6 +1930,689 @@
     ]
   },
   {
+    "id": 15,
+    "name": "돼오",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "상회대표",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "physDmgRdc": 28
+        },
+        "enhanced": {
+          "physDmgRdc": 35
+        },
+        "transcend": {
+          "physDmgRdc": 35
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "출혈 [40% 확률] [2턴]"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120,
+            "effect": "출혈 [50% 확률] [2턴]"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "룰렛맨",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 80,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "비피해 스킬: 모든 아군 치명타 피해 증가 40% [3턴]"
+          },
+          "enhanced": {
+            "cooldown": 80,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "비피해 스킬: 모든 아군 치명타 피해 증가 49% [3턴]"
+          },
+          "transcend": {
+            "cooldown": 80,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "적군 3명 모든 공격력 감소 30% [100% 확률] [3턴]"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "진수성참",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145,
+            "effect": "치명타 발생 시 물리 공격력 65% 추가 피해, 모든 아군 시전자 물리 공격력 55% 회복"
+          },
+          "enhanced": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170,
+            "effect": "치명타 발생 시 물리 공격력 65% 추가 피해, 모든 아군 시전자 물리 공격력 65% 회복"
+          },
+          "transcend": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 170
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받피감",
+      "출혈",
+      "치피증"
+    ]
+  },
+  {
+    "id": 16,
+    "name": "란드그리드",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "영웅 무쌍",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {
+          "wek": 39
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": ""
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130,
+            "effect": ""
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "약속된 전장",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145,
+            "effect": "자신 약점 공격 피해량 증가 31% [3턴]"
+          },
+          "enhanced": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145,
+            "effect": "자신 약점 공격 피해량 증가 31% [3턴], 적군 3명 막기 확률 감소 25% [100%] [3턴]"
+          },
+          "transcend": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "절대 창의 주스트",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 108,
+            "target": 1,
+            "atk": 4,
+            "ratio": 76,
+            "effect": "전열 우선, 4회 관통(피해 면역 무시). 전투 시작 시 아군에 공격형 5명 이상 시 생명력 전환 32%. 대상 공격력이 자신보다 낮으면 각 공격마다 91% 관통 추가 피해"
+          },
+          "enhanced": {
+            "cooldown": 108,
+            "target": 1,
+            "atk": 4,
+            "ratio": 101,
+            "effect": "전열 우선, 4회 관통(피해 면역 무시). 전투 시작 시 아군에 공격형 5명 이상 시 생명력 전환 32%. 대상 공격력이 자신보다 낮으면 각 공격마다 91% 관통 추가 피해"
+          },
+          "transcend": {
+            "cooldown": 108,
+            "target": 1,
+            "atk": 4,
+            "ratio": 101,
+            "effect": "해당 스킬의 직접 피해로 적군 처치 시 [절대 창의 주스트] 쿨타임 초기화"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "막기확률감소",
+      "방깎"
+    ]
+  },
+  {
+    "id": 17,
+    "name": "브란즈&브란셀",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "선악의 권능",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 60,
+            "effect": ""
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 75,
+            "effect": ""
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 2,
+            "ratio": 75
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "괴력의 난동",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 3,
+            "ratio": 38,
+            "effect": "3회 관통(피해 면역 무시), 각 공격마다 출혈 [30%] [2턴], 직접 피해로 처치 시 100% 위력 연속 발동"
+          },
+          "enhanced": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 3,
+            "ratio": 45,
+            "effect": "3회 관통(피해 면역 무시), 각 공격마다 출혈 [35%] [2턴], 직접 피해로 처치 시 100% 위력 연속 발동"
+          },
+          "transcend": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 3,
+            "ratio": 45
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "구원의 일격",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 96,
+            "target": 1,
+            "atk": 2,
+            "ratio": 247,
+            "effect": "후열 우선, 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용)"
+          },
+          "enhanced": {
+            "cooldown": 96,
+            "target": 1,
+            "atk": 2,
+            "ratio": 297,
+            "effect": "후열 우선, 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용), 턴제 버프 감소 3턴 [100%]"
+          },
+          "transcend": {
+            "cooldown": 96,
+            "target": 1,
+            "atk": 2,
+            "ratio": 297,
+            "effect": "단일 아군: 해당 스킬 직접 피해로 처치 시 사망한 대상을 생명력 40%로 부활(공격형 3명 이상 편성 시), 부활 시 모든 피해 무효화 [피격 2회]"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "출혈"
+    ]
+  },
+  {
+    "id": 18,
+    "name": "차해인",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "마나 감지",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": ""
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120,
+            "effect": ""
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "무희",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 2,
+            "ratio": 62,
+            "effect": "모든 아군 디버프 해제 2개, 마비 [55%] [2턴]"
+          },
+          "enhanced": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 2,
+            "ratio": 72,
+            "effect": "모든 아군 디버프 해제 2개, 마비 [55%] [2턴]"
+          },
+          "transcend": {
+            "cooldown": 105,
+            "target": 3,
+            "atk": 2,
+            "ratio": 72
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "검무",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 120,
+            "target": 4,
+            "atk": 2,
+            "ratio": 62,
+            "effect": "치명타 발생 시 각 공격마다 물리 공격력 27% 추가 피해, 피해 대상 1명 줄어들 때마다 각 공격마다 7% 피해량 증가, 직접 피해로 처치 시 [검무] 쿨타임 감소 60초"
+          },
+          "enhanced": {
+            "cooldown": 120,
+            "target": 4,
+            "atk": 2,
+            "ratio": 75,
+            "effect": "치명타 발생 시 각 공격마다 물리 공격력 27% 추가 피해, 피해 대상 1명 줄어들 때마다 각 공격마다 7% 피해량 증가, 직접 피해로 처치 시 [검무] 쿨타임 감소 60초"
+          },
+          "transcend": {
+            "cooldown": 120,
+            "target": 4,
+            "atk": 2,
+            "ratio": 75,
+            "effect": "해당 스킬 직접 피해로 적군 처치 시 [검무] 쿨타임 초기화"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마비"
+    ]
+  },
+  {
+    "id": 19,
+    "name": "파이",
+    "grade": "전설",
+    "type": "공격형",
+    "attackType": "Physical",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "솟구치는 불꽃",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "적군 3명 화상 [35%] [2턴]"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130,
+            "effect": "적군 3명 화상 [35%] [2턴]"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "아그니아의 창",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57,
+            "effect": "모든 적군, 각 공격마다 화상 [60%] [2턴]"
+          },
+          "enhanced": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57,
+            "effect": "모든 적군, 각 공격마다 화상 [70%] [2턴], 방어력 감소 29% [100%] [3턴]"
+          },
+          "transcend": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 57
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "염룡의 연주",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 90,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340,
+            "effect": "단일 적군: 버프 해제 3개, 화상 [100%] [3턴], 대상 최대 생명력 20% 비례 피해(시전자 공격력 300% 제한), 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용). 주 대상 동일열 적군: 화상 [60%] [2턴], 물리 공격력 120% + 대상 최대 생명력 14% 비례 피해(시전자 공격력 150% 제한)"
+          },
+          "enhanced": {
+            "cooldown": 90,
+            "target": 1,
+            "atk": 1,
+            "ratio": 410,
+            "effect": "단일 적군: 버프 해제 3개, 화상 [100%] [3턴], 대상 최대 생명력 26% 비례 피해(시전자 공격력 300% 제한), 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용). 주 대상 동일열 적군: 화상 [60%] [2턴], 물리 공격력 120% + 대상 최대 생명력 14% 비례 피해(시전자 공격력 150% 제한)"
+          },
+          "transcend": {
+            "cooldown": 90,
+            "target": 1,
+            "atk": 1,
+            "ratio": 410,
+            "effect": "처형 대상 동일열 전체로 확장"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "받물피증",
+      "방깎",
+      "화상"
+    ]
+  },
+  {
     "id": 51,
     "name": "풍연",
     "grade": "영웅",
@@ -4596,6 +5279,574 @@
     ]
   },
   {
+    "id": 118,
+    "name": "나타",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "연꽃의 보호",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "cri": 27,
+          "dmgDealt1to3": 28
+        },
+        "enhanced": {
+          "cri": 33,
+          "dmgDealt1to3": 33
+        },
+        "transcend": {
+          "cri": 33,
+          "dmgDealt1to3": 33
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "자신·공격력이 가장 높은 아군 스킬 쿨타임 감소 8초"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130,
+            "effect": "자신·공격력이 가장 높은 아군 스킬 쿨타임 감소 8초"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "화첨창술",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 175,
+            "effect": "대상이 잃은 생명력에 비례해 최대 50% 피해량 증가"
+          },
+          "enhanced": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 225,
+            "effect": "대상이 잃은 생명력에 비례해 최대 50% 피해량 증가"
+          },
+          "transcend": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 225
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "혼천릉파",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 260,
+            "effect": "대상이 잃은 생명력에 비례해 최대 50% 피해량 증가"
+          },
+          "enhanced": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 335,
+            "effect": "대상이 잃은 생명력에 비례해 최대 50% 피해량 증가"
+          },
+          "transcend": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 335,
+            "effect": "6초월: 방어 무시 40%"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "1-3인기"
+    ]
+  },
+  {
+    "id": 119,
+    "name": "레긴레이프",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkWek",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 20,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "조화의 비원",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "마법 취약[100%] 1중첩[최대 4중첩, 중첩당 받는 마법 피해 10%](마법형 5명 이상 편성 시)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130,
+            "effect": "마법 취약[100%] 1중첩[최대 4중첩, 중첩당 받는 마법 피해 10%](마법형 5명 이상 편성 시)"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 130,
+            "effect": "2초월: 대상 수 적군 2명"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "광명의 도래",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 2,
+            "ratio": 65,
+            "effect": "대상 보유 디버프 1개당 각 공격마다 마법 공격력 9% 추가 피해[최대 8개], 치명타 확률 30% 추가 적용, 마법 취약 2중첩[최대 4중첩](마법형 5명 이상)"
+          },
+          "enhanced": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 2,
+            "ratio": 75,
+            "effect": "강화: 피해량 상승. 대상 보유 디버프 1개당 각 공격마다 마법 공격력 9% 추가 피해[최대 8개], 치명타 확률 30% 추가 적용"
+          },
+          "transcend": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 2,
+            "ratio": 75,
+            "effect": "6초월: 치명타 확률 100% 추가 적용"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "우주의 균열",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 120,
+            "target": 5,
+            "atk": 3,
+            "ratio": 42,
+            "effect": "마법 공격력 42% + 대상 최대 생명력 5%(공격력 50% 제한) 3회 피해, 치명타 확률 30% 추가, 마법 취약 2중첩[최대 4중첩](마법형 5명 이상)"
+          },
+          "enhanced": {
+            "cooldown": 120,
+            "target": 5,
+            "atk": 3,
+            "ratio": 42,
+            "effect": "강화: 마비[55%][2턴] 추가. 치명타 확률 30% 추가 적용"
+          },
+          "transcend": {
+            "cooldown": 120,
+            "target": 5,
+            "atk": 3,
+            "ratio": 42,
+            "effect": "6초월: 치명타 확률 100% 추가 적용"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마비",
+      "받마피증",
+      "받회감",
+      "방깎"
+    ]
+  },
+  {
+    "id": 120,
+    "name": "성진우",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "레벨업",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "dmgDealtType": 17,
+          "effRes": 40
+        },
+        "enhanced": {
+          "dmgDealtType": 20,
+          "effRes": 49
+        },
+        "transcend": {
+          "dmgDealtType": 20,
+          "effRes": 49
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130,
+            "effect": "대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 130
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "급소 찌르기",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 96,
+            "target": 4,
+            "atk": 2,
+            "ratio": 57,
+            "effect": "마법 공격력 57% + 대상 최대 생명력 7%(공격력 75% 제한) 2회 관통 피해 (피해 면역 무시)"
+          },
+          "enhanced": {
+            "cooldown": 96,
+            "target": 4,
+            "atk": 2,
+            "ratio": 67,
+            "effect": "강화: 마법 공격력 67% + 대상 최대 생명력 9%(공격력 75% 제한) 2회 관통 피해 (피해 면역 무시)"
+          },
+          "transcend": {
+            "cooldown": 96,
+            "target": 4,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "그림자 소환",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 45,
+            "effect": "마법 공격력 45% 2회 방어 무시(40%) 피해. 대상 속공이 자신보다 낮을 경우 각 공격마다 마법 공격력 62% 추가 방어 무시 피해"
+          },
+          "enhanced": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 55,
+            "effect": "강화: 마법 공격력 55% 2회 방어 무시(40%) 피해. 대상 속공이 자신보다 낮을 경우 각 공격마다 마법 공격력 62% 추가 방어 무시 피해"
+          },
+          "transcend": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 55
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마피증",
+      "효저증"
+    ]
+  },
+  {
+    "id": 121,
+    "name": "오목",
+    "grade": "전설",
+    "type": "마법형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1500,
+      "def": 571,
+      "hp": 3326,
+      "spd": 29,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 2040,
+      "def": 571,
+      "hp": 3925,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 2220,
+      "def": 640,
+      "hp": 4324,
+      "spd": 29,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "신목의 가호",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "magicAtkRate": 19
+        },
+        "enhanced": {
+          "magicAtkRate": 25
+        },
+        "transcend": {
+          "magicAtkRate": 25
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": ""
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "강화: 아군 2명(자신 제외) 마법 피해량 증가 10% [2턴]"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "맹호의 무도",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 98,
+            "target": 1,
+            "atk": 1,
+            "ratio": 305,
+            "effect": "방어력이 가장 높은 적군 대상, 생명력 전환 32%. [아군(마법형)] 수호령[2턴]"
+          },
+          "enhanced": {
+            "cooldown": 98,
+            "target": 1,
+            "atk": 1,
+            "ratio": 305,
+            "effect": "강화: [아군(마법형)] 수호령[2턴] + 디버프 해제 2개. 방어력이 가장 높은 적군 대상, 생명력 전환 32%"
+          },
+          "transcend": {
+            "cooldown": 98,
+            "target": 1,
+            "atk": 1,
+            "ratio": 305
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "만월화차 맹호전",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 136,
+            "target": 5,
+            "atk": 2,
+            "ratio": 70,
+            "effect": "마법 공격력 70% + 대상 최대 생명력 7%(공격력 75% 제한) 2회 피해. 대상 현재 생명력 비례 최대 50% 피해량 증가"
+          },
+          "enhanced": {
+            "cooldown": 136,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80,
+            "effect": "강화: 마법 공격력 80% + 대상 최대 생명력 9%(공격력 75% 제한) 2회 피해. 대상 현재 생명력 비례 최대 50% 피해량 증가"
+          },
+          "transcend": {
+            "cooldown": 136,
+            "target": 5,
+            "atk": 2,
+            "ratio": 80,
+            "effect": "6초월: 방어 무시 65%"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증",
+      "마피증",
+      "방깎",
+      "생명력 전환"
+    ]
+  },
+  {
     "id": 151,
     "name": "유리",
     "grade": "영웅",
@@ -5845,6 +7096,144 @@
     ],
     "tags": [
       "방어"
+    ]
+  },
+  {
+    "id": 207,
+    "name": "초선",
+    "grade": "전설",
+    "type": "지원형",
+    "attackType": "Magic",
+    "transcendType": "AtkDmgRdc",
+    "baseStats": {
+      "atk": 1095,
+      "def": 675,
+      "hp": 4458,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1489,
+      "def": 675,
+      "hp": 5260,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1621,
+      "def": 756,
+      "hp": 5795,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "폐월의 미소",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {}
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "현재 생명력이 가장 낮은 아군(자신 제외) 시전자 최대 생명력 6% 회복"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "강화: 현재 생명력이 가장 낮은 아군(자신 제외) 시전자 최대 생명력 7% 회복"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "진군가",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 85,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "아군 3명 시전자 최대 생명력 25% 회복"
+          },
+          "enhanced": {
+            "cooldown": 85,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "강화: 아군 3명 시전자 최대 생명력 29% 회복"
+          },
+          "transcend": {
+            "cooldown": 85,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "2초월: 아군 2명(자신 제외) 대상이 공격형/마법형일 경우 스킬 쿨타임 초기화"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "보호의 노래",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "아군 2명(자신 제외) 치명타 피해 증가 43% [4턴], 적군 3명 턴제 버프 감소 2턴 [100%] + 수면 85% [2턴]"
+          },
+          "enhanced": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "강화: 수면 확률 100%, 아군 2명(자신 제외) 모든 공격력 증가 30% [4턴]"
+          },
+          "transcend": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "effect": "6초월: 적군 3명 받는 회복량 감소 78% [100%] [3턴]"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "마공증",
+      "물공증",
+      "수면",
+      "치피증"
     ]
   },
   {
@@ -8425,6 +9814,286 @@
     ]
   },
   {
+    "id": 329,
+    "name": "미스트",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Magic",
+    "transcendType": "AtkEff",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "파멸의 안개",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "effHit": 28
+        },
+        "enhanced": {
+          "effHit": 34
+        },
+        "transcend": {
+          "effHit": 34
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": ""
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120,
+            "effect": "공포[40%,1턴] (공포 = 행동불가+효저0% 고정, 모델 미지원)"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "깨어난 야수",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 70,
+            "target": 3,
+            "atk": 2,
+            "ratio": 57,
+            "effect": "즉사[35%,3턴] (공포 상태 대상은 해제불가 즉사)"
+          },
+          "enhanced": {
+            "cooldown": 70,
+            "target": 3,
+            "atk": 2,
+            "ratio": 67,
+            "effect": "즉사[40%,3턴] (공포 상태 대상은 해제불가 즉사)"
+          },
+          "transcend": {
+            "cooldown": 70,
+            "target": 5,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "죽음의 안개",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 80,
+            "target": 4,
+            "atk": 2,
+            "ratio": 57,
+            "effect": "턴제버프 2턴 감소[100%], 공포[50%,2턴], 대상 공격력이 자신보다 낮을 시 즉사[35%,3턴](공포 시 해제불가 즉사). 공포는 모델 미지원"
+          },
+          "enhanced": {
+            "cooldown": 80,
+            "target": 4,
+            "atk": 2,
+            "ratio": 67,
+            "effect": "턴제버프 2턴 감소[100%], 공포[50%,2턴], 대상 공격력이 자신보다 낮을 시 즉사[45%,3턴](공포 시 해제불가 즉사). 공포는 모델 미지원"
+          },
+          "transcend": {
+            "cooldown": 80,
+            "target": 4,
+            "atk": 2,
+            "ratio": 67
+          }
+        }
+      }
+    ],
+    "tags": [
+      "즉사",
+      "효적증"
+    ]
+  },
+  {
+    "id": 330,
+    "name": "백각",
+    "grade": "전설",
+    "type": "만능형",
+    "attackType": "Magic",
+    "transcendType": "AtkCri",
+    "baseStats": {
+      "atk": 1306,
+      "def": 659,
+      "hp": 3693,
+      "spd": 25,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 1776,
+      "def": 659,
+      "hp": 4358,
+      "spd": 25,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 1933,
+      "def": 738,
+      "hp": 4801,
+      "spd": 25,
+      "cri": 23,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "어둠의 주술",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {},
+        "enhanced": {},
+        "transcend": {
+          "effHit": 22
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": ""
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100,
+            "effect": "강화: 출혈[40%,2턴] 추가"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "백각환독",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 60,
+            "target": 1,
+            "atk": 3,
+            "ratio": 90,
+            "effect": "각 공격마다 중독[60%,3턴]"
+          },
+          "enhanced": {
+            "cooldown": 60,
+            "target": 1,
+            "atk": 3,
+            "ratio": 110,
+            "effect": "각 공격마다 중독[60%,3턴], 강화: 회복불가[100%,4턴]"
+          },
+          "transcend": {
+            "cooldown": 60,
+            "target": 1,
+            "atk": 3,
+            "ratio": 110,
+            "effect": "6초월: 중독 확률 70%"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "마신주령",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 60,
+            "target": 1,
+            "atk": 3,
+            "ratio": 80,
+            "effect": "각 공격마다 출혈[60%,3턴], 모든 아군 디버프 해제 1개 (아군 디버프 해제는 모델 미지원)"
+          },
+          "enhanced": {
+            "cooldown": 60,
+            "target": 1,
+            "atk": 3,
+            "ratio": 110,
+            "effect": "각 공격마다 출혈[60%,3턴], 모든 아군 디버프 해제 1개 (아군 디버프 해제는 모델 미지원)"
+          },
+          "transcend": {
+            "cooldown": 60,
+            "target": 1,
+            "atk": 3,
+            "ratio": 110,
+            "effect": "6초월: 출혈 확률 70%"
+          }
+        }
+      }
+    ],
+    "tags": [
+      "중독",
+      "출혈",
+      "회복 불가",
+      "효적증"
+    ]
+  },
+  {
     "id": 376,
     "name": "빅토리아",
     "grade": "희귀",
@@ -9231,6 +10900,148 @@
     "tags": [
       "막기확률",
       "받피감"
+    ]
+  },
+  {
+    "id": 406,
+    "name": "라드그리드",
+    "grade": "전설",
+    "type": "방어형",
+    "attackType": "Physical",
+    "transcendType": "DefBlk",
+    "baseStats": {
+      "atk": 727,
+      "def": 892,
+      "hp": 4825,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend6": {
+      "atk": 727,
+      "def": 1213,
+      "hp": 5694,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "transcend12": {
+      "atk": 814,
+      "def": 1320,
+      "hp": 6272,
+      "spd": 19,
+      "cri": 5,
+      "criDmg": 150,
+      "wek": 0,
+      "wekDmg": 130
+    },
+    "passive": {
+      "name": "준비된 병략",
+      "maxStacks": 1,
+      "buffTiers": {
+        "base": {
+          "defRate": 31
+        },
+        "enhanced": {
+          "defRate": 39
+        },
+        "transcend": {
+          "defRate": 39
+        }
+      }
+    },
+    "skills": [
+      {
+        "id": 1,
+        "name": "평타",
+        "skillType": "Normal",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 50,
+            "effect": "모든 공격력 감소[7%,2턴]"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60,
+            "effect": "모든 공격력 감소[9%,2턴]"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "전창의 비",
+        "skillType": "Skill1",
+        "tiers": {
+          "base": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 25,
+            "effect": "관통, 각 공격마다 화상[40%,2턴], 치명타 확률 감소[19%,3턴], 약점 공격 확률 감소[22%,3턴] (치확/약공 감소는 모델 미지원)"
+          },
+          "enhanced": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 25,
+            "effect": "관통, 각 공격마다 화상[40%,2턴], 치명타 확률 감소[25%,3턴], 약점 공격 확률 감소[30%,3턴] (치확/약공 감소는 모델 미지원)"
+          },
+          "transcend": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 25,
+            "effect": "2초월: 치명타 확률 감소/약점 공격 확률 감소 지속 4턴"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "name": "작렬하는 창연",
+        "skillType": "Skill2",
+        "tiers": {
+          "base": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 42,
+            "effect": "자신이 잃은 생명력에 비례해 최대 100% 피해량 증가"
+          },
+          "enhanced": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 50,
+            "effect": "자신이 잃은 생명력에 비례해 최대 100% 피해량 증가, 강화: 버프 해제 2개[100%]"
+          },
+          "transcend": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 50
+          }
+        }
+      }
+    ],
+    "tags": [
+      "물공감",
+      "방어",
+      "화상"
     ]
   }
 ]
