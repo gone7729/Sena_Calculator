@@ -810,7 +810,7 @@ namespace GameDamageCalculator.Services
                 && buff.Mark_Energeia == 0 && buff.Mark_Purify == 0
                 && buff.Arm_Pen == 0 && buff.Dmg_Rdc == 0 && buff.Blk == 0
                 && buff.Heal_Bonus == 0 && buff.Eff_Res == 0 && buff.Eff_Hit == 0
-                && buff.Shield_HpRatio == 0 && buff.Blessing == 0
+                && buff.Shield_HpRatio == 0 && buff.Shield_AtkRatio == 0 && buff.Blessing == 0
                 && buff.Phys_Dmg_Rdc == 0 && buff.Mag_Dmg_Rdc == 0
                 && buff.Dmg_Rdc_Multi == 0 && buff.Coop_Chance == 0;
         }

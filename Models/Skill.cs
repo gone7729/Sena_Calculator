@@ -319,6 +319,10 @@ namespace GameDamageCalculator.Models
         // 피격 횟수형 피해 무효화(DamageNullification.HitCount형)는 무시하지 못한다.
         public bool IgnoresTurnDamageImmunity { get; set; }
 
+        // ===== 대상 선정 =====
+        // 기본(앞열 우선) 대신 특정 기준으로 대상 선정 (예: 방어력 최고 적군). null이면 기본.
+        public FocusTargetSelector? TargetSelector { get; set; }
+
         // ===== 기타 =====
         public string Effect { get; set; }
         public int? TargetCountOverride { get; set; }

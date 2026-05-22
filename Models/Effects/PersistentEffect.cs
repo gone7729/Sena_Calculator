@@ -27,6 +27,7 @@ namespace GameDamageCalculator.Models.Effects
         public int TriggerCount { get; set; } = 1;              // 트리거에 필요한 횟수
         public double TriggerHpThreshold { get; set; }          // OnHpBelow 트리거 임계 생명력% (예: 70 = 70% 이하)
         public bool OncePerBattle { get; set; }                 // 트리거 효과를 전투당 1회만 발동
+        public int MaxTriggersPerBattle { get; set; }           // 트리거 효과 전투당 최대 발동 횟수 (0=무제한, OncePerBattle보다 우선)
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
         public int Duration { get; set; }                       // 부여 효과 지속 턴 (트리거 디버프/버프, 0이면 무기한)
@@ -202,7 +203,8 @@ namespace GameDamageCalculator.Models.Effects
     {
         public int HitCount { get; set; }                  // 부활 후 사망 무효 피격 횟수 (불굴 = 8, 0이면 턴제)
         public int ImmortalTurns { get; set; }             // 부활 후 사망 무효 지속 턴 (불사 = 2, 0이면 횟수형)
-        public double ReviveHp { get; set; } = 1;          // 부활 시 생명력 (고정값, 기본 1)
+        public double ReviveHp { get; set; } = 1;          // 부활 시 생명력 (고정값, ReviveHpPercent=0일 때 사용)
+        public double ReviveHpPercent { get; set; }        // 부활 시 생명력 최대HP% (예: 55 = 55%, 0이면 ReviveHp 고정값 사용)
         public bool OncePerBattle { get; set; } = true;    // 전투당 1회만 발동
         public int HitCountGainOnEnemyDeath { get; set; }  // 적군 사망 시 잔여 피격 횟수 증가량 (0이면 없음)
         public int MaxHitCount { get; set; }               // 잔여 피격 횟수 상한 (0이면 HitCount와 동일)
@@ -255,10 +257,11 @@ namespace GameDamageCalculator.Models.Effects
         public bool NoTransferOnDeath { get; set; } = true; // 대상 사망 시 다른 대상으로 전이 안 함
     }
 
-    /// <summary>강자주시 대상 선정 기준</summary>
+    /// <summary>대상 선정 기준 (강자주시 / 스킬 타게팅 공용)</summary>
     public enum FocusTargetSelector
     {
         HighestAtkEnemy,    // 공격력이 가장 높은 적군
+        HighestDefEnemy,    // 방어력이 가장 높은 적군
     }
 
     /// <summary>
