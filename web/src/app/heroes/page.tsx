@@ -46,7 +46,7 @@ interface Hero {
 
 const heroes = charactersData as Hero[];
 
-const GRADES = ["전체", "전설", "영웅"];
+const GRADES = ["전체", "전설", "희귀"];
 const ROLES = ["전체", "공격형", "마법형", "만능형", "방어형", "지원형"];
 
 // 버프/효과 태그

@@ -55,7 +55,7 @@ namespace GameDamageCalculator.Database
         };
 
         // 영웅 등급의 타입별 스탯
-        public static readonly Dictionary<string, BaseStatSet> HeroStats = new Dictionary<string, BaseStatSet>
+        public static readonly Dictionary<string, BaseStatSet> RareStats = new Dictionary<string, BaseStatSet>
         {
             { "공격형", new BaseStatSet { 
                 Atk = 1389, Def = 533, Hp = 3174, Spd = 25, 
@@ -117,7 +117,7 @@ namespace GameDamageCalculator.Database
             }
 
             // 영웅 등급
-            public static class Hero
+            public static class Rare
             {
                 public static readonly Dictionary<string, double[]> Stats = 
                     new Dictionary<string, double[]>
@@ -133,7 +133,7 @@ namespace GameDamageCalculator.Database
             /// </summary>
             public static Dictionary<string, double[]> GetStats(string grade)
             {
-                return grade == "영웅" ? Hero.Stats : Legendary.Stats;
+                return grade == "희귀" ? Rare.Stats : Legendary.Stats;
             }
         }
 
@@ -220,7 +220,7 @@ namespace GameDamageCalculator.Database
             }
 
             // ========== 영웅 등급 ==========
-            public static class Hero
+            public static class Rare
             {
                 public static readonly List<TranscendBonus> AtkCriBonuses = new List<TranscendBonus>
                 {
@@ -302,7 +302,7 @@ namespace GameDamageCalculator.Database
             new Dictionary<string, Dictionary<string, BaseStatSet>>
         {
             { "전설", LegendStats },
-            { "영웅", HeroStats }
+            { "희귀", RareStats }
         };
 
         /// <summary>
