@@ -84,18 +84,18 @@ namespace GameDamageCalculator.Models
                 };
             }
             // 영웅 등급
-            else if (Grade == "영웅")
+            else if (Grade == "희귀")
             {
                 return TranscendType switch
                 {
-                    TranscendType.AtkCri => StatTable.TranscendDb.Hero.AtkCriBonuses,
-                    TranscendType.AtkCriDmg => StatTable.TranscendDb.Hero.AtkCriDmgBonuses,
-                    TranscendType.AtkWek => StatTable.TranscendDb.Hero.AtkWekBonuses,
-                    TranscendType.AtkEff => StatTable.TranscendDb.Hero.AtkEffBonuses,
-                    TranscendType.AtkDmgRdc => StatTable.TranscendDb.Hero.AtkDmgRdcBonuses,
-                    TranscendType.DefBlk => StatTable.TranscendDb.Hero.DefBlkBonuses,
-                    TranscendType.DefDmgRdc => StatTable.TranscendDb.Hero.DefDmgRdcBonuses,
-                    _ => StatTable.TranscendDb.Hero.AtkCriBonuses
+                    TranscendType.AtkCri => StatTable.TranscendDb.Rare.AtkCriBonuses,
+                    TranscendType.AtkCriDmg => StatTable.TranscendDb.Rare.AtkCriDmgBonuses,
+                    TranscendType.AtkWek => StatTable.TranscendDb.Rare.AtkWekBonuses,
+                    TranscendType.AtkEff => StatTable.TranscendDb.Rare.AtkEffBonuses,
+                    TranscendType.AtkDmgRdc => StatTable.TranscendDb.Rare.AtkDmgRdcBonuses,
+                    TranscendType.DefBlk => StatTable.TranscendDb.Rare.DefBlkBonuses,
+                    TranscendType.DefDmgRdc => StatTable.TranscendDb.Rare.DefDmgRdcBonuses,
+                    _ => StatTable.TranscendDb.Rare.AtkCriBonuses
                 };
             }
             // 기본값 (전설)
@@ -107,8 +107,8 @@ namespace GameDamageCalculator.Models
         /// </summary>
         private List<TranscendBonus> GetCommonBonuses()
         {
-            if (Grade == "영웅")
-                return StatTable.TranscendDb.Hero.CommonBonuses;
+            if (Grade == "희귀")
+                return StatTable.TranscendDb.Rare.CommonBonuses;
             return StatTable.TranscendDb.Legendary.CommonBonuses;
         }
 

@@ -3230,14 +3230,14 @@ namespace GameDamageCalculator.Database
 
             #endregion
 
-            #region 영웅 - 공격형 51~
+            #region 희귀 - 공격형 51~
 
             // 풍연
             new Character
             {
                 Id = 51,
                 Name = "풍연",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "공격형",
                 Skills = new List<Skill>
                 {
@@ -3351,7 +3351,7 @@ namespace GameDamageCalculator.Database
             {
                 Id = 52,
                 Name = "쥬피",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "공격형",
                 Skills = new List<Skill>
                 {
@@ -6534,14 +6534,14 @@ namespace GameDamageCalculator.Database
 
             #endregion
 
-            #region 영웅 - 마법형 151~
+            #region 희귀 - 마법형 151~
 
             // 유리
             new Character
             {
                 Id = 151,
                 Name = "유리",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "마법형",
                 AttackType = AttackType.Magic,
                 Skills = new List<Skill>
@@ -6688,7 +6688,7 @@ namespace GameDamageCalculator.Database
             {
                 Id = 152,
                 Name = "아리엘",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "마법형",
                 AttackType = AttackType.Magic,
                 Skills = new List<Skill>
@@ -6828,7 +6828,7 @@ namespace GameDamageCalculator.Database
             {
                 Id = 153,
                 Name = "노호",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "마법형",
                 AttackType = AttackType.Magic,
                 Skills = new List<Skill>
@@ -7949,14 +7949,14 @@ namespace GameDamageCalculator.Database
 
             #endregion
 
-            #region 영웅 - 지원형 - 마법 251~
+            #region 희귀 - 지원형 - 마법 251~
 
             // 유이
             new Character
             {
                 Id = 251,
                 Name = "유이",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "지원형",
                 AttackType = AttackType.Magic,
                 Skills = new List<Skill>
@@ -8071,14 +8071,14 @@ namespace GameDamageCalculator.Database
 
             #endregion
 
-            #region 영웅 - 지원형 - 물리 276~
+            #region 희귀 - 지원형 - 물리 276~
 
             // 카론
             new Character
             {
                 Id = 276,
                 Name = "카론",
-                Grade = "영웅",
+                Grade = "희귀",
                 Type = "지원형",
                 Skills = new List<Skill>
                 {
@@ -11149,13 +11149,13 @@ namespace GameDamageCalculator.Database
 
             #endregion
 
-            #region 영웅 - 만능형 - 물리 351~
+            #region 희귀 - 만능형 - 물리 351~
 
             
 
             #endregion
 
-            #region 영웅 - 만능형 - 마법 376~
+            #region 희귀 - 만능형 - 마법 376~
 
             // 빅토리아
             new Character
@@ -12050,11 +12050,11 @@ namespace GameDamageCalculator.Database
 
             #endregion
         
-            #region 영웅 - 방어형 -물리 451~
+            #region 희귀 - 방어형 -물리 451~
     
             #endregion
 
-            #region 영웅 - 방어형 - 마법 476~
+            #region 희귀 - 방어형 - 마법 476~
 
             #endregion
 
