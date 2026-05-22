@@ -8123,14 +8123,14 @@
             "target": 1,
             "atk": 1,
             "ratio": 100,
-            "effect": ""
+            "effect": "석화 해제 시 시전자 공격력 120% 피해"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
             "ratio": 130,
-            "effect": ""
+            "effect": "석화 해제 시 시전자 공격력 120% 피해"
           },
           "transcend": {
             "cooldown": 0,
@@ -8148,21 +8148,21 @@
           "base": {
             "cooldown": 0,
             "target": 1,
-            "atk": 1,
+            "atk": 2,
             "ratio": 60,
-            "effect": ""
+            "effect": "치명타 확률 50% 추가 적용"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
-            "atk": 1,
+            "atk": 2,
             "ratio": 75,
-            "effect": ""
+            "effect": "치명타 확률 50% 추가 적용"
           },
           "transcend": {
             "cooldown": 0,
             "target": 1,
-            "atk": 1,
+            "atk": 2,
             "ratio": 75
           }
         }
@@ -8173,21 +8173,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 3,
             "ratio": 53,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 3,
             "ratio": 62,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 3,
             "ratio": 62
@@ -8200,21 +8200,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 3,
             "ratio": 43,
-            "effect": ""
+            "effect": "모든 아군 감쇄[받피감11%,3턴], 자신 분신[5턴]+행동제어면역[3턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 3,
             "ratio": 43,
-            "effect": ""
+            "effect": "모든 아군 감쇄[받피감15%,3턴], 자신 분신[5턴]+행동제어면역[3턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 3,
             "ratio": 43
@@ -8227,21 +8227,21 @@
         "skillType": "Skill3",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 3,
             "ratio": 86,
-            "effect": ""
+            "effect": "치명타 확률 50% 추가 적용, 피해 대상 1명 줄 때마다 피해량 10% 증가"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 3,
             "ratio": 102,
-            "effect": ""
+            "effect": "치명타 확률 50% 추가 적용, 피해 대상 1명 줄 때마다 피해량 10% 증가"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 3,
             "ratio": 102
@@ -8254,21 +8254,21 @@
         "skillType": "Skill4",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 5,
             "atk": 3,
             "ratio": 68,
-            "effect": ""
+            "effect": "치명타 확률 50% 추가 적용, 피해 대상 1명 줄 때마다 피해량 5% 증가"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 5,
             "atk": 3,
             "ratio": 82,
-            "effect": ""
+            "effect": "치명타 확률 50% 추가 적용, 피해 대상 1명 줄 때마다 피해량 5% 증가"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 5,
             "atk": 3,
             "ratio": 82
@@ -8345,14 +8345,14 @@
             "target": 1,
             "atk": 1,
             "ratio": 100,
-            "effect": ""
+            "effect": "감전: 피격 시 시전자 공격력 40% 추가 피해"
           },
           "enhanced": {
             "cooldown": 0,
             "target": 1,
             "atk": 1,
             "ratio": 120,
-            "effect": ""
+            "effect": "감전: 피격 시 시전자 공격력 40% 추가 피해"
           },
           "transcend": {
             "cooldown": 0,
@@ -8368,24 +8368,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 90,
-            "effect": ""
+            "effect": "감전: 피격 시 시전자 공격력 40% 추가 피해"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 110,
-            "effect": ""
+            "effect": "감전: 피격 시 시전자 공격력 40% 추가 피해"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
-            "ratio": 110
+            "ratio": 110,
+            "effect": "2초월: 감전 확률 50%"
           }
         }
       },
@@ -8395,25 +8396,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 1,
             "ratio": 115,
-            "effect": "쿨증, 턴감"
+            "effect": "턴제 버프 2턴 감소[100%], 스킬 쿨타임 증가 16초[60%]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 1,
             "ratio": 135,
-            "effect": "쿨증, 턴감"
+            "effect": "턴제 버프 2턴 감소[100%], 스킬 쿨타임 증가 19초[60%]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 1,
             "ratio": 135,
-            "effect": "쿨증 확률증"
+            "effect": "6초월: 스킬 쿨타임 증가 확률 70%"
           }
         }
       }
@@ -8467,7 +8468,7 @@
         "base": {},
         "enhanced": {},
         "transcend": {
-          "dmgRdc": 22
+          "physDmgRdc": 22
         }
       }
     },
@@ -8505,24 +8506,24 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 1,
             "atk": 1,
             "ratio": 285,
-            "effect": ""
+            "effect": "마법 취약[받는 마법 피해 22% 증가, 5턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 1,
             "atk": 1,
-            "ratio": 110,
-            "effect": ""
+            "ratio": 340,
+            "effect": "마법 취약[받는 마법 피해 22% 증가, 5턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 60,
             "target": 1,
             "atk": 1,
-            "ratio": 110
+            "ratio": 340
           }
         }
       },
@@ -8532,32 +8533,32 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 0,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 0,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 80,
             "target": 5,
             "atk": 1,
             "ratio": 0,
-            "effect": "1턴증가"
+            "effect": "6초월: 마법 공격력 증가 지속 4턴"
           }
         }
       }
     ],
     "tags": [
       "마공증",
-      "마법취약",
+      "받마피증",
       "받피감"
     ]
   },
@@ -8650,21 +8651,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 78,
             "target": 1,
             "atk": 1,
             "ratio": 170,
-            "effect": ""
+            "effect": "대상 선정: 버프가 많은 적군 (모델 미지원, 기본 타게팅)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 78,
             "target": 1,
             "atk": 1,
             "ratio": 205,
-            "effect": ""
+            "effect": "대상 선정: 버프가 많은 적군 (모델 미지원, 기본 타게팅)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 78,
             "target": 1,
             "atk": 1,
             "ratio": 205
@@ -8677,25 +8678,25 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 0,
-            "effect": "링크"
+            "effect": "모든 아군 링크[2턴]+디버프 해제 1개 (링크/아군 디버프 해제는 SkillEffect 모델 미지원)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 0,
-            "effect": "링크"
+            "effect": "모든 아군 링크[2턴, 피해 감소율 10%]+디버프 해제 1개 (링크/아군 디버프 해제는 SkillEffect 모델 미지원)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 5,
             "atk": 1,
             "ratio": 0,
-            "effect": "cc면역"
+            "effect": "6초월: 행동 제어 면역[2턴]"
           }
         }
       }
@@ -8770,7 +8771,7 @@
             "target": 1,
             "atk": 1,
             "ratio": 60,
-            "effect": ""
+            "effect": "강화: 생명력 가장 낮은 아군 2명(자신 제외)에게 최대생명력 8% 보호막[2턴] (대상 선정 모델 미지원)"
           },
           "transcend": {
             "cooldown": 0,
@@ -8786,24 +8787,24 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 2,
-            "ratio": 15,
-            "effect": "상대 약확 22% 감소, 즉사 턴감"
+            "ratio": 13,
+            "effect": "각 공격마다 즉사 턴 감소 1턴[60%], 약점 공격 확률 감소[22%,3턴] (둘 다 모델 미지원)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 2,
-            "ratio": 15,
-            "effect": "상대 약확 30% 감소, 즉사 턴감"
+            "ratio": 13,
+            "effect": "각 공격마다 즉사 턴 감소 1턴[70%], 약점 공격 확률 감소[30%,3턴] (둘 다 모델 미지원)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 104,
             "target": 5,
             "atk": 2,
-            "ratio": 15
+            "ratio": 13
           }
         }
       },
@@ -8813,33 +8814,30 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 1,
-            "ratio": 35,
-            "effect": "링크"
+            "ratio": 30,
+            "effect": "모든 아군 보호막 최대생명력 22%[2턴]+디버프 해제 1개 (아군 디버프 해제는 모델 미지원)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 1,
-            "ratio": 35,
-            "effect": "링크"
+            "ratio": 30,
+            "effect": "모든 아군 보호막 최대생명력 25%[2턴]+디버프 해제 1개 (아군 디버프 해제는 모델 미지원)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 91,
             "target": 3,
             "atk": 1,
-            "ratio": 35,
-            "effect": "cc면역"
+            "ratio": 30
           }
         }
       }
     ],
     "tags": [
-      "받피감",
-      "즉사",
-      "효저깎"
+      "즉사"
     ]
   },
   {
@@ -8883,9 +8881,15 @@
       "name": "지옥의 기사",
       "maxStacks": 1,
       "buffTiers": {
-        "base": {},
-        "enhanced": {},
-        "transcend": {}
+        "base": {
+          "shieldHpRatio": 39
+        },
+        "enhanced": {
+          "shieldHpRatio": 45
+        },
+        "transcend": {
+          "shieldHpRatio": 45
+        }
       }
     },
     "skills": [
@@ -8922,21 +8926,21 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 3,
             "atk": 1,
             "ratio": 0,
-            "effect": "도발, 피면, 아군 지속 힐"
+            "effect": "자신 모든피해면역[2턴]+도발[2턴], 아군3명 지속회복[2턴] 시전자 최대생명력 15%/턴"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 3,
             "atk": 1,
             "ratio": 0,
-            "effect": "도발, 피면, 아군 지속 힐"
+            "effect": "자신 모든피해면역[2턴]+도발[2턴], 아군3명 지속회복[2턴] 시전자 최대생명력 20%/턴"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 96,
             "target": 3,
             "atk": 1,
             "ratio": 0
@@ -8949,21 +8953,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 80,
             "effect": ""
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 80,
             "effect": ""
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 70,
             "target": 3,
             "atk": 1,
             "ratio": 80
@@ -8972,6 +8976,7 @@
       }
     ],
     "tags": [
+      "도발",
       "즉사",
       "효저깎"
     ]
@@ -9056,25 +9061,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 110,
-            "effect": ""
+            "effect": "관통(피해 면역 무시)"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 130,
-            "effect": ""
+            "effect": "관통(피해 면역 무시)"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 84,
             "target": 3,
             "atk": 1,
             "ratio": 130,
-            "effect": "턴감"
+            "effect": "6초월: 적군 턴제 버프 감소 2턴[100%]"
           }
         }
       }
@@ -9126,15 +9131,15 @@
       "maxStacks": 1,
       "buffTiers": {
         "base": {
-          "dmgRdc": 24,
+          "dmgRdc": 16,
           "blk": 19
         },
         "enhanced": {
-          "dmgRdc": 24,
+          "dmgRdc": 20,
           "blk": 23
         },
         "transcend": {
-          "dmgRdc": 24,
+          "dmgRdc": 20,
           "blk": 23
         }
       }
@@ -9173,24 +9178,25 @@
         "skillType": "Skill1",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 1,
             "ratio": 315,
-            "effect": ""
+            "effect": "후열 우선 타게팅"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 1,
             "ratio": 380,
-            "effect": ""
+            "effect": "후열 우선 타게팅"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 108,
             "target": 1,
             "atk": 1,
-            "ratio": 380
+            "ratio": 380,
+            "effect": "6초월: 생명력 전환 11%"
           }
         }
       },
@@ -9200,21 +9206,21 @@
         "skillType": "Skill2",
         "tiers": {
           "base": {
-            "cooldown": 0,
+            "cooldown": 133,
             "target": 5,
             "atk": 1,
             "ratio": 0,
-            "effect": "파티 보호막"
+            "effect": "모든 아군 시전자 최대생명력 31% 보호막[2턴]"
           },
           "enhanced": {
-            "cooldown": 0,
+            "cooldown": 133,
             "target": 5,
             "atk": 1,
             "ratio": 0,
-            "effect": "파티 보호막"
+            "effect": "모든 아군 시전자 최대생명력 31% 보호막[3턴]"
           },
           "transcend": {
-            "cooldown": 0,
+            "cooldown": 133,
             "target": 5,
             "atk": 1,
             "ratio": 0
