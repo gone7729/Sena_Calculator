@@ -82,8 +82,13 @@ namespace GameDamageCalculator.Models.Effects
         // === 상태이상 면역 (Type = Immunity일 때) ===
         public StatusImmunity StatusImmunity { get; set; }
 
-        // === 트리거 회복 (ApplyMode = Triggered, 시전자 공격력 비례 회복%) ===
-        public double TriggeredHealAtkRatio { get; set; }
+        // === 트리거 회복 (ApplyMode = Triggered, 시전자 스탯 비례 회복%) ===
+        public double TriggeredHealAtkRatio { get; set; }   // 시전자 공격력 비례 회복%
+        public double TriggeredHealDefRatio { get; set; }   // 시전자 방어력 비례 회복%
+        public double TriggeredHealHpRatio { get; set; }    // 대상(자신) 최대 HP 비례 회복%
+
+        // === 흡혈 (상시, 자신의 공격이 준 피해량 비례 회복%) — Type = Lifesteal ===
+        public double LifestealRatio { get; set; }
 
         // === 불굴/부활 (Type = Revival일 때) ===
         public Revival Revival { get; set; }
@@ -138,7 +143,8 @@ namespace GameDamageCalculator.Models.Effects
         TriggeredFixedDamage,   // N회 공격마다 적군 N명에게 고정 데미지 (발리스타 등)
         DamageNullification,    // 피해 무효화 (피격 N회 / N턴 / 물·마 한정)
         Immunity,               // 상태이상 면역 (화상 면역 등)
-        TriggeredHeal,          // 트리거 시 시전자 공격력 비례 회복 (TriggeredHealAtkRatio)
+        TriggeredHeal,          // 트리거 시 시전자 스탯 비례 회복 (TriggeredHeal Atk/Def/HpRatio)
+        Lifesteal,              // 흡혈 (상시, 준 피해량 비례 회복 — LifestealRatio)
         Revival,                // 불굴/부활 (사망 시 부활 + 피격 N회 또는 N턴 사망 무효)
         DebuffCleanse,          // 디버프 해제 (대상 디버프 N개 제거, DispelDebuffCount)
         TriggeredSkillCast,     // 트리거 시 스킬 시전 (적군 N명 사망 → 별개 스킬 발동, TriggeredSkillCast)
