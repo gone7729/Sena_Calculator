@@ -105,6 +105,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DefenseStacks = 0
             };
 
+            // 아군 패시브의 "적 대상" 지속 디버프/상태이상을 적에 등록 (상시 디버프가 데미지 계산에 반영되도록)
+            RegisterAllyPassiveEnemyEffects(state);
+
             return state;
         }
 
@@ -311,6 +314,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplyDamage(state, charState, damage, normalSkill.Name, ActionType.NormalAttack);
             totalDuration += normalSkill.GetActionDuration();
 
+            // 평타의 효과(디버프·상태이상·버프)를 대상에 등록
+            RegisterCastEffects(state, charState, normalSkill);
+
             // 4. 경과 시간 업데이트
             state.ElapsedSeconds += totalDuration;
 
@@ -357,6 +363,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 스킬 실행
                 var damage = CalculateSkillDamage(config, state, charState, skill);
                 ApplyDamage(state, charState, damage, skill.Name, ActionType.SkillAttack);
+
+                // 스킬의 효과(디버프·상태이상·버프)를 대상에 등록
+                RegisterCastEffects(state, charState, skill);
 
                 // 스킬 쿨다운 세팅 (티어별)
                 double cooldown = skill.GetCooldown(charState.Source.IsSkillEnhanced, charState.Source.TranscendLevel);
@@ -1002,6 +1011,105 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ApplyDamage(state, charState, dmg, "추가공격", ActionType.SkillAttack);
             }
         }
+
+        #region 캐스트 타임 효과 등록 (디버프·상태이상·버프를 대상 EffectManager에 적용)
+
+        /// <summary>
+        /// 스킬/평타 시전 시 그 스킬의 효과(디버프·상태이상·버프)를 대상 EffectManager에 등록한다.
+        /// - 적 대상 디버프/상태이상 → 적 EffectManager (이후 CalculateSkillDamage·ProcessDoTDamage가 소비)
+        /// - 자버프/파티버프 → 아군 EffectManager (현재 스탯은 전투 시작 시 고정 계산되어 공격 스탯엔
+        ///   소급되지 않지만, 받피감/버프 해제·후속 메카닉이 참조)
+        /// 시뮬은 결정론적(치명·약점 항상 발동)이라 ApplyChance와 무관하게 적용한다.
+        /// </summary>
+        private void RegisterCastEffects(BattleState state, CharacterBattleState caster, Skill skill)
+        {
+            if (skill == null) return;
+
+            var effects = EffectConverter.FromSkill(
+                skill, caster.Source.Character.Name,
+                caster.Source.IsSkillEnhanced, caster.Source.TranscendLevel);
+
+            foreach (var effect in effects)
+            {
+                // 스킬 보너스(해당 스킬 데미지 계산 전용)는 적용 대상이 아님
+                if (effect.Category == EffectCategory.SkillBonus) continue;
+                // 즉시 소멸용(계산 전용) 비상태 효과 스킵
+                if (!effect.IsStatusEffect && !effect.IsPermanent && effect.RemainingTurns <= 0) continue;
+
+                RouteEffect(state, caster, effect);
+            }
+        }
+
+        /// <summary>
+        /// 전투 시작 시 각 아군 패시브의 "적 대상" 지속 디버프/상태이상을 적 EffectManager에 등록.
+        /// (아군 대상 패시브 버프는 StatCalculator에서 이미 스탯에 반영되므로 제외.)
+        /// </summary>
+        private void RegisterAllyPassiveEnemyEffects(BattleState state)
+        {
+            foreach (var ally in state.AllyStates)
+            {
+                var passive = ally.Source.Character.Passive;
+                if (passive == null) continue;
+
+                var effects = EffectConverter.FromPassive(
+                    passive, ally.Source.Character.Name,
+                    ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel,
+                    ally.Source.IsPassiveConditionMet);
+
+                foreach (var effect in effects)
+                {
+                    if (effect.Target != EffectTarget.Enemy && effect.Target != EffectTarget.AllEnemies)
+                        continue;
+                    RegisterToManager(state.EnemyState.Effects, effect, ownerForOrder: null);
+                }
+            }
+        }
+
+        /// <summary>변환된 BattleEffect를 Target에 따라 알맞은 EffectManager로 분배한다.</summary>
+        private void RouteEffect(BattleState state, CharacterBattleState caster, BattleEffect effect)
+        {
+            switch (effect.Target)
+            {
+                case EffectTarget.Enemy:
+                case EffectTarget.AllEnemies:
+                    RegisterToManager(state.EnemyState.Effects, effect, ownerForOrder: null);
+                    break;
+
+                case EffectTarget.Self:
+                case EffectTarget.SingleAlly: // 근사: 단일 아군 선정 런타임은 후속 — 시전자 본인
+                    RegisterToManager(caster.Effects, effect, ownerForOrder: caster);
+                    break;
+
+                case EffectTarget.Party:
+                case EffectTarget.SelfAndHighestAtkAlly: // 근사: 파티 전체 — 타겟 셀렉터 런타임은 후속
+                    foreach (var ally in state.AllyStates)
+                    {
+                        if (ally.IsDead) continue;
+                        RegisterToManager(ally.Effects, effect.Clone(), ownerForOrder: ally);
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 효과를 매니저에 등록한다. 재시전 시 동일 효과(Id)는 갱신(제거 후 재등록)하여 무한 중첩을 막는다.
+        /// 턴제 버프엔 버프 해제(FIFO)용 ApplyOrderId를 부여한다(상시·디버프·상태이상·해제불가 제외).
+        /// </summary>
+        private void RegisterToManager(EffectManager manager, BattleEffect effect, CharacterBattleState ownerForOrder)
+        {
+            if (!string.IsNullOrEmpty(effect.Id))
+            {
+                effect.SourceName = effect.Id;     // RemoveBySource(Id)로 갱신 가능하게
+                manager.RemoveBySource(effect.Id);
+            }
+
+            if (ownerForOrder != null && effect.IsStatBuff && !effect.IsPermanent)
+                effect.ApplyOrderId = ++ownerForOrder.ApplyOrderCounter;
+
+            manager.AddEffect(effect);
+        }
+
+        #endregion
 
         /// <summary>
         /// 스택 효과를 EffectManager에 적용
