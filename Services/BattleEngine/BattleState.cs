@@ -19,6 +19,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 적 상태
         public EnemyBattleState EnemyState { get; set; } = new();
 
+        // 평타 로테이션: 아군 속공 내림차순 PartyIndex 순서 + 현재 커서 (살아있는 영웅만 순환)
+        public List<int> AllySpeedOrder { get; set; } = new();
+        public int AllyRotationCursor { get; set; }
+
         // 총 누적 데미지
         public double TotalDamageDealt { get; set; }
 
