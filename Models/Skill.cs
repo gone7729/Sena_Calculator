@@ -272,6 +272,15 @@ namespace GameDamageCalculator.Models
         public double LostHpBonusDmgMax { get; set; }
         public double LostHpAssumedRemaining { get; set; } // 특정조건 시 대상 잔여HP% (예: 30 = 30%남음 → 70%손실)
 
+        // ===== 현재 HP 비례 피증 (잃은HP의 대칭 — HP 높을수록 증가) =====
+        public double CurrentHpBonusDmgMax { get; set; }   // 대상/자신 현재 생명력 100%일 때 최대 피증%
+
+        // ===== 대상 수 감소 시 피증 (피해 대상 1명 줄어들 때마다 +N%) =====
+        public double DmgBonusPerMissingTarget { get; set; }
+
+        // ===== 상태이상 해제 시 폭발 피해 (빙결/석화 해제 시 등) =====
+        public CleanseExplosion CleanseExplosion { get; set; }
+
         // ===== 상태이상 =====
         // 새 Effects가 있으면 자동 변환, 없으면 레거시 필드 사용
         private List<SkillStatusEffect> _statusEffects = new List<SkillStatusEffect>();
@@ -431,5 +440,18 @@ namespace GameDamageCalculator.Models
         public double Arm_Pen { get; set; }             // 관통 여부
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP%
         public double AtkCap { get; set; }              // 공격력 제한%
+    }
+
+    /// <summary>
+    /// 상태이상 해제 시 폭발 피해 (예: 빙결/석화 해제 시 대상 최대 HP 비례 방어무시 피해).
+    /// 런타임 동작(해제 감지·피해 적용)은 추후.
+    /// </summary>
+    public class CleanseExplosion
+    {
+        public StatusEffectType TargetStatus { get; set; }  // 해제 시 폭발하는 상태이상 (Freeze, Petrify 등)
+        public double AtkRatio { get; set; }                // 공격력 비례 피해%
+        public double TargetMaxHpRatio { get; set; }        // 대상 최대 HP 비례 피해%
+        public double AtkCap { get; set; }                  // HP비례 피해의 공격력 상한%
+        public double ArmorPen { get; set; }                // 방어 무시%
     }
 }

@@ -31,6 +31,7 @@ namespace GameDamageCalculator.Models.Effects
         public int MaxTriggersPerBattle { get; set; }           // 트리거 효과 전투당 최대 발동 횟수 (0=무제한, OncePerBattle보다 우선)
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
+        public bool IsPerStack { get; set; }                    // true면 Buff/Debuff가 "스택당" 값 (런타임에서 현재 스택수만큼 배수 적용). 사냥술·레벨업·신성 등
         public int Duration { get; set; }                       // 부여 효과 지속 턴 (트리거 디버프/버프, 0이면 무기한)
 
         // === 버프/디버프 스탯 (Type = Buff 또는 Debuff일 때) ===
