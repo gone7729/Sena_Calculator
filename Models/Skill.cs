@@ -321,7 +321,7 @@ namespace GameDamageCalculator.Models
 
         // ===== 대상 선정 =====
         // 기본(앞열 우선) 대신 특정 기준으로 대상 선정 (예: 방어력 최고 적군). null이면 기본.
-        public FocusTargetSelector? TargetSelector { get; set; }
+        public TargetSelector? TargetSelector { get; set; }
 
         // ===== 기타 =====
         public string Effect { get; set; }

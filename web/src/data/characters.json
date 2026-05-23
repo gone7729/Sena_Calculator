@@ -10484,14 +10484,14 @@
             "target": 1,
             "atk": 1,
             "ratio": 170,
-            "effect": "대상 선정: 버프가 많은 적군 (모델 미지원, 기본 타게팅)"
+            "effect": "대상 선정: 버프가 많은 적군"
           },
           "enhanced": {
             "cooldown": 78,
             "target": 1,
             "atk": 1,
             "ratio": 205,
-            "effect": "대상 선정: 버프가 많은 적군 (모델 미지원, 기본 타게팅)"
+            "effect": "대상 선정: 버프가 많은 적군"
           },
           "transcend": {
             "cooldown": 78,
