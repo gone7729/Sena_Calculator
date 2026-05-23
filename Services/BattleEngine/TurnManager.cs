@@ -42,6 +42,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         public bool IsAllyFirst => _allyFirst;
 
+        /// <summary>아군 속공 내림차순 PartyIndex 순서 (평타 로테이션 기준)</summary>
+        public IReadOnlyList<int> AllySpeedOrder => _allySpdOrder;
+
         /// <summary>
         /// 지정된 최대 턴까지의 전체 행동 순서를 생성
         /// </summary>
@@ -75,7 +78,6 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 이후 턴 진행: 후공 → 선공 → 후공 → 선공 반복
             // 각 라운드: 기본공격 2회 (속공 순서대로 순환) + 스킬 1회
             bool isFirstSideTurn = false; // 다음은 후공 측 차례
-            int allyNormalIdx = 0;        // 아군 기본공격: 속공순 캐릭터 순환 인덱스
 
             while (currentTurn < maxTurns)
             {
@@ -88,14 +90,13 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     if (isAllyTurn)
                     {
-                        int charIdx = _allySpdOrder[allyNormalIdx % _allySpdOrder.Count];
-                        allyNormalIdx++;
+                        // 평타 캐릭터는 런타임에 "살아있는 영웅 중 다음 속공 순번"으로 결정 (사망 영웅 제외)
                         actions.Add(new BattleAction
                         {
                             Turn = currentTurn,
                             IsAlly = true,
                             IsSkill = false,
-                            CharacterIndex = charIdx
+                            CharacterIndex = -1
                         });
                     }
                     else

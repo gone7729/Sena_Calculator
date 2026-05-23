@@ -27,6 +27,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 2. 턴 매니저 생성
             var turnManager = new TurnManager(config, state.AllyStates);
+            state.AllySpeedOrder = turnManager.AllySpeedOrder.ToList(); // 평타 로테이션 기준
 
             // 3. 행동 큐 생성
             var actionQueue = turnManager.GenerateActionQueue(config.MaxTurns);
@@ -47,7 +48,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                     }
                     else
                     {
-                        ExecuteAllyNormalAttack(config, state, action.CharacterIndex);
+                        // 평타 캐릭터를 살아있는 영웅 중 다음 속공 순번으로 결정 (사망 영웅은 제외되고 다음 영웅이 그 턴을 가져감)
+                        int idx = ResolveNextAliveAlly(state);
+                        if (idx >= 0)
+                            ExecuteAllyNormalAttack(config, state, idx);
                     }
                 }
                 else
@@ -256,6 +260,26 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 아군 기본공격 실행
         /// 흐름: DoT 처리(+1초) → 스택 트리거 → 기본공격(+2초) → 턴제 효과 턴-1 → 쿨다운 감소
         /// </summary>
+        /// <summary>
+        /// 평타 로테이션에서 "살아있는 다음 속공 순번" 아군을 반환하고 커서를 진행한다.
+        /// 사망 영웅은 건너뛰며 그 다음 영웅이 해당 평타 턴을 가져간다. 전원 사망이면 -1.
+        /// (부활하면 다시 로테이션에 포함됨)
+        /// </summary>
+        private int ResolveNextAliveAlly(BattleState state)
+        {
+            var order = state.AllySpeedOrder;
+            if (order == null || order.Count == 0) return -1;
+
+            for (int n = 0; n < order.Count; n++)
+            {
+                int idx = order[state.AllyRotationCursor % order.Count];
+                state.AllyRotationCursor = (state.AllyRotationCursor + 1) % order.Count;
+                if (idx >= 0 && idx < state.AllyStates.Count && !state.AllyStates[idx].IsDead)
+                    return idx;
+            }
+            return -1; // 전원 사망
+        }
+
         private void ExecuteAllyNormalAttack(BattleConfig config, BattleState state, int charIndex)
         {
             if (charIndex < 0 || charIndex >= state.AllyStates.Count) return;
