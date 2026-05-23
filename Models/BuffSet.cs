@@ -48,6 +48,7 @@ namespace GameDamageCalculator.Models
         public double Eff_Hit { get; set; }         // 효과 적중%
         public double Shield_HpRatio { get; set; }  // 보호막% (최대 HP 비례)
         public double Shield_AtkRatio { get; set; } // 보호막% (시전자 공격력 비례)
+        public double Shield_DefRatio { get; set; } // 보호막% (시전자 방어력 비례)
         public double Blessing { get; set; }        // 축복 - 1회 피해 최대 HP% 제한
         public double Coop_Chance { get; set; }     // 협공 발동 확률 가산%
         public double Cooldown_Reduction { get; set; } // 아군 스킬 쿨타임 감소(초)
@@ -87,6 +88,7 @@ namespace GameDamageCalculator.Models
             Eff_Hit += other.Eff_Hit;
             Shield_HpRatio += other.Shield_HpRatio;
             Shield_AtkRatio += other.Shield_AtkRatio;
+            Shield_DefRatio += other.Shield_DefRatio;
             Blessing += other.Blessing;
             Coop_Chance += other.Coop_Chance;
             Cooldown_Reduction += other.Cooldown_Reduction;
@@ -127,6 +129,7 @@ namespace GameDamageCalculator.Models
             Eff_Hit = Math.Max(Eff_Hit, other.Eff_Hit);
             Shield_HpRatio = Math.Max(Shield_HpRatio, other.Shield_HpRatio);
             Shield_AtkRatio = Math.Max(Shield_AtkRatio, other.Shield_AtkRatio);
+            Shield_DefRatio = Math.Max(Shield_DefRatio, other.Shield_DefRatio);
             Blessing = Math.Max(Blessing, other.Blessing);
             Coop_Chance = Math.Max(Coop_Chance, other.Coop_Chance);
             Cooldown_Reduction = Math.Max(Cooldown_Reduction, other.Cooldown_Reduction);
@@ -171,6 +174,7 @@ namespace GameDamageCalculator.Models
             if (other.Eff_Hit != 0) Eff_Hit = other.Eff_Hit;
             if (other.Shield_HpRatio != 0) Shield_HpRatio = other.Shield_HpRatio;
             if (other.Shield_AtkRatio != 0) Shield_AtkRatio = other.Shield_AtkRatio;
+            if (other.Shield_DefRatio != 0) Shield_DefRatio = other.Shield_DefRatio;
             if (other.Blessing != 0) Blessing = other.Blessing;
             if (other.Coop_Chance != 0) Coop_Chance = other.Coop_Chance;
             if (other.Cooldown_Reduction != 0) Cooldown_Reduction = other.Cooldown_Reduction;
@@ -212,6 +216,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = Eff_Hit,
                 Shield_HpRatio = Shield_HpRatio,
                 Shield_AtkRatio = Shield_AtkRatio,
+                Shield_DefRatio = Shield_DefRatio,
                 Blessing = Blessing,
                 Coop_Chance = Coop_Chance,
                 Cooldown_Reduction = Cooldown_Reduction,
@@ -252,6 +257,7 @@ namespace GameDamageCalculator.Models
             Eff_Hit = 0;
             Shield_HpRatio = 0;
             Shield_AtkRatio = 0;
+            Shield_DefRatio = 0;
             Blessing = 0;
             Coop_Chance = 0;
             Cooldown_Reduction = 0;
@@ -296,6 +302,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = Eff_Hit,
                 Shield_HpRatio = Shield_HpRatio,
                 Shield_AtkRatio = Shield_AtkRatio,
+                Shield_DefRatio = Shield_DefRatio,
                 Blessing = Blessing,
                 Coop_Chance = Coop_Chance,
                 Cooldown_Reduction = Cooldown_Reduction,
@@ -340,6 +347,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = timedBuff.Eff_Hit,
                 Shield_HpRatio = timedBuff.Shield_HpRatio,
                 Shield_AtkRatio = timedBuff.Shield_AtkRatio,
+                Shield_DefRatio = timedBuff.Shield_DefRatio,
                 Blessing = timedBuff.Blessing,
                 Coop_Chance = timedBuff.Coop_Chance,
                 Cooldown_Reduction = timedBuff.Cooldown_Reduction,
@@ -385,6 +393,7 @@ namespace GameDamageCalculator.Models
                 Eff_Hit = Eff_Hit,
                 Shield_HpRatio = Shield_HpRatio,
                 Shield_AtkRatio = Shield_AtkRatio,
+                Shield_DefRatio = Shield_DefRatio,
                 Blessing = Blessing,
                 Coop_Chance = Coop_Chance,
                 Cooldown_Reduction = Cooldown_Reduction,

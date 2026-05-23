@@ -21,8 +21,14 @@ namespace GameDamageCalculator.Models
         public double Cri_Dmg_Reduction { get; set; }   // 치명타 피해 감소%
 
         // ===== 스탯 감소 =====
-        public double Atk_Reduction { get; set; }       // 공격력 감소%
+        public double Atk_Reduction { get; set; }       // 물리 공격력 감소%
+        public double MagicAtk_Reduction { get; set; }  // 마법 공격력 감소%
         public double Spd_Reduction { get; set; }       // 속도 감소%
+        public double Cri_Reduction { get; set; }       // 치명타 확률 감소%
+        public double Wek_Reduction { get; set; }       // 약점 공격 확률 감소%
+
+        // ===== 기타 =====
+        public double Cooldown_Increase { get; set; }   // 적 스킬 쿨타임 증가(초)
 
         // ===== 회복 관련 =====
         public double Heal_Reduction { get; set; }      // 회복량 감소%
@@ -46,7 +52,11 @@ namespace GameDamageCalculator.Models
             Vulnerability += other.Vulnerability;
             Boss_Vulnerability += other.Boss_Vulnerability;
             Atk_Reduction += other.Atk_Reduction;
+            MagicAtk_Reduction += other.MagicAtk_Reduction;
             Spd_Reduction += other.Spd_Reduction;
+            Cri_Reduction += other.Cri_Reduction;
+            Wek_Reduction += other.Wek_Reduction;
+            Cooldown_Increase += other.Cooldown_Increase;
             Dmg_Reduction += other.Dmg_Reduction;
             Cri_Dmg_Reduction += other.Cri_Dmg_Reduction;
             Heal_Reduction += other.Heal_Reduction;
@@ -70,7 +80,11 @@ namespace GameDamageCalculator.Models
             Vulnerability = Math.Max(Vulnerability, other.Vulnerability);
             Boss_Vulnerability = Math.Max(Boss_Vulnerability, other.Boss_Vulnerability);
             Atk_Reduction = Math.Max(Atk_Reduction, other.Atk_Reduction);
+            MagicAtk_Reduction = Math.Max(MagicAtk_Reduction, other.MagicAtk_Reduction);
             Spd_Reduction = Math.Max(Spd_Reduction, other.Spd_Reduction);
+            Cri_Reduction = Math.Max(Cri_Reduction, other.Cri_Reduction);
+            Wek_Reduction = Math.Max(Wek_Reduction, other.Wek_Reduction);
+            Cooldown_Increase = Math.Max(Cooldown_Increase, other.Cooldown_Increase);
             Dmg_Reduction = Math.Max(Dmg_Reduction, other.Dmg_Reduction);
             Cri_Dmg_Reduction = Math.Max(Cri_Dmg_Reduction, other.Cri_Dmg_Reduction);
             Heal_Reduction = Math.Max(Heal_Reduction, other.Heal_Reduction);
@@ -94,7 +108,11 @@ namespace GameDamageCalculator.Models
                 Vulnerability = Vulnerability,
                 Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,
+                MagicAtk_Reduction = MagicAtk_Reduction,
                 Spd_Reduction = Spd_Reduction,
+                Cri_Reduction = Cri_Reduction,
+                Wek_Reduction = Wek_Reduction,
+                Cooldown_Increase = Cooldown_Increase,
                 Dmg_Reduction = Dmg_Reduction,
                 Cri_Dmg_Reduction = Cri_Dmg_Reduction,
                 Heal_Reduction = Heal_Reduction,
@@ -117,7 +135,11 @@ namespace GameDamageCalculator.Models
             Vulnerability = 0;
             Boss_Vulnerability = 0;
             Atk_Reduction = 0;
+            MagicAtk_Reduction = 0;
             Spd_Reduction = 0;
+            Cri_Reduction = 0;
+            Wek_Reduction = 0;
+            Cooldown_Increase = 0;
             Dmg_Reduction = 0;
             Cri_Dmg_Reduction = 0;
             Heal_Reduction = 0;
@@ -153,7 +175,11 @@ namespace GameDamageCalculator.Models
                 Vulnerability = Vulnerability,
                 Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,
+                MagicAtk_Reduction = MagicAtk_Reduction,
                 Spd_Reduction = Spd_Reduction,
+                Cri_Reduction = Cri_Reduction,
+                Wek_Reduction = Wek_Reduction,
+                Cooldown_Increase = Cooldown_Increase,
                 Dmg_Reduction = Dmg_Reduction,
                 Cri_Dmg_Reduction = Cri_Dmg_Reduction,
                 Heal_Reduction = Heal_Reduction,
@@ -181,7 +207,11 @@ namespace GameDamageCalculator.Models
                 Vulnerability = Vulnerability,
                 Boss_Vulnerability = Boss_Vulnerability,
                 Atk_Reduction = Atk_Reduction,
+                MagicAtk_Reduction = MagicAtk_Reduction,
                 Spd_Reduction = Spd_Reduction,
+                Cri_Reduction = Cri_Reduction,
+                Wek_Reduction = Wek_Reduction,
+                Cooldown_Increase = Cooldown_Increase,
                 Dmg_Reduction = Dmg_Reduction,
                 Cri_Dmg_Reduction = Cri_Dmg_Reduction,
                 Heal_Reduction = Heal_Reduction,

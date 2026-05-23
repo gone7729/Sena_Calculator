@@ -99,7 +99,11 @@ var heroes = CharacterDb.Characters.Select(c =>
         if (d.Dmg_Taken_Increase > 0) tags.Add("받피증");
         if (d.Phys_Dmg_Taken_Increase > 0) tags.Add("받물피증");
         if (d.Mag_Dmg_Taken_Increase > 0) tags.Add("받마피증");
-        if (d.Atk_Reduction > 0) tags.Add(isMagic ? "마공감" : "물공감");
+        if (d.Atk_Reduction > 0) tags.Add("물공감");
+        if (d.MagicAtk_Reduction > 0) tags.Add("마공감");
+        if (d.Cri_Reduction > 0) tags.Add("치확감소");
+        if (d.Wek_Reduction > 0) tags.Add("약공감소");
+        if (d.Cooldown_Increase > 0) tags.Add("쿨증");
         if (d.Dmg_Reduction > 0) tags.Add("피감");
         if (d.Blk_Red > 0) tags.Add("막기확률감소");
         if (d.Cri_Dmg_Reduction > 0) tags.Add("치피감");

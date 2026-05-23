@@ -454,6 +454,7 @@ namespace GameDamageCalculator.Models
         Spd,        // 속공
         Cri,        // 치명타 확률
         Cri_Dmg,    // 치명타 피해
+        Wek,        // 약점 공격 확률
         Eff_Hit,    // 효과 적중
         Eff_Res,    // 효과 저항
         Blk,        // 막기
