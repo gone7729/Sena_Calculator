@@ -7166,6 +7166,10 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Cooldown = 114,
                                 HealHpRatio = 21,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
+                                },
                                 Effect = "모든 아군 회복, 지속 회복[2턴] (매턴 시전자 최대 생명력 15% 회복)"
                                 } },
                             { 1, new SkillLevelData {
@@ -7173,6 +7177,10 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Cooldown = 114,
                                 HealHpRatio = 24,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
+                                },
                                 Effect = "모든 아군 회복, 지속 회복[2턴] (매턴 시전자 최대 생명력 15% 회복)"
                                 } }
                         }
@@ -7505,6 +7513,7 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, MaxTriggersPerBattle = 2, TriggeredHealDefRatio = 165 },
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 4, TriggerOn = TriggerCondition.OnHit, FixedDamage = 1100, TargetCount = 5, HitCount = 1 } }
                             },
                             Effect = "[자신] 생명력 50% 이하 시 방어력 165% 회복 (전투당 2회). 적 4회 피격당 시 적군 전체 1100 고정피해"
@@ -7512,6 +7521,7 @@ namespace GameDamageCalculator.Database
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, MaxTriggersPerBattle = 2, TriggeredHealDefRatio = 190 },
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 4, TriggerOn = TriggerCondition.OnHit, FixedDamage = 1100, TargetCount = 5, HitCount = 1 } }
                             },
                             Effect = "[자신] 생명력 50% 이하 시 방어력 190% 회복 (전투당 2회). 적 4회 피격당 시 적군 전체 1100 고정피해"
@@ -7727,7 +7737,11 @@ namespace GameDamageCalculator.Database
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             { 2, new SkillTranscend {
-                                HealHpRatio = 15
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.SingleAlly, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 1 }
+                                },
+                                Effect = "2초월: 현재 생명력 가장 낮은 아군(자신 제외) 지속 회복[1턴] (매턴 시전자 최대 생명력 15%)"
                             }}
                         }
                     },
@@ -7742,10 +7756,10 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 104,
-                                HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 31 }, Duration = 3 }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 31 }, Duration = 3 },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
                                 },
                                 Effect = "[모든 아군] 방어력 증가[3턴] + 지속 회복(최대 생명력 15%)[2턴]"
                                 } },
@@ -7753,10 +7767,10 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 104,
-                                HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 39 }, Duration = 3 }
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Def_Rate = 39 }, Duration = 3 },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
                                 },
                                 Effect = "[모든 아군] 방어력 증가[3턴] + 지속 회복(최대 생명력 15%)[2턴]"
                                 } }
@@ -7803,7 +7817,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Def_Rate = 31 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, CustomHpRatio = 9 }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, TriggeredHealHpRatio = 9 }
                             },
                             Effect = "[모든 아군] 전투 시작 시 방어력 31% 증가[1턴]. [자신] 피격 시 25% 확률 최대 생명력 9% 회복"
                         }},
@@ -7811,7 +7825,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, IsConditional = true, Buff = new BuffSet { Def_Rate = 31 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, CustomHpRatio = 10 }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, TriggeredHealHpRatio = 10 }
                             },
                             Effect = "[모든 아군] 전투 시작 시 방어력 31% 증가[2턴]. [자신] 피격 시 25% 확률 최대 생명력 10% 회복"
                         }}
@@ -8012,14 +8026,20 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 124,
-                                HealHpRatio = 15,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
+                                },
                                 Effect = "[모든 아군] 지속 회복(최대 생명력 15%)[2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 124,
-                                HealHpRatio = 15,
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 3 }
+                                },
                                 Effect = "[모든 아군] 지속 회복(최대 생명력 15%)[3턴]"
                                 } }
                         },
@@ -8071,7 +8091,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, CustomHpRatio = 22 }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, TriggeredHealHpRatio = 22 }
                             },
                             Effect = "[모든 아군] 화상 면역[2턴] + 자신 기본 공격 1회 발동 시 화상 면역[2턴]. [자신] 스킬 1회 발동 시 최대 생명력 22% 회복"
                         }}
@@ -9811,6 +9831,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 11 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, OncePerBattle = true, TriggeredHealDefRatio = 165 },
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage,
                                     TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 3, TriggerOn = TriggerCondition.AllAttack, FixedDamage = 1285, TargetCount = 3, HitCount = 1 } }
                             }
@@ -9820,6 +9841,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Dmg_Reduction = 13 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, OncePerBattle = true, TriggeredHealDefRatio = 165 },
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.TriggeredFixedDamage,
                                     TriggeredFixedDamage = new TriggeredFixedDamage { TriggerCount = 3, TriggerOn = TriggerCondition.AllAttack, FixedDamage = 1930, TargetCount = 3, HitCount = 1 } }
                             }
@@ -10259,13 +10281,21 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 96,
-                                Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(매턴 시전자 최대HP 15%, 2턴), 해제가능한 디버프가 있어야 사용가능"
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
+                                },
+                                Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(매턴 시전자 최대HP 15%, 2턴, 해제 개수만큼 중첩), 해제가능한 디버프가 있어야 사용가능"
                                 }},
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 96,
-                                Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(매턴 시전자 최대HP 15%, 2턴), 해제가능한 디버프가 있어야 사용가능, 모든피해면역(1턴)"
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
+                                },
+                                Effect = "아군 디버프 해제 2개, 해제한 디버프 1개당 지속 회복(매턴 시전자 최대HP 15%, 2턴, 해제 개수만큼 중첩), 해제가능한 디버프가 있어야 사용가능, 모든피해면역(1턴)"
                                 }}
                         }
                     }
@@ -11596,11 +11626,11 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 3,
                                 AtkCount = 1,
                                 Cooldown = 96,
-                                HealHpRatio = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Taunt, Duration = 2 },
-                                    new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.DamageNullification, Duration = 2, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
+                                    new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.DamageNullification, Duration = 2, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 2 }
                                 },
                                 Effect = "자신 모든피해면역[2턴]+도발[2턴], 아군3명 지속회복[2턴] 시전자 최대생명력 15%/턴"
                                 }},
@@ -11608,11 +11638,11 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 3,
                                 AtkCount = 1,
                                 Cooldown = 96,
-                                HealHpRatio = 20,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Taunt, Duration = 2 },
-                                    new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.DamageNullification, Duration = 2, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
+                                    new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.DamageNullification, Duration = 2, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } },
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 20, Duration = 2 }
                                 },
                                 Effect = "자신 모든피해면역[2턴]+도발[2턴], 아군3명 지속회복[2턴] 시전자 최대생명력 20%/턴"
                                 }}
@@ -11768,14 +11798,16 @@ namespace GameDamageCalculator.Database
                             Effect = "피격 시 25% 확률로 시전자 방어력 40% 회복",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 13 } }
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 13 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, TriggeredHealDefRatio = 40 }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effect = "피격 시 25% 확률로 시전자 방어력 45% 회복",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 13 } }
+                                new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Atk_Reduction = 13 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, Chance = 25, TriggeredHealDefRatio = 45 }
                             }
                         }}
                     },
@@ -14689,9 +14721,9 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Poison }, Duration = 2 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, TriggeredHealAtkRatio = 0 }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, TriggeredHealDefRatio = 92 }
                             },
-                            Effect = "강화: [모든 아군] 중독 면역[2턴]. [자신] 스킬 1회 발동 시 시전자 방어력 92% 생명력 회복 (방어력 비례 회복 트리거, 모델에 방어력 비례 트리거 회복 필드 없음)"
+                            Effect = "강화: [모든 아군] 중독 면역[2턴]. [자신] 스킬 1회 발동 시 시전자 방어력 92% 생명력 회복"
                         }}
                     }
                 },
@@ -15200,7 +15232,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Shock }, Duration = 2 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, CustomHpRatio = 22 }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 1, TriggeredHealHpRatio = 22 }
                             },
                             Effect = "강화: [모든 아군] 감전 면역[2턴]. [자신] 스킬 1회 발동 시 최대 생명력 22% 회복"
                         }}
