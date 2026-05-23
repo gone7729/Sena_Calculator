@@ -605,13 +605,19 @@ namespace GameDamageCalculator.Services
 
         private void CalcStatusEffectDamage(DamageInput input, SkillLevelData levelData, double atkOverDef, DamageResult result)
         {
-            if (levelData.StatusEffects == null || levelData.StatusEffects.Count == 0) return;
-
             var skillTranscend = input.Skill?.GetTranscendBonus(input.TranscendLevel);
 
-            foreach (var effect in levelData.StatusEffects)
+            // base + 초월 상태이상을 타입별 병합 (초월이 같은 타입은 override, 없는 타입은 추가).
+            // 이렇게 해야 ① 동일 상태이상 이중 적용 방지 ② 초월 전용 상태이상(생명력전환·중독 등) 누락 방지.
+            var merged = new Dictionary<StatusEffectType, SkillStatusEffect>();
+            if (levelData.StatusEffects != null)
+                foreach (var e in levelData.StatusEffects) merged[e.Type] = e;
+            if (skillTranscend?.StatusEffects != null)
+                foreach (var e in skillTranscend.StatusEffects) merged[e.Type] = e;
+            if (merged.Count == 0) return;
+
+            foreach (var effectToUse in merged.Values)
             {
-                var effectToUse = skillTranscend?.StatusEffects?.FirstOrDefault(e => e.Type == effect.Type) ?? effect;
                 var baseEffect = StatusEffectDb.Get(effectToUse.Type);
                 if (baseEffect == null) continue;
 
