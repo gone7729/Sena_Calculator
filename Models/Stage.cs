@@ -20,6 +20,21 @@ namespace GameDamageCalculator.Models
     {
         public int WaveNumber { get; set; }
         public List<StageEnemy> Enemies { get; set; } = new();
+
+        /// <summary>
+        /// 적군 스킬 사용 우선순위 (모든 스킬이 쿨다운 충족 시 이 순서로 사용).
+        /// 리스트 앞쪽이 우선. 미포함 적/스킬은 기본 규칙으로 처리.
+        /// </summary>
+        public List<SiegeSkillOrder> SkillPriority { get; set; } = new();
+    }
+
+    /// <summary>
+    /// 공성전 적 스킬 우선순위 항목 (적 Id + 스킬 종류).
+    /// </summary>
+    public class SiegeSkillOrder
+    {
+        public int EnemyId { get; set; }
+        public SkillType SkillType { get; set; }
     }
 
     /// <summary>
