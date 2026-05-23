@@ -10,6 +10,16 @@ namespace GameDamageCalculator.Database
     public static class EnemyDb
     {
         /// <summary>
+        /// 정적 초기화: 공성전 보스의 스킬을 SiegeBossSkillDb에서 연결한다.
+        /// (스탯·감쇄는 EnemyDB, 스킬은 SiegeBossSkillDb — 캐릭터의 BasicStatDB/CharacterDB 분리와 동일)
+        /// </summary>
+        static EnemyDb()
+        {
+            foreach (var boss in SiegeBosses)
+                boss.Skills = SiegeBossSkillDb.Get(boss.Name);
+        }
+
+        /// <summary>
         /// 공성전 보스 목록
         /// </summary>
         public static readonly List<Enemy> SiegeBosses = new List<Enemy>
@@ -111,9 +121,9 @@ namespace GameDamageCalculator.Database
                     Cri_Dmg = 150,
                     Eff_Hit = 100
                 },
-                // 피해 감쇄
-                PhysicalReduction = 90, //물리피해감소
-                MagicReduction = 0, //마법피해감소
+                // 피해 감쇄 (위키 "죽음의 경계": 받는 마법 피해 90% 감소)
+                PhysicalReduction = 0, //물리피해감소
+                MagicReduction = 90, //마법피해감소
                 SingleTargetReduction = 70, //1인기감소
                 TripleTargetReduction = 0, //3인기감소
                 MultiTargetReduction = 90, //5인기감소
@@ -192,8 +202,8 @@ namespace GameDamageCalculator.Database
                     Cri_Dmg = 150,
                     Eff_Hit = 100
                 },
-                // 피해 감쇄
-                PhysicalReduction = 90, //물리피해감소
+                // 피해 감쇄 (위키 "영혼 흡수": 5인 공격기에만 90% 감소 — 물/마 구분·1인기 감쇄 없음)
+                PhysicalReduction = 0, //물리피해감소
                 MagicReduction = 0, //마법피해감소
                 SingleTargetReduction = 0, //1인기감소
                 TripleTargetReduction = 0, //3인기감소
