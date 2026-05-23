@@ -21,3 +21,6 @@ coord
 
 # WPF 빌드 임시 프로젝트 (SDK가 자동 생성)
 *_wpftmp.csproj
+
+# IDE/빌드 캐시 (자동 생성)
+*.lscache
