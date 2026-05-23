@@ -304,6 +304,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 3. 스택 트리거 처리 (공격 전)
             ProcessStackTriggers(charState, state, isSkill: false);
+            ProcessTriggeredFixedDamage(config, state, charState, isSkill: false);
 
             // 3. 기본공격 실행 (+2초)
             var damage = CalculateSkillDamage(config, state, charState, normalSkill);
@@ -351,6 +352,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                 // 스택 트리거 처리 (공격 전)
                 ProcessStackTriggers(charState, state, isSkill: true);
+                ProcessTriggeredFixedDamage(config, state, charState, isSkill: true);
 
                 // 스킬 실행
                 var damage = CalculateSkillDamage(config, state, charState, skill);
@@ -657,6 +659,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Log("부활", $"부활 → 생명력 {hp:N0}" +
                     (revival.HitCount > 0 ? $", 불굴 피격 {revival.HitCount}회" : "") +
                     (revival.ImmortalTurns > 0 ? $", 불사 {revival.ImmortalTurns}턴" : ""));
+
+                // 부활 발동 시 스킬 쿨타임 초기화 (CooldownReset, TriggerCondition=OnRevival)
+                ApplyRevivalCooldownReset(target);
                 return;
             }
 
@@ -713,6 +718,37 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced);
             return levelData?.PainEndurance;
+        }
+
+        /// <summary>
+        /// 부활 발동 시 CooldownReset(TriggerCondition=OnRevival) 효과로 스킬 쿨타임 초기화/감소.
+        /// </summary>
+        private void ApplyRevivalCooldownReset(CharacterBattleState target)
+        {
+            var passive = target.Source.Character.Passive;
+            if (passive == null) return;
+
+            var effects = new List<PersistentEffect>();
+            var lvl = passive.GetLevelData(target.Source.IsSkillEnhanced);
+            if (lvl?.Effects != null) effects.AddRange(lvl.Effects);
+            var tr = passive.GetTranscendBonus(target.Source.TranscendLevel);
+            if (tr?.Effects != null) effects.AddRange(tr.Effects);
+
+            foreach (var e in effects)
+            {
+                if (e.Type != PersistentEffectType.CooldownReset || e.CooldownReset == null) continue;
+                if (e.TriggerCondition != TriggerCondition.OnRevival) continue;
+
+                var cr = e.CooldownReset;
+                foreach (var key in target.SkillCooldowns.Keys.ToList())
+                {
+                    if (cr.OnlySkillType.HasValue && key != cr.OnlySkillType.Value) continue;
+                    if (cr.ReduceSeconds > 0)
+                        target.SkillCooldowns[key] = Math.Max(0, target.SkillCooldowns[key] - cr.ReduceSeconds);
+                    else
+                        target.SkillCooldowns[key] = 0; // 전체 초기화
+                }
+            }
         }
 
         /// <summary>패시브 생존 메카닉(부활·권능·피해무효화) 집계 결과.</summary>
@@ -911,6 +947,59 @@ namespace GameDamageCalculator.Services.BattleEngine
                     // 스택에 따른 효과 적용 (버프/디버프를 EffectManager에 반영)
                     ApplyStackEffect(charState, state, effect, effectId, newStacks);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 트리거형 추가 피해(TriggeredFixedDamage) 처리 — N회 공격마다 적군에게 고정/공격력비례 추가 피해.
+        /// 합성 스킬로 만들어 CalculateSkillDamage를 재사용(방어계수·버프·n인기 감쇄 일관 적용)한 뒤 보스에 적용.
+        /// 여포(기본 2회마다 공45%)·발리스타·챈슬러·겔리두스 등.
+        /// </summary>
+        private void ProcessTriggeredFixedDamage(BattleConfig config, BattleState state,
+            CharacterBattleState charState, bool isSkill)
+        {
+            var passive = charState.Source.Character.Passive;
+            if (passive == null) return;
+
+            var effects = new List<PersistentEffect>();
+            var lvl = passive.GetLevelData(charState.Source.IsSkillEnhanced);
+            if (lvl?.Effects != null) effects.AddRange(lvl.Effects);
+            var tr = passive.GetTranscendBonus(charState.Source.TranscendLevel);
+            if (tr?.Effects != null) effects.AddRange(tr.Effects);
+
+            foreach (var e in effects)
+            {
+                if (e.Type != PersistentEffectType.TriggeredFixedDamage || e.TriggeredFixedDamage == null) continue;
+                var tfd = e.TriggeredFixedDamage;
+
+                bool matches = tfd.TriggerOn switch
+                {
+                    TriggerCondition.AllAttack => true,
+                    TriggerCondition.SkillOnly => isSkill,
+                    TriggerCondition.NormalOnly => !isSkill,
+                    _ => false
+                };
+                if (!matches) continue;
+
+                string key = $"tfd:{charState.Source.Character.Name}:{tfd.TriggerOn}:{tfd.AtkRatio}:{tfd.FixedDamage}";
+                if (!charState.StackTriggerCounters.ContainsKey(key)) charState.StackTriggerCounters[key] = 0;
+                charState.StackTriggerCounters[key]++;
+                if (charState.StackTriggerCounters[key] < Math.Max(1, tfd.TriggerCount)) continue;
+                charState.StackTriggerCounters[key] = 0;
+
+                var synth = new Skill
+                {
+                    Name = "추가공격",
+                    SkillType = SkillType.Skill1,
+                    LevelData = new Dictionary<int, SkillLevelData>
+                    {
+                        { 0, new SkillLevelData { Ratio = tfd.AtkRatio, FixedDamage = tfd.FixedDamage, TargetCount = Math.Max(1, tfd.TargetCount), AtkCount = Math.Max(1, tfd.HitCount) } },
+                        { 1, new SkillLevelData { Ratio = tfd.AtkRatio, FixedDamage = tfd.FixedDamage, TargetCount = Math.Max(1, tfd.TargetCount), AtkCount = Math.Max(1, tfd.HitCount) } },
+                    }
+                };
+                double dmg = CalculateSkillDamage(config, state, charState, synth);
+                if (dmg > 0)
+                    ApplyDamage(state, charState, dmg, "추가공격", ActionType.SkillAttack);
             }
         }
 
