@@ -22,8 +22,10 @@ namespace GameDamageCalculator.Models
         public List<StageEnemy> Enemies { get; set; } = new();
 
         /// <summary>
-        /// 적군 스킬 사용 우선순위 (모든 스킬이 쿨다운 충족 시 이 순서로 사용).
-        /// 리스트 앞쪽이 우선. 미포함 적/스킬은 기본 규칙으로 처리.
+        /// 적군 스킬 우선순위(순서가 아니라 순위). 매 스킬턴에 쿨다운 충족된 스킬 중
+        /// 가장 높은 순위(리스트 앞쪽) 하나를 사용한다. 상위 순위가 쿨 중이면 사용 가능한
+        /// 다음 순위를 쓴다(예: 1~3순위 쿨 중이고 4순위만 가능하면 4순위 사용).
+        /// 미포함 적/스킬은 기본 규칙으로 처리.
         /// </summary>
         public List<SiegeSkillOrder> SkillPriority { get; set; } = new();
     }
