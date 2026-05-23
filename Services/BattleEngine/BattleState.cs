@@ -66,6 +66,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 통합 효과 관리자 (버프/디버프/상태이상 통합)
         public EffectManager Effects { get; set; } = new();
 
+        // 턴제 버프 적용 순서 카운터 (버프 해제용 ApplyOrderId 부여). 1부터 증가.
+        public int ApplyOrderCounter { get; set; }
+
         // 받피해 분산 큐 (트루드 PainEndurance 등) — 각 발동마다 독립 누적
         public List<PendingPainEnduranceDamage> PainEnduranceQueue { get; set; } = new();
 
