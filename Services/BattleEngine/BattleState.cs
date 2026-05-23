@@ -38,6 +38,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double CurrentHp { get; set; }
         public double MaxHp { get; set; }
 
+        // ===== 생존 메카닉 런타임 상태 =====
+        public bool IsDead { get; set; }                    // 사망 시 이후 자기 턴 스킵
+        public int NullifyHitsRemaining { get; set; }       // 피해 무효화 잔여 피격 횟수
+        public int NullifyTurnsRemaining { get; set; }      // 피해 무효화 잔여 턴
+        public DamageNullType NullifyType { get; set; } = DamageNullType.All; // 무효화 대상 피해 타입
+        public bool AuthorityUsed { get; set; }             // 권능(현재HP 이상 피해 생존) 전투당 1회 소비
+        public bool RevivalUsed { get; set; }               // 부활/불사/불굴 전투당 1회 소비
+        public int ImmortalHitsRemaining { get; set; }      // 부활 후 사망무효 잔여 피격 (불굴)
+        public int ImmortalTurnsRemaining { get; set; }     // 부활 후 사망무효 잔여 턴 (불사)
+
         // 최종 계산된 스탯 (장비/버프 적용 후)
         public double FinalAtk { get; set; }
         public double FinalDef { get; set; }

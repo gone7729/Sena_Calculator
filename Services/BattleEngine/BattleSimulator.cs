@@ -169,7 +169,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             var statResult = _statCalc.Calculate(statInput);
 
-            return new CharacterBattleState
+            var charState = new CharacterBattleState
             {
                 Source = battleChar,
                 PartyIndex = index,
@@ -181,6 +181,25 @@ namespace GameDamageCalculator.Services.BattleEngine
                 RotationIndex = 0,
                 TotalDamageDealt = 0
             };
+
+            // 상시(Immediate) 패시브 피해 무효화 충전 (예: 자신 모든 피해 무효화[피격 N회])
+            var passive = battleChar.Character.Passive;
+            if (passive != null)
+            {
+                foreach (var e in (passive.GetLevelData(battleChar.IsSkillEnhanced)?.Effects)
+                                  ?? new List<PersistentEffect>())
+                {
+                    if (e.Type == PersistentEffectType.DamageNullification && e.ApplyMode == ApplyMode.Immediate
+                        && e.DamageNullification != null)
+                    {
+                        charState.NullifyHitsRemaining = e.DamageNullification.HitCount;
+                        charState.NullifyTurnsRemaining = e.DamageNullification.Duration;
+                        charState.NullifyType = e.DamageNullification.Type;
+                    }
+                }
+            }
+
+            return charState;
         }
 
         /// <summary>
@@ -242,6 +261,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (charIndex < 0 || charIndex >= state.AllyStates.Count) return;
 
             var charState = state.AllyStates[charIndex];
+            if (charState.IsDead) return;   // 사망한 아군은 행동 스킵
             var battleChar = charState.Source;
             var character = battleChar.Character;
 
@@ -289,6 +309,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 int charIdx = kvp.Key;
                 var rotation = kvp.Value;
                 var charState = state.AllyStates[charIdx];
+
+                if (charState.IsDead) continue;   // 사망한 아군은 행동 스킵
 
                 if (charState.RotationIndex >= rotation.Count)
                     continue; // 이 캐릭터의 로테이션이 끝남
@@ -505,9 +527,23 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 발동마다 큐 항목이 독립 등록되어 자연스럽게 누적된다.
         /// </summary>
         private void ApplyIncomingDamage(BattleState state, CharacterBattleState target,
-            double rawDamage, string sourceLabel)
+            double rawDamage, string sourceLabel, DamageNullType incomingType = DamageNullType.All)
         {
-            if (rawDamage <= 0) return;
+            if (rawDamage <= 0 || target.IsDead) return;
+
+            // 피해 무효화 (피격 N회 / N턴, 물·마 한정 가능) — 피해 자체를 0으로
+            if ((target.NullifyHitsRemaining > 0 || target.NullifyTurnsRemaining > 0)
+                && (target.NullifyType == DamageNullType.All || target.NullifyType == incomingType))
+            {
+                if (target.NullifyHitsRemaining > 0) target.NullifyHitsRemaining--;
+                state.TurnLogs.Add(new BattleTurnLog
+                {
+                    Turn = state.CurrentTurn, ActorName = target.Source.Character.Name, IsAlly = true,
+                    ActionType = ActionType.BuffApplied, SkillName = "피해 무효화",
+                    DamageDealt = 0, Description = $"{sourceLabel} 피격 {rawDamage:N0} 무효화 (잔여 {target.NullifyHitsRemaining}회)"
+                });
+                return;
+            }
 
             var painEndurance = GetActivePainEndurance(target);
             bool triggers = painEndurance != null
@@ -545,7 +581,64 @@ namespace GameDamageCalculator.Services.BattleEngine
                 immediateDamage = rawDamage;
             }
 
-            target.CurrentHp = Math.Max(0, target.CurrentHp - immediateDamage);
+            double newHp = target.CurrentHp - immediateDamage;
+            bool lethal = newHp <= 0;
+            target.CurrentHp = Math.Max(0, newHp);
+
+            if (lethal)
+                ResolveLethalDamage(state, target, immediateDamage);
+        }
+
+        /// <summary>
+        /// 치사 피해 발생 시 생존 메카닉 적용 순서: 부활 후 무적(불굴/불사) → 권능(생존) → 부활 → 사망.
+        /// </summary>
+        private void ResolveLethalDamage(BattleState state, CharacterBattleState target, double lethalDamage)
+        {
+            void Log(string skill, string desc) => state.TurnLogs.Add(new BattleTurnLog
+            {
+                Turn = state.CurrentTurn, ActorName = target.Source.Character.Name, IsAlly = true,
+                ActionType = ActionType.BuffApplied, SkillName = skill, DamageDealt = 0, Description = desc
+            });
+
+            // 1. 부활 후 무적 상태 (불굴 피격횟수 / 불사 턴) — 사망 무효
+            if (target.ImmortalHitsRemaining > 0 || target.ImmortalTurnsRemaining > 0)
+            {
+                if (target.ImmortalHitsRemaining > 0) target.ImmortalHitsRemaining--;
+                target.CurrentHp = 1;
+                Log("불굴/불사", $"치사 피해 무효 (잔여 피격 {target.ImmortalHitsRemaining})");
+                return;
+            }
+
+            // 2. 권능 — 현재 생명력 이상 피해 시 ReviveHp로 1회 생존 (전투당 1회)
+            var authority = GetPassiveSurvival(target)?.Authority;
+            if (authority != null && !target.AuthorityUsed)
+            {
+                target.AuthorityUsed = true;
+                target.CurrentHp = Math.Max(1, authority.ReviveHp);
+                Log("권능", $"치사 피해 생존 → 생명력 {target.CurrentHp:N0}");
+                return;
+            }
+
+            // 3. 부활/불사/불굴 — 사망 시 부활 (전투당 1회), 이후 무적 윈도우 설정
+            var revival = GetPassiveSurvival(target)?.Revival;
+            if (revival != null && !target.RevivalUsed)
+            {
+                target.RevivalUsed = true;
+                double hp = revival.ReviveHpPercent > 0
+                    ? target.MaxHp * (revival.ReviveHpPercent / 100.0)
+                    : Math.Max(1, revival.ReviveHp);
+                target.CurrentHp = hp;
+                target.ImmortalHitsRemaining = revival.HitCount;
+                target.ImmortalTurnsRemaining = revival.ImmortalTurns;
+                Log("부활", $"부활 → 생명력 {hp:N0}" +
+                    (revival.HitCount > 0 ? $", 불굴 피격 {revival.HitCount}회" : "") +
+                    (revival.ImmortalTurns > 0 ? $", 불사 {revival.ImmortalTurns}턴" : ""));
+                return;
+            }
+
+            // 4. 사망
+            target.IsDead = true;
+            Log("사망", $"{target.Source.Character.Name} 사망");
         }
 
         /// <summary>
@@ -567,7 +660,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             if (totalThisTurn <= 0) return;
 
-            charState.CurrentHp = Math.Max(0, charState.CurrentHp - totalThisTurn);
+            double newHp = charState.CurrentHp - totalThisTurn;
+            bool lethal = newHp <= 0;
+            charState.CurrentHp = Math.Max(0, newHp);
 
             state.TurnLogs.Add(new BattleTurnLog
             {
@@ -579,6 +674,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = totalThisTurn,
                 Description = $"분산 합계 {totalThisTurn:N0}"
             });
+
+            if (lethal)
+                ResolveLethalDamage(state, charState, totalThisTurn);
         }
 
         /// <summary>
@@ -591,6 +689,38 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced);
             return levelData?.PainEndurance;
+        }
+
+        /// <summary>패시브 생존 메카닉(부활·권능·피해무효화) 집계 결과.</summary>
+        private sealed class SurvivalEffects
+        {
+            public Revival Revival;
+            public Authority Authority;
+            public DamageNullification Nullification;
+        }
+
+        /// <summary>
+        /// 캐릭터 패시브(레벨+초월)의 Effects에서 부활/권능/피해무효화를 조회 (없으면 null).
+        /// </summary>
+        private SurvivalEffects GetPassiveSurvival(CharacterBattleState charState)
+        {
+            var passive = charState.Source.Character.Passive;
+            if (passive == null) return null;
+
+            var result = new SurvivalEffects();
+            void Scan(System.Collections.Generic.IEnumerable<PersistentEffect> effects)
+            {
+                if (effects == null) return;
+                foreach (var e in effects)
+                {
+                    if (e.Type == PersistentEffectType.Revival && e.Revival != null) result.Revival = e.Revival;
+                    else if (e.Type == PersistentEffectType.Authority && e.Authority != null) result.Authority = e.Authority;
+                    else if (e.Type == PersistentEffectType.DamageNullification && e.DamageNullification != null) result.Nullification = e.DamageNullification;
+                }
+            }
+            Scan(passive.GetLevelData(charState.Source.IsSkillEnhanced)?.Effects);
+            Scan(passive.GetTranscendBonus(charState.Source.TranscendLevel)?.Effects);
+            return result;
         }
 
         /// <summary>
@@ -932,8 +1062,14 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         private void ProcessTurnEnd(BattleState state, BattleAction action)
         {
-            // 기본공격의 턴제 효과/DoT/쿨다운은 ExecuteAllyNormalAttack 내에서 직접 처리
-            // 여기서는 스킬 사용 후 추가 처리만 수행 (필요 시)
+            // 기본공격의 턴제 효과/DoT/쿨다운은 ExecuteAllyNormalAttack 내에서 직접 처리.
+            // 턴 기반 생존 메카닉(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소.
+            foreach (var ally in state.AllyStates)
+            {
+                if (ally.IsDead) continue;
+                if (ally.NullifyTurnsRemaining > 0) ally.NullifyTurnsRemaining--;
+                if (ally.ImmortalTurnsRemaining > 0) ally.ImmortalTurnsRemaining--;
+            }
         }
 
         #endregion
