@@ -9,6 +9,9 @@ namespace GameDamageCalculator.Models.Effects
         // === 대상 ===
         public EffectTarget Target { get; set; }     // Self, Party, Enemy
         public int TargetCount { get; set; } = 0;    // 0이면 스킬 기본 대상 수 사용
+        public TargetSelector? TargetSelector { get; set; }  // 대상 선정 기준 (열 우선·생명력 낮은 아군·공격력 높은 아군 등). null이면 기본
+        // 직업군 제한 (Party 대상일 때만 의미) — null/빈 배열이면 전체 아군. "공격형","만능형" 등
+        public string[] TargetClasses { get; set; }
 
         // === 유형 ===
         public SkillEffectType Type { get; set; }

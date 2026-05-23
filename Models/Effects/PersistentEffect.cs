@@ -13,6 +13,7 @@ namespace GameDamageCalculator.Models.Effects
         // 직업군 제한 (Party 대상일 때만 의미) — null/빈 배열이면 전체 아군.
         // Character.Type 문자열 매칭 (예: "공격형", "만능형", "마법형", "지원형", "방어형")
         public string[] TargetClasses { get; set; }
+        public TargetSelector? TargetSelector { get; set; }  // 대상 선정 기준 (공격력 높은 아군·생명력 낮은 아군 등). null이면 기본
 
         // === 유형 ===
         public PersistentEffectType Type { get; set; }
@@ -257,17 +258,28 @@ namespace GameDamageCalculator.Models.Effects
     /// </summary>
     public class FocusTarget
     {
-        public FocusTargetSelector Selector { get; set; } = FocusTargetSelector.HighestAtkEnemy; // 대상 선정 기준
+        public TargetSelector Selector { get; set; } = TargetSelector.HighestAtkEnemy; // 대상 선정 기준
         public bool PriorityAttack { get; set; } = true;    // 시전자가 그 대상을 우선 공격
         public bool LockPerRound { get; set; } = true;      // 라운드 내 한 대상에만 고정
         public bool NoTransferOnDeath { get; set; } = true; // 대상 사망 시 다른 대상으로 전이 안 함
     }
 
-    /// <summary>대상 선정 기준 (강자주시 / 스킬 타게팅 공용)</summary>
-    public enum FocusTargetSelector
+    /// <summary>대상 선정 기준 (강자주시 / 스킬 타게팅 / 버프 대상 공용). 런타임 선정은 추후.</summary>
+    public enum TargetSelector
     {
+        // === 적 선정 ===
         HighestAtkEnemy,    // 공격력이 가장 높은 적군
         HighestDefEnemy,    // 방어력이 가장 높은 적군
+        LowestHpEnemy,      // 현재 생명력이 가장 낮은 적군
+        MostBuffsEnemy,     // 버프가 가장 많은 적군 (버프 해제 대상)
+        FrontRowEnemy,      // 전열 우선 적군
+        BackRowEnemy,       // 후열 우선 적군
+
+        // === 아군 선정 ===
+        HighestAtkAlly,     // 공격력이 가장 높은 아군
+        LowestHpAlly,       // 현재 생명력이 가장 낮은 아군
+        FrontRowAlly,       // 전열 우선 아군
+        BackRowAlly,        // 후열 우선 아군
     }
 
     /// <summary>

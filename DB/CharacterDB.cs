@@ -1413,7 +1413,7 @@ namespace GameDamageCalculator.Database
                                 new PersistentEffect {
                                     Target = EffectTarget.Enemy,
                                     Type = PersistentEffectType.FocusTarget,
-                                    FocusTarget = new FocusTarget { Selector = FocusTargetSelector.HighestAtkEnemy } },
+                                    FocusTarget = new FocusTarget { Selector = TargetSelector.HighestAtkEnemy } },
                                 // 기본공격 2회마다 물공 130% 추가공격, 추가공격 시 버프해제 1개(30%)
                                 new PersistentEffect {
                                     Target = EffectTarget.Enemy,
@@ -1445,7 +1445,7 @@ namespace GameDamageCalculator.Database
                                 new PersistentEffect {
                                     Target = EffectTarget.Enemy,
                                     Type = PersistentEffectType.FocusTarget,
-                                    FocusTarget = new FocusTarget { Selector = FocusTargetSelector.HighestAtkEnemy } },
+                                    FocusTarget = new FocusTarget { Selector = TargetSelector.HighestAtkEnemy } },
                                 // 기본공격 2회마다 물공 130% 추가공격, 추가공격 시 버프해제 1개(30%)
                                 new PersistentEffect {
                                     Target = EffectTarget.Enemy,
@@ -1736,7 +1736,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 45,
                                 Ratio = 135,
-                                TargetSelector = FocusTargetSelector.HighestDefEnemy,
+                                TargetSelector = TargetSelector.HighestDefEnemy,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Duration = 2, Stacks = 1, Chance = 100 }
@@ -1748,7 +1748,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 45,
                                 Ratio = 165,
-                                TargetSelector = FocusTargetSelector.HighestDefEnemy,
+                                TargetSelector = TargetSelector.HighestDefEnemy,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Duration = 2, Stacks = 1, Chance = 100 }
@@ -2564,6 +2564,7 @@ namespace GameDamageCalculator.Database
                                 ConditionalExtraDmg = 91,
                                 ConditionalExtraDmgPerHit = true,
                                 ConditionalDesc = "대상 공격력이 자신보다 낮을 경우 각 공격마다 물리 공격력 91% 관통 추가 피해",
+                                TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effect = "전열 우선, 4회 관통(피해 면역 무시). 전투 시작 시 아군에 공격형 5명 이상 시 생명력 전환 32%. 대상 공격력이 자신보다 낮으면 각 공격마다 91% 관통 추가 피해"
                                 } },
                             { 1, new SkillLevelData {
@@ -2575,6 +2576,7 @@ namespace GameDamageCalculator.Database
                                 ConditionalExtraDmg = 91,
                                 ConditionalExtraDmgPerHit = true,
                                 ConditionalDesc = "대상 공격력이 자신보다 낮을 경우 각 공격마다 물리 공격력 91% 관통 추가 피해",
+                                TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effect = "전열 우선, 4회 관통(피해 면역 무시). 전투 시작 시 아군에 공격형 5명 이상 시 생명력 전환 32%. 대상 공격력이 자신보다 낮으면 각 공격마다 91% 관통 추가 피해"
                                 } }
                         },
@@ -2705,6 +2707,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 96,
                                 Ratio = 247,
+                                TargetSelector = TargetSelector.BackRowEnemy,  // 후열 우선
                                 Effect = "후열 우선, 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용)"
                                 } },
                             { 1, new SkillLevelData {
@@ -2716,6 +2719,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 3 }
                                 },
+                                TargetSelector = TargetSelector.BackRowEnemy,  // 후열 우선
                                 Effect = "후열 우선, 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용), 턴제 버프 감소 3턴 [100%]"
                                 } }
                         },
@@ -4955,7 +4959,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45, Duration = 2 },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_AtkRatio = 40 }, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_AtkRatio = 40 }, Duration = 2 }
                                 },
                                 Effect = "보호막은 모든 마법형 아군 대상 (시전자 마법 공격력의 40%)"
                                 } },
@@ -4967,7 +4971,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 55, Duration = 2 },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_AtkRatio = 40 }, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_AtkRatio = 40 }, Duration = 2 }
                                 },
                                 Effect = "보호막은 모든 마법형 아군 대상 (시전자 마법 공격력의 40%)"
                                 } }
@@ -5888,8 +5892,8 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 5, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 26 } },
-                                    // 공격력이 가장 높은 아군 2명 마법공격력 증가 [3턴] (모델엔 Party로 근사)
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { MagicAtk_Rate = 25 } }
+                                    // 공격력이 가장 높은 아군 2명 마법공격력 증가 [3턴]
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 2, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { MagicAtk_Rate = 25 } }
                                 },
                                 Effect = "방어 무시 40%, 마법 취약 26% [5턴], 공격력 높은 아군 2명 마법공격력 증가 25% [3턴]"
                                 } },
@@ -5902,7 +5906,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 5, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 26 } },
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { MagicAtk_Rate = 31 } }
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 2, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { MagicAtk_Rate = 31 } }
                                 },
                                 Effect = "방어 무시 40%, 마법 취약 26% [5턴], 공격력 높은 아군 2명 마법공격력 증가 31% [3턴]"
                                 } }
@@ -5910,9 +5914,9 @@ namespace GameDamageCalculator.Database
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             { 6, new SkillTranscend {
-                                // 6초월: 공격력 높은 아군 2명 치명타 피해 증가 46% [3턴] (모델엔 Party로 근사)
+                                // 6초월: 공격력 높은 아군 2명 치명타 피해 증가 46% [3턴]
                                 Effects = new List<SkillEffect> {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Cri_Dmg = 46 } }
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 2, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Cri_Dmg = 46 } }
                                 },
                                 Effect = "공격력 높은 아군 2명 치명타 피해 증가 46% [3턴]"
                             }}
@@ -6445,7 +6449,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 98,
                                 Ratio = 305,
                                 // 방어력이 가장 높은 적군 대상. 생명력 전환 32%. 아군(마법형) 수호령[2턴]
-                                TargetSelector = FocusTargetSelector.HighestDefEnemy,
+                                TargetSelector = TargetSelector.HighestDefEnemy,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 32 }
@@ -6457,7 +6461,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Cooldown = 98,
                                 Ratio = 305,
-                                TargetSelector = FocusTargetSelector.HighestDefEnemy,
+                                TargetSelector = TargetSelector.HighestDefEnemy,
                                 // 강화: 아군(마법형) 디버프 해제 2개
                                 Effects = new List<SkillEffect>
                                 {
@@ -6914,7 +6918,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     // 적군 3명(버프 많은 순)에게 버프 해제 2개 [100% 확률]
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "대상 선정: 버프가 많은 순"
                                 } },
@@ -6926,7 +6930,7 @@ namespace GameDamageCalculator.Database
                                 HpRatio = 22,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "대상 선정: 버프가 많은 순"
                                 } }
@@ -7030,8 +7034,8 @@ namespace GameDamageCalculator.Database
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
-                                    // 대상: 공격력이 가장 높은 아군 — 보스 피해량 증가 33% + 약점 확률 증가 44% [5턴]
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 } }
+                                    // 대상: 공격력이 가장 높은 아군 1명 — 보스 피해량 증가 33% + 약점 확률 증가 44% [5턴] (6초월 시 2명)
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 1, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 33, Wek = 44 } }
                                 },
                                 Effect = "대상: 공격력이 가장 높은 아군 1명"
                                 } },
@@ -7042,7 +7046,7 @@ namespace GameDamageCalculator.Database
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 1, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
                                 },
                                 Effect = "대상: 공격력이 가장 높은 아군 1명"
                                 } }
@@ -7069,7 +7073,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     // 적군 3명(버프 많은 순) 버프 해제 2개 [100% 확률]
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "방어 무시, 대상 선정: 버프가 많은 순"
                                 } },
@@ -7082,7 +7086,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "방어 무시, 대상 선정: 버프가 많은 순"
                                 } }
@@ -7150,6 +7154,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 120,
                                 HealHpRatio = 7,
+                                TargetSelector = TargetSelector.LowestHpAlly,  // 현재 생명력 가장 낮은 아군 (자신 제외 단서는 텍스트 유지)
                                 Effect = "강화: 현재 생명력 가장 낮은 아군(자신 제외)에게 시전자 최대 생명력 7% 회복 추가"
                                 } }
                         }
@@ -7346,7 +7351,8 @@ namespace GameDamageCalculator.Database
                                 HpRatio = 5,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 19 }, Duration = 2 }
+                                    // 대상: 자신 + 마법형 아군 (오를리는 지원형이므로 자신 포함은 텍스트로 유지, 직업군 제한만 필드화)
+                                    new SkillEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 19 }, Duration = 2 }
                                 },
                                 Effect = "보호막 대상: 자신, 마법형 아군"
                                 } },
@@ -7358,7 +7364,8 @@ namespace GameDamageCalculator.Database
                                 HpRatio = 6,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 23 }, Duration = 2 }
+                                    // 대상: 자신 + 마법형 아군 (오를리는 지원형이므로 자신 포함은 텍스트로 유지, 직업군 제한만 필드화)
+                                    new SkillEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = SkillEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 23 }, Duration = 2 }
                                 },
                                 Effect = "보호막 대상: 자신, 마법형 아군"
                                 } }
@@ -7380,14 +7387,16 @@ namespace GameDamageCalculator.Database
                             Effect = "[자신] 최대 생명력 39% 보호막[3턴] (라운드당 1회). 치명타 확률/피해 증가 대상: 자신, 마법형 아군",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 17, Cri_Dmg = 25 } }
+                                // 대상: 자신 + 마법형 아군 (오를리는 지원형 → 자신 포함은 텍스트로 유지, 직업군 제한만 필드화)
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 17, Cri_Dmg = 25 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effect = "[자신] 최대 생명력 45% 보호막[3턴] (라운드당 1회). 치명타 확률/피해 증가 대상: 자신, 마법형 아군",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 17, Cri_Dmg = 25 } }
+                                // 대상: 자신 + 마법형 아군 (오를리는 지원형 → 자신 포함은 텍스트로 유지, 직업군 제한만 필드화)
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 17, Cri_Dmg = 25 } }
                             }
                         }}
                     },
@@ -7486,7 +7495,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 91,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 32 }
                                 },
                                 Effect = "대상: 적군 2명 (버프 많은 순)"
@@ -7497,7 +7506,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 91,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 25 }
                                 },
                                 Effect = "대상: 적군 2명 (버프 많은 순)"
@@ -7739,7 +7748,7 @@ namespace GameDamageCalculator.Database
                             { 2, new SkillTranscend {
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.SingleAlly, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 1 }
+                                    new SkillEffect { Target = EffectTarget.SingleAlly, TargetSelector = TargetSelector.LowestHpAlly, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Regeneration, CustomHpRatio = 15, Duration = 1 }
                                 },
                                 Effect = "2초월: 현재 생명력 가장 낮은 아군(자신 제외) 지속 회복[1턴] (매턴 시전자 최대 생명력 15%)"
                             }}
@@ -7857,6 +7866,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 100,
                                 // 현재 생명력이 가장 낮은 아군(자신 제외) 시전자 최대 생명력 6% 회복
                                 HealHpRatio = 6,
+                                TargetSelector = TargetSelector.LowestHpAlly,  // 현재 생명력 가장 낮은 아군 (자신 제외 단서는 텍스트 유지)
                                 Effect = "현재 생명력이 가장 낮은 아군(자신 제외) 시전자 최대 생명력 6% 회복"
                                 } },
                             { 1, new SkillLevelData {
@@ -7864,6 +7874,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 100,
                                 HealHpRatio = 7,
+                                TargetSelector = TargetSelector.LowestHpAlly,  // 현재 생명력 가장 낮은 아군 (자신 제외 단서는 텍스트 유지)
                                 Effect = "강화: 현재 생명력이 가장 낮은 아군(자신 제외) 시전자 최대 생명력 7% 회복"
                                 } }
                         }
@@ -11379,7 +11390,8 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 3 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 85, Duration = 3 }
                                 },
-                                Effect = "대상 선정: 버프가 많은 적군 (모델 미지원, 기본 타게팅)"
+                                TargetSelector = TargetSelector.MostBuffsEnemy,  // 버프가 많은 순
+                                Effect = "대상 선정: 버프가 많은 적군"
                                 }},
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
@@ -11392,7 +11404,8 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 3 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "대상 선정: 버프가 많은 적군 (모델 미지원, 기본 타게팅)"
+                                TargetSelector = TargetSelector.MostBuffsEnemy,  // 버프가 많은 순
+                                Effect = "대상 선정: 버프가 많은 적군"
                                 }}
                         }
                     },
@@ -11866,6 +11879,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 108,
                                 Ratio = 315,
                                 HpRatio = 75,
+                                TargetSelector = TargetSelector.BackRowEnemy,  // 후열 우선
                                 Effect = "후열 우선 타게팅"
                                 }},
                             { 1, new SkillLevelData {
@@ -11874,6 +11888,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 108,
                                 Ratio = 380,
                                 HpRatio = 91,
+                                TargetSelector = TargetSelector.BackRowEnemy,  // 후열 우선
                                 Effect = "후열 우선 타게팅"
                                 }}
                         },
@@ -12429,7 +12444,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 3,
                                 Cooldown = 72,
                                 Ratio = 95,
-                                TargetSelector = FocusTargetSelector.HighestAtkEnemy,
+                                TargetSelector = TargetSelector.HighestAtkEnemy,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Blind, Duration = 3, Chance = 100 }
@@ -12441,7 +12456,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 3,
                                 Cooldown = 72,
                                 Ratio = 95,
-                                TargetSelector = FocusTargetSelector.HighestAtkEnemy,
+                                TargetSelector = TargetSelector.HighestAtkEnemy,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Blind, Duration = 4, Chance = 100 },
@@ -12857,7 +12872,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "적군 3명(버프가 많은 순). 버프 해제 2개[100%]"
                                 } },
@@ -12868,7 +12883,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "강화: 물리 공격력 145%. 적군 3명(버프가 많은 순). 버프 해제 2개[100%]"
                                 } }
@@ -14387,7 +14402,7 @@ namespace GameDamageCalculator.Database
                                 // 버프 해제 2개 [100% 확률] (버프 많은 순 대상)
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "버프 많은 순 대상"
                                 } },
@@ -14398,7 +14413,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 48,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
                                 },
                                 Effect = "버프 많은 순 대상"
                                 } }
