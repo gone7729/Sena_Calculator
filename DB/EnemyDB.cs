@@ -737,6 +737,12 @@ namespace GameDamageCalculator.Database
                             new StageEnemy { EnemyId = 501, Position = 1 }, // 룩
                             new StageEnemy { EnemyId = 502, Position = 2 }, // 챈슬러
                             new StageEnemy { EnemyId = 501, Position = 3 }, // 룩
+                        },
+                        // 스킬 우선순위: 챈슬러 1스킬(분쇄) 최우선 → 룩 1스킬(투창)
+                        SkillPriority = new List<SiegeSkillOrder>
+                        {
+                            new() { EnemyId = 502, SkillType = SkillType.Skill1 }, // 챈슬러 분쇄
+                            new() { EnemyId = 501, SkillType = SkillType.Skill1 }, // 룩 투창
                         }
                     },
                     // 라운드 2 (일반 적군): 룩, 챈슬러, 룩
@@ -748,6 +754,12 @@ namespace GameDamageCalculator.Database
                             new StageEnemy { EnemyId = 503, Position = 1 }, // 룩
                             new StageEnemy { EnemyId = 504, Position = 2 }, // 챈슬러
                             new StageEnemy { EnemyId = 503, Position = 3 }, // 룩
+                        },
+                        // 스킬 우선순위: 챈슬러 1스킬(분쇄) 최우선 → 룩 1스킬(투창)
+                        SkillPriority = new List<SiegeSkillOrder>
+                        {
+                            new() { EnemyId = 504, SkillType = SkillType.Skill1 }, // 챈슬러 분쇄
+                            new() { EnemyId = 503, SkillType = SkillType.Skill1 }, // 룩 투창
                         }
                     },
                     // 라운드 3 (모두 보스 취급): 룩(보스), 스파이크(보스), 챈슬러(보스)
@@ -759,6 +771,14 @@ namespace GameDamageCalculator.Database
                             new StageEnemy { EnemyId = 505, Position = 1, IsBoss = true }, // 룩 (친위대, R3)
                             new StageEnemy { EnemyId = 6,   Position = 2, IsBoss = true }, // 스파이크 (SiegeBosses)
                             new StageEnemy { EnemyId = 506, Position = 3, IsBoss = true }, // 챈슬러 (친위대장, R3)
+                        },
+                        // 스킬 우선순위: 챈슬러 1스킬 → 스파이크 2스킬(혹한의 지진) → 스파이크 1스킬(혹한의 일격) → 룩 1스킬
+                        SkillPriority = new List<SiegeSkillOrder>
+                        {
+                            new() { EnemyId = 506, SkillType = SkillType.Skill1 }, // 챈슬러 분쇄
+                            new() { EnemyId = 6,   SkillType = SkillType.Skill2 }, // 스파이크 혹한의 지진
+                            new() { EnemyId = 6,   SkillType = SkillType.Skill1 }, // 스파이크 혹한의 일격
+                            new() { EnemyId = 505, SkillType = SkillType.Skill1 }, // 룩 투창
                         }
                     },
                 }
