@@ -583,13 +583,14 @@ namespace GameDamageCalculator.Database
         };
 
         /// <summary>
-        /// 공성전 잡몹 (요일별 라운드에 등장). 같은 이름은 요일 내 모든 라운드에서 같은 스탯.
-        /// 라운드별 보스 취급 여부는 SiegeStages의 StageEnemy.IsBoss로 표기.
+        /// 공성전 잡몹 (요일별 라운드에 등장). 라운드마다 스탯이 다를 수 있어 라운드별 별도 Id로 선언
+        /// (한 라운드 내 같은 이름 몹은 동일 스탯). 라운드별 보스 취급 여부는 SiegeStages의 StageEnemy.IsBoss로 표기.
         /// 룩·챈슬러는 게임상 영웅이지만 공성전 몹 버전으로 별도 정의(스킬은 추후).
+        /// 토요일 룩: R1=501 / R2=503 / R3보스=505,  챈슬러: R1=502 / R2=504 / R3보스=506.
         /// </summary>
         public static readonly List<Enemy> SiegeMobs = new List<Enemy>
         {
-            // 토요일 — 경비대 룩 (Lv.70, 4성)
+            // 토요일 — 경비대 룩 (round1)
             new Enemy
             {
                 Id = 501,
@@ -607,7 +608,7 @@ namespace GameDamageCalculator.Database
                     Eff_Hit = 0
                 }
             },
-            // 토요일 — 경비대장 챈슬러 (Lv.70, 4성)
+            // 토요일 — 경비대장 챈슬러 (round1)
             new Enemy
             {
                 Id = 502,
@@ -623,6 +624,78 @@ namespace GameDamageCalculator.Database
                     Cri = 0,
                     Cri_Dmg = 150,
                     Eff_Hit = 0
+                }
+            },
+            // 토요일 — 경비대 룩 (round2)
+            new Enemy
+            {
+                Id = 503,
+                Name = "룩",
+                EnemyType = EnemyType.Siege,
+                IsBoss = false,
+                Stats = new BaseStatSet
+                {
+                    Atk = 873,
+                    Def = 1123,
+                    Hp = 10790,
+                    Spd = 17,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 0
+                }
+            },
+            // 토요일 — 경비대장 챈슬러 (round2)
+            new Enemy
+            {
+                Id = 504,
+                Name = "챈슬러",
+                EnemyType = EnemyType.Siege,
+                IsBoss = false,
+                Stats = new BaseStatSet
+                {
+                    Atk = 1315,
+                    Def = 784,
+                    Hp = 9870,
+                    Spd = 23,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 0
+                }
+            },
+            // 토요일 — 친위대 룩 (round3, 보스 취급, Lv.100 6성)
+            new Enemy
+            {
+                Id = 505,
+                Name = "룩",
+                EnemyType = EnemyType.Siege,
+                IsBoss = false,
+                Stats = new BaseStatSet
+                {
+                    Atk = 1502,
+                    Def = 1423,
+                    Hp = 40000,
+                    Spd = 19,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
+                }
+            },
+            // 토요일 — 친위대장 챈슬러 (round3, 보스 취급, Lv.100 6성)
+            new Enemy
+            {
+                Id = 506,
+                Name = "챈슬러",
+                EnemyType = EnemyType.Siege,
+                IsBoss = false,
+                Stats = new BaseStatSet
+                {
+                    Atk = 1754,
+                    Def = 1423,
+                    Hp = 40000,
+                    Spd = 25,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 100
                 }
             },
         };
@@ -657,9 +730,9 @@ namespace GameDamageCalculator.Database
                         WaveNumber = 2,
                         Enemies = new List<StageEnemy>
                         {
-                            new StageEnemy { EnemyId = 501, Position = 1 },
-                            new StageEnemy { EnemyId = 502, Position = 2 },
-                            new StageEnemy { EnemyId = 501, Position = 3 },
+                            new StageEnemy { EnemyId = 503, Position = 1 }, // 룩
+                            new StageEnemy { EnemyId = 504, Position = 2 }, // 챈슬러
+                            new StageEnemy { EnemyId = 503, Position = 3 }, // 룩
                         }
                     },
                     // 라운드 3 (모두 보스 취급): 룩(보스), 스파이크(보스), 챈슬러(보스)
@@ -668,9 +741,9 @@ namespace GameDamageCalculator.Database
                         WaveNumber = 3,
                         Enemies = new List<StageEnemy>
                         {
-                            new StageEnemy { EnemyId = 501, Position = 1, IsBoss = true }, // 룩
+                            new StageEnemy { EnemyId = 505, Position = 1, IsBoss = true }, // 룩 (친위대, R3)
                             new StageEnemy { EnemyId = 6,   Position = 2, IsBoss = true }, // 스파이크 (SiegeBosses)
-                            new StageEnemy { EnemyId = 502, Position = 3, IsBoss = true }, // 챈슬러
+                            new StageEnemy { EnemyId = 506, Position = 3, IsBoss = true }, // 챈슬러 (친위대장, R3)
                         }
                     },
                 }
