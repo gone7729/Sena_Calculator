@@ -29,6 +29,7 @@ namespace GameDamageCalculator.Models
     {
         public int EnemyId { get; set; }        // Enemy.Id 참조
         public int Count { get; set; } = 1;     // 해당 적 수
-        public int Position { get; set; }       // 배치 위치
+        public int Position { get; set; }       // 배치 위치 (진형 자리 1~5, 같은 속공 시 공격 순서 기준)
+        public bool IsBoss { get; set; }        // 이 라운드에서 보스 취급 (공성전 3라운드 등) — HP 0이어도 사망 안 함, 약점공격 대상
     }
 }
