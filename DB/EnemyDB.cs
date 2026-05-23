@@ -581,16 +581,111 @@ namespace GameDamageCalculator.Database
                 }
             },
         };
-        
+
+        /// <summary>
+        /// 공성전 잡몹 (요일별 라운드에 등장). 같은 이름은 요일 내 모든 라운드에서 같은 스탯.
+        /// 라운드별 보스 취급 여부는 SiegeStages의 StageEnemy.IsBoss로 표기.
+        /// 룩·챈슬러는 게임상 영웅이지만 공성전 몹 버전으로 별도 정의(스킬은 추후).
+        /// </summary>
+        public static readonly List<Enemy> SiegeMobs = new List<Enemy>
+        {
+            // 토요일 — 경비대 룩 (Lv.70, 4성)
+            new Enemy
+            {
+                Id = 501,
+                Name = "룩",
+                EnemyType = EnemyType.Siege,
+                IsBoss = false,
+                Stats = new BaseStatSet
+                {
+                    Atk = 542,
+                    Def = 689,
+                    Hp = 8650,
+                    Spd = 15,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 0
+                }
+            },
+            // 토요일 — 경비대장 챈슬러 (Lv.70, 4성)
+            new Enemy
+            {
+                Id = 502,
+                Name = "챈슬러",
+                EnemyType = EnemyType.Siege,
+                IsBoss = false,
+                Stats = new BaseStatSet
+                {
+                    Atk = 849,
+                    Def = 466,
+                    Hp = 7870,
+                    Spd = 21,
+                    Cri = 0,
+                    Cri_Dmg = 150,
+                    Eff_Hit = 0
+                }
+            },
+        };
+
+        /// <summary>
+        /// 공성전 요일별 라운드 구성 (Stage.Waves = 라운드). EnemyId로 SiegeMobs/SiegeBosses 참조.
+        /// 1~2라운드는 일반 적군, 3라운드는 모든 적이 보스 취급(StageEnemy.IsBoss = true).
+        /// </summary>
+        public static readonly Dictionary<string, Stage> SiegeStages = new Dictionary<string, Stage>
+        {
+            ["토요일"] = new Stage
+            {
+                Id = 6,
+                Name = "토요일 공성전 (혹한의 성)",
+                StageType = EnemyType.Siege,
+                Waves = new List<StageWave>
+                {
+                    // 라운드 1 (일반 적군): 룩, 챈슬러, 룩
+                    new StageWave
+                    {
+                        WaveNumber = 1,
+                        Enemies = new List<StageEnemy>
+                        {
+                            new StageEnemy { EnemyId = 501, Position = 1 }, // 룩
+                            new StageEnemy { EnemyId = 502, Position = 2 }, // 챈슬러
+                            new StageEnemy { EnemyId = 501, Position = 3 }, // 룩
+                        }
+                    },
+                    // 라운드 2 (일반 적군): 룩, 챈슬러, 룩
+                    new StageWave
+                    {
+                        WaveNumber = 2,
+                        Enemies = new List<StageEnemy>
+                        {
+                            new StageEnemy { EnemyId = 501, Position = 1 },
+                            new StageEnemy { EnemyId = 502, Position = 2 },
+                            new StageEnemy { EnemyId = 501, Position = 3 },
+                        }
+                    },
+                    // 라운드 3 (모두 보스 취급): 룩(보스), 스파이크(보스), 챈슬러(보스)
+                    new StageWave
+                    {
+                        WaveNumber = 3,
+                        Enemies = new List<StageEnemy>
+                        {
+                            new StageEnemy { EnemyId = 501, Position = 1, IsBoss = true }, // 룩
+                            new StageEnemy { EnemyId = 6,   Position = 2, IsBoss = true }, // 스파이크 (SiegeBosses)
+                            new StageEnemy { EnemyId = 502, Position = 3, IsBoss = true }, // 챈슬러
+                        }
+                    },
+                }
+            },
+        };
+
         /// <summary>
         /// 보스 목록 (IsBoss = true)
         /// </summary>
         public static List<Enemy> Bosses => SiegeBosses.Concat(RaidBosses).Concat(ForestBosses).Concat(GrowthDungeonBosses).ToList();
 
         /// <summary>
-        /// 일반몹 목록 (IsBoss = false)
+        /// 일반몹 목록 (IsBoss = false) — 일반 잡몹 + 공성전 잡몹
         /// </summary>
-        public static List<Enemy> Commons => Mobs;
+        public static List<Enemy> Commons => Mobs.Concat(SiegeMobs).ToList();
 
         /// <summary>
         /// 모든 적 목록
