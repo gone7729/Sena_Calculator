@@ -2829,6 +2829,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 120,
                                 Ratio = 62,
                                 Bonus = new BuffSet { CriBonusDmg = 27, CriBonusDmgPerHit = true },
+                                DmgBonusPerMissingTarget = 7,
                                 Effect = "치명타 발생 시 각 공격마다 물리 공격력 27% 추가 피해, 피해 대상 1명 줄어들 때마다 각 공격마다 7% 피해량 증가, 직접 피해로 처치 시 [검무] 쿨타임 감소 60초"
                                 } },
                             { 1, new SkillLevelData {
@@ -2837,6 +2838,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 120,
                                 Ratio = 75,
                                 Bonus = new BuffSet { CriBonusDmg = 27, CriBonusDmgPerHit = true },
+                                DmgBonusPerMissingTarget = 7,
                                 Effect = "치명타 발생 시 각 공격마다 물리 공격력 27% 추가 피해, 피해 대상 1명 줄어들 때마다 각 공격마다 7% 피해량 증가, 직접 피해로 처치 시 [검무] 쿨타임 감소 60초"
                                 } }
                         },
@@ -4690,6 +4692,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 40, Duration = 2 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "석화 해제 시 시전자 공격력의 120% 피해"
                                 } },
                             { 1, new SkillLevelData {
@@ -4701,6 +4704,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 50, Duration = 2 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "석화 해제 시 시전자 공격력의 120% 피해"
                                 } }
                         }
@@ -5310,7 +5314,9 @@ namespace GameDamageCalculator.Database
                                 // 모든 피해 무효화 [피격 3회]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 3, Type = DamageNullType.All } },
                                 // 사망 시 생명력 80%로 부활 (전투당 1회)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } },
+                                // 신성: 모든 공격 1회 발동 시 1중첩 [최대 6중첩], 중첩당 마법 공격력 +5%
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, StacksPerTrigger = 1, MaxStacks = 6, IsPerStack = true, Buff = new BuffSet { MagicAtk_Rate = 5 } }
                             },
                             Effect = "축복 40%, 무효화[피격3회], 생명력 50% 이하 시 마법공격력 160% 보호막[3턴](전투당1회), 모든 공격 1회당 신성 1중첩(최대6, 중첩당 마법공격력 +5%)"
                         }},
@@ -5323,7 +5329,9 @@ namespace GameDamageCalculator.Database
                                 // 모든 피해 무효화 [피격 3회]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 3, Type = DamageNullType.All } },
                                 // 사망 시 생명력 80%로 부활 (전투당 1회)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 80, OncePerBattle = true } },
+                                // 신성: 모든 공격 1회 발동 시 1중첩 [최대 6중첩], 중첩당 마법 공격력 +5%
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, StacksPerTrigger = 1, MaxStacks = 6, IsPerStack = true, Buff = new BuffSet { MagicAtk_Rate = 5 } }
                             },
                             Effect = "축복 25%(피격 제한 최대 생명력 25%), 무효화[피격3회], 생명력 50% 이하 시 마법공격력 160% 보호막[3턴](전투당1회), 모든 공격 1회당 신성 1중첩(최대6, 중첩당 마법공격력 +5%)"
                         }}
@@ -6486,6 +6494,7 @@ namespace GameDamageCalculator.Database
                                 // 대상 최대 생명력 7% (시전자 공격력 75% 제한). 대상 현재 생명력 비례 최대 50% 피해량 증가
                                 TargetMaxHpRatio = 7,
                                 AtkCap = 75,
+                                CurrentHpBonusDmgMax = 50,
                                 Effect = "마법 공격력 70% + 대상 최대 생명력 7%(공격력 75% 제한) 2회 피해. 대상 현재 생명력 비례 최대 50% 피해량 증가"
                                 } },
                             { 1, new SkillLevelData {
@@ -6495,6 +6504,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 80,
                                 TargetMaxHpRatio = 9,
                                 AtkCap = 75,
+                                CurrentHpBonusDmgMax = 50,
                                 Effect = "강화: 마법 공격력 80% + 대상 최대 생명력 9%(공격력 75% 제한) 2회 피해. 대상 현재 생명력 비례 최대 50% 피해량 증가"
                                 } }
                         },
@@ -9273,22 +9283,24 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Cooldown = 104,
                                 Ratio = 115,
+                                DmgBonusPerMissingTarget = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45, Duration = 2 }
                                 },
-                                Effect = "기절 [2턴], 피해 대상 1명 줄어들 때마다 피해량 15% 증가(모델 미지원)"
+                                Effect = "기절 [2턴], 피해 대상 1명 줄어들 때마다 피해량 15% 증가"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 104,
                                 Ratio = 150,
+                                DmgBonusPerMissingTarget = 15,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Stun, Stacks = 1, Chance = 45, Duration = 2 }
                                 },
-                                Effect = "기절 [2턴], 피해 대상 1명 줄어들 때마다 피해량 15% 증가(모델 미지원)"
+                                Effect = "기절 [2턴], 피해 대상 1명 줄어들 때마다 피해량 15% 증가"
                                 } }
                         }
                     },
@@ -9305,11 +9317,12 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 104,
                                 Ratio = 70,
                                 IgnoresTurnDamageImmunity = true,
+                                DmgBonusPerMissingTarget = 8,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 }
                                 },
-                                Effect = "관통(피해 면역 무시), 각 공격마다 화상[2턴], 피해 대상 1명 줄어들 때마다 피해량 8% 증가(모델 미지원)"
+                                Effect = "관통(피해 면역 무시), 각 공격마다 화상[2턴], 피해 대상 1명 줄어들 때마다 피해량 8% 증가"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
@@ -9317,11 +9330,12 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 104,
                                 Ratio = 80,
                                 IgnoresTurnDamageImmunity = true,
+                                DmgBonusPerMissingTarget = 8,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
                                 },
-                                Effect = "관통(피해 면역 무시), 각 공격마다 화상[2턴], 피해 대상 1명 줄어들 때마다 피해량 8% 증가(모델 미지원)"
+                                Effect = "관통(피해 면역 무시), 각 공격마다 화상[2턴], 피해 대상 1명 줄어들 때마다 피해량 8% 증가"
                                 } }
                         }
                     }
@@ -9603,7 +9617,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "빙결[3턴]. 주 대상과 동일 열 적군: 물공 65%+최대HP15% 1회, 빙결 60%[3턴](모델 미지원 — 단일 대상만 계산)"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "빙결[3턴](빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한). 주 대상과 동일 열 적군: 물공 65%+최대HP15% 1회, 빙결 60%[3턴](동일 열 추가 대상은 모델 미지원 — 단일 대상만 계산)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
@@ -9616,7 +9631,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "빙결[3턴]. 주 대상과 동일 열 적군: 물공 75%+최대HP18% 1회, 빙결 70%[3턴](모델 미지원 — 단일 대상만 계산)"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "빙결[3턴](빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한). 주 대상과 동일 열 적군: 물공 75%+최대HP18% 1회, 빙결 70%[3턴](동일 열 추가 대상은 모델 미지원 — 단일 대상만 계산)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -9642,7 +9658,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 40, Duration = 2 }
                                 },
-                                Effect = "각 공격마다 빙결[2턴]"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "각 공격마다 빙결[2턴](빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
@@ -9655,7 +9672,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 50, Duration = 2 }
                                 },
-                                Effect = "각 공격마다 빙결[2턴]"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "각 공격마다 빙결[2턴](빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -10518,6 +10536,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30, Duration = 1 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "석화 해제 시 시전자 공격력 120% 피해"
                                 } },
                             { 1, new SkillLevelData {
@@ -10528,6 +10547,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30, Duration = 1 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "석화 해제 시 시전자 공격력 120% 피해"
                                 } }
                         }
@@ -10548,6 +10568,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30, Duration = 1 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "치명타 확률 50% 추가 적용"
                                 } },
                             { 1, new SkillLevelData {
@@ -10559,6 +10580,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 30, Duration = 1 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "치명타 확률 50% 추가 적용"
                                 } }
                         },
@@ -10611,6 +10633,7 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 40, Duration = 2 },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Dmg_Rdc = 11 } }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "모든 아군 감쇄[받피감11%,3턴], 자신 분신[5턴]+행동제어면역[3턴]"
                                 }},
                             { 1, new SkillLevelData {
@@ -10624,6 +10647,7 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 40, Duration = 2 },
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 3, Buff = new BuffSet { Dmg_Rdc = 15 } }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
                                 Effect = "모든 아군 감쇄[받피감15%,3턴], 자신 분신[5턴]+행동제어면역[3턴]"
                                 }}
                         }
@@ -10644,6 +10668,7 @@ namespace GameDamageCalculator.Database
                                 TargetMaxHpRatio = 6,
                                 AtkCap = 100,
                                 HealAtkRatio = 35,
+                                DmgBonusPerMissingTarget = 10,
                                 Effect = "치명타 확률 50% 추가 적용, 피해 대상 1명 줄 때마다 피해량 10% 증가"
                                 }},
                             { 1, new SkillLevelData {
@@ -10655,6 +10680,7 @@ namespace GameDamageCalculator.Database
                                 TargetMaxHpRatio = 7,
                                 AtkCap = 100,
                                 HealAtkRatio = 35,
+                                DmgBonusPerMissingTarget = 10,
                                 Effect = "치명타 확률 50% 추가 적용, 피해 대상 1명 줄 때마다 피해량 10% 증가"
                                 }}
                         },
@@ -10678,6 +10704,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 },
                                 Ratio = 68,
                                 HealAtkRatio = 35,
+                                DmgBonusPerMissingTarget = 5,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Blk_Red = 25 } }
@@ -10691,6 +10718,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet{ Cri = 50, Arm_Pen = 40 },
                                 Ratio = 82,
                                 HealAtkRatio = 35,
+                                DmgBonusPerMissingTarget = 5,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Blk_Red = 33 } }
@@ -13016,10 +13044,18 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.EnemyDeath, StacksPerTrigger = 1, MaxStacks = 4, IsPerStack = true, Buff = new BuffSet { Dmg_Dealt_Type = 11 } }
+                            },
                             Effect = "자신: 적 1명 사망 시 사냥술 1중첩[최대 4중첩]. 사냥술(중첩) 주는 물리 피해량 +11%"
                         }},
                         { 1, new PassiveLevelData {
                             // 강화: 물리 피해량 증가 13% (사냥술 중첩당)
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.EnemyDeath, StacksPerTrigger = 1, MaxStacks = 4, IsPerStack = true, Buff = new BuffSet { Dmg_Dealt_Type = 13 } }
+                            },
                             Effect = "강화: 사냥술 중첩당 주는 물리 피해량 +13%(최대 4중첩). 적 1명 사망 시 1중첩"
                         }}
                     }
@@ -13525,6 +13561,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Duration = 1, Chance = 45 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
                                 Effect = "단일 적군. 빙결[45%][1턴](해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
                                 } },
                             { 1, new SkillLevelData {
@@ -13535,7 +13572,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Duration = 1, Chance = 50 }
                                 },
-                                Effect = "강화: 빙결 확률 50%. 단일 적군"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "강화: 빙결 확률 50%. 단일 적군(빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
                                 } }
                         }
                     },
@@ -13555,7 +13593,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Duration = 2, Chance = 75 }
                                 },
-                                Effect = "적군 3명. 빙결[75%][2턴]"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "적군 3명. 빙결[75%][2턴](빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
@@ -13566,7 +13605,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Duration = 2, Chance = 75 }
                                 },
-                                Effect = "강화: 145%. 적군 3명. 빙결[75%][2턴]"
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
+                                Effect = "강화: 145%. 적군 3명. 빙결[75%][2턴](빙결 해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -14553,7 +14593,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 50, Duration = 2 }
                                 },
-                                Effect = ""
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
+                                Effect = "석화 해제 시 시전자 공격력의 120% 피해"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
@@ -14565,7 +14606,8 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Stacks = 1, Chance = 60, Duration = 2 }
                                 },
-                                Effect = ""
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Petrify, AtkRatio = 120 },
+                                Effect = "강화: 석화 확률 60%. 석화 해제 시 시전자 공격력의 120% 피해"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
@@ -15297,6 +15339,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
                                 Effect = "빙결[100%][3턴], 빙결 해제 시 대상 최대생명력 40% 방어무시(방무40%) 피해, 상한 시전자 공격력 300%"
                                 }},
                             { 1, new SkillLevelData {
@@ -15308,6 +15351,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
                                 Effect = "빙결[100%][3턴], 빙결 해제 시 대상 최대생명력 40% 방어무시(방무40%) 피해, 상한 시전자 공격력 300%"
                                 }}
                         },
@@ -15336,6 +15380,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 60, Duration = 2 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
                                 Effect = "모든 적군 빙결[60%][2턴], 빙결 해제 시 대상 최대생명력 40% 방어무시(방무40%) 피해, 상한 시전자 공격력 300%"
                                 }},
                             { 1, new SkillLevelData {
@@ -15347,6 +15392,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Freeze, Stacks = 1, Chance = 60, Duration = 2 }
                                 },
+                                CleanseExplosion = new CleanseExplosion { TargetStatus = StatusEffectType.Freeze, TargetMaxHpRatio = 40, ArmorPen = 40, AtkCap = 300 },
                                 Effect = "모든 적군 빙결[60%][2턴], 빙결 해제 시 대상 최대생명력 40% 방어무시(방무40%) 피해, 상한 시전자 공격력 300%"
                                 }}
                         },
