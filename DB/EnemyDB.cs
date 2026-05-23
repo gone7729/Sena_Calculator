@@ -15,8 +15,23 @@ namespace GameDamageCalculator.Database
         /// </summary>
         static EnemyDb()
         {
+            // 공성전 보스 스킬 연결 (이름 기반)
             foreach (var boss in SiegeBosses)
                 boss.Skills = SiegeBossSkillDb.Get(boss.Name);
+
+            // 공성전 잡몹 스킬 연결 (Id 기반 — 같은 이름이 라운드별 다른 스탯/스킬)
+            foreach (var mob in SiegeMobs)
+            {
+                mob.Skills = SiegeBossSkillDb.GetMobSkills(mob.Id);
+
+                // 토요일 룩·챈슬러 공성전 감쇄 패시브 (스파이크와 동일: 마법 90% / 1인 70% / 5인 90%)
+                if (mob.Id >= 501 && mob.Id <= 506)
+                {
+                    mob.MagicReduction = 90;
+                    mob.SingleTargetReduction = 70;
+                    mob.MultiTargetReduction = 90;
+                }
+            }
         }
 
         /// <summary>
