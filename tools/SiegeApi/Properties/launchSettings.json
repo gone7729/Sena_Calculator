@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "SiegeApi": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5179",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

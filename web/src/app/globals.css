@@ -788,3 +788,181 @@ html, body {
   color: var(--text-faint);
   cursor: not-allowed;
 }
+
+/* ===== 공성전 탐색 결과 ===== */
+.siege-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e0b2a6;
+  background: #fbeeea;
+  color: #b5503f;
+  border-radius: 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.siege-result {
+  margin-top: 20px;
+}
+
+.siege-score-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.siege-score-total,
+.siege-score-round {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.siege-score-total {
+  border-color: var(--accent);
+  background: var(--brand-soft);
+}
+
+.siege-score-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.siege-score-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.siege-score-round .siege-score-value {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.siege-result-sub {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 18px 0 8px;
+}
+
+.siege-party {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.siege-party-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.siege-party-pos {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.siege-party-name {
+  width: 120px;
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.siege-party-tr {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
+.siege-party-bar-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--hover);
+  overflow: hidden;
+}
+
+.siege-party-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.siege-party-dmg {
+  width: 150px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.siege-log {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.siege-log-row {
+  display: flex;
+  gap: 8px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.45;
+}
+
+.siege-log-row:last-child { border-bottom: none; }
+.siege-log-row.enemy { background: #fbeeea; }
+
+.siege-log-turn {
+  flex-shrink: 0;
+  width: 32px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.siege-log-actor {
+  flex-shrink: 0;
+  width: 78px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.siege-log-desc {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.siege-log-desc b { color: var(--brand); font-weight: 600; }
+
+.siege-note {
+  margin-top: 14px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}

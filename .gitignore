@@ -24,3 +24,7 @@ coord
 
 # IDE/빌드 캐시 (자동 생성)
 *.lscache
+
+# 시뮬 런타임 디버그 출력
+stat_debug.txt
+**/stat_debug.txt

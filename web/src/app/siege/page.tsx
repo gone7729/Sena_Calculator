@@ -29,12 +29,48 @@ const ROLES = ["전체", "공격형", "마법형", "만능형", "방어형", "�
 const MAX_PARTY = 8;
 const MIN_PARTY = 5;
 
+// 공성전 백엔드 (.NET SiegeApi). 로컬 개발 기본값, 배포 시 NEXT_PUBLIC_SIEGE_API로 덮어쓰기.
+const API_BASE = process.env.NEXT_PUBLIC_SIEGE_API ?? "http://localhost:5179";
+
+interface PartyMember {
+  id: number;
+  name: string;
+  transcend: number;
+  position: number;
+  totalDamage: number;
+  damageShare: number;
+}
+
+interface TurnLog {
+  turn: number;
+  actor: string;
+  isAlly: boolean;
+  actionType: string;
+  skillName: string;
+  damage: number;
+  description: string;
+}
+
+interface OptimizeResult {
+  score: number;
+  formation: string;
+  evaluatedCount: number;
+  totalTurns: number;
+  roundsCleared: number;
+  roundScore: Record<string, number>;
+  party: PartyMember[];
+  turnLogs: TurnLog[];
+}
+
 export default function SiegePage() {
   const [day, setDay] = useState("토");
   const [grade, setGrade] = useState("전체");
   const [role, setRole] = useState("전체");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [transcend, setTranscend] = useState<Record<number, number>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<OptimizeResult | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -62,6 +98,37 @@ export default function SiegePage() {
 
   const setHeroTranscend = (id: number, level: number) =>
     setTranscend((prev) => ({ ...prev, [id]: level }));
+
+  const runSearch = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const members = selectedHeroes.map((h) => ({
+        id: h.id,
+        transcend: transcend[h.id] ?? 6,
+      }));
+      const res = await fetch(`${API_BASE}/api/siege/optimize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day, members }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? `요청 실패 (${res.status})`);
+      }
+      setResult(await res.json());
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(
+        msg.includes("fetch")
+          ? `백엔드(${API_BASE})에 연결할 수 없습니다. SiegeApi 서버가 실행 중인지 확인하세요.`
+          : msg
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -183,15 +250,90 @@ export default function SiegePage() {
           <button
             type="button"
             className="siege-search-btn"
-            disabled={selectedHeroes.length < MIN_PARTY}
-            onClick={() => alert("탐색 백엔드 연동 예정 (SiegeOptimizer)")}
+            disabled={selectedHeroes.length < MIN_PARTY || loading}
+            onClick={runSearch}
           >
-            {selectedHeroes.length < MIN_PARTY
-              ? `탐색 실행 (${MIN_PARTY}명 이상 선택)`
-              : "탐색 실행"}
+            {loading
+              ? "탐색 중…"
+              : selectedHeroes.length < MIN_PARTY
+                ? `탐색 실행 (${MIN_PARTY}명 이상 선택)`
+                : "탐색 실행"}
           </button>
+
+          {error && <div className="siege-error">{error}</div>}
         </section>
       </div>
+
+      {/* ===== 탐색 결과 ===== */}
+      {result && (
+        <section className="panel siege-result">
+          <h2 className="panel-title">탐색 결과</h2>
+          <p className="panel-subtitle">
+            {boss} 공성전 · {result.formation} · {result.evaluatedCount}개 조합 평가 ·{" "}
+            {result.roundsCleared}라운드 클리어 · {result.totalTurns}턴
+          </p>
+
+          {/* 총점 + 라운드별 */}
+          <div className="siege-score-row">
+            <div className="siege-score-total">
+              <span className="siege-score-label">총 점수</span>
+              <span className="siege-score-value">
+                {Math.round(result.score).toLocaleString()}
+              </span>
+            </div>
+            {Object.entries(result.roundScore).map(([r, s]) => (
+              <div key={r} className="siege-score-round">
+                <span className="siege-score-label">R{r}</span>
+                <span className="siege-score-value">{Math.round(s).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 정배 (팀 구성 + 기여도) */}
+          <h3 className="siege-result-sub">정배 ({result.formation})</h3>
+          <div className="siege-party">
+            {result.party.map((p) => (
+              <div key={p.position} className="siege-party-row">
+                <span className="siege-party-pos">{p.position}</span>
+                <span className="siege-party-name">
+                  {p.name}
+                  <span className="siege-party-tr">{p.transcend}초월</span>
+                </span>
+                <div className="siege-party-bar-wrap">
+                  <div
+                    className="siege-party-bar"
+                    style={{ width: `${Math.min(100, p.damageShare)}%` }}
+                  />
+                </div>
+                <span className="siege-party-dmg">
+                  {Math.round(p.totalDamage).toLocaleString()} ({p.damageShare.toFixed(1)}%)
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* 턴 로그 */}
+          <h3 className="siege-result-sub">턴 로그 ({result.turnLogs.length})</h3>
+          <div className="siege-log">
+            {result.turnLogs.map((t, i) => (
+              <div
+                key={i}
+                className={`siege-log-row${t.isAlly ? "" : " enemy"}`}
+              >
+                <span className="siege-log-turn">T{t.turn}</span>
+                <span className="siege-log-actor">{t.actor}</span>
+                <span className="siege-log-desc">
+                  {t.skillName && <b>{t.skillName}</b>} {t.description}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <p className="siege-note">
+            ※ 템세팅(안정형·고점형)은 장비 옵티마이저 연동 후 제공됩니다.
+          </p>
+        </section>
+      )}
     </>
   );
 }
