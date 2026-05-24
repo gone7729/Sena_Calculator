@@ -33,6 +33,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double BestScore { get; set; }
         public SiegeBattleResult BestResult { get; set; }
         public int EvaluatedCount { get; set; }     // 평가한 (조합 × 진형) 수
+        public List<string> GearLog { get; set; } = new();   // 자동 장착된 영웅별 메인옵/부옵 값 로그
     }
 
     /// <summary>
@@ -53,7 +54,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (remaining < 0) remaining = 0;
 
             // 장비 자동 장착 (R3 보스 기준, 영웅별 1회) — 팀 탐색 전에 끝내 재사용
-            if (config.AutoEquip) EquipCandidates(config);
+            var gearLog = config.AutoEquip ? EquipCandidates(config) : new List<string>();
 
             SiegeOptimizerResult best = null;
             int evaluated = 0;
@@ -95,18 +96,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
             }
 
-            if (best != null) best.EvaluatedCount = evaluated;
-            return best ?? new SiegeOptimizerResult { EvaluatedCount = 0 };
+            if (best != null) { best.EvaluatedCount = evaluated; best.GearLog = gearLog; }
+            return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog };
         }
 
         /// <summary>
         /// 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 장착한다 (R3 보스를 타깃으로 영웅별 1회).
         /// 팀/진형 탐색 전에 한 번만 수행하고 결과(Equipment)를 그대로 재사용한다.
         /// </summary>
-        private void EquipCandidates(SiegeOptimizerConfig config)
+        private List<string> EquipCandidates(SiegeOptimizerConfig config)
         {
+            var log = new List<string>();
             var boss = ResolveBoss(config.SiegeStage);
-            if (boss == null) return;
+            if (boss == null) return log;
 
             var optimizer = new EquipmentOptimizer();
             foreach (var bc in config.FixedMembers.Concat(config.Candidates))
@@ -126,7 +128,31 @@ namespace GameDamageCalculator.Services.BattleEngine
                 };
                 var opt = optimizer.OptimizeForCharacterFast(bc, soloConfig, 0, GetGearConstraints(bc));
                 bc.Equipment = opt?.BestLoadout;
+                log.Add(FormatGear(bc));
             }
+            return log;
+        }
+
+        /// <summary>장착된 장비의 세트·메인옵 값·부옵 값을 사람이 읽기 쉬운 문자열로.</summary>
+        private static string FormatGear(BattleCharacter bc)
+        {
+            var lo = bc.Equipment;
+            if (lo == null) return $"{bc.Character.Name}: 장비 없음";
+
+            var sets = lo.GetActiveSets()?.Select(s => $"{s.SetName}{s.PieceCount}");
+            var sb = new System.Text.StringBuilder();
+            sb.Append($"[{bc.Character.Name}] 세트 {(sets != null ? string.Join("+", sets) : "")}");
+            foreach (var e in lo.GetEquipments())
+            {
+                var subs = e.SubSlots
+                    .Where(s => !string.IsNullOrEmpty(s.StatName))
+                    .Select(s => $"{s.StatName} {s.DisplayValue}");
+                sb.Append($"\n  {e.Name}: 메인 {e.MainStatName} {e.MainStatValue} | 부옵 {string.Join(", ", subs)}");
+            }
+            // 장신구
+            if (lo.Accessory != null)
+                sb.Append($"\n  장신구: {lo.Accessory.Grade}성 메인 {lo.Accessory.MainOption}{(string.IsNullOrEmpty(lo.Accessory.SubOption) ? "" : $" / 부 {lo.Accessory.SubOption}")}");
+            return sb.ToString();
         }
 
         // 딜러 = 공격형·마법형·만능형 / 딜러제외(서포터·탱커) = 지원형·방어형

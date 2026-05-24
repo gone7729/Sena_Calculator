@@ -117,6 +117,7 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
         RoundScore = (r.BestResult?.RoundScore ?? new())
             .OrderBy(kv => kv.Key)
             .ToDictionary(kv => kv.Key.ToString(), kv => kv.Value),
+        GearLog = r.GearLog ?? new(),
         Party = party,
         TurnLogs = (r.BestResult?.TurnLogs ?? new()).Select(t => new TurnLogDto
         {
@@ -161,6 +162,7 @@ class OptimizeResponse
     public int TotalTurns { get; set; }
     public int RoundsCleared { get; set; }
     public Dictionary<string, double> RoundScore { get; set; }
+    public List<string> GearLog { get; set; }   // 영웅별 선택 장비 메인옵/부옵 값
     public List<PartyMemberDto> Party { get; set; }
     public List<TurnLogDto> TurnLogs { get; set; }
 }
