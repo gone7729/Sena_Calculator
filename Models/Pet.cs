@@ -30,6 +30,9 @@ namespace GameDamageCalculator.Models
         /// </summary>
         public Dictionary<int, PetSkill> EnhanceBonus { get; set; }
 
+        /// <summary>스킬강화가 가능한 성급 (6성에서만 가능).</summary>
+        public const int MaxSkillStar = 6;
+
         /// <summary>
         /// 성급별 기본 스탯 가져오기
         /// </summary>
@@ -54,8 +57,8 @@ namespace GameDamageCalculator.Models
                 ? (skill.Buff?.Clone() ?? new BuffSet())
                 : new BuffSet();
 
-            // 강화 효과: 0이 아닌 필드만 절대값으로 변경(Override)
-            if (enhance > 0 && EnhanceBonus != null
+            // 강화 효과: 6성에서만 가능. 0이 아닌 필드만 절대값으로 변경(Override)
+            if (star == MaxSkillStar && enhance > 0 && EnhanceBonus != null
                 && EnhanceBonus.TryGetValue(enhance, out var bonus) && bonus.Buff != null)
             {
                 result.Override(bonus.Buff);
@@ -72,7 +75,7 @@ namespace GameDamageCalculator.Models
                 ? (skill.Debuff?.Clone() ?? new DebuffSet())
                 : new DebuffSet();
 
-            if (enhance > 0 && EnhanceBonus != null
+            if (star == MaxSkillStar && enhance > 0 && EnhanceBonus != null
                 && EnhanceBonus.TryGetValue(enhance, out var bonus) && bonus.Debuff != null)
             {
                 result.Override(bonus.Debuff);
