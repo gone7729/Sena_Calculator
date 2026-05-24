@@ -137,7 +137,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 역할 기반 장비 탐색 제약. 시뮬은 치명·약점 항상 100% 발동이라 치확%·약확%는 제외(치피%·공%만).
+        /// 역할 기반 장비 탐색 제약. 치명·약점은 확률 기반 기댓값이라 치확%·약확%도 의미가 있어 포함.
         /// 딜러: 세트 복수자/암살자/추적자/선봉장. 딜러제외: 복수자/수문장(+받피감/생명력/방어력).
         /// </summary>
         private static GearConstraints GetGearConstraints(BattleCharacter bc)
@@ -146,16 +146,16 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ? new GearConstraints
                 {
                     AllowedSets = new[] { "복수자", "암살자", "추적자", "선봉장" },
-                    WeaponMains = new[] { "치명타피해%", "공격력%" },
+                    WeaponMains = new[] { "치명타확률%", "치명타피해%", "공격력%", "약점공격확률%" },
                     ArmorMains = new[] { "공격력%" },
-                    SubOptions = new[] { "치명타피해%", "공격력%", "공격력" },
+                    SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력" },
                 }
                 : new GearConstraints
                 {
                     AllowedSets = new[] { "복수자", "수문장" },
-                    WeaponMains = new[] { "치명타피해%", "공격력%" },
+                    WeaponMains = new[] { "치명타확률%", "치명타피해%", "공격력%", "약점공격확률%" },
                     ArmorMains = new[] { "공격력%", "받피감%" },
-                    SubOptions = new[] { "치명타피해%", "공격력%", "공격력", "생명력%", "방어력%" },
+                    SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력", "생명력%", "방어력%" },
                 };
         }
 

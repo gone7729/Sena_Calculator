@@ -57,10 +57,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double FinalDef { get; set; }
         public double FinalSpd { get; set; }
 
-        // 전투 시작 시 집계된 버프 스냅샷 (피증·보스피증·치피·약피·방관 등 데미지 배수).
-        // FinalAtk엔 이미 공%가 반영됐지만 이 배수들은 별도라, 데미지 계산 시 여기서 읽는다.
-        // 전투 중 스킬 버프는 Effects에 추가되어 합산됨.
-        public BuffSet InitialBuffs { get; set; } = new BuffSet();
+        // 전투 시작 시 최종 표시스탯 스냅샷 (치확·치피·약확·약피·피증·보스피증·타입피증·방관·n인기 등).
+        // gear+세트+초월+버프+패시브가 모두 집계된 값. FinalAtk엔 공%만 반영됐고 이 배수들은 별도라
+        // 데미지 계산 시 여기서 읽는다. 전투 중 스킬 버프는 Effects에 추가되어 델타로 합산됨.
+        public BaseStatSet DisplayStats { get; set; } = new BaseStatSet();
 
         // 패시브 스택 트리거 카운터
         // Key: 효과 ID, Value: 현재 누적 공격 횟수
