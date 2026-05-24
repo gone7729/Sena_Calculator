@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const guideNav = [
   { label: "영웅", href: "/heroes" },
   { label: "레이드", href: "#" },
-  { label: "공성전", href: "#" },
+  { label: "공성전", href: "/siege" },
   { label: "길드전", href: "#" },
 ];
 
