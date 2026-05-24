@@ -77,6 +77,43 @@ namespace GameDamageCalculator.Services.Optimizer
         }
 
         /// <summary>
+        /// 빠른 단일 캐릭터 최적화 (공성전 다인 탐색용).
+        /// 전체 메인옵 조합(625) 대신: ① 81세트를 공격력% 메인옵·무서브옵으로 1회씩 평가해 최고 세트 선정
+        /// → ② 그 세트에만 서브옵 그리디 + 장신구 최적화. 풀탐색 대비 수백배 빠름(영웅당 ~1초).
+        /// </summary>
+        public CharacterOptimalEquipment OptimizeForCharacterFast(
+            BattleCharacter battleChar, BattleConfig config, int charIndex)
+        {
+            EquipmentLoadout best = null;
+            EquipSetConfig bestSet = null;
+            double bestDamage = -1;
+
+            foreach (var setConfig in SetCombination.GenerateAllCombinations())
+            {
+                var lo = BuildLoadout(setConfig, "공격력%", "공격력%", "공격력%", "공격력%");
+                double d = EvaluateDamage(battleChar, config, charIndex, lo);
+                if (d > bestDamage) { bestDamage = d; best = lo; bestSet = setConfig; }
+            }
+
+            if (best != null)
+            {
+                OptimizeSubOptions(best, battleChar, config, charIndex);
+                OptimizeAccessory(best, battleChar, config, charIndex);
+                bestDamage = EvaluateDamage(battleChar, config, charIndex, best);
+            }
+
+            return new CharacterOptimalEquipment
+            {
+                CharacterName = battleChar.Character.Name,
+                PartyIndex = charIndex,
+                BestSetConfig = bestSet,
+                BestLoadout = best,
+                EstimatedDamage = bestDamage,
+                TopLoadouts = new List<RankedLoadout>(),
+            };
+        }
+
+        /// <summary>
         /// 파티 전체 최적화 (각 캐릭터 독립 최적화)
         /// </summary>
         public OptimizerResult OptimizeParty(BattleConfig config)

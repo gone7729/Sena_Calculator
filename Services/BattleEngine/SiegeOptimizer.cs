@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
+using GameDamageCalculator.Services.Optimizer;
 
 namespace GameDamageCalculator.Services.BattleEngine
 {
@@ -18,6 +20,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double PetOptionHpRate { get; set; }
         public int MaxTurns { get; set; } = 70;
         public int PartySize { get; set; } = 5;
+
+        // 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 자동 장착할지 (R3 보스 기준 1회)
+        public bool AutoEquip { get; set; } = true;
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -46,6 +51,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             int remaining = config.PartySize - config.FixedMembers.Count;
             if (remaining < 0) remaining = 0;
+
+            // 장비 자동 장착 (R3 보스 기준, 영웅별 1회) — 팀 탐색 전에 끝내 재사용
+            if (config.AutoEquip) EquipCandidates(config);
 
             SiegeOptimizerResult best = null;
             int evaluated = 0;
@@ -89,6 +97,45 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             if (best != null) best.EvaluatedCount = evaluated;
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0 };
+        }
+
+        /// <summary>
+        /// 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 장착한다 (R3 보스를 타깃으로 영웅별 1회).
+        /// 팀/진형 탐색 전에 한 번만 수행하고 결과(Equipment)를 그대로 재사용한다.
+        /// </summary>
+        private void EquipCandidates(SiegeOptimizerConfig config)
+        {
+            var boss = ResolveBoss(config.SiegeStage);
+            if (boss == null) return;
+
+            var optimizer = new EquipmentOptimizer();
+            foreach (var bc in config.FixedMembers.Concat(config.Candidates))
+            {
+                if (bc == null || bc.Equipment != null) continue;   // 이미 장비 지정 시 유지
+                var soloConfig = new BattleConfig
+                {
+                    AllyParty = new List<BattleCharacter> { bc },
+                    TargetEnemy = boss,
+                    FormationName = "기본 진형",
+                    AllyPet = config.AllyPet,
+                    PetStar = config.PetStar,
+                    PetEnhance = config.PetEnhance,
+                    PetOptionAtkRate = config.PetOptionAtkRate,
+                    PetOptionDefRate = config.PetOptionDefRate,
+                    PetOptionHpRate = config.PetOptionHpRate,
+                };
+                var opt = optimizer.OptimizeForCharacterFast(bc, soloConfig, 0);
+                bc.Equipment = opt?.BestLoadout;
+            }
+        }
+
+        /// <summary>스테이지 마지막 라운드(R3)의 보스 적을 EnemyDb에서 조회 (장비 평가 타깃).</summary>
+        private static Enemy ResolveBoss(Stage stage)
+        {
+            var wave = stage?.Waves?.OrderByDescending(w => w.WaveNumber).FirstOrDefault();
+            var se = wave?.Enemies?.FirstOrDefault(e => e.IsBoss) ?? wave?.Enemies?.FirstOrDefault();
+            if (se == null) return null;
+            return EnemyDb.AllEnemies.FirstOrDefault(e => e.Id == se.EnemyId);
         }
 
         /// <summary>pool에서 k개 조합 (C(N,k)). k=0이면 빈 조합 하나.</summary>
