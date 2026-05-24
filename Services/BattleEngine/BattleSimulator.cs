@@ -187,7 +187,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 FinalDef = statResult.FinalDef,
                 FinalSpd = statResult.FinalSpd,
                 RotationIndex = 0,
-                TotalDamageDealt = 0
+                TotalDamageDealt = 0,
+                // 전투 시작 시점 버프 집계 스냅샷 (피증·보스피증·치피·약피·방관 등 — 데미지 배수용)
+                InitialBuffs = partyEffects.GetTotalBuffs(),
             };
 
             // 상시(Immediate) 패시브 피해 무효화 충전 (예: 자신 모든 피해 무효화[피격 N회])

@@ -56,6 +56,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 1라운드 적 생성
             state.InitializeRound(1);
+            ApplyStandingEnemyDebuffs(state, config);   // 아군 패시브 방깎·펫 보스취약 등 상시 디버프
 
             // 선공 결정 (팀 총 속공치, 동률 랜덤)
             double allySpd = state.AllyTotalSpd, enemySpd = state.EnemyTotalSpd;
@@ -78,6 +79,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             while (t < state.MaxTurns)
             {
                 state.CurrentTurn = t;
+
+                // 비트리거 상시 면역(예: 풍연 빙결 면역) 매 턴 갱신 — 시전자 생존 동안 유지
+                ApplyStandingImmunities(state);
 
                 // 스킬턴: 0턴부터 2턴마다, 선/후공 번갈아 (턴 미소모, 기본공격 안 함)
                 if (t % 2 == 0)
@@ -109,6 +113,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 시작 (T{t + 1})");
                     state.CurrentRound++;
                     state.InitializeRound(state.CurrentRound);
+                    ApplyStandingEnemyDebuffs(state, config);   // 새 라운드 적에 상시 디버프 재적용
                     order = BuildActionOrder(state);   // 적 교체 → 행동순 재구성
                     cursor = 0;
                 }
@@ -159,11 +164,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (byAlly)
             {
-                // 아군: 쿨 충족 스킬 1개 (속공 높은 순으로 첫 사용가능). CC(행동불가) 아군은 제외. 한 명만.
-                foreach (var ally in state.AllyStates
-                             .Where(a => !a.IsDead && !a.Effects.HasActionBlockingCC())
-                             .OrderByDescending(a => a.FinalSpd))
+                // 아군 스킬턴: 한 명만 시전하되 라운드로빈(AllyRotationCursor)으로 순회 →
+                // 속공 높은 딜러가 독점하지 않고 버퍼/서포터도 자기 스킬을 시전할 기회를 얻는다.
+                int n = state.AllyStates.Count;
+                for (int k = 0; k < n; k++)
                 {
+                    int idx = (state.AllyRotationCursor + k) % n;
+                    var ally = state.AllyStates[idx];
+                    if (ally.IsDead || ally.Effects.HasActionBlockingCC()) continue;
+
                     var skill = PickAllySkill(ally);
                     if (skill == null) continue;
 
@@ -176,7 +185,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                         ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
                         RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
                     }
-                    LogSkillSideEffects(state, ally, skill);   // 스킬 버프/디버프 로그(단계1: [미적용] 표기)
+                    ApplySkillEffects(state, ally, skill, targets);   // 스킬 버프(아군)/디버프(적) 적용 + 로그
+                    state.AllyRotationCursor = (idx + 1) % n;          // 다음 스킬턴은 다음 아군부터
 
                     double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
                     if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
@@ -317,6 +327,11 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             var debuffs = target.Effects.GetTotalDebuffs();
 
+            // 시전자 공격성 버프 = 전투시작 스냅샷(InitialBuffs) + 전투 중 스킬 버프(Effects).
+            // FinalAtk엔 공%만 반영됐고, 피증·보스피증·치피·약피·방관 등 배수는 여기서 합산해 데미지에 반영.
+            var allyBuffs = (ally.InitialBuffs ?? new BuffSet()).Clone();
+            allyBuffs.Add(ally.Effects.GetTotalBuffs());
+
             var input = new DamageCalculator.DamageInput
             {
                 Character = character,
@@ -326,8 +341,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                 FinalAtk = ally.FinalAtk,
                 FinalDef = ally.FinalDef,
                 FinalHp = ally.MaxHp,
-                CritDamage = baseStats.Cri_Dmg,
+                CritDamage = baseStats.Cri_Dmg + allyBuffs.Cri_Dmg,
                 WeakpointDmg = baseStats.Wek_Dmg,
+                WeakpointDmgBuff = allyBuffs.Wek_Dmg,
+                DmgDealt = allyBuffs.Dmg_Dealt,
+                DmgDealtType = allyBuffs.Dmg_Dealt_Type + allyBuffs.Mark_Energeia + allyBuffs.Mark_Purify,
+                DmgDealtBoss = allyBuffs.Dmg_Dealt_Bos,
+                Dmg1to3 = allyBuffs.Dmg_Dealt_1to3,
+                Dmg4to5 = allyBuffs.Dmg_Dealt_4to5,
+                ArmorPen = allyBuffs.Arm_Pen,
                 BossDef = enemy.Stats.Def,
                 // 공성전 감쇄(물/마·타겟수)는 합연산이 아니라 곱연산으로 후처리 (아래) — DamageCalculator엔 0으로
                 BossDmgReduction = 0,
@@ -542,6 +564,65 @@ namespace GameDamageCalculator.Services.BattleEngine
             return list;
         }
 
+        /// <summary>라운드 시작 시: 아군 패시브의 적 대상 디버프 + 펫 디버프를 라운드 내 전체 적에 상시 적용.</summary>
+        private void ApplyStandingEnemyDebuffs(SiegeBattleState state, SiegeBattleConfig config)
+        {
+            var summaries = new List<string>();
+            foreach (var enemy in state.Enemies)
+            {
+                // 아군 패시브 적 디버프 (예: 비스킷 방깎)
+                foreach (var ally in state.AllyStates.Where(a => !a.IsDead))
+                {
+                    var passive = ally.Source.Character.Passive;
+                    if (passive == null) continue;
+                    foreach (var e in GetPassiveEffects(passive, ally))
+                    {
+                        if (e.Type != PersistentEffectType.Debuff || e.Debuff == null) continue;
+                        if (e.Target != EffectTarget.Enemy && e.Target != EffectTarget.AllEnemies) continue;
+                        AddEnemyDebuff(enemy, e.Debuff, 99, $"siege_pasdebuff:{ally.PartyIndex}:{enemy.Position}");
+                    }
+                }
+                // 펫 디버프 (예: 윈디 보스취약)
+                if (config.AllyPet != null)
+                {
+                    var pd = config.AllyPet.GetSkillDebuff(config.PetStar, config.PetEnhance);
+                    if (pd != null && !string.IsNullOrEmpty(SummarizeDebuff(pd)))
+                        AddEnemyDebuff(enemy, pd, 99, $"siege_petdebuff:{enemy.Position}");
+                }
+            }
+            // 로그 (라운드당 1회): 적1 기준 디버프 요약
+            var first = state.Enemies.FirstOrDefault();
+            if (first != null)
+            {
+                var s = SummarizeDebuff(first.Effects.GetTotalDebuffs());
+                if (!string.IsNullOrEmpty(s))
+                    Log(state, "시스템", true, ActionType.DebuffApplied, "상시 디버프", 0,
+                        $"R{state.CurrentRound} 적 상시 디버프: {s}");
+            }
+        }
+
+        /// <summary>비트리거 패시브 면역(예: 풍연 빙결 면역[상시])을 매 턴 갱신 — 시전자 생존 동안 유지.</summary>
+        private void ApplyStandingImmunities(SiegeBattleState state)
+        {
+            foreach (var ally in state.AllyStates.Where(a => !a.IsDead))
+            {
+                var passive = ally.Source.Character.Passive;
+                if (passive == null) continue;
+                foreach (var e in GetPassiveEffects(passive, ally))
+                {
+                    if (e.Type != PersistentEffectType.Immunity || e.StatusImmunity?.Types == null) continue;
+                    if (e.ApplyMode == ApplyMode.Triggered) continue;   // 평타 트리거형은 TriggerAllyImmunity가 처리
+                    IEnumerable<CharacterBattleState> targets =
+                        e.Target == EffectTarget.Party ? state.AllyStates : new[] { ally };
+                    foreach (var tgt in targets)
+                        foreach (var type in e.StatusImmunity.Types)
+                            tgt.StatusImmunityTurns[type] = Math.Max(
+                                tgt.StatusImmunityTurns.GetValueOrDefault(type),
+                                Math.Max(1, e.StatusImmunity.Duration));
+                }
+            }
+        }
+
         #endregion
 
         #region DoT (아군 → 적 지속피해)
@@ -649,11 +730,15 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         private Skill PickAllySkill(CharacterBattleState ally)
         {
-            // 간략: 쿨 충족 스킬 중 SkillType 높은 순 (궁→4→3→2→1). 4번에서 로테이션 정교화.
+            // 쿨 충족 스킬 중 기본 쿨타임이 긴 핵심 스킬 우선 (버퍼의 버프 스킬이 쿨이 길어 우선 시전됨).
+            // 동률은 SkillType 높은 순(궁→…→1). 평타 제외.
+            bool enh = ally.Source.IsSkillEnhanced;
+            int tr = ally.Source.TranscendLevel;
             return ally.Source.Character.Skills?
                 .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
                 .Where(s => ally.IsSkillReady(s.SkillType))
-                .OrderByDescending(s => s.SkillType)
+                .OrderByDescending(s => s.GetCooldown(enh, tr))
+                .ThenByDescending(s => s.SkillType)
                 .FirstOrDefault();
         }
 
@@ -697,52 +782,110 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 스킬이 선언한 버프/디버프 효과를 로그로 남긴다. 단계1: 적용은 아직 미구현이라 [미적용]으로 표기.
-        /// (Effects 리스트 + 레거시 PartyBuff/SelfBuff/DebuffEffect 모두 확인.)
+        /// 아군 스킬이 선언한 버프(아군)·디버프(적)를 실제 적용하고 로그를 남긴다.
+        /// 버프: Self→시전자, Party→전체(HighestAtkAlly 셀렉터면 공격력 상위 N명). 디버프: 피격 적(hitEnemies).
+        /// 새 Effects 리스트 + 레거시 SelfBuff/PartyBuff/DebuffEffect + 초월 보너스 모두 처리.
         /// </summary>
-        private void LogSkillSideEffects(SiegeBattleState state, CharacterBattleState ally, Skill skill)
+        private void ApplySkillEffects(SiegeBattleState state, CharacterBattleState ally, Skill skill,
+            List<SiegeEnemyState> hitEnemies)
         {
             bool enh = ally.Source.IsSkillEnhanced;
             string actor = ally.Source.Character.Name;
             var lvl = skill.GetLevelData(enh);
             if (lvl == null) return;
 
-            void LogBuff(string tgt, BuffSet b, int dur)
+            // 버프를 대상 아군들에 적용
+            void ApplyBuff(EffectTarget target, TargetSelector? selector, int tgtCount, BuffSet b, int dur)
             {
                 var s = SummarizeBuff(b);
-                if (!string.IsNullOrEmpty(s))
-                    Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
-                        $"[미적용] 버프 {tgt}: {s}{(dur > 0 ? $" [{dur}턴]" : "")}");
+                if (string.IsNullOrEmpty(s)) return;
+                var targets = ResolveAllyBuffTargets(state, ally, target, selector, tgtCount);
+                int d = dur > 0 ? dur : 99;
+                foreach (var t in targets)
+                    t.Effects.AddEffect(new BattleEffect
+                    {
+                        Id = $"siege_skbuff:{actor}:{skill.Name}:{t.PartyIndex}",
+                        SourceName = $"siege_skbuff:{actor}:{skill.Name}:{t.PartyIndex}",
+                        Category = EffectCategory.ActiveSelfBuff,
+                        Target = EffectTarget.Self,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = false,
+                        RemainingTurns = d,
+                        BuffValues = b.Clone(),
+                    });
+                string names = string.Join(",", targets.Select(t => t.Source.Character.Name));
+                Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0, $"버프 {names}: {s} [{d}턴]");
             }
-            void LogDebuff(string tgt, DebuffSet d, int dur)
+
+            // 디버프를 피격 적들에 적용 (없으면 적용 안 함)
+            void ApplyDebuff(DebuffSet dd, int dur, EffectTarget target)
             {
-                var s = SummarizeDebuff(d);
-                if (!string.IsNullOrEmpty(s))
+                var s = SummarizeDebuff(dd);
+                if (string.IsNullOrEmpty(s)) return;
+                var targets = target == EffectTarget.AllEnemies ? state.Enemies : hitEnemies;
+                int d = dur > 0 ? dur : 99;
+                foreach (var en in targets)
+                    AddEnemyDebuff(en, dd, d, $"siege_skdebuff:{actor}:{skill.Name}:{en.Position}");
+                if (targets.Count > 0)
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
-                        $"[미적용] 디버프 {tgt}: {s}{(dur > 0 ? $" [{dur}턴]" : "")}");
+                        $"디버프 적{targets.Count}: {s} [{d}턴]");
             }
 
-            // 새 Effects 리스트
-            if (lvl.Effects != null)
-                foreach (var e in lvl.Effects)
+            void HandleEffects(List<SkillEffect> effects)
+            {
+                if (effects == null) return;
+                foreach (var e in effects)
                 {
-                    if (e.Type == SkillEffectType.Buff) LogBuff(e.Target.ToString(), e.Buff, e.Duration);
-                    else if (e.Type == SkillEffectType.Debuff) LogDebuff(e.Target.ToString(), e.Debuff, e.Duration);
+                    if (e.Type == SkillEffectType.Buff && e.Buff != null)
+                        ApplyBuff(e.Target, e.TargetSelector, e.TargetCount, e.Buff, e.Duration);
+                    else if (e.Type == SkillEffectType.Debuff && e.Debuff != null)
+                        ApplyDebuff(e.Debuff, e.Duration, e.Target);
                 }
-            // 레거시 필드
-            LogBuff("Self", lvl.SelfBuff, lvl.EffectDuration);
-            LogBuff("Party", lvl.PartyBuff, lvl.EffectDuration);
-            LogDebuff("Enemy", lvl.DebuffEffect, lvl.EffectDuration);
+            }
 
-            // 초월 보너스 효과
+            HandleEffects(lvl.Effects);
+            // 레거시 필드
+            if (lvl.SelfBuff != null) ApplyBuff(EffectTarget.Self, null, 1, lvl.SelfBuff, lvl.EffectDuration);
+            if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
+            if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
+
+            // 초월 보너스
             var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
-            if (tr?.Effects != null)
-                foreach (var e in tr.Effects)
-                {
-                    if (e.Type == SkillEffectType.Buff) LogBuff(e.Target.ToString(), e.Buff, e.Duration);
-                    else if (e.Type == SkillEffectType.Debuff) LogDebuff(e.Target.ToString(), e.Debuff, e.Duration);
-                }
-            if (tr != null) { LogBuff("Party", tr.PartyBuff, 0); LogDebuff("Enemy", tr.Debuff, 0); }
+            if (tr != null)
+            {
+                HandleEffects(tr.Effects);
+                if (tr.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, tr.PartyBuff, 0);
+                if (tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);
+            }
+        }
+
+        /// <summary>버프 대상 아군 선정 (Self / Party / 공격력 상위 N명).</summary>
+        private List<CharacterBattleState> ResolveAllyBuffTargets(SiegeBattleState state, CharacterBattleState caster,
+            EffectTarget target, TargetSelector? selector, int tgtCount)
+        {
+            var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
+            if (target == EffectTarget.Self || target == EffectTarget.SingleAlly)
+                return new List<CharacterBattleState> { caster };
+            if (selector == TargetSelector.HighestAtkAlly)
+                return alive.OrderByDescending(a => a.FinalAtk).Take(System.Math.Max(1, tgtCount)).ToList();
+            return alive;   // Party 전체
+        }
+
+        /// <summary>적 1명에 디버프 누적(중복 방지: 같은 Id 갱신).</summary>
+        private void AddEnemyDebuff(SiegeEnemyState enemy, DebuffSet d, int dur, string id)
+        {
+            enemy.Effects.RemoveBySource(id);
+            enemy.Effects.AddEffect(new BattleEffect
+            {
+                Id = id,
+                SourceName = id,
+                Category = EffectCategory.ActiveDebuff,
+                Target = EffectTarget.Enemy,
+                MergeStrategy = MergeStrategy.MaxMerge,
+                IsPermanent = dur >= 99,
+                RemainingTurns = dur,
+                DebuffValues = d.Clone(),
+            });
         }
 
         #endregion
