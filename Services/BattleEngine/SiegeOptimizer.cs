@@ -124,9 +124,39 @@ namespace GameDamageCalculator.Services.BattleEngine
                     PetOptionDefRate = config.PetOptionDefRate,
                     PetOptionHpRate = config.PetOptionHpRate,
                 };
-                var opt = optimizer.OptimizeForCharacterFast(bc, soloConfig, 0);
+                var opt = optimizer.OptimizeForCharacterFast(bc, soloConfig, 0, GetGearConstraints(bc));
                 bc.Equipment = opt?.BestLoadout;
             }
+        }
+
+        // 딜러 = 공격형·마법형·만능형 / 딜러제외(서포터·탱커) = 지원형·방어형
+        private static bool IsDealer(BattleCharacter bc)
+        {
+            var t = bc.Character.Type;
+            return t == "공격형" || t == "마법형" || t == "만능형";
+        }
+
+        /// <summary>
+        /// 역할 기반 장비 탐색 제약. 시뮬은 치명·약점 항상 100% 발동이라 치확%·약확%는 제외(치피%·공%만).
+        /// 딜러: 세트 복수자/암살자/추적자/선봉장. 딜러제외: 복수자/수문장(+받피감/생명력/방어력).
+        /// </summary>
+        private static GearConstraints GetGearConstraints(BattleCharacter bc)
+        {
+            return IsDealer(bc)
+                ? new GearConstraints
+                {
+                    AllowedSets = new[] { "복수자", "암살자", "추적자", "선봉장" },
+                    WeaponMains = new[] { "치명타피해%", "공격력%" },
+                    ArmorMains = new[] { "공격력%" },
+                    SubOptions = new[] { "치명타피해%", "공격력%", "공격력" },
+                }
+                : new GearConstraints
+                {
+                    AllowedSets = new[] { "복수자", "수문장" },
+                    WeaponMains = new[] { "치명타피해%", "공격력%" },
+                    ArmorMains = new[] { "공격력%", "받피감%" },
+                    SubOptions = new[] { "치명타피해%", "공격력%", "공격력", "생명력%", "방어력%" },
+                };
         }
 
         /// <summary>스테이지 마지막 라운드(R3)의 보스 적을 EnemyDb에서 조회 (장비 평가 타깃).</summary>

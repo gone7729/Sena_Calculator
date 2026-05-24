@@ -101,6 +101,17 @@ namespace GameDamageCalculator.Services.Optimizer
     }
 
     /// <summary>
+    /// 역할 기반 장비 탐색 제약 (허용 세트·메인옵·부옵). 치확%·약확%는 시뮬이 항상 100% 발동이라 제외.
+    /// </summary>
+    public class GearConstraints
+    {
+        public string[] AllowedSets { get; set; }   // 허용 세트 이름 (4세트 + 2+2 조합)
+        public string[] WeaponMains { get; set; }    // 무기 메인옵 후보
+        public string[] ArmorMains { get; set; }     // 방어구 메인옵 후보
+        public string[] SubOptions { get; set; }     // 부옵 후보
+    }
+
+    /// <summary>
     /// 장비 세트 조합 설정
     /// </summary>
     public class EquipSetConfig
