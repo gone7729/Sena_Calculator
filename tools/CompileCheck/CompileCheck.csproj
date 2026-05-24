@@ -4,6 +4,7 @@
        WPF 풀빌드(~30분) 대신 수십 초 만에 로직 컴파일 검증.
        사용: dotnet build tools/CompileCheck/CompileCheck.csproj -clp:ErrorsOnly -->
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -12,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Program.cs" />
     <Compile Include="..\..\DB\**\*.cs" />
     <Compile Include="..\..\Models\**\*.cs" />
     <Compile Include="..\..\Services\**\*.cs" />

@@ -48,7 +48,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 PetOptionAtkRate = config.PetOptionAtkRate,
                 PetOptionDefRate = config.PetOptionDefRate,
                 PetOptionHpRate = config.PetOptionHpRate,
-                FormationName = config.FormationName,   // PVE: 빈 값 → 진형 효과 미적용
+                FormationName = config.FormationName,   // 아군은 진형효과 적용 (적군만 미적용)
             };
             for (int i = 0; i < config.AllyParty.Count; i++)
                 state.AllyStates.Add(_baseSim.InitializeCharacterState(tempConfig, config.AllyParty[i], i));
@@ -164,12 +164,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                     var skill = PickAllySkill(ally);
                     if (skill == null) continue;
 
-                    var target = PickTarget(state);
-                    if (target == null) return;
-
-                    double dmg = CalcDamageToEnemy(ally, target, skill);
-                    ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
-                    RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
+                    int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
+                    var targets = PickTargets(state, tc);
+                    if (targets.Count == 0) return;
+                    foreach (var target in targets)
+                    {
+                        double dmg = CalcDamageToEnemy(ally, target, skill);
+                        ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
+                        RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
+                    }
 
                     double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
                     if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
@@ -217,13 +220,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (!ally.IsDead && !ally.Effects.HasActionBlockingCC())
                 {
                     var normal = ally.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
-                    var target = PickTarget(state);
-                    if (normal != null && target != null)
+                    if (normal != null)
                     {
-                        double dmg = CalcDamageToEnemy(ally, target, normal);
-                        ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
-                        RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
-                        TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
+                        int tc = System.Math.Max(1, normal.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
+                        var targets = PickTargets(state, tc);
+                        foreach (var target in targets)
+                        {
+                            double dmg = CalcDamageToEnemy(ally, target, normal);
+                            ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
+                            RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
+                        }
+                        if (targets.Count > 0)
+                            TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                     }
                 }
             }
@@ -277,15 +285,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 타겟 선정: 약점공격(시뮬은 결정론적으로 항상 발동) = 생명력 최저 적, 동률이면 앞열(Position 낮은 순).
         /// 라운드3에서는 약점공격 대상이 항상 보스(3보스 중 최저 HP).
         /// </summary>
-        private SiegeEnemyState PickTarget(SiegeBattleState state)
+        /// <summary>스킬 타겟 수만큼 적 선정 (최저 HP 우선·동률 앞열). 광역기는 여러 적을 친다. R3는 보스만.</summary>
+        private List<SiegeEnemyState> PickTargets(SiegeBattleState state, int count)
         {
             IEnumerable<SiegeEnemyState> candidates = state.CurrentRound >= 3
                 ? state.Enemies.Where(e => e.IsBoss)
                 : state.Enemies;
             var list = candidates.ToList();
             if (list.Count == 0) list = state.Enemies;
-            // 최저 HP → 동률 시 앞열(Position 낮은 자리)
-            return list.OrderBy(e => e.CurrentHp).ThenBy(e => e.Position).FirstOrDefault();
+            return list.OrderBy(e => e.CurrentHp).ThenBy(e => e.Position).Take(System.Math.Max(1, count)).ToList();
         }
 
         /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영. 시뮬은 치명·약점 항상 발동.</summary>

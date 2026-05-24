@@ -16,8 +16,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 공성전 라운드 구성 (EnemyDb.SiegeStages[요일])
         public Stage SiegeStage { get; set; }
 
-        // 진형 — PVE는 진형 효과 미적용이라 스탯엔 빈 값. (자리 순서는 BattleCharacter 위치로)
-        public string FormationName { get; set; } = "";
+        // 진형 — 아군은 진형효과 적용(기본/밸런스/보호). 적군만 미적용.
+        // 옵티마이저가 3종을 순회하며 최고딜 진형을 찾는다. 자리(앞/뒤)는 BattleCharacter.IsBackPosition.
+        public string FormationName { get; set; } = "기본 진형";
 
         // 펫
         public Pet AllyPet { get; set; }
