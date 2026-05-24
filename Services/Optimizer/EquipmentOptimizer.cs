@@ -77,27 +77,44 @@ namespace GameDamageCalculator.Services.Optimizer
         }
 
         /// <summary>
-        /// 빠른 단일 캐릭터 최적화 (공성전 다인 탐색용).
-        /// 전체 메인옵 조합(625) 대신: ① 81세트를 공격력% 메인옵·무서브옵으로 1회씩 평가해 최고 세트 선정
-        /// → ② 그 세트에만 서브옵 그리디 + 장신구 최적화. 풀탐색 대비 수백배 빠름(영웅당 ~1초).
+        /// 빠른 단일 캐릭터 최적화 (공성전 다인 탐색용), 역할 기반 제약 적용.
+        /// ① 허용 세트 × (무기메인 × 방어구메인, 슬롯별 균일)을 무서브옵으로 평가해 최고 (세트·메인) 선정
+        /// → ② 그 구성에만 서브옵 그리디 + 장신구 최적화. 제약으로 탐색 공간이 작아 영웅당 ~3초.
+        /// gc=null이면 전체 세트 + 공격력% 메인옵으로 폴백.
         /// </summary>
         public CharacterOptimalEquipment OptimizeForCharacterFast(
-            BattleCharacter battleChar, BattleConfig config, int charIndex)
+            BattleCharacter battleChar, BattleConfig config, int charIndex, GearConstraints gc = null)
         {
+            var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
+            var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
+
+            // 시도할 메인옵 (역할 제약 ∩ 슬롯 가용). 없으면 공격력%로 폴백.
+            string[] weaponMains = (gc?.WeaponMains ?? new[] { "공격력%" }).Where(weaponAvail.Contains).Distinct().ToArray();
+            string[] armorMains = (gc?.ArmorMains ?? new[] { "공격력%" }).Where(armorAvail.Contains).Distinct().ToArray();
+            if (weaponMains.Length == 0) weaponMains = new[] { "공격력%" };
+            if (armorMains.Length == 0) armorMains = new[] { "공격력%" };
+
+            var setCombos = gc?.AllowedSets != null && gc.AllowedSets.Length > 0
+                ? BuildSetCombos(gc.AllowedSets)
+                : SetCombination.GenerateAllCombinations();
+
             EquipmentLoadout best = null;
             EquipSetConfig bestSet = null;
+            string bestW = "공격력%", bestA = "공격력%";
             double bestDamage = -1;
 
-            foreach (var setConfig in SetCombination.GenerateAllCombinations())
-            {
-                var lo = BuildLoadout(setConfig, "공격력%", "공격력%", "공격력%", "공격력%");
-                double d = EvaluateDamage(battleChar, config, charIndex, lo);
-                if (d > bestDamage) { bestDamage = d; best = lo; bestSet = setConfig; }
-            }
+            foreach (var setConfig in setCombos)
+                foreach (var wm in weaponMains)
+                    foreach (var am in armorMains)
+                    {
+                        var lo = BuildLoadout(setConfig, wm, wm, am, am);   // 슬롯별 균일 (근사)
+                        double d = EvaluateDamage(battleChar, config, charIndex, lo);
+                        if (d > bestDamage) { bestDamage = d; best = lo; bestSet = setConfig; bestW = wm; bestA = am; }
+                    }
 
             if (best != null)
             {
-                OptimizeSubOptions(best, battleChar, config, charIndex);
+                OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions);
                 OptimizeAccessory(best, battleChar, config, charIndex);
                 bestDamage = EvaluateDamage(battleChar, config, charIndex, best);
             }
@@ -111,6 +128,23 @@ namespace GameDamageCalculator.Services.Optimizer
                 EstimatedDamage = bestDamage,
                 TopLoadouts = new List<RankedLoadout>(),
             };
+        }
+
+        /// <summary>허용 세트 이름 목록으로 4세트 + 2+2세트(허용끼리) 조합 생성.</summary>
+        private static List<EquipSetConfig> BuildSetCombos(string[] allowed)
+        {
+            var valid = allowed.Where(s => EquipmentDb.SetEffects.ContainsKey(s)).ToList();
+            var combos = new List<EquipSetConfig>();
+            foreach (var s in valid)
+                combos.Add(new EquipSetConfig { WeaponSetName = s, ArmorSetName = s, Is4Set = true, Description = $"{s} 4세트" });
+            for (int i = 0; i < valid.Count; i++)
+                for (int j = 0; j < valid.Count; j++)
+                {
+                    if (i == j) continue;
+                    combos.Add(new EquipSetConfig { WeaponSetName = valid[i], ArmorSetName = valid[j], Is4Set = false,
+                        Description = $"{valid[i]} 2 + {valid[j]} 2" });
+                }
+            return combos;
         }
 
         /// <summary>
@@ -229,10 +263,11 @@ namespace GameDamageCalculator.Services.Optimizer
             EquipmentLoadout loadout,
             BattleCharacter battleChar,
             BattleConfig config,
-            int charIndex)
+            int charIndex,
+            string[] subStatNames = null)
         {
             var equipments = loadout.GetEquipments().ToList();
-            var subStatNames = GetDpsSubStatNames();
+            subStatNames ??= GetDpsSubStatNames();
 
             // 총 배분 가능한 티어 포인트
             int remainingTiers = MaxTotalSubTiers;
