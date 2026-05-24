@@ -65,6 +65,7 @@ interface OptimizeResult {
   totalTurns: number;
   roundsCleared: number;
   roundScore: Record<string, number>;
+  gearLog: string[];
   party: PartyMember[];
   turnLogs: TurnLog[];
 }
@@ -433,6 +434,14 @@ export default function SiegePage() {
               </div>
             ))}
           </div>
+
+          {/* 자동 장착 장비 (메인옵/부옵 값) */}
+          {result.gearLog && result.gearLog.length > 0 && (
+            <>
+              <h3 className="siege-result-sub">자동 장착 장비 (메인옵·부옵 값)</h3>
+              <pre className="siege-gearlog">{result.gearLog.join("\n\n")}</pre>
+            </>
+          )}
 
           {/* 턴 로그 */}
           <h3 className="siege-result-sub">턴 로그 ({result.turnLogs.length})</h3>
