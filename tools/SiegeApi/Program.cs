@@ -32,6 +32,10 @@ app.MapGet("/api/siege/days", () =>
         .Where(kv => EnemyDb.SiegeStages.ContainsKey(kv.Value))
         .Select(kv => new { day = kv.Key, stage = EnemyDb.SiegeStages[kv.Value].Name }));
 
+// 펫 목록 (검증용 펫 선택)
+app.MapGet("/api/siege/pets", () =>
+    PetDb.Pets.Select(p => new { id = p.Id, name = p.Name, rarity = p.Rarity }));
+
 // 탐색 실행: 선택 영웅 풀에서 최고딜 5인 팀 + 진형 탐색
 app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
 {
@@ -63,6 +67,19 @@ app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
         MaxTurns = req.MaxTurns ?? 70,
         PartySize = req.PartySize ?? 5,
     };
+
+    // 펫 (선택). 검증 시 게임 세팅 그대로 맞추려면 펫·성급·강화·옵션이 필요.
+    if (req.Pet != null && !string.IsNullOrEmpty(req.Pet.Name))
+    {
+        var pet = PetDb.GetByName(req.Pet.Name);
+        if (pet == null) return Results.BadRequest(new { error = $"펫 '{req.Pet.Name}'을(를) 찾을 수 없습니다." });
+        config.AllyPet = pet;
+        config.PetStar = req.Pet.Star is >= 1 and <= 6 ? req.Pet.Star : 6;
+        config.PetEnhance = Math.Clamp(req.Pet.Enhance, 0, 3);  // 6성에서만 실제 반영(Pet.GetSkillBuff 가드)
+        config.PetOptionAtkRate = req.Pet.OptAtkRate;
+        config.PetOptionDefRate = req.Pet.OptDefRate;
+        config.PetOptionHpRate = req.Pet.OptHpRate;
+    }
 
     var result = new SiegeOptimizer().Optimize(config);
     return Results.Ok(ToDto(result));
@@ -117,10 +134,21 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
 // ===== 요청/응답 모델 =====
 record MemberInput(int Id, int Transcend, bool? SkillEnhanced);
 
+class PetInput
+{
+    public string Name { get; set; }
+    public int Star { get; set; } = 6;
+    public int Enhance { get; set; }       // 0~3 (6성에서만 실제 반영)
+    public double OptAtkRate { get; set; } // 펫 옵션 공격력%
+    public double OptDefRate { get; set; }
+    public double OptHpRate { get; set; }
+}
+
 class OptimizeRequest
 {
     public string Day { get; set; }
     public List<MemberInput> Members { get; set; }
+    public PetInput Pet { get; set; }
     public int? MaxTurns { get; set; }
     public int? PartySize { get; set; }
 }
