@@ -102,6 +102,9 @@ namespace GameDamageCalculator.Models.Effects
         // 적용 순서대로(먼저 부여된 것부터) 해제. 피해 면역/피해 무효화/권능 효과는 해제 불가(스킵).
         public int DispelBuffCount { get; set; }
 
+        // === 턴제 버프 감소 (Type = BuffTurnReduction일 때) — 대상의 활성 턴제 버프 잔여 턴 N 감소 ===
+        public int TurnReduction { get; set; }
+
         // === 트리거 스킬 발동 (Type = TriggeredSkillCast일 때) — 적군 사망 등 트리거로 스킬 시전 ===
         public TriggeredSkillCast TriggeredSkillCast { get; set; }
 
@@ -152,6 +155,7 @@ namespace GameDamageCalculator.Models.Effects
         TriggeredSkillCast,     // 트리거 시 스킬 시전 (적군 N명 사망 → 별개 스킬 발동, TriggeredSkillCast)
         CooldownReset,          // 트리거 시 쿨타임 초기화/감소 (불사 발동 등, CooldownReset)
         BuffDispel,             // 대상(적)의 버프 N개 해제 (DispelBuffCount, 적용순·면역/무효화/권능 제외)
+        BuffTurnReduction,      // 대상의 활성 턴제 버프 잔여 턴 감소 (TurnReduction)
         FocusTarget,            // 강자주시 — 특정 적군 고정 타게팅 (FocusTarget)
         Authority,              // 권능 — 현재 생명력 이상 피해 시 생명력 1로 1회 생존 (Authority)
     }
