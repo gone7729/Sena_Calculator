@@ -327,10 +327,10 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             var debuffs = target.Effects.GetTotalDebuffs();
 
-            // 시전자 공격성 버프 = 전투시작 스냅샷(InitialBuffs) + 전투 중 스킬 버프(Effects).
-            // FinalAtk엔 공%만 반영됐고, 피증·보스피증·치피·약피·방관 등 배수는 여기서 합산해 데미지에 반영.
-            var allyBuffs = (ally.InitialBuffs ?? new BuffSet()).Clone();
-            allyBuffs.Add(ally.Effects.GetTotalBuffs());
+            // 시전자 데미지 스탯 = 전투시작 표시스탯 스냅샷(DisplayStats: gear/세트/초월/버프/패시브 포함)
+            //   + 전투 중 추가된 스킬 버프(Effects 델타). 치명·약점은 확률 기반 기댓값으로 계산.
+            var ds = ally.DisplayStats ?? new BaseStatSet();
+            var midBuffs = ally.Effects.GetTotalBuffs();
 
             var input = new DamageCalculator.DamageInput
             {
@@ -341,15 +341,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                 FinalAtk = ally.FinalAtk,
                 FinalDef = ally.FinalDef,
                 FinalHp = ally.MaxHp,
-                CritDamage = baseStats.Cri_Dmg + allyBuffs.Cri_Dmg,
-                WeakpointDmg = baseStats.Wek_Dmg,
-                WeakpointDmgBuff = allyBuffs.Wek_Dmg,
-                DmgDealt = allyBuffs.Dmg_Dealt,
-                DmgDealtType = allyBuffs.Dmg_Dealt_Type + allyBuffs.Mark_Energeia + allyBuffs.Mark_Purify,
-                DmgDealtBoss = allyBuffs.Dmg_Dealt_Bos,
-                Dmg1to3 = allyBuffs.Dmg_Dealt_1to3,
-                Dmg4to5 = allyBuffs.Dmg_Dealt_4to5,
-                ArmorPen = allyBuffs.Arm_Pen,
+                // 치명·약점: 100% 가정이 아니라 실제 확률로 기대 계수 (치확/약확 옵션이 의미를 갖도록)
+                ExpectedCritWeak = true,
+                CritChance = ds.Cri + midBuffs.Cri,
+                CritDamage = ds.Cri_Dmg + midBuffs.Cri_Dmg,
+                WeakChance = ds.Wek + midBuffs.Wek,
+                WeakpointDmg = ds.Wek_Dmg + midBuffs.Wek_Dmg,
+                DmgDealt = ds.Dmg_Dealt + midBuffs.Dmg_Dealt,
+                DmgDealtType = ds.Dmg_Dealt_Type + midBuffs.Dmg_Dealt_Type + midBuffs.Mark_Energeia + midBuffs.Mark_Purify,
+                DmgDealtBoss = ds.Dmg_Dealt_Bos + midBuffs.Dmg_Dealt_Bos,
+                Dmg1to3 = ds.Dmg_Dealt_1to3 + midBuffs.Dmg_Dealt_1to3,
+                Dmg4to5 = ds.Dmg_Dealt_4to5 + midBuffs.Dmg_Dealt_4to5,
+                ArmorPen = ds.Arm_Pen + midBuffs.Arm_Pen,
                 BossDef = enemy.Stats.Def,
                 // 공성전 감쇄(물/마·타겟수)는 합연산이 아니라 곱연산으로 후처리 (아래) — DamageCalculator엔 0으로
                 BossDmgReduction = 0,

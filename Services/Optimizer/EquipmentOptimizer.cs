@@ -545,6 +545,10 @@ namespace GameDamageCalculator.Services.Optimizer
                 WeakpointDmg = statResult.DisplayStats.Wek_Dmg,
                 Dmg1to3 = statResult.DisplayStats.Dmg_Dealt_1to3,
                 Dmg4to5 = statResult.DisplayStats.Dmg_Dealt_4to5,
+                // 치명·약점 확률 기반 기댓값 — 치확/약확 메인옵·부옵 탐색이 의미를 갖도록
+                ExpectedCritWeak = true,
+                CritChance = statResult.DisplayStats.Cri,
+                WeakChance = statResult.DisplayStats.Wek,
                 DefReduction = totalDebuffs.Def_Reduction,
                 DmgTakenIncrease = totalDebuffs.GetEffectiveDmgTakenIncrease(character.AttackType),
                 Vulnerability = totalDebuffs.Vulnerability + (enemy?.Vulnerability ?? 0),
