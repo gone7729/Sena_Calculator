@@ -1,0 +1,130 @@
+using System.Collections.Generic;
+using System.Linq;
+using GameDamageCalculator.Models;
+using GameDamageCalculator.Models.Effects;
+
+namespace GameDamageCalculator.Services.BattleEngine
+{
+    /// <summary>
+    /// 사망 시 생존 메카닉(부활·권능·피해무효화) 판정 — 단일보스전/공성전 공유.
+    /// CharacterBattleState + 캐릭터 패시브 기반이라 BattleState 의존이 없다(로그는 SurvivalResult로 반환,
+    /// 호출 측이 자기 로그 형식에 맞게 기록). DamageCalculator를 공유하듯 생존 로직도 공유한다.
+    /// </summary>
+    public static class SurvivalResolver
+    {
+        public sealed class SurvivalEffects
+        {
+            public Revival Revival;
+            public Authority Authority;
+            public DamageNullification Nullification;
+        }
+
+        public sealed class SurvivalResult
+        {
+            public bool Survived;
+            public string Label;        // 로그용 (불굴/불사·권능·부활·사망)
+            public string Description;
+        }
+
+        /// <summary>캐릭터 패시브(레벨+초월)에서 부활/권능/피해무효화를 조회 (없으면 빈 결과).</summary>
+        public static SurvivalEffects GetPassiveSurvival(CharacterBattleState charState)
+        {
+            var passive = charState.Source.Character.Passive;
+            if (passive == null) return null;
+
+            var result = new SurvivalEffects();
+            void Scan(IEnumerable<PersistentEffect> effects)
+            {
+                if (effects == null) return;
+                foreach (var e in effects)
+                {
+                    if (e.Type == PersistentEffectType.Revival && e.Revival != null) result.Revival = e.Revival;
+                    else if (e.Type == PersistentEffectType.Authority && e.Authority != null) result.Authority = e.Authority;
+                    else if (e.Type == PersistentEffectType.DamageNullification && e.DamageNullification != null) result.Nullification = e.DamageNullification;
+                }
+            }
+            Scan(passive.GetLevelData(charState.Source.IsSkillEnhanced)?.Effects);
+            Scan(passive.GetTranscendBonus(charState.Source.TranscendLevel)?.Effects);
+            return result;
+        }
+
+        /// <summary>
+        /// 치사 피해 발생 시 생존 판정. 적용 순서: 부활 후 무적(불굴/불사) → 권능 → 부활 → 사망.
+        /// CharacterBattleState 상태를 직접 갱신하고, 로그용 결과를 반환한다.
+        /// </summary>
+        public static SurvivalResult ResolveLethal(CharacterBattleState target)
+        {
+            // 1. 부활 후 무적 (불굴 피격횟수 / 불사 턴) — 사망 무효
+            if (target.ImmortalHitsRemaining > 0 || target.ImmortalTurnsRemaining > 0)
+            {
+                if (target.ImmortalHitsRemaining > 0) target.ImmortalHitsRemaining--;
+                target.CurrentHp = 1;
+                return new SurvivalResult { Survived = true, Label = "불굴/불사", Description = $"치사 피해 무효 (잔여 피격 {target.ImmortalHitsRemaining})" };
+            }
+
+            // 2. 권능 — 현재 생명력 이상 피해 시 ReviveHp로 1회 생존 (전투당 1회)
+            var authority = GetPassiveSurvival(target)?.Authority;
+            if (authority != null && !target.AuthorityUsed)
+            {
+                target.AuthorityUsed = true;
+                target.CurrentHp = System.Math.Max(1, authority.ReviveHp);
+                return new SurvivalResult { Survived = true, Label = "권능", Description = $"치사 피해 생존 → 생명력 {target.CurrentHp:N0}" };
+            }
+
+            // 3. 부활 — 사망 시 부활 (전투당 1회) + 무적 윈도우 설정
+            var revival = GetPassiveSurvival(target)?.Revival;
+            if (revival != null && !target.RevivalUsed)
+            {
+                target.RevivalUsed = true;
+                double hp = revival.ReviveHpPercent > 0
+                    ? target.MaxHp * (revival.ReviveHpPercent / 100.0)
+                    : System.Math.Max(1, revival.ReviveHp);
+                target.CurrentHp = hp;
+                target.ImmortalHitsRemaining = revival.HitCount;
+                target.ImmortalTurnsRemaining = revival.ImmortalTurns;
+                ApplyRevivalCooldownReset(target);
+                return new SurvivalResult
+                {
+                    Survived = true,
+                    Label = "부활",
+                    Description = $"부활 → 생명력 {hp:N0}"
+                        + (revival.HitCount > 0 ? $", 불굴 피격 {revival.HitCount}회" : "")
+                        + (revival.ImmortalTurns > 0 ? $", 불사 {revival.ImmortalTurns}턴" : ""),
+                };
+            }
+
+            // 4. 사망
+            target.IsDead = true;
+            return new SurvivalResult { Survived = false, Label = "사망", Description = $"{target.Source.Character.Name} 사망" };
+        }
+
+        /// <summary>부활 발동 시 CooldownReset(TriggerCondition=OnRevival) 효과로 스킬 쿨타임 초기화/감소.</summary>
+        public static void ApplyRevivalCooldownReset(CharacterBattleState target)
+        {
+            var passive = target.Source.Character.Passive;
+            if (passive == null) return;
+
+            var effects = new List<PersistentEffect>();
+            var lvl = passive.GetLevelData(target.Source.IsSkillEnhanced);
+            if (lvl?.Effects != null) effects.AddRange(lvl.Effects);
+            var tr = passive.GetTranscendBonus(target.Source.TranscendLevel);
+            if (tr?.Effects != null) effects.AddRange(tr.Effects);
+
+            foreach (var e in effects)
+            {
+                if (e.Type != PersistentEffectType.CooldownReset || e.CooldownReset == null) continue;
+                if (e.TriggerCondition != TriggerCondition.OnRevival) continue;
+
+                var cr = e.CooldownReset;
+                foreach (var key in target.SkillCooldowns.Keys.ToList())
+                {
+                    if (cr.OnlySkillType.HasValue && key != cr.OnlySkillType.Value) continue;
+                    if (cr.ReduceSeconds > 0)
+                        target.SkillCooldowns[key] = System.Math.Max(0, target.SkillCooldowns[key] - cr.ReduceSeconds);
+                    else
+                        target.SkillCooldowns[key] = 0;
+                }
+            }
+        }
+    }
+}

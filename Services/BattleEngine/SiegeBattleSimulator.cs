@@ -387,9 +387,29 @@ namespace GameDamageCalculator.Services.BattleEngine
             double dmg, string label)
         {
             if (dmg <= 0 || ally.IsDead) return;
+
+            // 피해 무효화 (피격 N회 / N턴) — 피해 자체를 0으로
+            if ((ally.NullifyHitsRemaining > 0 || ally.NullifyTurnsRemaining > 0) && ally.NullifyType == DamageNullType.All)
+            {
+                if (ally.NullifyHitsRemaining > 0) ally.NullifyHitsRemaining--;
+                state.TurnLogs.Add(new BattleTurnLog
+                {
+                    Turn = state.CurrentTurn, ActorName = enemy.Source.Name, IsAlly = false,
+                    ActionType = ActionType.BuffApplied, SkillName = "피해 무효화", DamageDealt = 0,
+                    Description = $"{ally.Source.Character.Name} 피격 무효화 (잔여 {ally.NullifyHitsRemaining}회)",
+                });
+                return;
+            }
+
             ally.CurrentHp -= dmg;
-            bool dead = ally.CurrentHp <= 0;
-            if (dead) { ally.CurrentHp = 0; ally.IsDead = true; }   // TODO(후속): 부활/면역/권능 생존 메카닉
+            string outcome = "";
+            if (ally.CurrentHp <= 0)
+            {
+                // 생존 판정: 불굴/불사 → 권능 → 부활 → 사망 (공유 SurvivalResolver)
+                var r = SurvivalResolver.ResolveLethal(ally);
+                if (ally.IsDead) ally.CurrentHp = 0;
+                outcome = $" ({r.Label})";
+            }
 
             state.TurnLogs.Add(new BattleTurnLog
             {
@@ -399,7 +419,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ActionType = state.IsSkillTurn ? ActionType.SkillAttack : ActionType.NormalAttack,
                 SkillName = label,
                 DamageDealt = dmg,
-                Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}" + (dead ? " (사망)" : ""),
+                Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
             });
         }
 
@@ -475,6 +495,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ally.Effects.TickTurn();
                 foreach (var k in ally.StatusImmunityTurns.Keys.ToList())
                     ally.StatusImmunityTurns[k] = Math.Max(0, ally.StatusImmunityTurns[k] - 1);
+                // 턴 기반 생존(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소
+                if (ally.NullifyTurnsRemaining > 0) ally.NullifyTurnsRemaining--;
+                if (ally.ImmortalTurnsRemaining > 0) ally.ImmortalTurnsRemaining--;
             }
         }
 
