@@ -159,13 +159,26 @@ namespace GameDamageCalculator.Services.BattleEngine
                 };
         }
 
-        /// <summary>스테이지 마지막 라운드(R3)의 보스 적을 EnemyDb에서 조회 (장비 평가 타깃).</summary>
+        /// <summary>
+        /// 스테이지 마지막 라운드(R3)의 보스 적을 EnemyDb에서 조회 (장비 평가 타깃).
+        /// Enemy.IsBoss=true인 적(예: 스파이크)을 우선 — 보스피증(복수자 등)이 평가에 반영되도록.
+        /// (룩/챈슬러 친위대는 R3에서 보스 취급이나 Enemy.IsBoss=false라 그대로 쓰면 보스피증이 빠짐.)
+        /// </summary>
         private static Enemy ResolveBoss(Stage stage)
         {
             var wave = stage?.Waves?.OrderByDescending(w => w.WaveNumber).FirstOrDefault();
-            var se = wave?.Enemies?.FirstOrDefault(e => e.IsBoss) ?? wave?.Enemies?.FirstOrDefault();
-            if (se == null) return null;
-            return EnemyDb.AllEnemies.FirstOrDefault(e => e.Id == se.EnemyId);
+            if (wave?.Enemies == null || wave.Enemies.Count == 0) return null;
+
+            Enemy Lookup(StageEnemy se) => se == null ? null : EnemyDb.AllEnemies.FirstOrDefault(e => e.Id == se.EnemyId);
+
+            // 1순위: StageEnemy.IsBoss이면서 Enemy.IsBoss=true (실제 보스)
+            foreach (var se in wave.Enemies.Where(e => e.IsBoss))
+            {
+                var en = Lookup(se);
+                if (en != null && en.IsBoss) return en;
+            }
+            // 2순위: 보스 취급 적, 3순위: 아무 적
+            return Lookup(wave.Enemies.FirstOrDefault(e => e.IsBoss) ?? wave.Enemies.FirstOrDefault());
         }
 
         /// <summary>pool에서 k개 조합 (C(N,k)). k=0이면 빈 조합 하나.</summary>
