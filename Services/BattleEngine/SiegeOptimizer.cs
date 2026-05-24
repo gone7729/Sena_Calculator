@@ -12,6 +12,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public Stage SiegeStage { get; set; }
         public Pet AllyPet { get; set; }
         public int PetStar { get; set; }
+        public int PetEnhance { get; set; }   // 펫 스킬강화 (0=미강화, 1~3)
         public double PetOptionAtkRate { get; set; }
         public double PetOptionDefRate { get; set; }
         public double PetOptionHpRate { get; set; }
@@ -64,6 +65,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         SiegeStage = config.SiegeStage,
                         AllyPet = config.AllyPet,
                         PetStar = config.PetStar,
+                        PetEnhance = config.PetEnhance,
                         PetOptionAtkRate = config.PetOptionAtkRate,
                         PetOptionDefRate = config.PetOptionDefRate,
                         PetOptionHpRate = config.PetOptionHpRate,

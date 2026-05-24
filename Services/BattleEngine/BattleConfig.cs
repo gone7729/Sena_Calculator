@@ -20,6 +20,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 펫
         public Pet AllyPet { get; set; }
         public int PetStar { get; set; }
+        public int PetEnhance { get; set; }   // 펫 스킬강화 (0=미강화, 1~3). 성급값에 보너스 가산
         public double PetOptionAtkRate { get; set; }
         public double PetOptionDefRate { get; set; }
         public double PetOptionHpRate { get; set; }

@@ -45,6 +45,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 AllyParty = config.AllyParty,
                 AllyPet = config.AllyPet,
                 PetStar = config.PetStar,
+                PetEnhance = config.PetEnhance,
                 PetOptionAtkRate = config.PetOptionAtkRate,
                 PetOptionDefRate = config.PetOptionDefRate,
                 PetOptionHpRate = config.PetOptionHpRate,
