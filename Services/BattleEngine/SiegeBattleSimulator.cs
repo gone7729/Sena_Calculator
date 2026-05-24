@@ -170,7 +170,31 @@ namespace GameDamageCalculator.Services.BattleEngine
                     return;
                 }
             }
-            // else 적 스킬턴: SkillPriority 기반 사용 + 아군 피격 → 4번에서 구현
+            else
+            {
+                // 적 스킬턴: SkillPriority 순위대로(앞쪽 우선) 쿨 충족된 첫 스킬 1개 사용
+                foreach (var pri in state.CurrentSkillPriority)
+                {
+                    var enemy = state.Enemies.FirstOrDefault(e => e.Source.Id == pri.EnemyId);
+                    if (enemy == null || !enemy.IsSkillReady(pri.SkillType)) continue;
+                    var skill = enemy.Source.Skills?.FirstOrDefault(s => s.SkillType == pri.SkillType);
+                    if (skill == null) continue;
+
+                    // 광역은 타겟수만큼, 단일은 1명 — 모두 랜덤 아군
+                    int targetCount = Math.Max(1, skill.GetTargetCount(false, 0));
+                    foreach (var target in PickRandomAllies(state, targetCount))
+                    {
+                        double dmg = CalcDamageToAlly(enemy, target, skill);
+                        ApplyDamageToAlly(state, enemy, target, dmg, skill.Name);
+                    }
+
+                    double cd = skill.GetCooldown(false, 0);
+                    if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
+                    AdvanceTime(state, GetActionDuration(skill));
+                    return;
+                }
+                // 사용 가능한 스킬이 없으면 스킬턴 스킵
+            }
         }
 
         /// <summary>기본공격 (턴 소모).</summary>
@@ -190,7 +214,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
                 }
             }
-            // else 적 기본공격 → 아군 피격·생존 → 4번에서 구현
+            else
+            {
+                // 적 기본공격 → 랜덤 아군 1명 피격
+                var enemy = actor.Enemy;
+                var normal = enemy.Source.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
+                var target = PickRandomAlly(state);
+                if (normal != null && target != null)
+                {
+                    double dmg = CalcDamageToAlly(enemy, target, normal);
+                    ApplyDamageToAlly(state, enemy, target, dmg, normal.Name);
+                }
+            }
 
             // 기본공격 소요시간(평타 2초)만큼 전체 쿨다운 감소
             AdvanceTime(state, GetActionDuration(null));
@@ -300,6 +335,77 @@ namespace GameDamageCalculator.Services.BattleEngine
             >= 5 => enemy.MultiTargetReduction,
             _ => 0
         };
+
+        /// <summary>적 → 아군 데미지 (적 공격력 vs 아군 방어/받피감). 적은 치확·약확 0이라 비치명·비약점 기본.</summary>
+        private double CalcDamageToAlly(SiegeEnemyState enemy, CharacterBattleState ally, Skill enemySkill)
+        {
+            var e = enemy.Source;
+            // 아군 받피감(자버프) + 아군에게 걸린 받피증/취약(적 디버프)
+            var (perm, timed, pet) = ally.Effects.GetSeparatedBuffs();
+            double allyDmgRdc = perm.Dmg_Rdc + timed.Dmg_Rdc + pet.Dmg_Rdc;
+            var allyDebuffs = ally.Effects.GetTotalDebuffs();
+
+            var input = new DamageCalculator.DamageInput
+            {
+                Character = null,                       // 적은 Character 모델 없음
+                Skill = enemySkill,
+                IsSkillEnhanced = false,
+                TranscendLevel = 0,
+                FinalAtk = enemy.FinalAtk,
+                FinalDef = enemy.FinalDef,
+                CritDamage = e.Stats.Cri_Dmg,
+                BossDef = ally.FinalDef,                // 의미상 target(아군) 방어
+                BossDmgReduction = allyDmgRdc,          // 아군 받피감 (합연산 차감, 보통 작아 음수 없음)
+                BossHp = ally.MaxHp,
+                TargetHp = ally.MaxHp,
+                TargetCurrentHp = ally.CurrentHp,
+                DmgTakenIncrease = allyDebuffs.Dmg_Taken_Increase,
+                Vulnerability = allyDebuffs.Vulnerability,
+                IsCritical = e.Stats.Cri >= 100,        // 적 치확(보통 0)
+                IsWeakpoint = false,
+                IsSkillConditionMet = true,
+                Mode = BattleMode.Boss,
+                IsTargetBoss = false,                   // 아군은 보스 아님
+                SelfMaxHp = enemy.MaxHp,
+            };
+            return _damageCalc.Calculate(input).FinalDamage;
+        }
+
+        /// <summary>적이 아군을 공격 → 피해 적용. (생존 메카닉: 부활·면역·권능은 후속 단계)</summary>
+        private void ApplyDamageToAlly(SiegeBattleState state, SiegeEnemyState enemy, CharacterBattleState ally,
+            double dmg, string label)
+        {
+            if (dmg <= 0 || ally.IsDead) return;
+            ally.CurrentHp -= dmg;
+            bool dead = ally.CurrentHp <= 0;
+            if (dead) { ally.CurrentHp = 0; ally.IsDead = true; }   // TODO(후속): 부활/면역/권능 생존 메카닉
+
+            state.TurnLogs.Add(new BattleTurnLog
+            {
+                Turn = state.CurrentTurn,
+                ActorName = enemy.Source.Name,
+                IsAlly = false,
+                ActionType = state.IsSkillTurn ? ActionType.SkillAttack : ActionType.NormalAttack,
+                SkillName = label,
+                DamageDealt = dmg,
+                Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}" + (dead ? " (사망)" : ""),
+            });
+        }
+
+        /// <summary>살아있는 아군 중 랜덤 1명 (없으면 null).</summary>
+        private CharacterBattleState PickRandomAlly(SiegeBattleState state)
+        {
+            var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
+            return alive.Count == 0 ? null : alive[_rng.Next(alive.Count)];
+        }
+
+        /// <summary>살아있는 아군 중 랜덤 N명 (중복 없이; 부족하면 가능한 만큼).</summary>
+        private List<CharacterBattleState> PickRandomAllies(SiegeBattleState state, int count)
+        {
+            var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
+            if (alive.Count <= count) return alive;
+            return alive.OrderBy(_ => _rng.Next()).Take(count).ToList();
+        }
 
         #endregion
 
