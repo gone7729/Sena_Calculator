@@ -137,7 +137,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var partyBuffConfigs = BuildPartyBuffConfigs(config, index);
             var partyEffects = new EffectManager();
             partyEffects.AddEffects(EffectConverter.FromBuffConfigs(
-                partyBuffConfigs, config.AllyPet, config.PetStar));
+                partyBuffConfigs, config.AllyPet, config.PetStar, config.PetEnhance));
             var (partyPerm, partyTimed, partyPet) = partyEffects.GetSeparatedBuffs();
             var totalDebuffs = partyEffects.GetTotalDebuffs();
 

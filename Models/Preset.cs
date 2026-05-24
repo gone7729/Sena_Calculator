@@ -46,6 +46,7 @@ namespace GameDamageCalculator.Models
         // 펫
         public string PetName { get; set; }
         public int PetStar { get; set; }
+        public int PetEnhance { get; set; }   // 펫 스킬강화 (0=미강화, 1~3)
         public double PetAtkRate { get; set; }
         public double PetDefRate { get; set; }
         public double PetHpRate { get; set; }

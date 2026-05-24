@@ -331,12 +331,12 @@ namespace GameDamageCalculator.Services
         /// <summary>
         /// 펫 효과를 BattleEffect 리스트로 변환
         /// </summary>
-        public static List<BattleEffect> FromPet(Pet pet, int petStar)
+        public static List<BattleEffect> FromPet(Pet pet, int petStar, int petEnhance = 0)
         {
             var effects = new List<BattleEffect>();
             if (pet == null) return effects;
 
-            var buff = pet.GetSkillBuff(petStar);
+            var buff = pet.GetSkillBuff(petStar, petEnhance);
             if (buff != null && !IsEmpty(buff))
             {
                 effects.Add(new BattleEffect
@@ -351,7 +351,7 @@ namespace GameDamageCalculator.Services
                 });
             }
 
-            var debuff = pet.GetSkillDebuff(petStar);
+            var debuff = pet.GetSkillDebuff(petStar, petEnhance);
             if (debuff != null && !IsEmptyDebuff(debuff))
             {
                 effects.Add(new BattleEffect
@@ -623,7 +623,7 @@ namespace GameDamageCalculator.Services
         /// EffectManager에 흘려보내면 GetSeparatedBuffs/GetTotalBuffs/GetTotalDebuffs로 집계 가능.
         /// </summary>
         public static List<BattleEffect> FromBuffConfigs(
-            IEnumerable<BuffConfig> buffConfigs, Pet pet, int petStar)
+            IEnumerable<BuffConfig> buffConfigs, Pet pet, int petStar, int petEnhance = 0)
         {
             var effects = new List<BattleEffect>();
 
@@ -791,7 +791,7 @@ namespace GameDamageCalculator.Services
             }
 
             // 펫 효과
-            effects.AddRange(FromPet(pet, petStar));
+            effects.AddRange(FromPet(pet, petStar, petEnhance));
 
             return effects;
         }

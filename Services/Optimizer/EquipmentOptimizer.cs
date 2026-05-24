@@ -406,7 +406,7 @@ namespace GameDamageCalculator.Services.Optimizer
             var partyBuffConfigs = BuildPartyBuffConfigs(config, charIndex);
             var partyEffects = new EffectManager();
             partyEffects.AddEffects(EffectConverter.FromBuffConfigs(
-                partyBuffConfigs, config.AllyPet, config.PetStar));
+                partyBuffConfigs, config.AllyPet, config.PetStar, config.PetEnhance));
             var (partyPerm, partyTimed, partyPet) = partyEffects.GetSeparatedBuffs();
             var totalDebuffs = partyEffects.GetTotalDebuffs();
 
@@ -594,6 +594,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 TargetEnemy = original.TargetEnemy,
                 AllyPet = original.AllyPet,
                 PetStar = original.PetStar,
+                PetEnhance = original.PetEnhance,
                 PetOptionAtkRate = original.PetOptionAtkRate,
                 PetOptionDefRate = original.PetOptionDefRate,
                 PetOptionHpRate = original.PetOptionHpRate,
