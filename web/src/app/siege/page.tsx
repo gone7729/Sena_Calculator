@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import charactersData from "@/data/characters.json";
 
 interface Hero {
@@ -9,6 +9,12 @@ interface Hero {
   grade: string;
   type: string;
   attackType: string;
+}
+
+interface PetInfo {
+  id: number;
+  name: string;
+  rarity: string;
 }
 
 const heroes = charactersData as Hero[];
@@ -72,6 +78,20 @@ export default function SiegePage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizeResult | null>(null);
 
+  // 펫 (검증 시 게임 세팅 그대로 맞추기 위함)
+  const [pets, setPets] = useState<PetInfo[]>([]);
+  const [petName, setPetName] = useState("");
+  const [petStar, setPetStar] = useState(6);
+  const [petEnhance, setPetEnhance] = useState(0);
+  const [petOpt, setPetOpt] = useState({ atk: 0, def: 0, hp: 0 });
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/siege/pets`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d: PetInfo[]) => setPets(d))
+      .catch(() => setPets([]));
+  }, []);
+
   const filtered = useMemo(
     () =>
       heroes.filter((h) => {
@@ -108,10 +128,20 @@ export default function SiegePage() {
         id: h.id,
         transcend: transcend[h.id] ?? 6,
       }));
+      const pet = petName
+        ? {
+            name: petName,
+            star: petStar,
+            enhance: petStar === 6 ? petEnhance : 0,
+            optAtkRate: petOpt.atk,
+            optDefRate: petOpt.def,
+            optHpRate: petOpt.hp,
+          }
+        : null;
       const res = await fetch(`${API_BASE}/api/siege/optimize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ day, members }),
+        body: JSON.stringify({ day, members, pet }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -246,6 +276,80 @@ export default function SiegePage() {
               ))}
             </div>
           )}
+
+          {/* ===== 펫 (검증용) ===== */}
+          <h3 className="siege-result-sub">펫</h3>
+          <div className="siege-pet">
+            <div className="siege-pet-row">
+              <span className="siege-pet-label">펫</span>
+              <select
+                className="siege-transcend siege-pet-select"
+                value={petName}
+                onChange={(e) => setPetName(e.target.value)}
+              >
+                <option value="">없음</option>
+                {pets.map((p) => (
+                  <option key={p.id} value={p.name}>
+                    {p.name} ({p.rarity})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {petName && (
+              <>
+                <div className="siege-pet-row">
+                  <span className="siege-pet-label">성급</span>
+                  <select
+                    className="siege-transcend"
+                    value={petStar}
+                    onChange={(e) => setPetStar(Number(e.target.value))}
+                  >
+                    {[4, 5, 6].map((s) => (
+                      <option key={s} value={s}>
+                        {s}성
+                      </option>
+                    ))}
+                  </select>
+                  <span className="siege-pet-label">강화</span>
+                  <select
+                    className="siege-transcend"
+                    value={petStar === 6 ? petEnhance : 0}
+                    disabled={petStar !== 6}
+                    title={petStar !== 6 ? "강화는 6성에서만 가능" : undefined}
+                    onChange={(e) => setPetEnhance(Number(e.target.value))}
+                  >
+                    {[0, 1, 2, 3].map((n) => (
+                      <option key={n} value={n}>
+                        {n === 0 ? "강화 없음" : `+${n}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="siege-pet-row">
+                  <span className="siege-pet-label">옵션%</span>
+                  {([
+                    ["atk", "공"],
+                    ["def", "방"],
+                    ["hp", "체"],
+                  ] as const).map(([k, lbl]) => (
+                    <label key={k} className="siege-pet-opt">
+                      {lbl}
+                      <input
+                        type="number"
+                        min={0}
+                        value={petOpt[k]}
+                        onChange={(e) =>
+                          setPetOpt((prev) => ({ ...prev, [k]: Number(e.target.value) }))
+                        }
+                      />
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           <button
             type="button"
