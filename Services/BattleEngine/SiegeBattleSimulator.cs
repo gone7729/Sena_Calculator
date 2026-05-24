@@ -105,6 +105,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 라운드 전환 (R1/R2: 적 전멸 시 다음 라운드, 턴 이어짐)
                 if (state.CurrentRound < 3 && AllEnemiesDown(state))
                 {
+                    Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
+                        $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 시작 (T{t + 1})");
                     state.CurrentRound++;
                     state.InitializeRound(state.CurrentRound);
                     order = BuildActionOrder(state);   // 적 교체 → 행동순 재구성
@@ -174,6 +176,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
                         RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
                     }
+                    LogSkillSideEffects(state, ally, skill);   // 스킬 버프/디버프 로그(단계1: [미적용] 표기)
 
                     double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
                     if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
@@ -472,6 +475,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                     foreach (var type in e.StatusImmunity.Types)
                         tgt.StatusImmunityTurns[type] =
                             Math.Max(tgt.StatusImmunityTurns.GetValueOrDefault(type), e.StatusImmunity.Duration);
+
+                var names = string.Join("·", e.StatusImmunity.Types.Select(t => StatusEffectDb.Get(t)?.Name ?? t.ToString()));
+                string scope = e.Target == EffectTarget.Party ? "전체 아군" : ally.Source.Character.Name;
+                Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "면역", 0,
+                    $"{scope} {names} 면역 [{e.StatusImmunity.Duration}턴] (평타 트리거)");
             }
         }
 
@@ -483,19 +491,29 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (statuses == null) return;
             foreach (var se in statuses)
             {
-                if (ally.StatusImmunityTurns.GetValueOrDefault(se.Type) > 0) continue;   // 면역 → 무효
                 var baseEffect = StatusEffectDb.Get(se.Type);
+                string stName = baseEffect?.Name ?? se.Type.ToString();
+                if (ally.StatusImmunityTurns.GetValueOrDefault(se.Type) > 0)
+                {
+                    // 면역 → 무효 (로그로 표기)
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "면역", 0,
+                        $"{stName} 무효 (면역)");
+                    continue;
+                }
                 if (baseEffect == null) continue;
+                int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
                 ally.Effects.AddEffect(new BattleEffect
                 {
                     Id = $"siege_cc:{ally.PartyIndex}:{se.Type}",
                     SourceName = $"siege_cc:{ally.PartyIndex}:{se.Type}",
                     StatusType = se.Type,
                     StatusData = StatusEffectData.FromDbEffect(baseEffect),
-                    RemainingTurns = se.Duration > 0 ? se.Duration : baseEffect.Duration,
+                    RemainingTurns = dur,
                     IsPermanent = false,
                     MergeStrategy = MergeStrategy.Stack,
                 });
+                Log(state, "적", false, ActionType.DebuffApplied, stName, 0,
+                    $"{ally.Source.Character.Name} {stName} 부여 [{dur}턴]");
             }
         }
 
@@ -637,6 +655,94 @@ namespace GameDamageCalculator.Services.BattleEngine
                 .Where(s => ally.IsSkillReady(s.SkillType))
                 .OrderByDescending(s => s.SkillType)
                 .FirstOrDefault();
+        }
+
+        // ===== 로깅 보조 =====
+
+        private void Log(SiegeBattleState state, string actor, bool isAlly, ActionType type,
+            string skillName, double dmg, string desc)
+            => state.TurnLogs.Add(new BattleTurnLog
+            {
+                Turn = state.CurrentTurn, ActorName = actor, IsAlly = isAlly,
+                ActionType = type, SkillName = skillName, DamageDealt = dmg, Description = desc,
+            });
+
+        /// <summary>BuffSet의 0이 아닌 필드를 짧은 한글 문자열로.</summary>
+        private static string SummarizeBuff(BuffSet b)
+        {
+            if (b == null) return "";
+            var p = new List<string>();
+            void A(double v, string k) { if (v != 0) p.Add($"{k}{v:0.#}"); }
+            A(b.Atk_Rate, "공%"); A(b.MagicAtk_Rate, "마공%"); A(b.Def_Rate, "방%"); A(b.Hp_Rate, "체%");
+            A(b.Cri, "치확"); A(b.Cri_Dmg, "치피"); A(b.Wek, "약확"); A(b.Wek_Dmg, "약피");
+            A(b.Dmg_Dealt, "피증"); A(b.Dmg_Dealt_Type, "타입피증"); A(b.Dmg_Dealt_Bos, "보스피증");
+            A(b.Dmg_Dealt_1to3, "1-3인기"); A(b.Dmg_Dealt_4to5, "4-5인기");
+            A(b.Arm_Pen, "방관"); A(b.Dmg_Rdc, "받피감"); A(b.Eff_Hit, "효적"); A(b.Eff_Res, "효저");
+            A(b.Heal_Bonus, "받회"); A(b.Blk, "막기"); A(b.Blessing, "축복"); A(b.Cooldown_Reduction, "쿨감");
+            return string.Join(" ", p);
+        }
+
+        /// <summary>DebuffSet의 0이 아닌 필드를 짧은 한글 문자열로.</summary>
+        private static string SummarizeDebuff(DebuffSet d)
+        {
+            if (d == null) return "";
+            var p = new List<string>();
+            void A(double v, string k) { if (v != 0) p.Add($"{k}{v:0.#}"); }
+            A(d.Def_Reduction, "방깎"); A(d.Vulnerability, "취약"); A(d.Boss_Vulnerability, "보스취약");
+            A(d.Dmg_Taken_Increase, "받피증"); A(d.Phys_Dmg_Taken_Increase, "받물피증"); A(d.Mag_Dmg_Taken_Increase, "받마피증");
+            A(d.Atk_Reduction, "공감"); A(d.MagicAtk_Reduction, "마공감"); A(d.Dmg_Reduction, "피감");
+            A(d.Heal_Reduction, "받회감"); A(d.Cri_Reduction, "치확감"); A(d.Wek_Reduction, "약확감");
+            A(d.Spd_Reduction, "속감"); A(d.Cooldown_Increase, "쿨증"); A(d.Eff_Red, "효저깎");
+            return string.Join(" ", p);
+        }
+
+        /// <summary>
+        /// 스킬이 선언한 버프/디버프 효과를 로그로 남긴다. 단계1: 적용은 아직 미구현이라 [미적용]으로 표기.
+        /// (Effects 리스트 + 레거시 PartyBuff/SelfBuff/DebuffEffect 모두 확인.)
+        /// </summary>
+        private void LogSkillSideEffects(SiegeBattleState state, CharacterBattleState ally, Skill skill)
+        {
+            bool enh = ally.Source.IsSkillEnhanced;
+            string actor = ally.Source.Character.Name;
+            var lvl = skill.GetLevelData(enh);
+            if (lvl == null) return;
+
+            void LogBuff(string tgt, BuffSet b, int dur)
+            {
+                var s = SummarizeBuff(b);
+                if (!string.IsNullOrEmpty(s))
+                    Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                        $"[미적용] 버프 {tgt}: {s}{(dur > 0 ? $" [{dur}턴]" : "")}");
+            }
+            void LogDebuff(string tgt, DebuffSet d, int dur)
+            {
+                var s = SummarizeDebuff(d);
+                if (!string.IsNullOrEmpty(s))
+                    Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                        $"[미적용] 디버프 {tgt}: {s}{(dur > 0 ? $" [{dur}턴]" : "")}");
+            }
+
+            // 새 Effects 리스트
+            if (lvl.Effects != null)
+                foreach (var e in lvl.Effects)
+                {
+                    if (e.Type == SkillEffectType.Buff) LogBuff(e.Target.ToString(), e.Buff, e.Duration);
+                    else if (e.Type == SkillEffectType.Debuff) LogDebuff(e.Target.ToString(), e.Debuff, e.Duration);
+                }
+            // 레거시 필드
+            LogBuff("Self", lvl.SelfBuff, lvl.EffectDuration);
+            LogBuff("Party", lvl.PartyBuff, lvl.EffectDuration);
+            LogDebuff("Enemy", lvl.DebuffEffect, lvl.EffectDuration);
+
+            // 초월 보너스 효과
+            var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
+            if (tr?.Effects != null)
+                foreach (var e in tr.Effects)
+                {
+                    if (e.Type == SkillEffectType.Buff) LogBuff(e.Target.ToString(), e.Buff, e.Duration);
+                    else if (e.Type == SkillEffectType.Debuff) LogDebuff(e.Target.ToString(), e.Debuff, e.Duration);
+                }
+            if (tr != null) { LogBuff("Party", tr.PartyBuff, 0); LogDebuff("Enemy", tr.Debuff, 0); }
         }
 
         #endregion
