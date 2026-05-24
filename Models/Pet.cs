@@ -23,10 +23,10 @@ namespace GameDamageCalculator.Models
         public Dictionary<int, PetSkill> Skills { get; set; }
 
         /// <summary>
-        /// 스킬강화 보너스 (성급값에 가산). 키 = 강화 레벨 (1~3), 0강(미강화)은 항목 없음.
-        /// 값 = 해당 강화 레벨에서 성급 스킬값 위에 더해지는 누적 보너스(절대치).
-        /// 즉 최종값 = 성급 스킬값 + EnhanceBonus[enhance]. 성급과 무관한 독립 가산.
-        /// (데이터 미입력 상태 — 강화 수치 확보 시 펫별로 채운다.)
+        /// 스킬강화 효과 (절대값 "변경"). 키 = 강화 레벨 (1~3), 0강(미강화)은 항목 없음.
+        /// 값 = 해당 강화 레벨에서 스킬값이 변경되는 최종 절대치 (예: 보스취약 26% → 30%로 변경).
+        /// GetSkillBuff/Debuff에서 0이 아닌 필드만 성급값을 Override(대체)한다. 가산 아님.
+        /// (게임 표기가 "X%로 변경"이라 덮어쓰기. 강화는 보통 6성에서만 가능.)
         /// </summary>
         public Dictionary<int, PetSkill> EnhanceBonus { get; set; }
 
@@ -54,11 +54,11 @@ namespace GameDamageCalculator.Models
                 ? (skill.Buff?.Clone() ?? new BuffSet())
                 : new BuffSet();
 
-            // 강화 보너스 가산 (성급과 독립)
+            // 강화 효과: 0이 아닌 필드만 절대값으로 변경(Override)
             if (enhance > 0 && EnhanceBonus != null
                 && EnhanceBonus.TryGetValue(enhance, out var bonus) && bonus.Buff != null)
             {
-                result.Add(bonus.Buff);
+                result.Override(bonus.Buff);
             }
             return result;
         }
@@ -75,7 +75,7 @@ namespace GameDamageCalculator.Models
             if (enhance > 0 && EnhanceBonus != null
                 && EnhanceBonus.TryGetValue(enhance, out var bonus) && bonus.Debuff != null)
             {
-                result.Add(bonus.Debuff);
+                result.Override(bonus.Debuff);
             }
             return result;
         }
