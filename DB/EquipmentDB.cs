@@ -149,7 +149,7 @@ namespace GameDamageCalculator.Database
         };
     }
 
-    public static class AccessoryDb
+    public static partial class AccessoryDb
     {
         // 성급별 기본 보너스
         public static readonly Dictionary<int, BaseStatSet> GradeBonus = new Dictionary<int, BaseStatSet>
