@@ -112,9 +112,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 개별 캐릭터 초기 스탯 계산
+        /// 개별 캐릭터 초기 스탯 계산.
+        /// 공성전 등 다른 시뮬레이터에서도 아군 스탯 초기화에 재사용 (public).
         /// </summary>
-        private CharacterBattleState InitializeCharacterState(BattleConfig config, BattleCharacter battleChar, int index)
+        public CharacterBattleState InitializeCharacterState(BattleConfig config, BattleCharacter battleChar, int index)
         {
             // 장비 세트 정보 추출
             var loadout = battleChar.Equipment;
