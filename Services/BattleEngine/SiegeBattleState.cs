@@ -132,11 +132,23 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 통합 효과 관리자 (적에게 걸린 디버프/상태이상)
         public EffectManager Effects { get; set; } = new();
 
+        // 적에게 걸린 DoT (아군이 부여한 화상/출혈 등 지속 피해). 매 턴 틱.
+        public List<SiegeDot> ActiveDots { get; set; } = new();
+
         // 이 적의 누적 피해(아군이 이 적에게 넣은 데미지) — 라운드/타겟 분석용
         public double TotalDamageTaken { get; set; }
 
         /// <summary>스킬 사용 가능 여부 (쿨다운 충족).</summary>
         public bool IsSkillReady(SkillType skillType)
             => !SkillCooldowns.TryGetValue(skillType, out var cd) || cd <= 0;
+    }
+
+    /// <summary>적에게 걸린 DoT 한 항목. 틱당 데미지는 등록 시점에 시전자 공격력·감쇄를 반영해 계산해 둔다.</summary>
+    public class SiegeDot
+    {
+        public StatusEffectType Type { get; set; }
+        public double TickDamage { get; set; }    // 매 턴 가하는 피해 (등록 시 계산: 시전자 atk × 배율 × 감쇄)
+        public int RemainingTurns { get; set; }
+        public string SourceName { get; set; }    // 시전 아군 (캐릭별 기여 집계용)
     }
 }

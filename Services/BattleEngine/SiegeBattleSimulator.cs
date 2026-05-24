@@ -97,7 +97,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
                 t++;
 
-                // 턴 경과: 아군 CC/상태이상 + 면역 잔여턴 1 감소
+                // 턴 경과: 적 DoT 틱(점수 누적) + 아군 CC/상태이상·면역 잔여턴 감소
+                TickEnemyDots(state);
                 TickAllyStatus(state);
 
                 // 라운드 전환 (R1/R2: 적 전멸 시 다음 라운드, 턴 이어짐)
@@ -168,6 +169,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     double dmg = CalcDamageToEnemy(ally, target, skill);
                     ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
+                    RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
 
                     double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
                     if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
@@ -220,6 +222,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         double dmg = CalcDamageToEnemy(ally, target, normal);
                         ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
+                        RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
                         TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                     }
                 }
@@ -510,6 +513,74 @@ namespace GameDamageCalculator.Services.BattleEngine
             var tr = passive.GetTranscendBonus(ally.Source.TranscendLevel);
             if (tr?.Effects != null) list.AddRange(tr.Effects);
             return list;
+        }
+
+        #endregion
+
+        #region DoT (아군 → 적 지속피해)
+
+        /// <summary>
+        /// 아군 스킬/평타의 DoT(화상·출혈 등 공격력 비례)를 적에 등록. 틱당 데미지는 등록 시점에
+        /// 시전자 공격력·공성전 감쇄(시전자 공격속성 기준)를 반영해 계산해 둔다.
+        /// (HP 비례 DoT인 중독·즉사 등은 후속.)
+        /// </summary>
+        private void RegisterDotToEnemy(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target, Skill skill)
+        {
+            var statuses = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.StatusEffects;
+            if (statuses == null) return;
+            foreach (var se in statuses)
+            {
+                var baseEffect = StatusEffectDb.Get(se.Type);
+                if (baseEffect == null) continue;
+                double atkRatio = (se.CustomAtkRatio ?? baseEffect.AtkRatio) / 100.0;
+                if (atkRatio <= 0) continue;   // 공격력 비례 DoT만 (HP비례는 후속)
+
+                double elemReduction = ally.Source.Character.AttackType == AttackType.Magic
+                    ? target.Source.MagicReduction
+                    : target.Source.PhysicalReduction;
+                double tick = ally.FinalAtk * atkRatio * Math.Max(0, 1 - elemReduction / 100.0);
+                int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
+
+                target.ActiveDots.Add(new SiegeDot
+                {
+                    Type = se.Type,
+                    TickDamage = tick,
+                    RemainingTurns = dur,
+                    SourceName = ally.Source.Character.Name,
+                });
+            }
+        }
+
+        /// <summary>매 턴 각 적의 DoT 틱 → 점수 누적 + 캐릭별 기여 반영, 잔여턴 감소.</summary>
+        private void TickEnemyDots(SiegeBattleState state)
+        {
+            foreach (var enemy in state.Enemies)
+            {
+                foreach (var dot in enemy.ActiveDots)
+                {
+                    if (dot.TickDamage > 0)
+                    {
+                        enemy.CurrentHp -= dot.TickDamage;
+                        enemy.TotalDamageTaken += dot.TickDamage;
+                        state.TotalScore += dot.TickDamage;
+                        state.RoundScore[state.CurrentRound] =
+                            state.RoundScore.GetValueOrDefault(state.CurrentRound) + dot.TickDamage;
+
+                        var src = state.AllyStates.FirstOrDefault(a => a.Source.Character.Name == dot.SourceName);
+                        if (src != null) src.TotalDamageDealt += dot.TickDamage;
+
+                        var dotName = StatusEffectDb.Get(dot.Type)?.Name ?? dot.Type.ToString();
+                        state.TurnLogs.Add(new BattleTurnLog
+                        {
+                            Turn = state.CurrentTurn, ActorName = dot.SourceName, IsAlly = true,
+                            ActionType = ActionType.DoTDamage, SkillName = dotName, DamageDealt = dot.TickDamage,
+                            Description = $"[DoT] {dotName} → {enemy.Source.Name}: {dot.TickDamage:N0}",
+                        });
+                    }
+                    dot.RemainingTurns--;
+                }
+                enemy.ActiveDots.RemoveAll(d => d.RemainingTurns <= 0);
+            }
         }
 
         #endregion
