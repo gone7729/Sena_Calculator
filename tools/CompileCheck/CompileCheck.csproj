@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 빠른 컴파일 체크용 (WPF UI 제외, DB·Models·Services만 컴파일).
+       WPF 풀빌드(~30분) 대신 수십 초 만에 로직 컴파일 검증.
+       사용: dotnet build tools/CompileCheck/CompileCheck.csproj -clp:ErrorsOnly -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GameDamageCalculator</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\DB\**\*.cs" />
+    <Compile Include="..\..\Models\**\*.cs" />
+    <Compile Include="..\..\Services\**\*.cs" />
+  </ItemGroup>
+
+</Project>
