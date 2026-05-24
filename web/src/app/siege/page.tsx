@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import charactersData from "@/data/characters.json";
 
 interface Hero {
@@ -90,6 +90,20 @@ export default function SiegePage() {
       .then((r) => (r.ok ? r.json() : []))
       .then((d: PetInfo[]) => setPets(d))
       .catch(() => setPets([]));
+  }, []);
+
+  // 우측 패널(선택 영웅·펫·탐색) 높이를 측정해 좌측 리스트 패널 높이를 맞춤 → 리스트 내부 스크롤
+  const rightRef = useRef<HTMLElement>(null);
+  const [rightHeight, setRightHeight] = useState<number | undefined>();
+
+  useEffect(() => {
+    const el = rightRef.current;
+    if (!el) return;
+    const update = () => setRightHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   const filtered = useMemo(
@@ -186,7 +200,10 @@ export default function SiegePage() {
       {/* ===== Two columns ===== */}
       <div className="columns">
         {/* Left: 영웅 선택 */}
-        <section className="panel panel-list">
+        <section
+          className="panel panel-list"
+          style={rightHeight ? { height: rightHeight } : undefined}
+        >
           <h2 className="panel-title">영웅 선택</h2>
           <p className="panel-subtitle">
             {filtered.length}명 · 선택 {selectedHeroes.length}/{MAX_PARTY}
@@ -245,7 +262,7 @@ export default function SiegePage() {
         </section>
 
         {/* Right: 선택 영웅 초월 + 탐색 */}
-        <section className="panel">
+        <section className="panel" ref={rightRef}>
           <h2 className="panel-title">선택 영웅 · 초월</h2>
           <p className="panel-subtitle">
             {boss} 공성전 · {selectedHeroes.length}명 (최소 {MIN_PARTY}명)
