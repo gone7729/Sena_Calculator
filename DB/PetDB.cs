@@ -38,7 +38,7 @@ namespace GameDamageCalculator.Database
                     { 6, new PetSkill { Buff = new BuffSet { Atk_Rate = 21 } } },
                 }
             },
-            // 윈디
+            // 윈디 — 펫의 응원: 모든 아군 공격력 증가 + 보스 취약
             new Pet
             {
                 Id = 3,
@@ -46,18 +46,25 @@ namespace GameDamageCalculator.Database
                 Rarity = "전설",
                 Skills = new Dictionary<int, PetSkill>
                 {
-                    { 4, new PetSkill { 
+                    { 4, new PetSkill {
                         Buff = new BuffSet{ Atk_Rate = 8 },
                         Debuff = new DebuffSet{ Boss_Vulnerability = 15 }
                      } },
-                    { 5, new PetSkill { 
+                    { 5, new PetSkill {
                         Buff = new BuffSet{ Atk_Rate = 10 },
                         Debuff = new DebuffSet{ Boss_Vulnerability = 20 }
                      } },
-                    { 6, new PetSkill { 
+                    { 6, new PetSkill {
                         Buff = new BuffSet{ Atk_Rate = 12 },
                         Debuff = new DebuffSet{ Boss_Vulnerability = 26 }
                      } },
+                },
+                // 스킬강화: 공격력 증가·보스 취약을 절대값으로 변경 (6성 기준 12%/26% → 강화값)
+                EnhanceBonus = new Dictionary<int, PetSkill>
+                {
+                    { 1, new PetSkill { Buff = new BuffSet{ Atk_Rate = 13 }, Debuff = new DebuffSet{ Boss_Vulnerability = 27 } } },
+                    { 2, new PetSkill { Buff = new BuffSet{ Atk_Rate = 14 }, Debuff = new DebuffSet{ Boss_Vulnerability = 28 } } },
+                    { 3, new PetSkill { Buff = new BuffSet{ Atk_Rate = 15 }, Debuff = new DebuffSet{ Boss_Vulnerability = 30 } } },
                 }
             },
             // 리첼

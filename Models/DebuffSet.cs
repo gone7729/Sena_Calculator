@@ -67,6 +67,35 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
+        /// 필드별 덮어쓰기 — other의 0이 아닌 필드만 현재 세트를 대체.
+        /// 펫 스킬강화가 "변경값 = 최종값"으로 동작하게 한다 (예: 보스취약 26% → 강화 30%로 변경).
+        /// </summary>
+        public void Override(DebuffSet other)
+        {
+            if (other == null) return;
+
+            if (other.Def_Reduction != 0) Def_Reduction = other.Def_Reduction;
+            if (other.Blk_Red != 0) Blk_Red = other.Blk_Red;
+            if (other.Dmg_Taken_Increase != 0) Dmg_Taken_Increase = other.Dmg_Taken_Increase;
+            if (other.Phys_Dmg_Taken_Increase != 0) Phys_Dmg_Taken_Increase = other.Phys_Dmg_Taken_Increase;
+            if (other.Mag_Dmg_Taken_Increase != 0) Mag_Dmg_Taken_Increase = other.Mag_Dmg_Taken_Increase;
+            if (other.Vulnerability != 0) Vulnerability = other.Vulnerability;
+            if (other.Boss_Vulnerability != 0) Boss_Vulnerability = other.Boss_Vulnerability;
+            if (other.Dmg_Reduction != 0) Dmg_Reduction = other.Dmg_Reduction;
+            if (other.Cri_Dmg_Reduction != 0) Cri_Dmg_Reduction = other.Cri_Dmg_Reduction;
+            if (other.Atk_Reduction != 0) Atk_Reduction = other.Atk_Reduction;
+            if (other.MagicAtk_Reduction != 0) MagicAtk_Reduction = other.MagicAtk_Reduction;
+            if (other.Spd_Reduction != 0) Spd_Reduction = other.Spd_Reduction;
+            if (other.Cri_Reduction != 0) Cri_Reduction = other.Cri_Reduction;
+            if (other.Wek_Reduction != 0) Wek_Reduction = other.Wek_Reduction;
+            if (other.Cooldown_Increase != 0) Cooldown_Increase = other.Cooldown_Increase;
+            if (other.Heal_Reduction != 0) Heal_Reduction = other.Heal_Reduction;
+            if (other.Unrecover != 0) Unrecover = other.Unrecover;
+            if (other.Eff_Red != 0) Eff_Red = other.Eff_Red;
+            if (other.Eff_Hit_Red != 0) Eff_Hit_Red = other.Eff_Hit_Red;
+        }
+
+        /// <summary>
         /// 같은 속성의 최대값으로 병합 (중복 디버프 처리용)
         /// </summary>
         public void MaxMerge(DebuffSet other)
