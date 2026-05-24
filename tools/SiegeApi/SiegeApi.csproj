@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- 공성전 웹(/siege)용 백엔드 API. 기존 DB·Models·Services를 그대로 컴파일·재사용
+       (WPF UI 제외, CompileCheck.csproj와 동일 패턴). SiegeOptimizer를 HTTP로 노출.
+       실행: dotnet run (project tools/SiegeApi/SiegeApi.csproj), 기본 http://localhost:5179 -->
+  <PropertyGroup>
+    <!-- 머신에 ASP.NET 8 런타임이 없음(8 NETCore만). SDK·런타임이 10이라 API는 net10.0 타깃.
+         DB/Models/Services는 소스로 직접 컴파일되므로 net10에서도 그대로 빌드됨. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GameDamageCalculator.SiegeApi</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- 소스에 BOM이 없어, 한국어 로캘에서 dotnet build가 CP949로 읽어 한글 문자열이 깨짐.
+         UTF-8(65001)로 강제해 한글 영웅/스테이지 이름이 올바르게 컴파일되도록 함. -->
+    <CodePage>65001</CodePage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\DB\**\*.cs" />
+    <Compile Include="..\..\Models\**\*.cs" />
+    <Compile Include="..\..\Services\**\*.cs" />
+  </ItemGroup>
+
+</Project>
