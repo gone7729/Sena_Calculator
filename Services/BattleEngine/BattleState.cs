@@ -69,6 +69,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 턴제 버프 적용 순서 카운터 (버프 해제용 ApplyOrderId 부여). 1부터 증가.
         public int ApplyOrderCounter { get; set; }
 
+        // 상태이상 면역 잔여 턴 (타입별). 면역 패시브 캐릭의 기본공격 시 파티에 부여되는 턴제 면역.
+        // 공성전: 면역캐릭이 기본공격을 해야 갱신되므로, 죽거나 행동 못 하면 면역이 끊겨 CC를 맞는다.
+        public Dictionary<StatusEffectType, int> StatusImmunityTurns { get; set; } = new();
+
         // 받피해 분산 큐 (트루드 PainEndurance 등) — 각 발동마다 독립 누적
         public List<PendingPainEnduranceDamage> PainEnduranceQueue { get; set; } = new();
 
