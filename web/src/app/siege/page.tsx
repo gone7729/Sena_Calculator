@@ -34,6 +34,7 @@ const GRADES = ["전체", "전설", "희귀"];
 const ROLES = ["전체", "공격형", "마법형", "만능형", "방어형", "지원형"];
 const MAX_PARTY = 8;
 const MIN_PARTY = 5;
+const LIST_MIN_HEIGHT = 480; // 영웅 리스트 최소 높이(px) — 우측 패널이 짧아도 리스트가 찌부러지지 않도록
 
 // 공성전 백엔드 (.NET SiegeApi). 로컬 개발 기본값, 배포 시 NEXT_PUBLIC_SIEGE_API로 덮어쓰기.
 const API_BASE = process.env.NEXT_PUBLIC_SIEGE_API ?? "http://localhost:5179";
@@ -202,7 +203,7 @@ export default function SiegePage() {
         {/* Left: 영웅 선택 */}
         <section
           className="panel panel-list"
-          style={rightHeight ? { height: rightHeight } : undefined}
+          style={{ height: Math.max(rightHeight ?? 0, LIST_MIN_HEIGHT) }}
         >
           <h2 className="panel-title">영웅 선택</h2>
           <p className="panel-subtitle">
