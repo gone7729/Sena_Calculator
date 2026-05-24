@@ -6,17 +6,18 @@ using GameDamageCalculator.Models;
 namespace GameDamageCalculator.Services.BattleEngine
 {
     /// <summary>
-    /// 공성전 턴제 시뮬레이터 (2단계: 턴 진행 골격).
+    /// 공성전 턴제 시뮬레이터 (3단계까지: 턴 진행 + 데미지 계산 + 타겟팅).
     /// 데이터·규칙은 메모리 siege-simulation-rules / battle-time-model.
     ///
-    /// 현재 구현(2번): 선공 결정 → 스킬턴 사이클(0턴부터 2턴마다 선/후 번갈아) →
-    ///   기본공격(양팀 통합 속공순) → 70턴 / 라운드 전환(R1·R2 적 전멸 시) → 점수 누적.
-    /// 후속: 정확한 데미지(DamageCalculator)·정교 타겟팅(약점·앞열·R3보스)=3번, 적 행동(아군 피격·생존)=4번.
-    ///   현재는 placeholder 데미지로 턴 흐름과 라운드 전환을 검증한다.
+    /// 구현: 선공 결정 → 스킬턴 사이클(0턴부터 2턴마다 선/후 번갈아) → 기본공격(양팀 통합 속공순) →
+    ///   70턴 / 라운드 전환(R1·R2 적 전멸) → 점수 누적. 데미지는 DamageCalculator(공성전 감쇄·디버프 반영),
+    ///   타겟=약점(최저HP·동률 앞열, R3 보스). 행동 소요시간만큼 전체 유닛 쿨다운 감소.
+    /// 후속: 적 행동(아군 피격·생존)=4번, DoT/상태이상·결과 정교화=5번.
     /// </summary>
     public class SiegeBattleSimulator
     {
-        private readonly BattleSimulator _baseSim = new();  // 아군 스탯 초기화 재사용
+        private readonly BattleSimulator _baseSim = new();   // 아군 스탯 초기화 재사용
+        private readonly DamageCalculator _damageCalc = new();
         private readonly Random _rng = new();
 
         public SiegeBattleResult Simulate(SiegeBattleConfig config)
@@ -66,6 +67,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         private void RunTurnLoop(SiegeBattleConfig config, SiegeBattleState state)
         {
+            // 행동순서는 라운드당 1회 구성(라운드 내 고정). 동속공 랜덤도 이때 1회 결정 — 속공 불변이라 유지.
             var order = BuildActionOrder(state);
             int cursor = 0;
             int t = 0;
@@ -106,7 +108,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             state.CurrentTurn = t;
         }
 
-        /// <summary>양팀(아군+적) 통합 속공 내림차순. 같은 팀 동속공은 자리순, 다른 팀 동속공은 랜덤.</summary>
+        /// <summary>양팀(아군+적) 통합 속공 내림차순. 같은 팀 동속공은 자리순, 다른 팀 동속공은 랜덤(1회 결정).</summary>
         private List<SiegeActor> BuildActionOrder(SiegeBattleState state)
         {
             var actors = new List<SiegeActor>();
@@ -115,7 +117,6 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var e in state.Enemies)
                 actors.Add(new SiegeActor { IsAlly = false, Enemy = e, Spd = e.FinalSpd, Position = e.Position });
 
-            // 속공 내림차순 그룹화 → 그룹 내: 같은 팀 자리순 유지 + 팀 간 랜덤 인터리브
             return actors
                 .GroupBy(x => x.Spd)
                 .OrderByDescending(g => g.Key)
@@ -149,16 +150,24 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (byAlly)
             {
-                // 아군: 쿨 충족 스킬 1개 (간략 — 속공 높은 순으로 첫 사용가능). 데미지 placeholder.
+                // 아군: 쿨 충족 스킬 1개 (속공 높은 순으로 첫 사용가능). 한 명만 (4번에서 로테이션 정교화).
                 foreach (var ally in state.AllyStates.Where(a => !a.IsDead).OrderByDescending(a => a.FinalSpd))
                 {
                     var skill = PickAllySkill(ally);
                     if (skill == null) continue;
-                    double dmg = PlaceholderSkillDamage(ally, skill);
-                    ApplyDamageToTarget(state, ally, dmg, skill.Name);
+
+                    var target = PickTarget(state);
+                    if (target == null) return;
+
+                    double dmg = CalcDamageToEnemy(ally, target, skill);
+                    ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
+
                     double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
                     if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
-                    return; // 스킬턴엔 한 명만 (간략 — 4번에서 정교화)
+
+                    // 스킬 소요시간만큼 전체 쿨다운 감소 (쿨=실시간, 1초당 1)
+                    AdvanceTime(state, GetActionDuration(skill));
+                    return;
                 }
             }
             // else 적 스킬턴: SkillPriority 기반 사용 + 아군 피격 → 4번에서 구현
@@ -172,18 +181,26 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var ally = actor.Ally;
                 if (ally.IsDead) return;
                 var normal = ally.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
-                double dmg = PlaceholderBasicDamage(ally, normal);
-                ApplyDamageToTarget(state, ally, dmg, normal?.Name ?? "기본 공격");
+                if (normal == null) return;
+
+                var target = PickTarget(state);
+                if (target != null)
+                {
+                    double dmg = CalcDamageToEnemy(ally, target, normal);
+                    ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
+                }
             }
             // else 적 기본공격 → 아군 피격·생존 → 4번에서 구현
+
+            // 기본공격 소요시간(평타 2초)만큼 전체 쿨다운 감소
+            AdvanceTime(state, GetActionDuration(null));
         }
 
-        /// <summary>아군이 적에게 데미지 적용 (타겟: 현재는 최저 HP/R3 보스 — 3번에서 정교화).</summary>
-        private void ApplyDamageToTarget(SiegeBattleState state, CharacterBattleState ally, double dmg, string label)
+        /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
+        private void ApplyDamage(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target,
+            double dmg, string label, bool isSkill)
         {
             if (dmg <= 0) return;
-            var target = PickTarget(state);
-            if (target == null) return;
 
             target.CurrentHp -= dmg;            // HP 0 이하 허용 (무사망)
             target.TotalDamageTaken += dmg;
@@ -196,14 +213,21 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Turn = state.CurrentTurn,
                 ActorName = ally.Source.Character.Name,
                 IsAlly = true,
-                ActionType = state.IsSkillTurn ? ActionType.SkillAttack : ActionType.NormalAttack,
+                ActionType = isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                 SkillName = label,
                 DamageDealt = dmg,
                 Description = $"{ally.Source.Character.Name} → {target.Source.Name}: {dmg:N0}",
             });
         }
 
-        /// <summary>타겟 선정 (현재: 최저 HP, R3는 보스 중 최저 HP, 동률 앞열 — 3번에서 정식 약점 로직).</summary>
+        #endregion
+
+        #region 타겟팅 / 데미지 계산
+
+        /// <summary>
+        /// 타겟 선정: 약점공격(시뮬은 결정론적으로 항상 발동) = 생명력 최저 적, 동률이면 앞열(Position 낮은 순).
+        /// 라운드3에서는 약점공격 대상이 항상 보스(3보스 중 최저 HP).
+        /// </summary>
         private SiegeEnemyState PickTarget(SiegeBattleState state)
         {
             IEnumerable<SiegeEnemyState> candidates = state.CurrentRound >= 3
@@ -211,8 +235,104 @@ namespace GameDamageCalculator.Services.BattleEngine
                 : state.Enemies;
             var list = candidates.ToList();
             if (list.Count == 0) list = state.Enemies;
+            // 최저 HP → 동률 시 앞열(Position 낮은 자리)
             return list.OrderBy(e => e.CurrentHp).ThenBy(e => e.Position).FirstOrDefault();
         }
+
+        /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영. 시뮬은 치명·약점 항상 발동.</summary>
+        private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill)
+        {
+            var battleChar = ally.Source;
+            var character = battleChar.Character;
+            var enemy = target.Source;
+            var baseStats = character.GetBaseStats();
+
+            int targetCount = skill.GetTargetCount(battleChar.IsSkillEnhanced, battleChar.TranscendLevel);
+            double targetReduction = GetTargetReduction(enemy, targetCount);
+            // 공성전 감쇄: 캐릭터 공격속성에 따라 물리/마법 받피감
+            double elemReduction = character.AttackType == AttackType.Magic
+                ? enemy.MagicReduction
+                : enemy.PhysicalReduction;
+
+            var debuffs = target.Effects.GetTotalDebuffs();
+
+            var input = new DamageCalculator.DamageInput
+            {
+                Character = character,
+                Skill = skill,
+                IsSkillEnhanced = battleChar.IsSkillEnhanced,
+                TranscendLevel = battleChar.TranscendLevel,
+                FinalAtk = ally.FinalAtk,
+                FinalDef = ally.FinalDef,
+                FinalHp = ally.MaxHp,
+                CritDamage = baseStats.Cri_Dmg,
+                WeakpointDmg = baseStats.Wek_Dmg,
+                BossDef = enemy.Stats.Def,
+                // 공성전 감쇄(물/마·타겟수)는 합연산이 아니라 곱연산으로 후처리 (아래) — DamageCalculator엔 0으로
+                BossDmgReduction = 0,
+                BossTargetReduction = 0,
+                BossHp = target.MaxHp,
+                TargetHp = target.MaxHp,
+                TargetCurrentHp = target.CurrentHp,
+                DefReduction = debuffs.Def_Reduction,
+                DmgTakenIncrease = debuffs.GetEffectiveDmgTakenIncrease(character.AttackType),
+                Vulnerability = debuffs.Vulnerability,
+                BossVulnerability = debuffs.Boss_Vulnerability,
+                IsCritical = true,
+                IsWeakpoint = true,
+                IsSkillConditionMet = true,
+                Mode = BattleMode.Boss,
+                IsTargetBoss = target.IsBoss,
+                SelfMaxHp = ally.MaxHp,
+            };
+            double raw = _damageCalc.Calculate(input).FinalDamage;
+
+            // 공성전 감쇄 = 곱연산 (받는 물/마 피해 N% 감소 × 타겟수별 감소). 합연산 시 180%↑ 차감으로 음수가 되므로.
+            double reductionMult = (1 - elemReduction / 100.0) * (1 - targetReduction / 100.0);
+            return raw * Math.Max(0, reductionMult);
+        }
+
+        /// <summary>타겟 수에 따른 공성전 감쇄(1인/3인/5인기).</summary>
+        private double GetTargetReduction(Enemy enemy, int targetCount) => targetCount switch
+        {
+            1 => enemy.SingleTargetReduction,
+            3 => enemy.TripleTargetReduction,
+            >= 5 => enemy.MultiTargetReduction,
+            _ => 0
+        };
+
+        #endregion
+
+        #region 시간 / 쿨다운
+
+        /// <summary>행동 소요시간(초): 평타 2 / 1스킬 4 / 2스킬(컷신) 5 (battle-time-model).</summary>
+        private double GetActionDuration(Skill skill)
+        {
+            if (skill == null) return 2.0;                       // 기본공격
+            return skill.SkillType switch
+            {
+                SkillType.Normal or SkillType.Normal2 => 2.0,
+                SkillType.Skill2 => 5.0,                          // 컷신 2스킬
+                _ => 4.0,                                         // 그 외 스킬
+            };
+        }
+
+        /// <summary>행동 소요시간만큼 경과 + 전체 유닛(아군+적) 쿨다운 감소 (쿨=실시간 1초당 1).</summary>
+        private void AdvanceTime(SiegeBattleState state, double seconds)
+        {
+            if (seconds <= 0) return;
+            state.ElapsedSeconds += seconds;
+            foreach (var a in state.AllyStates)
+                foreach (var k in a.SkillCooldowns.Keys.ToList())
+                    a.SkillCooldowns[k] = Math.Max(0, a.SkillCooldowns[k] - seconds);
+            foreach (var e in state.Enemies)
+                foreach (var k in e.SkillCooldowns.Keys.ToList())
+                    e.SkillCooldowns[k] = Math.Max(0, e.SkillCooldowns[k] - seconds);
+        }
+
+        #endregion
+
+        #region 보조
 
         /// <summary>R1/R2 적이 모두 HP0 이하인지 (라운드 클리어 판정).</summary>
         private bool AllEnemiesDown(SiegeBattleState state)
@@ -226,20 +346,6 @@ namespace GameDamageCalculator.Services.BattleEngine
                 .Where(s => ally.IsSkillReady(s.SkillType))
                 .OrderByDescending(s => s.SkillType)
                 .FirstOrDefault();
-        }
-
-        // ===== Placeholder 데미지 (3번에서 DamageCalculator 정식 연결로 교체) =====
-        private double PlaceholderBasicDamage(CharacterBattleState ally, Skill normal)
-        {
-            double ratio = normal?.GetLevelData(ally.Source.IsSkillEnhanced)?.Ratio ?? 100;
-            return ally.FinalAtk * (ratio / 100.0);
-        }
-
-        private double PlaceholderSkillDamage(CharacterBattleState ally, Skill skill)
-        {
-            double ratio = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.Ratio ?? 100;
-            int atk = skill.GetAtkCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
-            return ally.FinalAtk * (ratio / 100.0) * Math.Max(1, atk);
         }
 
         #endregion
