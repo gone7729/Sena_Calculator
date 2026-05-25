@@ -40,6 +40,9 @@ namespace GameDamageCalculator.Models
         // 스킬 (적이 사용하는 스킬)
         public List<Skill> Skills { get; set; } = new();
 
+        // 공성전: 이 적이 아군 공격에 피격될 때마다 공격력 최고 적의 스킬 쿨타임 N초 감소 (일요일 몹 패시브). 0이면 없음.
+        public double SiegeHitCdReduce { get; set; }
+
         // ===== 하위호환 속성 (Phase 3 전환 완료 전까지 유지) =====
         public double PhysicalReduction
         {

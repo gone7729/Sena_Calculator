@@ -34,6 +34,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 현재 진행 중인 행동이 스킬턴(0턴, 턴 미소모)인지
         public bool IsSkillTurn { get; set; }
 
+        // 적 진영 전체 피해 면역 잔여 턴 (화 R3 룩 스킬 등). >0이면 아군이 적에게 주는 피해 0.
+        public int EnemyImmunityTurns { get; set; }
+
         // 선공 여부 (아군이 선공인지)
         public bool AllyFirst { get; set; }
 

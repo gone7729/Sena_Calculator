@@ -419,7 +419,7 @@ namespace GameDamageCalculator.Database
         /// </summary>
         public static List<Skill> MobSkills(double normalRatio, double skill1Ratio, double cooldown,
             StatusEffectType status, string skill1Name = "1스킬", int statusDur = 3,
-            double? statusAtkRatio = null, double hpConvPct = 0, string extra = null)
+            double? statusAtkRatio = null, double hpConvPct = 0, string extra = null, int grantEnemyImmunity = 0)
         {
             var effects = new List<SkillEffect>();
             if (hpConvPct > 0)
@@ -433,7 +433,8 @@ namespace GameDamageCalculator.Database
                     LevelData = new() { [0] = new SkillLevelData { Ratio = normalRatio, TargetCount = 1, AtkCount = 1 } } },
                 new Skill { Name = skill1Name, SkillType = SkillType.Skill1,
                     LevelData = new() { [0] = new SkillLevelData
-                        { Ratio = skill1Ratio, TargetCount = 1, AtkCount = 1, Cooldown = cooldown, Effect = extra, Effects = effects } } },
+                        { Ratio = skill1Ratio, TargetCount = 1, AtkCount = 1, Cooldown = cooldown, Effect = extra, Effects = effects,
+                          GrantEnemyImmunityTurns = grantEnemyImmunity } } },
             };
         }
 
