@@ -410,7 +410,32 @@ namespace GameDamageCalculator.Database
             },
         };
 
-        // ===== 공성전 잡몹 스킬 헬퍼 (요일별 배율로 SiegeDayDb가 호출) =====
+        // ===== 공성전 잡몹 스킬 헬퍼 (요일별 배율·상태이상으로 SiegeDayDb가 호출) =====
+
+        /// <summary>
+        /// 공성전 잡몹(룩/챈슬러) 스킬: 기본공격(단일 normalRatio) + 1스킬(단일 skill1Ratio + 상태이상[statusDur/100%]).
+        /// 요일별 상태이상이 다름. cd 미제공 데이터라 토요일 기준(룩 70 / 챈슬러 85) 가정.
+        /// hpConvPct>0이면 생명력 전환(월), statusAtkRatio로 용염(금 챈슬러, Burn 120%), extra는 모델 미반영 효과 텍스트.
+        /// </summary>
+        public static List<Skill> MobSkills(double normalRatio, double skill1Ratio, double cooldown,
+            StatusEffectType status, string skill1Name = "1스킬", int statusDur = 3,
+            double? statusAtkRatio = null, double hpConvPct = 0, string extra = null)
+        {
+            var effects = new List<SkillEffect>();
+            if (hpConvPct > 0)
+                effects.Add(new() { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment,
+                    StatusType = StatusEffectType.HpConversion, Chance = 100, Duration = statusDur, CustomHpConversionRatio = hpConvPct });
+            effects.Add(new() { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment,
+                StatusType = status, Chance = 100, Duration = statusDur, CustomAtkRatio = statusAtkRatio });
+            return new()
+            {
+                new Skill { Name = "기본 공격", SkillType = SkillType.Normal,
+                    LevelData = new() { [0] = new SkillLevelData { Ratio = normalRatio, TargetCount = 1, AtkCount = 1 } } },
+                new Skill { Name = skill1Name, SkillType = SkillType.Skill1,
+                    LevelData = new() { [0] = new SkillLevelData
+                        { Ratio = skill1Ratio, TargetCount = 1, AtkCount = 1, Cooldown = cooldown, Effect = extra, Effects = effects } } },
+            };
+        }
 
         /// <summary>룩: 기본공격 + 투창(빙결 100%[3턴], 쿨 70초)</summary>
         public static List<Skill> LookSkills(double normalRatio, double skill1Ratio) => new()

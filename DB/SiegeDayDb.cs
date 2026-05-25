@@ -75,7 +75,78 @@ namespace GameDamageCalculator.Database
                     new("룩", SkillType.Skill1),        // 룩 투창
                 },
             },
+
+            // ===== 월요일 — 루디. 1스킬: 생명력 전환(90→80→70%) + 기절[3턴]. 감쇄 물리90/1인70/5인90 =====
+            Day(1, "월요일", "월요일 공성전 (수호자의 성)", "루디",
+                new Reduction { Phys = 90, Single = 70, Multi = 90 },
+                status: StatusEffectType.Stun, hpConv: new[] { 90.0, 80.0, 70.0 }),
+
+            // ===== 화요일 — 아일린. 1스킬: 감전[3턴]. R3 룩은 추가로 모든 아군(보스측) 피해면역[2턴](모델 미반영). 물리90 =====
+            Day(2, "화요일", "화요일 공성전 (포디나의 성)", "아일린",
+                new Reduction { Phys = 90, Single = 70, Multi = 90 },
+                status: StatusEffectType.Shock,
+                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴] (모델 미반영)"),
+
+            // ===== 수요일 — 레이첼. 1스킬: 화상[3턴]. 물리90 =====
+            Day(3, "수요일", "수요일 공성전 (불멸의 성)", "레이첼",
+                new Reduction { Phys = 90, Single = 70, Multi = 90 },
+                status: StatusEffectType.Burn),
+
+            // ===== 목요일 — 델론즈. 1스킬: 침묵[3턴]. 감쇄 마법90 =====
+            Day(4, "목요일", "목요일 공성전 (죽음의 성)", "델론즈",
+                new Reduction { Mag = 90, Single = 70, Multi = 90 },
+                status: StatusEffectType.Silence),
+
+            // ===== 금요일 — 제이브. 룩=기절, 챈슬러=용염(화상 120%)[3턴]. 감쇄 마법90 =====
+            Day(5, "금요일", "금요일 공성전 (고대용의 성)", "제이브",
+                new Reduction { Mag = 90, Single = 70, Multi = 90 },
+                status: StatusEffectType.Stun,
+                chanStatus: StatusEffectType.Burn, chanSkillName: "용염", chanStatusAtkRatio: 120),
+
+            // ===== 일요일 — 크리스. 1스킬: 즉사[3턴]. 감쇄 5인기 90%만. (몹 패시브 쿨감: 피격 시 쿨-15초 — 모델 미반영) =====
+            Day(7, "일요일", "일요일 공성전 (지옥의 성)", "크리스",
+                new Reduction { Multi = 90 },
+                status: StatusEffectType.InstantDeath),
         };
+
+        // R3 친위대 스탯은 요일별 미제공 → 토요일 값을 임시 placeholder로 사용 (실측 확보 시 요일별 교체).
+        private static BaseStatSet R3LookPlaceholder() => new() { Atk = 1502, Def = 1423, Hp = 40000, Spd = 19, Cri_Dmg = 150, Eff_Hit = 100 };
+        private static BaseStatSet R3ChanPlaceholder() => new() { Atk = 1754, Def = 1423, Hp = 40000, Spd = 25, Cri_Dmg = 150, Eff_Hit = 100 };
+
+        /// <summary>
+        /// 요일 DayDef 생성 헬퍼. 룩/챈슬러 1스킬은 단일 ratio(R1 80/275, R2 90/305, R3 100/340) + 상태이상[3턴].
+        /// cd 룩 70 / 챈슬러 85 (토요일 기준 가정). hpConv: 라운드별 생명력 전환%(월). chan* : 챈슬러만 다른 상태(금 용염).
+        /// </summary>
+        private static DayDef Day(int dayIndex, string key, string stageName, string bossName, Reduction red,
+            StatusEffectType status, double[] hpConv = null, string r3LookExtra = null,
+            StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null)
+        {
+            double Hp(int round) => hpConv == null ? 0 : hpConv[round - 1];
+            var cs = chanStatus ?? status;
+            List<Skill> Look(int round, double n, double s1, string extra = null) =>
+                SiegeBossSkillDb.MobSkills(n, s1, 70, status, statusDur: 3, hpConvPct: Hp(round), extra: extra);
+            List<Skill> Chan(int round, double n, double s1) =>
+                SiegeBossSkillDb.MobSkills(n, s1, 85, cs, skill1Name: chanSkillName, statusDur: 3,
+                    statusAtkRatio: chanStatusAtkRatio, hpConvPct: chanStatus == null ? Hp(round) : 0);
+
+            return new DayDef
+            {
+                Key = key, DayIndex = dayIndex, StageName = stageName, BossName = bossName, MobReduction = red,
+                R1Look = Look(1, 80, 275), R1Chan = Chan(1, 80, 275),
+                R2Look = Look(2, 90, 305), R2Chan = Chan(2, 90, 305),
+                R3Look = Look(3, 100, 340, r3LookExtra), R3Chan = Chan(3, 100, 340),
+                R3LookStats = R3LookPlaceholder(), R3ChanStats = R3ChanPlaceholder(),
+                Pri1 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
+                Pri2 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
+                Pri3 = new()
+                {
+                    new("챈슬러", SkillType.Skill1),
+                    new(bossName, SkillType.Skill2),
+                    new(bossName, SkillType.Skill1),
+                    new("룩", SkillType.Skill1),
+                },
+            };
+        }
 
         // ===== 빌더: 요일별 몹 Enemy + Stage 생성 =====
         // Id = DayIndex*100 + Round*10 + (룩 1 / 챈슬러 2). R3 wave엔 요일 보스도 추가.
