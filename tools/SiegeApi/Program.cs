@@ -23,7 +23,8 @@ app.UseCors(CorsPolicy);
 // 요일 키(웹) → SiegeStages 키(EnemyDb). 현재 토요일만 데이터 존재.
 var DayToStage = new Dictionary<string, string>
 {
-    ["토"] = "토요일",
+    ["월"] = "월요일", ["화"] = "화요일", ["수"] = "수요일", ["목"] = "목요일",
+    ["금"] = "금요일", ["토"] = "토요일", ["일"] = "일요일",
 };
 
 // 사용 가능한 요일 목록 (데이터가 있는 것만)
