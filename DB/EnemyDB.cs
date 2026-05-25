@@ -19,19 +19,11 @@ namespace GameDamageCalculator.Database
             foreach (var boss in SiegeBosses)
                 boss.Skills = SiegeBossSkillDb.Get(boss.Name);
 
-            // 공성전 잡몹 스킬 연결 (Id 기반 — 같은 이름이 라운드별 다른 스탯/스킬)
-            foreach (var mob in SiegeMobs)
-            {
-                mob.Skills = SiegeBossSkillDb.GetMobSkills(mob.Id);
-
-                // 토요일 룩·챈슬러 공성전 감쇄 패시브 (스파이크와 동일: 마법 90% / 1인 70% / 5인 90%)
-                if (mob.Id >= 501 && mob.Id <= 506)
-                {
-                    mob.MagicReduction = 90;
-                    mob.SingleTargetReduction = 70;
-                    mob.MultiTargetReduction = 90;
-                }
-            }
+            // 요일별 몹(스탯 공통·스킬 요일별) + Stage를 SiegeDayDb에서 생성.
+            // R1/R2 몹 스탯은 (몹종류·라운드)별 요일 공통, 스킬만 요일별. R3는 요일별 스탯·스킬.
+            var (mobs, stages) = SiegeDayDb.Build(SiegeBosses);
+            SiegeMobs = mobs;
+            SiegeStages = stages;
         }
 
         /// <summary>
@@ -598,192 +590,13 @@ namespace GameDamageCalculator.Database
         };
 
         /// <summary>
-        /// 공성전 잡몹 (요일별 라운드에 등장). 라운드마다 스탯이 다를 수 있어 라운드별 별도 Id로 선언
-        /// (한 라운드 내 같은 이름 몹은 동일 스탯). 라운드별 보스 취급 여부는 SiegeStages의 StageEnemy.IsBoss로 표기.
-        /// 룩·챈슬러는 게임상 영웅이지만 공성전 몹 버전으로 별도 정의(스킬은 추후).
-        /// 토요일 룩: R1=501 / R2=503 / R3보스=505,  챈슬러: R1=502 / R2=504 / R3보스=506.
+        /// 공성전 잡몹/요일 구성은 SiegeDayDb에서 생성된다 (R1/R2 몹 스탯은 요일 공통·스킬만 요일별, R3는 요일별).
+        /// SiegeMobs/SiegeStages는 static 생성자에서 SiegeDayDb.Build(SiegeBosses)로 채워진다.
         /// </summary>
-        public static readonly List<Enemy> SiegeMobs = new List<Enemy>
-        {
-            // 토요일 — 경비대 룩 (round1)
-            new Enemy
-            {
-                Id = 501,
-                Name = "룩",
-                EnemyType = EnemyType.Siege,
-                IsBoss = false,
-                Stats = new BaseStatSet
-                {
-                    Atk = 542,
-                    Def = 689,
-                    Hp = 8650,
-                    Spd = 15,
-                    Cri = 0,
-                    Cri_Dmg = 150,
-                    Eff_Hit = 0
-                }
-            },
-            // 토요일 — 경비대장 챈슬러 (round1)
-            new Enemy
-            {
-                Id = 502,
-                Name = "챈슬러",
-                EnemyType = EnemyType.Siege,
-                IsBoss = false,
-                Stats = new BaseStatSet
-                {
-                    Atk = 849,
-                    Def = 466,
-                    Hp = 7870,
-                    Spd = 21,
-                    Cri = 0,
-                    Cri_Dmg = 150,
-                    Eff_Hit = 0
-                }
-            },
-            // 토요일 — 경비대 룩 (round2)
-            new Enemy
-            {
-                Id = 503,
-                Name = "룩",
-                EnemyType = EnemyType.Siege,
-                IsBoss = false,
-                Stats = new BaseStatSet
-                {
-                    Atk = 873,
-                    Def = 1123,
-                    Hp = 10790,
-                    Spd = 17,
-                    Cri = 0,
-                    Cri_Dmg = 150,
-                    Eff_Hit = 0
-                }
-            },
-            // 토요일 — 경비대장 챈슬러 (round2)
-            new Enemy
-            {
-                Id = 504,
-                Name = "챈슬러",
-                EnemyType = EnemyType.Siege,
-                IsBoss = false,
-                Stats = new BaseStatSet
-                {
-                    Atk = 1315,
-                    Def = 784,
-                    Hp = 9870,
-                    Spd = 23,
-                    Cri = 0,
-                    Cri_Dmg = 150,
-                    Eff_Hit = 0
-                }
-            },
-            // 토요일 — 친위대 룩 (round3, 보스 취급, Lv.100 6성)
-            new Enemy
-            {
-                Id = 505,
-                Name = "룩",
-                EnemyType = EnemyType.Siege,
-                IsBoss = false,
-                Stats = new BaseStatSet
-                {
-                    Atk = 1502,
-                    Def = 1423,
-                    Hp = 40000,
-                    Spd = 19,
-                    Cri = 0,
-                    Cri_Dmg = 150,
-                    Eff_Hit = 100
-                }
-            },
-            // 토요일 — 친위대장 챈슬러 (round3, 보스 취급, Lv.100 6성)
-            new Enemy
-            {
-                Id = 506,
-                Name = "챈슬러",
-                EnemyType = EnemyType.Siege,
-                IsBoss = false,
-                Stats = new BaseStatSet
-                {
-                    Atk = 1754,
-                    Def = 1423,
-                    Hp = 40000,
-                    Spd = 25,
-                    Cri = 0,
-                    Cri_Dmg = 150,
-                    Eff_Hit = 100
-                }
-            },
-        };
+        public static readonly List<Enemy> SiegeMobs;
 
-        /// <summary>
-        /// 공성전 요일별 라운드 구성 (Stage.Waves = 라운드). EnemyId로 SiegeMobs/SiegeBosses 참조.
-        /// 1~2라운드는 일반 적군, 3라운드는 모든 적이 보스 취급(StageEnemy.IsBoss = true).
-        /// </summary>
-        public static readonly Dictionary<string, Stage> SiegeStages = new Dictionary<string, Stage>
-        {
-            ["토요일"] = new Stage
-            {
-                Id = 6,
-                Name = "토요일 공성전 (혹한의 성)",
-                StageType = EnemyType.Siege,
-                Waves = new List<StageWave>
-                {
-                    // 라운드 1 (일반 적군): 룩, 챈슬러, 룩
-                    new StageWave
-                    {
-                        WaveNumber = 1,
-                        Enemies = new List<StageEnemy>
-                        {
-                            new StageEnemy { EnemyId = 501, Position = 1 }, // 룩
-                            new StageEnemy { EnemyId = 502, Position = 2 }, // 챈슬러
-                            new StageEnemy { EnemyId = 501, Position = 3 }, // 룩
-                        },
-                        // 스킬 우선순위: 챈슬러 1스킬(분쇄) 최우선 → 룩 1스킬(투창)
-                        SkillPriority = new List<SiegeSkillOrder>
-                        {
-                            new() { EnemyId = 502, SkillType = SkillType.Skill1 }, // 챈슬러 분쇄
-                            new() { EnemyId = 501, SkillType = SkillType.Skill1 }, // 룩 투창
-                        }
-                    },
-                    // 라운드 2 (일반 적군): 룩, 챈슬러, 룩
-                    new StageWave
-                    {
-                        WaveNumber = 2,
-                        Enemies = new List<StageEnemy>
-                        {
-                            new StageEnemy { EnemyId = 503, Position = 1 }, // 룩
-                            new StageEnemy { EnemyId = 504, Position = 2 }, // 챈슬러
-                            new StageEnemy { EnemyId = 503, Position = 3 }, // 룩
-                        },
-                        // 스킬 우선순위: 챈슬러 1스킬(분쇄) 최우선 → 룩 1스킬(투창)
-                        SkillPriority = new List<SiegeSkillOrder>
-                        {
-                            new() { EnemyId = 504, SkillType = SkillType.Skill1 }, // 챈슬러 분쇄
-                            new() { EnemyId = 503, SkillType = SkillType.Skill1 }, // 룩 투창
-                        }
-                    },
-                    // 라운드 3 (모두 보스 취급): 룩(보스), 스파이크(보스), 챈슬러(보스)
-                    new StageWave
-                    {
-                        WaveNumber = 3,
-                        Enemies = new List<StageEnemy>
-                        {
-                            new StageEnemy { EnemyId = 505, Position = 1, IsBoss = true }, // 룩 (친위대, R3)
-                            new StageEnemy { EnemyId = 6,   Position = 2, IsBoss = true }, // 스파이크 (SiegeBosses)
-                            new StageEnemy { EnemyId = 506, Position = 3, IsBoss = true }, // 챈슬러 (친위대장, R3)
-                        },
-                        // 스킬 우선순위: 챈슬러 1스킬 → 스파이크 2스킬(혹한의 지진) → 스파이크 1스킬(혹한의 일격) → 룩 1스킬
-                        SkillPriority = new List<SiegeSkillOrder>
-                        {
-                            new() { EnemyId = 506, SkillType = SkillType.Skill1 }, // 챈슬러 분쇄
-                            new() { EnemyId = 6,   SkillType = SkillType.Skill2 }, // 스파이크 혹한의 지진
-                            new() { EnemyId = 6,   SkillType = SkillType.Skill1 }, // 스파이크 혹한의 일격
-                            new() { EnemyId = 505, SkillType = SkillType.Skill1 }, // 룩 투창
-                        }
-                    },
-                }
-            },
-        };
+        /// <summary>공성전 요일별 라운드 구성 (Stage.Waves = 라운드). SiegeDayDb.Build 생성.</summary>
+        public static readonly Dictionary<string, Stage> SiegeStages;
 
         /// <summary>
         /// 보스 목록 (IsBoss = true)
