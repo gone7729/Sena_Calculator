@@ -36,6 +36,10 @@ const MAX_PARTY = 8;
 const MIN_PARTY = 5;
 const LIST_MIN_HEIGHT = 480; // 영웅 리스트 최소 높이(px) — 우측 패널이 짧아도 리스트가 찌부러지지 않도록
 
+// 시뮬 모드 고정값: 전원 12초월·스킬강화, 펫 윈디 6성 강화3, 펫 잠재 공옵 72%(18×4)
+const SIM_TRANSCEND = 12;
+const SIM_PET = { name: "윈디", star: 6, enhance: 3, optAtk: 72 };
+
 // 공성전 백엔드 (.NET SiegeApi). 로컬 개발 기본값, 배포 시 NEXT_PUBLIC_SIEGE_API로 덮어쓰기.
 const API_BASE = process.env.NEXT_PUBLIC_SIEGE_API ?? "http://localhost:5179";
 
@@ -79,6 +83,8 @@ export default function SiegePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizeResult | null>(null);
+  // 시뮬: 영웅만 선택(나머지 고정) / 커스텀: 초월·펫 직접 설정
+  const [mode, setMode] = useState<"sim" | "custom">("sim");
 
   // 펫 (검증 시 게임 세팅 그대로 맞추기 위함)
   const [pets, setPets] = useState<PetInfo[]>([]);
@@ -140,20 +146,31 @@ export default function SiegePage() {
     setError(null);
     setResult(null);
     try {
+      const isSim = mode === "sim";
       const members = selectedHeroes.map((h) => ({
         id: h.id,
-        transcend: transcend[h.id] ?? 6,
+        transcend: isSim ? SIM_TRANSCEND : (transcend[h.id] ?? 6),
+        skillEnhanced: true,
       }));
-      const pet = petName
+      const pet = isSim
         ? {
-            name: petName,
-            star: petStar,
-            enhance: petStar === 6 ? petEnhance : 0,
-            optAtkRate: petOpt.atk,
-            optDefRate: petOpt.def,
-            optHpRate: petOpt.hp,
+            name: SIM_PET.name,
+            star: SIM_PET.star,
+            enhance: SIM_PET.enhance,
+            optAtkRate: SIM_PET.optAtk,
+            optDefRate: 0,
+            optHpRate: 0,
           }
-        : null;
+        : petName
+          ? {
+              name: petName,
+              star: petStar,
+              enhance: petStar === 6 ? petEnhance : 0,
+              optAtkRate: petOpt.atk,
+              optDefRate: petOpt.def,
+              optHpRate: petOpt.hp,
+            }
+          : null;
       const res = await fetch(`${API_BASE}/api/siege/optimize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +195,35 @@ export default function SiegePage() {
 
   return (
     <>
-      <h1 className="page-title">공성전</h1>
+      {/* ===== 제목 + 모드 토글(우상단) ===== */}
+      <div className="siege-header">
+        <h1 className="page-title">공성전</h1>
+        <div className="siege-mode-toggle">
+          <button
+            type="button"
+            className={`chip${mode === "sim" ? " active" : ""}`}
+            onClick={() => setMode("sim")}
+            title="영웅만 선택 — 전원 12초월·스킬강화, 펫 윈디 6성 강화3, 잠재 공옵72% 고정"
+          >
+            시뮬
+          </button>
+          <button
+            type="button"
+            className={`chip${mode === "custom" ? " active" : ""}`}
+            onClick={() => setMode("custom")}
+            title="영웅별 초월·펫을 직접 설정"
+          >
+            커스텀
+          </button>
+        </div>
+      </div>
+
+      {mode === "sim" && (
+        <p className="siege-mode-note">
+          풀 시뮬레이터 — 영웅만 선택하면 전원 <b>12초월·스킬강화</b>, 펫 <b>윈디 6성 강화+3</b>,
+          펫 잠재 <b>공격력 72%</b> 고정으로 템세팅·스킬순서를 탐색합니다.
+        </p>
+      )}
 
       {/* ===== 요일 선택 ===== */}
       <div className="filter-block">
@@ -265,7 +310,7 @@ export default function SiegePage() {
 
         {/* Right: 선택 영웅 초월 + 탐색 */}
         <section className="panel" ref={rightRef}>
-          <h2 className="panel-title">선택 영웅 · 초월</h2>
+          <h2 className="panel-title">{mode === "custom" ? "선택 영웅 · 초월" : "선택 영웅"}</h2>
           <p className="panel-subtitle">
             {boss} 공성전 · {selectedHeroes.length}명 (최소 {MIN_PARTY}명)
           </p>
@@ -277,17 +322,21 @@ export default function SiegePage() {
               {selectedHeroes.map((h) => (
                 <div key={h.id} className="siege-selected-row">
                   <span className="siege-selected-name">{h.name}</span>
-                  <select
-                    className="siege-transcend"
-                    value={transcend[h.id] ?? 6}
-                    onChange={(e) => setHeroTranscend(h.id, Number(e.target.value))}
-                  >
-                    {Array.from({ length: 13 }, (_, t) => (
-                      <option key={t} value={t}>
-                        {t}초월
-                      </option>
-                    ))}
-                  </select>
+                  {mode === "custom" ? (
+                    <select
+                      className="siege-transcend"
+                      value={transcend[h.id] ?? 6}
+                      onChange={(e) => setHeroTranscend(h.id, Number(e.target.value))}
+                    >
+                      {Array.from({ length: 13 }, (_, t) => (
+                        <option key={t} value={t}>
+                          {t}초월
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="siege-fixed-tag">12초월·강화</span>
+                  )}
                   <button type="button" className="chip" onClick={() => toggleHero(h.id)}>
                     제거
                   </button>
@@ -296,7 +345,14 @@ export default function SiegePage() {
             </div>
           )}
 
-          {/* ===== 펫 (검증용) ===== */}
+          {/* ===== 펫 ===== */}
+          {mode === "sim" ? (
+            <>
+              <h3 className="siege-result-sub">펫</h3>
+              <div className="siege-pet-fixed">윈디 · 6성 · 강화+3 · 잠재 공격력 72% (고정)</div>
+            </>
+          ) : (
+          <>
           <h3 className="siege-result-sub">펫</h3>
           <div className="siege-pet">
             <div className="siege-pet-row">
@@ -369,6 +425,8 @@ export default function SiegePage() {
               </>
             )}
           </div>
+          </>
+          )}
 
           <button
             type="button"
