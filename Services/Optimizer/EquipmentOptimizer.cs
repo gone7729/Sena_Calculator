@@ -256,8 +256,11 @@ namespace GameDamageCalculator.Services.Optimizer
         #region 서브옵션 그리디 배분
 
         /// <summary>
-        /// 서브옵션을 그리디 방식으로 최적 배분
-        /// 1티어당 데미지 증가량이 가장 큰 옵션에 우선 배분
+        /// 서브옵션 최적 배분 — 게임 규칙 반영.
+        /// 장비마다 부옵 4개(서로 다른 스탯, 메인옵 제외)가 전부 1티어로 시작하고,
+        /// 15강까지 강화로 랜덤 티어업이 총 5번 발생 → 한 장비의 부옵 티어 합 = 4(기본) + 5(강화) = 9, 슬롯당 최대 6티어.
+        /// 옵티마이저는 "어떤 부옵 4개 + 5번 상승을 어디에"를 데미지 기준 그리디로 결정 (장비별 독립).
+        /// 값 = 기본 부옵 스탯 × 티어 (Equipment.SubStatSlot.GetStats).
         /// </summary>
         private void OptimizeSubOptions(
             EquipmentLoadout loadout,
@@ -266,111 +269,53 @@ namespace GameDamageCalculator.Services.Optimizer
             int charIndex,
             string[] subStatNames = null)
         {
-            var equipments = loadout.GetEquipments().ToList();
+            const int SubSlotsPerEquip = 4;   // 부옵 슬롯 수
+            const int TierUps = 5;             // 15강 동안 랜덤 티어업 횟수
+            const int MaxTier = 6;             // 1(기본) + 5(전부 한 슬롯에)
             subStatNames ??= GetDpsSubStatNames();
 
-            // 총 배분 가능한 티어 포인트
-            int remainingTiers = MaxTotalSubTiers;
-
-            // 각 장비의 4슬롯을 초기화
-            foreach (var equip in equipments)
+            foreach (var equip in loadout.GetEquipments())
             {
-                for (int s = 0; s < equip.SubSlots.Count; s++)
+                int nSlots = System.Math.Min(SubSlotsPerEquip, equip.SubSlots.Count);
+                for (int s = 0; s < equip.SubSlots.Count; s++) { equip.SubSlots[s].StatName = ""; equip.SubSlots[s].Tier = 0; }
+
+                // 후보 부옵: 허용 목록 ∩ (메인옵 제외)
+                var cands = subStatNames.Where(n => n != equip.MainStatName).Distinct().ToList();
+
+                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 전체 로드아웃 데미지 최대)
+                var used = new HashSet<string>();
+                for (int i = 0; i < nSlots; i++)
                 {
-                    equip.SubSlots[s].StatName = "";
-                    equip.SubSlots[s].Tier = 0;
-                }
-            }
-
-            // 그리디: 각 스텝에서 1티어 추가 시 가장 데미지가 많이 오르는 슬롯에 배분
-            // 효율을 위해 미리 각 서브옵 종류별 1티어 효과를 한 번만 계산
-            var baseDamage = EvaluateDamage(battleChar, config, charIndex, loadout);
-
-            // 슬롯별 현재 할당된 서브옵
-            var slotAssignments = new List<(Equipment equip, int slotIdx, string statName, int tier)>();
-
-            // 각 장비 × 슬롯 × 가능한 서브옵 조합에서 가장 효율 좋은 것 선택
-            while (remainingTiers > 0)
-            {
-                double bestGain = 0;
-                Equipment bestEquip = null;
-                int bestSlotIdx = -1;
-                string bestStatName = null;
-
-                foreach (var equip in equipments)
-                {
-                    for (int s = 0; s < equip.SubSlots.Count; s++)
+                    var slot = equip.SubSlots[i];
+                    string bestStat = null; double bestDmg = -1;
+                    foreach (var stat in cands)
                     {
-                        var slot = equip.SubSlots[s];
-
-                        if (string.IsNullOrEmpty(slot.StatName))
-                        {
-                            // 빈 슬롯: 각 서브옵 후보 시도
-                            foreach (var statName in subStatNames)
-                            {
-                                // 같은 장비 내 중복 서브옵 불가
-                                if (equip.SubSlots.Any(ss => ss.StatName == statName && ss != slot))
-                                    continue;
-
-                                // 메인옵과 동일한 서브옵 불가
-                                if (equip.MainStatName == statName)
-                                    continue;
-
-                                slot.StatName = statName;
-                                slot.Tier = 1;
-                                double newDamage = EvaluateDamage(battleChar, config, charIndex, loadout);
-                                double gain = newDamage - baseDamage;
-
-                                if (gain > bestGain)
-                                {
-                                    bestGain = gain;
-                                    bestEquip = equip;
-                                    bestSlotIdx = s;
-                                    bestStatName = statName;
-                                }
-
-                                slot.StatName = "";
-                                slot.Tier = 0;
-                            }
-                        }
-                        else if (slot.Tier < 6)
-                        {
-                            // 이미 할당된 슬롯: 티어 1 증가
-                            slot.Tier++;
-                            double newDamage = EvaluateDamage(battleChar, config, charIndex, loadout);
-                            double gain = newDamage - baseDamage;
-
-                            if (gain > bestGain)
-                            {
-                                bestGain = gain;
-                                bestEquip = equip;
-                                bestSlotIdx = s;
-                                bestStatName = slot.StatName;
-                            }
-
-                            slot.Tier--;
-                        }
+                        if (used.Contains(stat)) continue;
+                        slot.StatName = stat; slot.Tier = 1;
+                        double d = EvaluateDamage(battleChar, config, charIndex, loadout);
+                        if (d > bestDmg) { bestDmg = d; bestStat = stat; }
+                        slot.StatName = ""; slot.Tier = 0;
                     }
+                    if (bestStat == null) break;
+                    slot.StatName = bestStat; slot.Tier = 1; used.Add(bestStat);
                 }
 
-                // 더 이상 개선 불가
-                if (bestEquip == null || bestGain <= 0)
-                    break;
-
-                // 최적 슬롯에 1티어 배분
-                var bestSlot = bestEquip.SubSlots[bestSlotIdx];
-                if (string.IsNullOrEmpty(bestSlot.StatName))
+                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 데미지 증가 최대 슬롯에)
+                for (int up = 0; up < TierUps; up++)
                 {
-                    bestSlot.StatName = bestStatName;
-                    bestSlot.Tier = 1;
+                    int bestSlot = -1; double bestDmg = -1;
+                    for (int i = 0; i < nSlots; i++)
+                    {
+                        var slot = equip.SubSlots[i];
+                        if (string.IsNullOrEmpty(slot.StatName) || slot.Tier >= MaxTier) continue;
+                        slot.Tier++;
+                        double d = EvaluateDamage(battleChar, config, charIndex, loadout);
+                        if (d > bestDmg) { bestDmg = d; bestSlot = i; }
+                        slot.Tier--;
+                    }
+                    if (bestSlot < 0) break;
+                    equip.SubSlots[bestSlot].Tier++;
                 }
-                else
-                {
-                    bestSlot.Tier++;
-                }
-
-                baseDamage = EvaluateDamage(battleChar, config, charIndex, loadout);
-                remainingTiers--;
             }
         }
 
