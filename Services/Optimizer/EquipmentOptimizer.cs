@@ -130,6 +130,45 @@ namespace GameDamageCalculator.Services.Optimizer
             };
         }
 
+        /// <summary>
+        /// 허용 세트별로 최적화된 후보 장비를 1벌씩 생성 (세트=4세트, 메인옵·부옵은 프록시 데미지로 최적화).
+        /// 공성전 풀시뮬 점수로 세트를 비교하기 위한 후보 목록. 세트 라벨과 함께 반환.
+        /// </summary>
+        public List<(string SetName, EquipmentLoadout Loadout)> BuildSetCandidates(
+            BattleCharacter battleChar, BattleConfig config, int charIndex, GearConstraints gc)
+        {
+            var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
+            var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
+            string[] weaponMains = (gc?.WeaponMains ?? new[] { "공격력%" }).Where(weaponAvail.Contains).Distinct().ToArray();
+            string[] armorMains = (gc?.ArmorMains ?? new[] { "공격력%" }).Where(armorAvail.Contains).Distinct().ToArray();
+            if (weaponMains.Length == 0) weaponMains = new[] { "공격력%" };
+            if (armorMains.Length == 0) armorMains = new[] { "공격력%" };
+
+            var sets = (gc?.AllowedSets != null && gc.AllowedSets.Length > 0
+                    ? gc.AllowedSets
+                    : EquipmentDb.SetEffects.Keys.ToArray())
+                .Where(EquipmentDb.SetEffects.ContainsKey).Distinct();
+
+            var result = new List<(string, EquipmentLoadout)>();
+            foreach (var setName in sets)
+            {
+                var setConfig = new EquipSetConfig { WeaponSetName = setName, ArmorSetName = setName, Is4Set = true, Description = $"{setName} 4세트" };
+                EquipmentLoadout best = null; double bestD = -1;
+                foreach (var wm in weaponMains)
+                    foreach (var am in armorMains)
+                    {
+                        var lo = BuildLoadout(setConfig, wm, wm, am, am);
+                        double d = EvaluateDamage(battleChar, config, charIndex, lo);
+                        if (d > bestD) { bestD = d; best = lo; }
+                    }
+                if (best == null) continue;
+                OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions);
+                OptimizeAccessory(best, battleChar, config, charIndex);
+                result.Add((setName, best));
+            }
+            return result;
+        }
+
         /// <summary>허용 세트 이름 목록으로 4세트 + 2+2세트(허용끼리) 조합 생성.</summary>
         private static List<EquipSetConfig> BuildSetCombos(string[] allowed)
         {
