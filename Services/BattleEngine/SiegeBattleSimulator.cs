@@ -613,6 +613,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         if (e.Type != PersistentEffectType.Debuff || e.Debuff == null) continue;
                         if (e.Target != EffectTarget.Enemy && e.Target != EffectTarget.AllEnemies) continue;
+                        if (e.ApplyMode == ApplyMode.Triggered) continue;   // 공격 시 발동형(예: 타카 취약 스택)은 상시 아님 → 제외
                         AddEnemyDebuff(enemy, e.Debuff, 99, $"siege_pasdebuff:{ally.PartyIndex}:{enemy.Position}");
                     }
                 }
