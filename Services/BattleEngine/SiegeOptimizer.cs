@@ -150,19 +150,28 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var bc in targets)
             {
                 var list = cands[bc];
+                string chosenSet = list.Count > 0 ? list[0].Set : null;
                 if (list.Count > 1)
                 {
-                    EquipmentLoadout bestLo = bc.Equipment; double bestScore = -1; string bestSet = "";
+                    EquipmentLoadout bestLo = bc.Equipment; double bestScore = -1;
                     var perSet = new List<string>();
                     foreach (var (setName, lo) in list)
                     {
                         bc.Equipment = lo;
                         double sc = FullScore();
                         perSet.Add($"{setName}={sc:N0}");
-                        if (sc > bestScore) { bestScore = sc; bestLo = lo; bestSet = setName; }
+                        if (sc > bestScore) { bestScore = sc; bestLo = lo; chosenSet = setName; }
                     }
                     bc.Equipment = bestLo;
-                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {bestSet}  ← {string.Join(" / ", perSet)}");
+                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {chosenSet}  ← {string.Join(" / ", perSet)}");
+                }
+
+                // 메인·부옵·장신구도 풀시뮬 점수로 재최적화 (선택된 세트 안에서)
+                if (chosenSet != null)
+                {
+                    var refined = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, chosenSet,
+                        GetGearConstraints(bc), lo => { bc.Equipment = lo; return FullScore(); });
+                    if (refined != null) bc.Equipment = refined;
                 }
                 log.Add(FormatGear(bc));
             }

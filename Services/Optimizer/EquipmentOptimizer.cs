@@ -169,6 +169,39 @@ namespace GameDamageCalculator.Services.Optimizer
             return result;
         }
 
+        /// <summary>
+        /// 고정 세트에 대해 메인옵·부옵·장신구를 외부 스코어러(예: 공성전 풀시뮬 팀 점수)로 최적화.
+        /// 세트는 이미 정해졌고, 그 안에서 메인/부옵/장신구를 풀시뮬 기준으로 고른다.
+        /// </summary>
+        public EquipmentLoadout OptimizeForSetFull(BattleCharacter battleChar, BattleConfig config, int charIndex,
+            string setName, GearConstraints gc, Func<EquipmentLoadout, double> scorer)
+        {
+            var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
+            var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
+            string[] weaponMains = (gc?.WeaponMains ?? new[] { "공격력%" }).Where(weaponAvail.Contains).Distinct().ToArray();
+            string[] armorMains = (gc?.ArmorMains ?? new[] { "공격력%" }).Where(armorAvail.Contains).Distinct().ToArray();
+            if (weaponMains.Length == 0) weaponMains = new[] { "공격력%" };
+            if (armorMains.Length == 0) armorMains = new[] { "공격력%" };
+
+            var setConfig = new EquipSetConfig { WeaponSetName = setName, ArmorSetName = setName, Is4Set = true, Description = $"{setName} 4세트" };
+
+            // 1) 메인옵: (무기메인 × 방어구메인) 조합을 스코어러로 비교
+            EquipmentLoadout best = null; double bestScore = -1;
+            foreach (var wm in weaponMains)
+                foreach (var am in armorMains)
+                {
+                    var lo = BuildLoadout(setConfig, wm, wm, am, am);
+                    double s = scorer(lo);
+                    if (s > bestScore) { bestScore = s; best = lo; }
+                }
+            if (best == null) return null;
+
+            // 2) 부옵·장신구: 스코어러 기준 그리디
+            OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions, scorer);
+            OptimizeAccessory(best, battleChar, config, charIndex, scorer);
+            return best;
+        }
+
         /// <summary>허용 세트 이름 목록으로 4세트 + 2+2세트(허용끼리) 조합 생성.</summary>
         private static List<EquipSetConfig> BuildSetCombos(string[] allowed)
         {
@@ -306,12 +339,14 @@ namespace GameDamageCalculator.Services.Optimizer
             BattleCharacter battleChar,
             BattleConfig config,
             int charIndex,
-            string[] subStatNames = null)
+            string[] subStatNames = null,
+            Func<EquipmentLoadout, double> scorer = null)
         {
             const int SubSlotsPerEquip = 4;   // 부옵 슬롯 수
             const int TierUps = 5;             // 15강 동안 랜덤 티어업 횟수
             const int MaxTier = 6;             // 1(기본) + 5(전부 한 슬롯에)
             subStatNames ??= GetDpsSubStatNames();
+            double Score(EquipmentLoadout lo) => scorer != null ? scorer(lo) : EvaluateDamage(battleChar, config, charIndex, lo);
 
             foreach (var equip in loadout.GetEquipments())
             {
@@ -321,7 +356,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 // 후보 부옵: 허용 목록 ∩ (메인옵 제외)
                 var cands = subStatNames.Where(n => n != equip.MainStatName).Distinct().ToList();
 
-                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 전체 로드아웃 데미지 최대)
+                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 점수 최대)
                 var used = new HashSet<string>();
                 for (int i = 0; i < nSlots; i++)
                 {
@@ -331,7 +366,7 @@ namespace GameDamageCalculator.Services.Optimizer
                     {
                         if (used.Contains(stat)) continue;
                         slot.StatName = stat; slot.Tier = 1;
-                        double d = EvaluateDamage(battleChar, config, charIndex, loadout);
+                        double d = Score(loadout);
                         if (d > bestDmg) { bestDmg = d; bestStat = stat; }
                         slot.StatName = ""; slot.Tier = 0;
                     }
@@ -339,7 +374,7 @@ namespace GameDamageCalculator.Services.Optimizer
                     slot.StatName = bestStat; slot.Tier = 1; used.Add(bestStat);
                 }
 
-                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 데미지 증가 최대 슬롯에)
+                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 점수 증가 최대 슬롯에)
                 for (int up = 0; up < TierUps; up++)
                 {
                     int bestSlot = -1; double bestDmg = -1;
@@ -348,7 +383,7 @@ namespace GameDamageCalculator.Services.Optimizer
                         var slot = equip.SubSlots[i];
                         if (string.IsNullOrEmpty(slot.StatName) || slot.Tier >= MaxTier) continue;
                         slot.Tier++;
-                        double d = EvaluateDamage(battleChar, config, charIndex, loadout);
+                        double d = Score(loadout);
                         if (d > bestDmg) { bestDmg = d; bestSlot = i; }
                         slot.Tier--;
                     }
@@ -381,9 +416,11 @@ namespace GameDamageCalculator.Services.Optimizer
             EquipmentLoadout loadout,
             BattleCharacter battleChar,
             BattleConfig config,
-            int charIndex)
+            int charIndex,
+            Func<EquipmentLoadout, double> scorer = null)
         {
-            double bestDamage = 0;
+            double Score(EquipmentLoadout lo) => scorer != null ? scorer(lo) : EvaluateDamage(battleChar, config, charIndex, lo);
+            double bestDamage = -1;
             Accessory bestAccessory = null;
 
             var grades = new[] { 6, 5, 4 }; // 높은 등급부터
@@ -403,7 +440,7 @@ namespace GameDamageCalculator.Services.Optimizer
                             if (subOpt == mainOpt) continue; // 메인과 서브 중복 불가 (가정)
                             var accessory = new Accessory { Grade = grade, MainOption = mainOpt, SubOption = subOpt };
                             loadout.Accessory = accessory;
-                            double damage = EvaluateDamage(battleChar, config, charIndex, loadout);
+                            double damage = Score(loadout);
                             if (damage > bestDamage)
                             {
                                 bestDamage = damage;
@@ -416,7 +453,7 @@ namespace GameDamageCalculator.Services.Optimizer
                         // 4~5성: 메인만
                         var accessory = new Accessory { Grade = grade, MainOption = mainOpt };
                         loadout.Accessory = accessory;
-                        double damage = EvaluateDamage(battleChar, config, charIndex, loadout);
+                        double damage = Score(loadout);
                         if (damage > bestDamage)
                         {
                             bestDamage = damage;
