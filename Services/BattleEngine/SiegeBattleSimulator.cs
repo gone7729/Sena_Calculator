@@ -93,8 +93,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                     state.IsSkillTurn = false;
                 }
 
-                // 기본공격: 양팀 통합 속공순 다음 유닛 (턴 소모)
-                if (order.Count > 0)
+                // 기본공격: 양팀 통합 속공순 다음 유닛 (턴 소모). 0턴은 선공 스킬만(평타 없음) → 평타는 1턴부터.
+                if (t > 0 && order.Count > 0)
                 {
                     var actor = order[cursor % order.Count];
                     cursor++;
