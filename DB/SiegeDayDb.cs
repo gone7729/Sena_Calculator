@@ -79,7 +79,9 @@ namespace GameDamageCalculator.Database
             // ===== 월요일 — 루디. 1스킬: 생명력 전환(90→80→70%) + 기절[3턴]. 감쇄 물리90/1인70/5인90 =====
             Day(1, "월요일", "월요일 공성전 (수호자의 성)", "루디",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Stun, hpConv: new[] { 90.0, 80.0, 70.0 }),
+                status: StatusEffectType.Stun, hpConv: new[] { 90.0, 80.0, 70.0 },
+                r3Look: new BaseStatSet { Atk = 1502, Def = 1030, Hp = 40000, Spd = 19, Cri_Dmg = 150, Eff_Hit = 100 },
+                r3Chan: new BaseStatSet { Atk = 1784, Def = 1030, Hp = 40000, Spd = 25, Cri_Dmg = 150, Eff_Hit = 100 }),
 
             // ===== 화요일 — 아일린. 1스킬: 감전[3턴]. R3 룩은 추가로 모든 아군(보스측) 피해면역[2턴](모델 미반영). 물리90 =====
             Day(2, "화요일", "화요일 공성전 (포디나의 성)", "아일린",
@@ -119,7 +121,8 @@ namespace GameDamageCalculator.Database
         /// </summary>
         private static DayDef Day(int dayIndex, string key, string stageName, string bossName, Reduction red,
             StatusEffectType status, double[] hpConv = null, string r3LookExtra = null,
-            StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null)
+            StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null,
+            BaseStatSet r3Look = null, BaseStatSet r3Chan = null)
         {
             double Hp(int round) => hpConv == null ? 0 : hpConv[round - 1];
             var cs = chanStatus ?? status;
@@ -135,7 +138,7 @@ namespace GameDamageCalculator.Database
                 R1Look = Look(1, 80, 275), R1Chan = Chan(1, 80, 275),
                 R2Look = Look(2, 90, 305), R2Chan = Chan(2, 90, 305),
                 R3Look = Look(3, 100, 340, r3LookExtra), R3Chan = Chan(3, 100, 340),
-                R3LookStats = R3LookPlaceholder(), R3ChanStats = R3ChanPlaceholder(),
+                R3LookStats = r3Look ?? R3LookPlaceholder(), R3ChanStats = r3Chan ?? R3ChanPlaceholder(),
                 Pri1 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
                 Pri2 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
                 Pri3 = new()
