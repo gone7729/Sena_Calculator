@@ -951,6 +951,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (target == EffectTarget.Self || target == EffectTarget.SingleAlly)
                 return new List<CharacterBattleState> { caster };
             if (selector == TargetSelector.HighestAtkAlly)
+                // 인게임 공격력(진형버프 포함) 상위 N명. FinalAtk는 InitializeCharacterState에서
+                // 진형(전/후열) 보너스까지 반영된 최종 공격력이므로 그대로 사용.
                 return alive.OrderByDescending(a => a.FinalAtk).Take(System.Math.Max(1, tgtCount)).ToList();
             return alive;   // Party 전체
         }
