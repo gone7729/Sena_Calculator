@@ -34,6 +34,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         public SiegeBattleResult BestResult { get; set; }
         public int EvaluatedCount { get; set; }     // 평가한 (조합 × 진형) 수
         public List<string> GearLog { get; set; } = new();   // 자동 장착된 영웅별 메인옵/부옵 값 로그
+        public List<SiegeEvalEntry> EvalLog { get; set; } = new();   // 탐색 중 평가한 (팀×진형)별 점수
+    }
+
+    /// <summary>탐색 평가 1건 (팀 조합 × 진형 → 점수).</summary>
+    public class SiegeEvalEntry
+    {
+        public string Formation { get; set; }
+        public List<string> Party { get; set; } = new();
+        public double Score { get; set; }
+        public Dictionary<int, double> RoundScore { get; set; } = new();
     }
 
     /// <summary>
@@ -58,6 +68,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             SiegeOptimizerResult best = null;
             int evaluated = 0;
+            var evalLog = new List<SiegeEvalEntry>();
 
             foreach (var combo in Combinations(config.Candidates, remaining))
             {
@@ -82,6 +93,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                     };
                     var result = _sim.Simulate(simConfig);
                     evaluated++;
+                    evalLog.Add(new SiegeEvalEntry
+                    {
+                        Formation = formation,
+                        Party = team.Select(c => c.Character.Name).ToList(),
+                        Score = result.TotalScore,
+                        RoundScore = new Dictionary<int, double>(result.RoundScore),
+                    });
 
                     if (best == null || result.TotalScore > best.BestScore)
                     {
@@ -96,8 +114,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
             }
 
-            if (best != null) { best.EvaluatedCount = evaluated; best.GearLog = gearLog; }
-            return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog };
+            if (best != null) { best.EvaluatedCount = evaluated; best.GearLog = gearLog; best.EvalLog = evalLog; }
+            return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
 
         /// <summary>
