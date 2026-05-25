@@ -87,28 +87,28 @@ namespace GameDamageCalculator.Database
             Day(2, "화요일", "화요일 공성전 (포디나의 성)", "아일린",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
                 status: StatusEffectType.Shock,
-                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴] (모델 미반영)"),
+                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴] (모델 미반영)", r3Def: 1814),
 
             // ===== 수요일 — 레이첼. 1스킬: 화상[3턴]. 물리90 =====
             Day(3, "수요일", "수요일 공성전 (불멸의 성)", "레이첼",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Burn),
+                status: StatusEffectType.Burn, r3Def: 1814),
 
             // ===== 목요일 — 델론즈. 1스킬: 침묵[3턴]. 감쇄 마법90 =====
             Day(4, "목요일", "목요일 공성전 (죽음의 성)", "델론즈",
                 new Reduction { Mag = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Silence),
+                status: StatusEffectType.Silence, r3Def: 1344),
 
             // ===== 금요일 — 제이브. 룩=기절, 챈슬러=용염(화상 120%)[3턴]. 감쇄 마법90 =====
             Day(5, "금요일", "금요일 공성전 (고대용의 성)", "제이브",
                 new Reduction { Mag = 90, Single = 70, Multi = 90 },
                 status: StatusEffectType.Stun,
-                chanStatus: StatusEffectType.Burn, chanSkillName: "용염", chanStatusAtkRatio: 120),
+                chanStatus: StatusEffectType.Burn, chanSkillName: "용염", chanStatusAtkRatio: 120, r3Def: 1123),
 
             // ===== 일요일 — 크리스. 1스킬: 즉사[3턴]. 감쇄 5인기 90%만. (몹 패시브 쿨감: 피격 시 쿨-15초 — 모델 미반영) =====
             Day(7, "일요일", "일요일 공성전 (지옥의 성)", "크리스",
                 new Reduction { Multi = 90 },
-                status: StatusEffectType.InstantDeath),
+                status: StatusEffectType.InstantDeath, r3Def: 2725),
         };
 
         // R3 친위대 스탯은 요일별 미제공 → 토요일 값을 임시 placeholder로 사용 (실측 확보 시 요일별 교체).
@@ -122,8 +122,10 @@ namespace GameDamageCalculator.Database
         private static DayDef Day(int dayIndex, string key, string stageName, string bossName, Reduction red,
             StatusEffectType status, double[] hpConv = null, string r3LookExtra = null,
             StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null,
-            BaseStatSet r3Look = null, BaseStatSet r3Chan = null)
+            BaseStatSet r3Look = null, BaseStatSet r3Chan = null, double r3Def = 0)
         {
+            // R3 친위대 표준 스탯: Atk 룩1502/챈1754, Hp 40000, Spd 룩19/챈25, 효적100, 치피150. 방어력만 요일별.
+            BaseStatSet R3Std(double atk, double spd) => new() { Atk = atk, Def = r3Def, Hp = 40000, Spd = spd, Cri_Dmg = 150, Eff_Hit = 100 };
             double Hp(int round) => hpConv == null ? 0 : hpConv[round - 1];
             var cs = chanStatus ?? status;
             List<Skill> Look(int round, double n, double s1, string extra = null) =>
@@ -138,7 +140,8 @@ namespace GameDamageCalculator.Database
                 R1Look = Look(1, 80, 275), R1Chan = Chan(1, 80, 275),
                 R2Look = Look(2, 90, 305), R2Chan = Chan(2, 90, 305),
                 R3Look = Look(3, 100, 340, r3LookExtra), R3Chan = Chan(3, 100, 340),
-                R3LookStats = r3Look ?? R3LookPlaceholder(), R3ChanStats = r3Chan ?? R3ChanPlaceholder(),
+                R3LookStats = r3Look ?? (r3Def > 0 ? R3Std(1502, 19) : R3LookPlaceholder()),
+                R3ChanStats = r3Chan ?? (r3Def > 0 ? R3Std(1754, 25) : R3ChanPlaceholder()),
                 Pri1 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
                 Pri2 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
                 Pri3 = new()
