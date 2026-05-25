@@ -32,7 +32,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         public string BestFormation { get; set; }
         public double BestScore { get; set; }
         public SiegeBattleResult BestResult { get; set; }
-        public int EvaluatedCount { get; set; }     // 평가한 (조합 × 진형) 수
+        public List<string> BestBackRow { get; set; } = new();   // 최적 후열 배치 영웅 이름
+        internal int BestMask { get; set; }                       // 최적 후열 배치 비트마스크 (재적용용)
+        public int EvaluatedCount { get; set; }     // 평가한 (조합 × 진형 × 자리) 수
         public List<string> GearLog { get; set; } = new();   // 자동 장착된 영웅별 메인옵/부옵 값 로그
         public List<SiegeEvalEntry> EvalLog { get; set; } = new();   // 탐색 중 평가한 (팀×진형)별 점수
     }
@@ -42,6 +44,7 @@ namespace GameDamageCalculator.Services.BattleEngine
     {
         public string Formation { get; set; }
         public List<string> Party { get; set; } = new();
+        public List<string> BackRow { get; set; } = new();   // 후열 배치 영웅
         public double Score { get; set; }
         public Dictionary<int, double> RoundScore { get; set; } = new();
     }
@@ -76,45 +79,65 @@ namespace GameDamageCalculator.Services.BattleEngine
                 team.AddRange(combo);
                 if (team.Count == 0) continue;
 
+                int n = team.Count;
                 foreach (var formation in Formations)
                 {
-                    var simConfig = new SiegeBattleConfig
+                    // 자리(전/후열) 자유 배치 탐색: 후열에 둘 영웅 부분집합 2^n 전수.
+                    //   진형 후열 공격력%는 후열 배치 영웅만 받으므로 누구를 뒤로 뺄지 = 핵심 변수.
+                    for (int mask = 0; mask < (1 << n); mask++)
                     {
-                        AllyParty = team,
-                        FormationName = formation,
-                        SiegeStage = config.SiegeStage,
-                        AllyPet = config.AllyPet,
-                        PetStar = config.PetStar,
-                        PetEnhance = config.PetEnhance,
-                        PetOptionAtkRate = config.PetOptionAtkRate,
-                        PetOptionDefRate = config.PetOptionDefRate,
-                        PetOptionHpRate = config.PetOptionHpRate,
-                        MaxTurns = config.MaxTurns,
-                    };
-                    var result = _sim.Simulate(simConfig);
-                    evaluated++;
-                    evalLog.Add(new SiegeEvalEntry
-                    {
-                        Formation = formation,
-                        Party = team.Select(c => c.Character.Name).ToList(),
-                        Score = result.TotalScore,
-                        RoundScore = new Dictionary<int, double>(result.RoundScore),
-                    });
+                        for (int i = 0; i < n; i++) team[i].IsBackPosition = (mask & (1 << i)) != 0;
 
-                    if (best == null || result.TotalScore > best.BestScore)
-                    {
-                        best = new SiegeOptimizerResult
+                        var simConfig = new SiegeBattleConfig
                         {
-                            BestParty = team,
-                            BestFormation = formation,
-                            BestScore = result.TotalScore,
-                            BestResult = result,
+                            AllyParty = team,
+                            FormationName = formation,
+                            SiegeStage = config.SiegeStage,
+                            AllyPet = config.AllyPet,
+                            PetStar = config.PetStar,
+                            PetEnhance = config.PetEnhance,
+                            PetOptionAtkRate = config.PetOptionAtkRate,
+                            PetOptionDefRate = config.PetOptionDefRate,
+                            PetOptionHpRate = config.PetOptionHpRate,
+                            MaxTurns = config.MaxTurns,
                         };
+                        var result = _sim.Simulate(simConfig);
+                        evaluated++;
+                        var backRow = team.Where(c => c.IsBackPosition).Select(c => c.Character.Name).ToList();
+                        evalLog.Add(new SiegeEvalEntry
+                        {
+                            Formation = formation,
+                            Party = team.Select(c => c.Character.Name).ToList(),
+                            BackRow = backRow,
+                            Score = result.TotalScore,
+                            RoundScore = new Dictionary<int, double>(result.RoundScore),
+                        });
+
+                        if (best == null || result.TotalScore > best.BestScore)
+                        {
+                            best = new SiegeOptimizerResult
+                            {
+                                BestParty = team,
+                                BestFormation = formation,
+                                BestScore = result.TotalScore,
+                                BestResult = result,
+                                BestBackRow = backRow,
+                                BestMask = mask,
+                            };
+                        }
                     }
                 }
             }
 
-            if (best != null) { best.EvaluatedCount = evaluated; best.GearLog = gearLog; best.EvalLog = evalLog; }
+            if (best != null)
+            {
+                best.EvaluatedCount = evaluated;
+                best.GearLog = gearLog;
+                best.EvalLog = evalLog;
+                // team 객체가 탐색 중 변형되므로 최적 자리 배치를 BestParty에 재적용.
+                for (int i = 0; i < best.BestParty.Count; i++)
+                    best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
 
