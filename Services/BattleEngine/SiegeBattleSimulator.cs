@@ -215,6 +215,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                         ApplyEnemyStatusToAlly(state, target, skill);
                     }
 
+                    // 적 진영 전체 피해 면역 부여 (화 R3 룩 등)
+                    int imm = skill.GetLevelData(false)?.GrantEnemyImmunityTurns ?? 0;
+                    if (imm > 0)
+                    {
+                        state.EnemyImmunityTurns = Math.Max(state.EnemyImmunityTurns, imm);
+                        Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
+                            $"적 진영 피해 면역[{imm}턴]");
+                    }
+
                     double cd = skill.GetCooldown(false, 0);
                     if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
                     AdvanceTime(state, GetActionDuration(skill));
@@ -273,6 +282,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (dmg <= 0) return;
 
+            // 적 진영 피해 면역 (화 R3 룩 스킬 등) — 피해 0
+            if (state.EnemyImmunityTurns > 0)
+            {
+                Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
+                    label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
+                ApplyHitCdReduce(state, target);   // 피격 자체는 발생 → 일 쿨감 패시브는 트리거
+                return;
+            }
+
             target.CurrentHp -= dmg;            // HP 0 이하 허용 (무사망)
             target.TotalDamageTaken += dmg;
             ally.TotalDamageDealt += dmg;
@@ -289,6 +307,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = dmg,
                 Description = $"{ally.Source.Character.Name} → {target.Source.Name}: {dmg:N0}",
             });
+
+            ApplyHitCdReduce(state, target);   // 피격 시 쿨감 패시브(일요일 몹)
+        }
+
+        /// <summary>일요일 몹 패시브: 피격된 적이 쿨감 패시브 보유 시, 공격력 최고 적의 스킬 쿨 N초 감소.</summary>
+        private void ApplyHitCdReduce(SiegeBattleState state, SiegeEnemyState hit)
+        {
+            double red = hit.Source?.SiegeHitCdReduce ?? 0;
+            if (red <= 0) return;
+            var top = state.Enemies.OrderByDescending(e => e.FinalAtk).FirstOrDefault();
+            if (top == null) return;
+            foreach (var k in top.SkillCooldowns.Keys.ToList())
+                top.SkillCooldowns[k] = Math.Max(0, top.SkillCooldowns[k] - red);
         }
 
         #endregion
@@ -662,14 +693,17 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>매 턴 각 적의 DoT 틱 → 점수 누적 + 캐릭별 기여 반영, 잔여턴 감소.</summary>
+        /// <summary>매 턴 각 적의 DoT 틱 → 점수 누적 + 캐릭별 기여 반영, 잔여턴 감소. 적 면역 중엔 DoT도 무효.</summary>
         private void TickEnemyDots(SiegeBattleState state)
         {
+            bool immune = state.EnemyImmunityTurns > 0;
+            if (state.EnemyImmunityTurns > 0) state.EnemyImmunityTurns--;   // 면역 잔여 턴 감소
+
             foreach (var enemy in state.Enemies)
             {
                 foreach (var dot in enemy.ActiveDots)
                 {
-                    if (dot.TickDamage > 0)
+                    if (dot.TickDamage > 0 && !immune)
                     {
                         enemy.CurrentHp -= dot.TickDamage;
                         enemy.TotalDamageTaken += dot.TickDamage;

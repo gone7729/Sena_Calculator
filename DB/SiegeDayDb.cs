@@ -42,6 +42,9 @@ namespace GameDamageCalculator.Database
             public BaseStatSet R3LookStats, R3ChanStats;
             public List<Skill> R3Look, R3Chan;
 
+            // 몹 피격 시 쿨감 패시브(일요일): 이 요일 몹이 피격될 때마다 공격력 최고 적 쿨 N초 감소. 0이면 없음.
+            public double MobHitCdReduce;
+
             // 스킬 우선순위 (라운드별)
             public List<PriItem> Pri1 = new(), Pri2 = new(), Pri3 = new();
         }
@@ -88,7 +91,7 @@ namespace GameDamageCalculator.Database
             Day(2, "화요일", "화요일 공성전 (포디나의 성)", "아일린",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
                 status: StatusEffectType.Shock, lookCd: 80, chanCd: 70, r3Def: 1814,
-                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴] (모델 미반영)",
+                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴]", r3LookImmunity: 2,
                 pri3: new() { B("아일린", SkillType.Skill1), B("아일린", SkillType.Skill2), Look1, Chan1 }),
 
             // ===== 수요일 — 레이첼. 1스킬: 화상[3턴]. 물리90. 쿨 룩70/챈70 =====
@@ -117,7 +120,7 @@ namespace GameDamageCalculator.Database
             // 우선순위: 크리스2 → 크리스1 → 룩1 → 챈1
             Day(7, "일요일", "일요일 공성전 (지옥의 성)", "크리스",
                 new Reduction { Multi = 90 },
-                status: StatusEffectType.InstantDeath, r3Def: 2725,
+                status: StatusEffectType.InstantDeath, r3Def: 2725, mobHitCdReduce: 15,
                 pri3: new() { B("크리스", SkillType.Skill2), B("크리스", SkillType.Skill1), Look1, Chan1 }),
         };
 
@@ -134,14 +137,15 @@ namespace GameDamageCalculator.Database
             StatusEffectType status, List<PriItem> pri3, double lookCd = 70, double chanCd = 70,
             double[] hpConv = null, string r3LookExtra = null,
             StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null,
-            double r3Def = 0)
+            double r3Def = 0, int r3LookImmunity = 0, double mobHitCdReduce = 0)
         {
             // R3 친위대 표준 스탯: Atk 룩1502/챈1754, Hp 40000, Spd 룩19/챈25, 효적100, 치피150. 방어력만 요일별.
             BaseStatSet R3Std(double atk, double spd) => new() { Atk = atk, Def = r3Def, Hp = 40000, Spd = spd, Cri_Dmg = 150, Eff_Hit = 100 };
             double Hp(int round) => hpConv == null ? 0 : hpConv[round - 1];
             var cs = chanStatus ?? status;
-            List<Skill> Look(int round, double n, double s1, string extra = null) =>
-                SiegeBossSkillDb.MobSkills(n, s1, lookCd, status, statusDur: 3, hpConvPct: Hp(round), extra: extra);
+            List<Skill> Look(int round, double n, double s1, string extra = null, int immunity = 0) =>
+                SiegeBossSkillDb.MobSkills(n, s1, lookCd, status, statusDur: 3, hpConvPct: Hp(round),
+                    extra: extra, grantEnemyImmunity: immunity);
             List<Skill> Chan(int round, double n, double s1) =>
                 SiegeBossSkillDb.MobSkills(n, s1, chanCd, cs, skill1Name: chanSkillName, statusDur: 3,
                     statusAtkRatio: chanStatusAtkRatio, hpConvPct: chanStatus == null ? Hp(round) : 0);
@@ -154,7 +158,8 @@ namespace GameDamageCalculator.Database
                 Key = key, DayIndex = dayIndex, StageName = stageName, BossName = bossName, MobReduction = red,
                 R1Look = Look(1, 80, 275), R1Chan = Chan(1, 80, 275),
                 R2Look = Look(2, 90, 305), R2Chan = Chan(2, 90, 305),
-                R3Look = Look(3, 100, 340, r3LookExtra), R3Chan = Chan(3, 100, 340),
+                R3Look = Look(3, 100, 340, r3LookExtra, r3LookImmunity), R3Chan = Chan(3, 100, 340),
+                MobHitCdReduce = mobHitCdReduce,
                 R3LookStats = r3Def > 0 ? R3Std(1502, 19) : R3LookPlaceholder(),
                 R3ChanStats = r3Def > 0 ? R3Std(1754, 25) : R3ChanPlaceholder(),
                 Pri1 = mobPri, Pri2 = mobPri, Pri3 = pri3,
@@ -194,6 +199,7 @@ namespace GameDamageCalculator.Database
                     e.SingleTargetReduction = d.MobReduction.Single;
                     e.TripleTargetReduction = d.MobReduction.Triple;
                     e.MultiTargetReduction = d.MobReduction.Multi;
+                    e.SiegeHitCdReduce = d.MobHitCdReduce;   // 일요일 몹 피격 시 쿨감 패시브
                     return e;
                 }
 

@@ -338,6 +338,9 @@ namespace GameDamageCalculator.Models
         public ConsumeExtraDamage ConsumeExtra { get; set; }
         public double FixedDamage { get; set; }
 
+        // 공성전: 이 스킬 사용 시 적(보스) 진영 전체가 N턴간 모든 피해 면역 (화 R3 룩 등). 0이면 없음.
+        public int GrantEnemyImmunityTurns { get; set; }
+
         // 처치 시 같은 스킬 1회 재시전 (모든 효과 재적용, 연쇄 없음)
         public OnKillRecast OnKillRecast { get; set; }
     }
