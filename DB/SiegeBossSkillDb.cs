@@ -410,26 +410,10 @@ namespace GameDamageCalculator.Database
             },
         };
 
-        // ===== 공성전 잡몹 스킬 (Id 기반 — 같은 이름이 라운드별 다른 스탯/배율) =====
-
-        public static List<Skill> GetMobSkills(int enemyId)
-            => MobSkillsById.TryGetValue(enemyId, out var list) ? list : new List<Skill>();
-
-        public static readonly Dictionary<int, List<Skill>> MobSkillsById = new()
-        {
-            // 토요일 룩 — R1=501/R2=503 (배율 동일), R3=505 (강화). 패시브 공성전 감쇄는 EnemyDb에서 부여.
-            [501] = LookSkills(80, 275),
-            [503] = LookSkills(80, 275),
-            [505] = LookSkills(100, 340),
-
-            // 토요일 챈슬러 — R1=502/R2=504 (동일), R3=506 (강화 + 혹한의 기운/숨결)
-            [502] = ChancellorSkills(90, 305, r3Frost: false),
-            [504] = ChancellorSkills(90, 305, r3Frost: false),
-            [506] = ChancellorSkills(100, 340, r3Frost: true),
-        };
+        // ===== 공성전 잡몹 스킬 헬퍼 (요일별 배율로 SiegeDayDb가 호출) =====
 
         /// <summary>룩: 기본공격 + 투창(빙결 100%[3턴], 쿨 70초)</summary>
-        private static List<Skill> LookSkills(double normalRatio, double skill1Ratio) => new()
+        public static List<Skill> LookSkills(double normalRatio, double skill1Ratio) => new()
         {
             new Skill
             {
@@ -461,7 +445,7 @@ namespace GameDamageCalculator.Database
         /// R3는 분쇄 시 "공격력 가장 높은 아군"에게 혹한의 기운/숨결 부여(스파이크 액티브 치확100%·치피+500%) —
         /// 보스팀 시너지라 모델 부재, Effect 텍스트로 보존.
         /// </summary>
-        private static List<Skill> ChancellorSkills(double normalRatio, double skill1Ratio, bool r3Frost) => new()
+        public static List<Skill> ChancellorSkills(double normalRatio, double skill1Ratio, bool r3Frost) => new()
         {
             new Skill
             {
