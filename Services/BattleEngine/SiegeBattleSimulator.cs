@@ -184,6 +184,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         double dmg = CalcDamageToEnemy(ally, target, skill);
                         ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
                         RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
+                        ProcessAttackStacks(state, ally, target, isSkill: true);   // 공격 발동형 스택(타카 취약 등)
                     }
                     ApplySkillEffects(state, ally, skill, targets);   // 스킬 버프(아군)/디버프(적) 적용 + 로그
                     state.AllyRotationCursor = (idx + 1) % n;          // 다음 스킬턴은 다음 아군부터
@@ -252,6 +253,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             double dmg = CalcDamageToEnemy(ally, target, normal);
                             ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
+                            ProcessAttackStacks(state, ally, target, isSkill: false);   // 공격 발동형 스택(타카 취약 등)
                         }
                         if (targets.Count > 0)
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
@@ -907,6 +909,64 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (selector == TargetSelector.HighestAtkAlly)
                 return alive.OrderByDescending(a => a.FinalAtk).Take(System.Math.Max(1, tgtCount)).ToList();
             return alive;   // Party 전체
+        }
+
+        /// <summary>
+        /// 아군 공격 발동형 스택 디버프 처리 (예: 타카 EagleClaw — 2회 공격마다 2스택, 최대 8, 스택당 취약4%).
+        /// 단일보스 sim과 동일하게 초월이 같은 StatusType을 override. 스택은 (아군·피격 적)별로 누적.
+        /// </summary>
+        private void ProcessAttackStacks(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target, bool isSkill)
+        {
+            var passive = ally.Source.Character.Passive;
+            var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced);
+            if (lvl?.Effects == null) return;
+            var trEffects = passive.GetTranscendBonus(ally.Source.TranscendLevel)?.Effects;
+
+            foreach (var baseEffect in lvl.Effects)
+            {
+                // 초월이 같은 StatusType을 정의하면 override (단일보스 sim과 동일)
+                var effect = baseEffect;
+                if (trEffects != null)
+                {
+                    var ov = trEffects.FirstOrDefault(e => e.StatusType == baseEffect.StatusType && e.StatusType != StatusEffectType.None);
+                    if (ov != null) effect = ov;
+                }
+                if (effect.ApplyMode != ApplyMode.Triggered || effect.MaxStacks <= 0) continue;
+                if (effect.Type != PersistentEffectType.Debuff || effect.Debuff == null) continue;
+                if (effect.Target != EffectTarget.Enemy && effect.Target != EffectTarget.AllEnemies) continue;
+                bool matches = effect.TriggerCondition switch
+                {
+                    TriggerCondition.AllAttack => true,
+                    TriggerCondition.SkillOnly => isSkill,
+                    TriggerCondition.NormalOnly => !isSkill,
+                    _ => false,
+                };
+                if (!matches) continue;
+
+                string key = $"siege_stack:{ally.PartyIndex}:{effect.StatusType}:{target.Position}";
+                ally.StackTriggerCounters.TryGetValue(key, out int cnt);
+                cnt++;
+                if (cnt < System.Math.Max(1, effect.TriggerCount)) { ally.StackTriggerCounters[key] = cnt; continue; }
+
+                ally.StackTriggerCounters[key] = 0;
+                ally.CurrentStacks.TryGetValue(key, out int st);
+                int newStacks = System.Math.Min(st + effect.StacksPerTrigger, effect.MaxStacks);
+                ally.CurrentStacks[key] = newStacks;
+
+                var scaled = ScaleDebuff(effect.Debuff, newStacks);
+                AddEnemyDebuff(target, scaled, 99, key);   // 같은 key 갱신(스택 증가분 반영)
+                Log(state, ally.Source.Character.Name, true, ActionType.DebuffApplied,
+                    StatusEffectDb.Get(effect.StatusType)?.Name ?? effect.StatusType.ToString(), 0,
+                    $"{target.Source.Name} {effect.StatusType} {newStacks}스택: {SummarizeDebuff(scaled)}");
+            }
+        }
+
+        /// <summary>디버프를 스택 수만큼 합산 (스택당 효과).</summary>
+        private static DebuffSet ScaleDebuff(DebuffSet b, int stacks)
+        {
+            var r = new DebuffSet();
+            for (int i = 0; i < System.Math.Max(1, stacks); i++) r.Add(b);
+            return r;
         }
 
         /// <summary>적 1명에 디버프 누적(중복 방지: 같은 Id 갱신).</summary>
