@@ -922,8 +922,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (lvl?.Effects == null) return;
             var trEffects = passive.GetTranscendBonus(ally.Source.TranscendLevel)?.Effects;
 
-            foreach (var effect in lvl.Effects)
+            foreach (var baseEffect in lvl.Effects)
             {
+                // 초월이 같은 StatusType을 정의하면 override (단일보스 sim과 동일). 초월 데이터에 둘 다 명시됨.
+                var effect = baseEffect;
+                if (trEffects != null)
+                {
+                    var ov = trEffects.FirstOrDefault(e => e.StatusType == baseEffect.StatusType && e.StatusType != StatusEffectType.None);
+                    if (ov != null) effect = ov;
+                }
                 if (effect.ApplyMode != ApplyMode.Triggered || effect.MaxStacks <= 0) continue;
                 if (effect.Type != PersistentEffectType.Debuff || effect.Debuff == null) continue;
                 if (effect.Target != EffectTarget.Enemy && effect.Target != EffectTarget.AllEnemies) continue;
@@ -936,14 +943,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 };
                 if (!matches) continue;
 
-                // 스택당 디버프 = 기본 + 초월(같은 StatusType)을 합산 (둘 다 적용, 예: 타카 받물피증3 + 취약4)
-                var perStack = effect.Debuff.Clone();
-                if (trEffects != null)
-                {
-                    var tr = trEffects.FirstOrDefault(e => e.StatusType == effect.StatusType
-                        && e.StatusType != StatusEffectType.None && e.Debuff != null);
-                    if (tr != null) perStack.Add(tr.Debuff);
-                }
+                var perStack = effect.Debuff;
 
                 // 키에 라운드 포함 → 라운드 전환 시 스택/카운터 리셋 (R1 스택이 R2로 이월 안 됨)
                 string key = $"siege_stack:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}:{target.Position}";
