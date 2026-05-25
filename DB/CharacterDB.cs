@@ -7057,14 +7057,11 @@ namespace GameDamageCalculator.Database
                                 EffectDuration = 5,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 1, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
+                                    // 스킬강화 시 대상: 공격력이 가장 높은 아군 2명 — 보스피증 40% + 약점확률 54% [5턴]
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.HighestAtkAlly, TargetCount = 2, Type = SkillEffectType.Buff, Duration = 5, Buff = new BuffSet { Dmg_Dealt_Bos = 40, Wek = 54 } }
                                 },
-                                Effect = "대상: 공격력이 가장 높은 아군 1명"
+                                Effect = "대상: 공격력이 가장 높은 아군 2명 (스킬강화)"
                                 } }
-                        },
-                        TranscendBonuses = new Dictionary<int, SkillTranscend>
-                        {
-                            { 6, new SkillTranscend { Effect = "대상 수 변경: 공격력이 가장 높은 아군 2명" } }
                         }
                     },
                     new Skill
