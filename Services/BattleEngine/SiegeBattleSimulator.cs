@@ -909,13 +909,21 @@ namespace GameDamageCalculator.Services.BattleEngine
                         $"디버프 적{targets.Count}: {s} [{d}턴]");
             }
 
+            // 초월 보너스 (대상수 변경 등). 6초월 비스킷 장비강화 = 버프 대상 2명 등.
+            var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
+            int? buffTgtOverride = tr?.TargetCountOverride;   // HighestAtkAlly 버프 대상 수 오버라이드
+
             void HandleEffects(List<SkillEffect> effects)
             {
                 if (effects == null) return;
                 foreach (var e in effects)
                 {
                     if (e.Type == SkillEffectType.Buff && e.Buff != null)
-                        ApplyBuff(e.Target, e.TargetSelector, e.TargetCount, e.Buff, e.Duration);
+                    {
+                        int tc = (e.TargetSelector == TargetSelector.HighestAtkAlly && buffTgtOverride.HasValue)
+                            ? buffTgtOverride.Value : e.TargetCount;
+                        ApplyBuff(e.Target, e.TargetSelector, tc, e.Buff, e.Duration);
+                    }
                     else if (e.Type == SkillEffectType.Debuff && e.Debuff != null)
                         ApplyDebuff(e.Debuff, e.Duration, e.Target);
                 }
@@ -927,8 +935,6 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
             if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
 
-            // 초월 보너스
-            var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
             if (tr != null)
             {
                 HandleEffects(tr.Effects);
