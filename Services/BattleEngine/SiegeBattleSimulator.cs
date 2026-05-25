@@ -922,15 +922,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (lvl?.Effects == null) return;
             var trEffects = passive.GetTranscendBonus(ally.Source.TranscendLevel)?.Effects;
 
-            foreach (var baseEffect in lvl.Effects)
+            foreach (var effect in lvl.Effects)
             {
-                // 초월이 같은 StatusType을 정의하면 override (단일보스 sim과 동일)
-                var effect = baseEffect;
-                if (trEffects != null)
-                {
-                    var ov = trEffects.FirstOrDefault(e => e.StatusType == baseEffect.StatusType && e.StatusType != StatusEffectType.None);
-                    if (ov != null) effect = ov;
-                }
                 if (effect.ApplyMode != ApplyMode.Triggered || effect.MaxStacks <= 0) continue;
                 if (effect.Type != PersistentEffectType.Debuff || effect.Debuff == null) continue;
                 if (effect.Target != EffectTarget.Enemy && effect.Target != EffectTarget.AllEnemies) continue;
@@ -943,7 +936,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                 };
                 if (!matches) continue;
 
-                string key = $"siege_stack:{ally.PartyIndex}:{effect.StatusType}:{target.Position}";
+                // 스택당 디버프 = 기본 + 초월(같은 StatusType)을 합산 (둘 다 적용, 예: 타카 받물피증3 + 취약4)
+                var perStack = effect.Debuff.Clone();
+                if (trEffects != null)
+                {
+                    var tr = trEffects.FirstOrDefault(e => e.StatusType == effect.StatusType
+                        && e.StatusType != StatusEffectType.None && e.Debuff != null);
+                    if (tr != null) perStack.Add(tr.Debuff);
+                }
+
+                // 키에 라운드 포함 → 라운드 전환 시 스택/카운터 리셋 (R1 스택이 R2로 이월 안 됨)
+                string key = $"siege_stack:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}:{target.Position}";
                 ally.StackTriggerCounters.TryGetValue(key, out int cnt);
                 cnt++;
                 if (cnt < System.Math.Max(1, effect.TriggerCount)) { ally.StackTriggerCounters[key] = cnt; continue; }
@@ -953,7 +956,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 int newStacks = System.Math.Min(st + effect.StacksPerTrigger, effect.MaxStacks);
                 ally.CurrentStacks[key] = newStacks;
 
-                var scaled = ScaleDebuff(effect.Debuff, newStacks);
+                var scaled = ScaleDebuff(perStack, newStacks);
                 AddEnemyDebuff(target, scaled, 99, key);   // 같은 key 갱신(스택 증가분 반영)
                 Log(state, ally.Source.Character.Name, true, ActionType.DebuffApplied,
                     StatusEffectDb.Get(effect.StatusType)?.Name ?? effect.StatusType.ToString(), 0,
