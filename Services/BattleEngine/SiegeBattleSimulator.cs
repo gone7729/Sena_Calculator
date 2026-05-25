@@ -20,7 +20,10 @@ namespace GameDamageCalculator.Services.BattleEngine
     {
         private readonly BattleSimulator _baseSim = new();   // 아군 스탯 초기화 재사용
         private readonly DamageCalculator _damageCalc = new();
-        private readonly Random _rng = new();
+        private readonly Random _rng;
+
+        /// <summary>seed 지정 시 결정론적 RNG — 장비 후보를 같은 조건으로 공정 비교할 때 사용.</summary>
+        public SiegeBattleSimulator(int? seed = null) => _rng = seed.HasValue ? new Random(seed.Value) : new Random();
 
         public SiegeBattleResult Simulate(SiegeBattleConfig config)
         {

@@ -118,9 +118,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
 
+        // 장비 후보(세트) 비교용 풀시뮬 고정 시드 — 후보 간 동일 RNG로 공정 비교.
+        private const int GearCompareSeed = 777;
+
         /// <summary>
-        /// 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 장착한다 (R3 보스를 타깃으로 영웅별 1회).
-        /// 팀/진형 탐색 전에 한 번만 수행하고 결과(Equipment)를 그대로 재사용한다.
+        /// 장비 미지정 영웅에게 최적 장비 장착. 영웅별로 허용 세트마다 후보(메인·부옵 프록시 최적)를 만들고,
+        /// 그 세트 선택을 공성전 풀시뮬 팀 점수(고정 시드·기본 진형, 좌표상승)로 비교해 정한다.
         /// </summary>
         private List<string> EquipCandidates(SiegeOptimizerConfig config)
         {
@@ -129,27 +132,71 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (boss == null) return log;
 
             var optimizer = new EquipmentOptimizer();
-            foreach (var bc in config.FixedMembers.Concat(config.Candidates))
+            var targets = config.FixedMembers.Concat(config.Candidates).Where(bc => bc != null && bc.Equipment == null).ToList();
+            var team = config.FixedMembers.Concat(config.Candidates).ToList();   // 풀시뮬 평가 팀
+
+            // 1) 영웅별 세트 후보 생성 (메인·부옵은 프록시 데미지로 최적). 기준선 = 첫 후보.
+            var cands = new Dictionary<BattleCharacter, List<(string Set, EquipmentLoadout Lo)>>();
+            foreach (var bc in targets)
             {
-                if (bc == null || bc.Equipment != null) continue;   // 이미 장비 지정 시 유지
-                var soloConfig = new BattleConfig
+                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GetGearConstraints(bc));
+                if (cands[bc].Count > 0) bc.Equipment = cands[bc][0].Lo;
+            }
+
+            // 2) 좌표상승: 영웅별로 각 세트 후보를 풀시뮬 팀 점수(고정 시드·기본 진형)로 비교해 최적 세트 선택
+            double FullScore() => new SiegeBattleSimulator(GearCompareSeed)
+                .Simulate(BuildSimConfig(config, team, "기본 진형")).TotalScore;
+
+            foreach (var bc in targets)
+            {
+                var list = cands[bc];
+                if (list.Count > 1)
                 {
-                    AllyParty = new List<BattleCharacter> { bc },
-                    TargetEnemy = boss,
-                    FormationName = "기본 진형",
-                    AllyPet = config.AllyPet,
-                    PetStar = config.PetStar,
-                    PetEnhance = config.PetEnhance,
-                    PetOptionAtkRate = config.PetOptionAtkRate,
-                    PetOptionDefRate = config.PetOptionDefRate,
-                    PetOptionHpRate = config.PetOptionHpRate,
-                };
-                var opt = optimizer.OptimizeForCharacterFast(bc, soloConfig, 0, GetGearConstraints(bc));
-                bc.Equipment = opt?.BestLoadout;
+                    EquipmentLoadout bestLo = bc.Equipment; double bestScore = -1; string bestSet = "";
+                    var perSet = new List<string>();
+                    foreach (var (setName, lo) in list)
+                    {
+                        bc.Equipment = lo;
+                        double sc = FullScore();
+                        perSet.Add($"{setName}={sc:N0}");
+                        if (sc > bestScore) { bestScore = sc; bestLo = lo; bestSet = setName; }
+                    }
+                    bc.Equipment = bestLo;
+                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {bestSet}  ← {string.Join(" / ", perSet)}");
+                }
                 log.Add(FormatGear(bc));
             }
             return log;
         }
+
+        /// <summary>장비 프록시 평가용 단일 영웅 BattleConfig (R3 보스 타깃).</summary>
+        private static BattleConfig SoloConfig(SiegeOptimizerConfig config, Enemy boss, BattleCharacter bc) => new()
+        {
+            AllyParty = new List<BattleCharacter> { bc },
+            TargetEnemy = boss,
+            FormationName = "기본 진형",
+            AllyPet = config.AllyPet,
+            PetStar = config.PetStar,
+            PetEnhance = config.PetEnhance,
+            PetOptionAtkRate = config.PetOptionAtkRate,
+            PetOptionDefRate = config.PetOptionDefRate,
+            PetOptionHpRate = config.PetOptionHpRate,
+        };
+
+        /// <summary>공성전 풀시뮬 SiegeBattleConfig 구성.</summary>
+        private static SiegeBattleConfig BuildSimConfig(SiegeOptimizerConfig config, List<BattleCharacter> team, string formation) => new()
+        {
+            AllyParty = team,
+            FormationName = formation,
+            SiegeStage = config.SiegeStage,
+            AllyPet = config.AllyPet,
+            PetStar = config.PetStar,
+            PetEnhance = config.PetEnhance,
+            PetOptionAtkRate = config.PetOptionAtkRate,
+            PetOptionDefRate = config.PetOptionDefRate,
+            PetOptionHpRate = config.PetOptionHpRate,
+            MaxTurns = config.MaxTurns,
+        };
 
         /// <summary>장착된 장비의 세트·메인옵 값·부옵 값을 사람이 읽기 쉬운 문자열로.</summary>
         private static string FormatGear(BattleCharacter bc)
