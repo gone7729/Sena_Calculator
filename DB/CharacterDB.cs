@@ -173,7 +173,8 @@ namespace GameDamageCalculator.Database
                                     TriggerCount = 2,
                                     StacksPerTrigger = 2,
                                     MaxStacks = 8,
-                                    Debuff = new DebuffSet { Vulnerability = 4 } 
+                                    // 초월: 스택당 물리취약 4% (+ 기본 받물피증 3% 유지). override 방식이라 둘 다 여기에 명시.
+                                    Debuff = new DebuffSet { Vulnerability = 4, Phys_Dmg_Taken_Increase = 3 }
                                 }
                             }
                         }}
