@@ -74,55 +74,90 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         private void RunTurnLoop(SiegeBattleConfig config, SiegeBattleState state)
         {
-            // 행동순서는 라운드당 1회 구성(라운드 내 고정). 동속공 랜덤도 이때 1회 결정 — 속공 불변이라 유지.
-            var order = BuildActionOrder(state);
             int cursor = 0;
             int t = 0;
+            int roundTurn = 0;     // 현재 라운드의 평타 턴 수 (2턴마다 라운드 내 스킬턴)
+            int inRoundSkill = 0;  // 라운드 시작 선공 스킬 이후 후공→선공 교대 카운터
+
+            // 배틀 시작 = 라운드1 진입. 선공(속공 빠른 쪽) 스킬턴(0턴). 0턴 스킬로 라운드 연쇄 클리어 시 다음 라운드도 0턴 선공 스킬턴.
+            state.CurrentTurn = 0;
+            EnterRound(config, state);
+            var order = BuildActionOrder(state);
 
             while (t < state.MaxTurns)
             {
+                t++;
+                roundTurn++;
                 state.CurrentTurn = t;
 
                 // 비트리거 상시 면역(예: 풍연 빙결 면역) 매 턴 갱신 — 시전자 생존 동안 유지
                 ApplyStandingImmunities(state);
 
-                // 스킬턴: 0턴부터 2턴마다, 선/후공 번갈아 (턴 미소모, 기본공격 안 함)
-                if (t % 2 == 0)
-                {
-                    bool firstSideTurn = (t / 2) % 2 == 0;                 // 이번 스킬턴이 선공팀 차례인지
-                    bool skillByAlly = firstSideTurn ? state.AllyFirst : !state.AllyFirst;
-                    state.IsSkillTurn = true;
-                    ProcessSkillTurn(config, state, skillByAlly);
-                    state.IsSkillTurn = false;
-                }
-
-                // 기본공격: 양팀 통합 속공순 다음 유닛 (턴 소모). 0턴은 선공 스킬만(평타 없음) → 평타는 1턴부터.
-                if (t > 0 && order.Count > 0)
+                // 기본공격: 양팀 통합 속공순 다음 유닛 (턴 소모)
+                if (order.Count > 0)
                 {
                     var actor = order[cursor % order.Count];
                     cursor++;
                     ExecuteBasicAttack(state, actor);
                 }
-                t++;
+
+                // 라운드 내 스킬턴: 2턴마다, 라운드 시작 선공 스킬 이후 후공→선공 교대 (턴 미소모)
+                if (roundTurn % 2 == 0)
+                {
+                    bool skillByAlly = (inRoundSkill % 2 == 0) ? !state.AllyFirst : state.AllyFirst;
+                    inRoundSkill++;
+                    state.IsSkillTurn = true;
+                    ProcessSkillTurn(config, state, skillByAlly);
+                    state.IsSkillTurn = false;
+                }
 
                 // 턴 경과: 적 DoT 틱(점수 누적) + 아군 CC/상태이상·면역 잔여턴 감소
                 TickEnemyDots(state);
                 TickAllyStatus(state);
 
-                // 라운드 전환 (R1/R2: 적 전멸 시 다음 라운드, 턴 이어짐)
+                // 라운드 전환: 적 전멸 시 다음 라운드 진입 → 선공 스킬턴(0턴, 연쇄)
                 if (state.CurrentRound < 3 && AllEnemiesDown(state))
                 {
-                    Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
-                        $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 시작 (T{t + 1})");
-                    state.CurrentRound++;
-                    state.InitializeRound(state.CurrentRound);
-                    ApplyStandingEnemyDebuffs(state, config);   // 새 라운드 적에 상시 디버프 재적용
+                    EnterRound(config, state);
                     order = BuildActionOrder(state);   // 적 교체 → 행동순 재구성
-                    cursor = 0;
+                    cursor = 0; roundTurn = 0; inRoundSkill = 0;
                 }
             }
 
             state.CurrentTurn = t;
+        }
+
+        /// <summary>
+        /// 라운드 진입: 속공 빠른 쪽(선공)을 재계산하고 선공 스킬턴(0턴, 평타 없음)을 발동.
+        /// 그 0턴 스킬로 라운드가 클리어되면 다음 라운드로 넘어가 또 선공 스킬턴을 발동(연쇄). R3는 클리어 없음.
+        /// </summary>
+        private void EnterRound(SiegeBattleConfig config, SiegeBattleState state)
+        {
+            while (true)
+            {
+                DetermineFirst(state);   // 이 라운드 적 기준 선공 재계산
+                state.IsSkillTurn = true;
+                ProcessSkillTurn(config, state, byAlly: state.AllyFirst);   // 선공 스킬턴
+                state.IsSkillTurn = false;
+
+                if (state.CurrentRound < 3 && AllEnemiesDown(state))
+                {
+                    Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
+                        $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 진입 (선공 스킬턴)");
+                    state.CurrentRound++;
+                    state.InitializeRound(state.CurrentRound);
+                    ApplyStandingEnemyDebuffs(state, config);
+                    continue;   // 다음 라운드도 0턴 선공 스킬턴
+                }
+                break;
+            }
+        }
+
+        /// <summary>선공(속공 빠른 쪽) 결정 — 현재 라운드 적 총 속공 기준. 동률 랜덤.</summary>
+        private void DetermineFirst(SiegeBattleState state)
+        {
+            double a = state.AllyTotalSpd, e = state.EnemyTotalSpd;
+            state.AllyFirst = a > e || (a == e && _rng.Next(2) == 0);
         }
 
         /// <summary>양팀(아군+적) 통합 속공 내림차순. 같은 팀 동속공은 자리순, 다른 팀 동속공은 랜덤(1회 결정).</summary>
