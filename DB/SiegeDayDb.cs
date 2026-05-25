@@ -76,39 +76,49 @@ namespace GameDamageCalculator.Database
                 },
             },
 
-            // ===== 월요일 — 루디. 1스킬: 생명력 전환(90→80→70%) + 기절[3턴]. 감쇄 물리90/1인70/5인90 =====
+            // ===== 월요일 — 루디. 1스킬: 생명력 전환(90→80→70%) + 기절[3턴]. 감쇄 물리90/1인70/5인90. 쿨 룩70/챈70 =====
+            // 우선순위: 루디2 → 루디1 → 챈1 → 룩1
             Day(1, "월요일", "월요일 공성전 (수호자의 성)", "루디",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Stun, hpConv: new[] { 90.0, 80.0, 70.0 },
-                r3Look: new BaseStatSet { Atk = 1502, Def = 1030, Hp = 40000, Spd = 19, Cri_Dmg = 150, Eff_Hit = 100 },
-                r3Chan: new BaseStatSet { Atk = 1784, Def = 1030, Hp = 40000, Spd = 25, Cri_Dmg = 150, Eff_Hit = 100 }),
+                status: StatusEffectType.Stun, hpConv: new[] { 90.0, 80.0, 70.0 }, r3Def: 1030,
+                pri3: new() { B("루디", SkillType.Skill2), B("루디", SkillType.Skill1), Chan1, Look1 }),
 
-            // ===== 화요일 — 아일린. 1스킬: 감전[3턴]. R3 룩은 추가로 모든 아군(보스측) 피해면역[2턴](모델 미반영). 물리90 =====
+            // ===== 화요일 — 아일린. 1스킬: 감전[3턴]. R3 룩 추가: 모든 아군(보스측) 피해면역[2턴](모델 미반영). 물리90. 쿨 룩80/챈70 =====
+            // 우선순위: 아일린1 → 아일린2 → 룩1 → 챈1
             Day(2, "화요일", "화요일 공성전 (포디나의 성)", "아일린",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Shock,
-                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴] (모델 미반영)", r3Def: 1814),
+                status: StatusEffectType.Shock, lookCd: 80, chanCd: 70, r3Def: 1814,
+                r3LookExtra: "모든 아군(보스측) 모든 피해 면역[2턴] (모델 미반영)",
+                pri3: new() { B("아일린", SkillType.Skill1), B("아일린", SkillType.Skill2), Look1, Chan1 }),
 
-            // ===== 수요일 — 레이첼. 1스킬: 화상[3턴]. 물리90 =====
+            // ===== 수요일 — 레이첼. 1스킬: 화상[3턴]. 물리90. 쿨 룩70/챈70 =====
+            // 우선순위: 레이첼1 → 레이첼2 → 챈1 → 룩1
             Day(3, "수요일", "수요일 공성전 (불멸의 성)", "레이첼",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Burn, r3Def: 1814),
+                status: StatusEffectType.Burn, r3Def: 1814,
+                pri3: new() { B("레이첼", SkillType.Skill1), B("레이첼", SkillType.Skill2), Chan1, Look1 }),
 
-            // ===== 목요일 — 델론즈. 1스킬: 침묵[3턴]. 감쇄 마법90 =====
+            // ===== 목요일 — 델론즈. 1스킬: 침묵[3턴]. 감쇄 마법90. 쿨 룩70/챈70 =====
+            // 우선순위: 델론즈1 → 델론즈2 → 룩1 → 챈1
             Day(4, "목요일", "목요일 공성전 (죽음의 성)", "델론즈",
                 new Reduction { Mag = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Silence, r3Def: 1344),
+                status: StatusEffectType.Silence, r3Def: 1344,
+                pri3: new() { B("델론즈", SkillType.Skill1), B("델론즈", SkillType.Skill2), Look1, Chan1 }),
 
-            // ===== 금요일 — 제이브. 룩=기절, 챈슬러=용염(화상 120%)[3턴]. 감쇄 마법90 =====
+            // ===== 금요일 — 제이브. 룩=기절, 챈슬러=용염(화상 120%)[3턴]. 감쇄 마법90. 쿨 룩70/챈70 =====
+            // 우선순위: 제이브1 → 제이브2 → 챈1 → 룩1
             Day(5, "금요일", "금요일 공성전 (고대용의 성)", "제이브",
                 new Reduction { Mag = 90, Single = 70, Multi = 90 },
-                status: StatusEffectType.Stun,
-                chanStatus: StatusEffectType.Burn, chanSkillName: "용염", chanStatusAtkRatio: 120, r3Def: 1123),
+                status: StatusEffectType.Stun, r3Def: 1123,
+                chanStatus: StatusEffectType.Burn, chanSkillName: "용염", chanStatusAtkRatio: 120,
+                pri3: new() { B("제이브", SkillType.Skill1), B("제이브", SkillType.Skill2), Chan1, Look1 }),
 
-            // ===== 일요일 — 크리스. 1스킬: 즉사[3턴]. 감쇄 5인기 90%만. (몹 패시브 쿨감: 피격 시 쿨-15초 — 모델 미반영) =====
+            // ===== 일요일 — 크리스. 1스킬: 즉사[3턴]. 감쇄 5인기 90%만. 쿨 룩70/챈70. (몹 쿨감 패시브: 피격 시 쿨-15초 — 모델 미반영) =====
+            // 우선순위: 크리스2 → 크리스1 → 룩1 → 챈1
             Day(7, "일요일", "일요일 공성전 (지옥의 성)", "크리스",
                 new Reduction { Multi = 90 },
-                status: StatusEffectType.InstantDeath, r3Def: 2725),
+                status: StatusEffectType.InstantDeath, r3Def: 2725,
+                pri3: new() { B("크리스", SkillType.Skill2), B("크리스", SkillType.Skill1), Look1, Chan1 }),
         };
 
         // R3 친위대 스탯은 요일별 미제공 → 토요일 값을 임시 placeholder로 사용 (실측 확보 시 요일별 교체).
@@ -117,22 +127,27 @@ namespace GameDamageCalculator.Database
 
         /// <summary>
         /// 요일 DayDef 생성 헬퍼. 룩/챈슬러 1스킬은 단일 ratio(R1 80/275, R2 90/305, R3 100/340) + 상태이상[3턴].
-        /// cd 룩 70 / 챈슬러 85 (토요일 기준 가정). hpConv: 라운드별 생명력 전환%(월). chan* : 챈슬러만 다른 상태(금 용염).
+        /// pri3 = R3 스킬 우선순위(보스+몹). R1/R2 우선순위는 pri3에서 룩/챈만 추려 사용(보스 없음).
+        /// lookCd/chanCd = 1스킬 쿨(라운드 동일). hpConv: 생명력 전환%(월). chan* : 챈슬러만 다른 상태(금 용염).
         /// </summary>
         private static DayDef Day(int dayIndex, string key, string stageName, string bossName, Reduction red,
-            StatusEffectType status, double[] hpConv = null, string r3LookExtra = null,
+            StatusEffectType status, List<PriItem> pri3, double lookCd = 70, double chanCd = 70,
+            double[] hpConv = null, string r3LookExtra = null,
             StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null,
-            BaseStatSet r3Look = null, BaseStatSet r3Chan = null, double r3Def = 0)
+            double r3Def = 0)
         {
             // R3 친위대 표준 스탯: Atk 룩1502/챈1754, Hp 40000, Spd 룩19/챈25, 효적100, 치피150. 방어력만 요일별.
             BaseStatSet R3Std(double atk, double spd) => new() { Atk = atk, Def = r3Def, Hp = 40000, Spd = spd, Cri_Dmg = 150, Eff_Hit = 100 };
             double Hp(int round) => hpConv == null ? 0 : hpConv[round - 1];
             var cs = chanStatus ?? status;
             List<Skill> Look(int round, double n, double s1, string extra = null) =>
-                SiegeBossSkillDb.MobSkills(n, s1, 70, status, statusDur: 3, hpConvPct: Hp(round), extra: extra);
+                SiegeBossSkillDb.MobSkills(n, s1, lookCd, status, statusDur: 3, hpConvPct: Hp(round), extra: extra);
             List<Skill> Chan(int round, double n, double s1) =>
-                SiegeBossSkillDb.MobSkills(n, s1, 85, cs, skill1Name: chanSkillName, statusDur: 3,
+                SiegeBossSkillDb.MobSkills(n, s1, chanCd, cs, skill1Name: chanSkillName, statusDur: 3,
                     statusAtkRatio: chanStatusAtkRatio, hpConvPct: chanStatus == null ? Hp(round) : 0);
+
+            // R1/R2: pri3에서 룩/챈만 (보스 제외) — 순서 유지
+            var mobPri = pri3.Where(p => p.Name == "룩" || p.Name == "챈슬러").ToList();
 
             return new DayDef
             {
@@ -140,19 +155,16 @@ namespace GameDamageCalculator.Database
                 R1Look = Look(1, 80, 275), R1Chan = Chan(1, 80, 275),
                 R2Look = Look(2, 90, 305), R2Chan = Chan(2, 90, 305),
                 R3Look = Look(3, 100, 340, r3LookExtra), R3Chan = Chan(3, 100, 340),
-                R3LookStats = r3Look ?? (r3Def > 0 ? R3Std(1502, 19) : R3LookPlaceholder()),
-                R3ChanStats = r3Chan ?? (r3Def > 0 ? R3Std(1754, 25) : R3ChanPlaceholder()),
-                Pri1 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
-                Pri2 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
-                Pri3 = new()
-                {
-                    new("챈슬러", SkillType.Skill1),
-                    new(bossName, SkillType.Skill2),
-                    new(bossName, SkillType.Skill1),
-                    new("룩", SkillType.Skill1),
-                },
+                R3LookStats = r3Def > 0 ? R3Std(1502, 19) : R3LookPlaceholder(),
+                R3ChanStats = r3Def > 0 ? R3Std(1754, 25) : R3ChanPlaceholder(),
+                Pri1 = mobPri, Pri2 = mobPri, Pri3 = pri3,
             };
         }
+
+        // R3 스킬 우선순위 표기 헬퍼 (프로퍼티 — Days 필드 초기화 순서와 무관하게 접근 시 평가)
+        private static PriItem B(string boss, SkillType s) => new(boss, s);
+        private static PriItem Look1 => new("룩", SkillType.Skill1);
+        private static PriItem Chan1 => new("챈슬러", SkillType.Skill1);
 
         // ===== 빌더: 요일별 몹 Enemy + Stage 생성 =====
         // Id = DayIndex*100 + Round*10 + (룩 1 / 챈슬러 2). R3 wave엔 요일 보스도 추가.
