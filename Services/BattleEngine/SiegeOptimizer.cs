@@ -63,7 +63,7 @@ namespace GameDamageCalculator.Services.BattleEngine
     /// </summary>
     public class SiegeOptimizer
     {
-        private readonly SiegeBattleSimulator _sim = new();
+        private readonly SiegeBattleSimulator _sim = new(GearCompareSeed);   // 고정 시드 — 배치/진형 탐색 재현성
 
         // 공성전 아군 순회 진형 (공격 진형 제외 — 기획)
         private static readonly string[] Formations = { "기본 진형", "밸런스 진형", "보호 진형" };
