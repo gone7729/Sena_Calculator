@@ -74,6 +74,47 @@ sb.AppendLine("================ 템세팅 (풀시뮬 자동 최적) ============
 foreach (var line in result.GearLog)
     sb.AppendLine(line);
 sb.AppendLine();
+sb.AppendLine("================ [진단] 죽음의 무도 보스/잡몹 데미지 입력 분해 ================");
+sb.AppendLine("실측 T12: 스파이크(보스) 285,884 / 294,630 (조건O) | 룩(잡몹) 113,024 (조건X). 정답 보스 ≈290,500.");
+{
+    var diagSim = new SiegeBattleSimulator(777) { DiagSkillName = "죽음의 무도" };
+    var diagCfg = new SiegeBattleConfig
+    {
+        AllyParty = result.BestParty,          // BestMask(자리) 이미 재적용됨
+        FormationName = result.BestFormation,
+        SiegeStage = EnemyDb.SiegeStages["토요일"],
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
+        MaxTurns = 70,
+    };
+    diagSim.Simulate(diagCfg);
+    sb.AppendLine(diagSim.DiagLog.ToString());
+}
+sb.AppendLine("================ [빔서치] 스킬 로테이션 최적화 ================");
+{
+    var rotCfg = new SiegeBattleConfig
+    {
+        AllyParty = result.BestParty,
+        FormationName = result.BestFormation,
+        SiegeStage = EnemyDb.SiegeStages["토요일"],
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
+        MaxTurns = 70,
+    };
+    var swRot = System.Diagnostics.Stopwatch.StartNew();
+    var beam = new RotationBeamSearch(777).Search(rotCfg, beamWidth: 10, maxDepth: 18);
+    swRot.Stop();
+    double autoScore = beam.ScoreByDepth.Count > 0 ? beam.ScoreByDepth[0] : 0;
+    sb.AppendLine($"자동 로테이션 점수: {autoScore:N0}");
+    sb.AppendLine($"빔서치 최적 점수: {beam.Score:N0} (개선 {(autoScore>0? (beam.Score/autoScore-1)*100:0):F1}%, 평가 {beam.Evaluated}회, {swRot.ElapsedMilliseconds:N0}ms)");
+    sb.AppendLine($"깊이별 최고점: {string.Join(" → ", beam.ScoreByDepth.Select(s => $"{s/1000:F0}k"))}");
+    sb.AppendLine("최적 플랜(스킬턴별):");
+    for (int i = 0; i < beam.Plan.Count; i++)
+    {
+        var dec = beam.Plan[i];
+        string s = dec.Hold ? "홀드" : $"{result.BestParty[dec.HeroIndex].Character.Name} {dec.Skill}";
+        sb.AppendLine($"  ST{i,2}: {s}");
+    }
+}
+sb.AppendLine();
 sb.AppendLine($"================ 턴별 행동 로그 (총 {r.TurnLogs.Count}개) ================");
 foreach (var log in r.TurnLogs)
     sb.AppendLine($"T{log.Turn,2} [{(log.IsAlly ? "아군" : "적 ")}] {log.SkillName}: {log.Description}");

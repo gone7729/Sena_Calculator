@@ -59,6 +59,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 턴별 행동 로그
         public List<BattleTurnLog> TurnLogs { get; set; } = new();
 
+        // 빔서치: 아군 스킬턴 발생 순서 인덱스 + (기록 모드 시) 각 스킬턴의 행동 후보
+        public int AllySkillTurnIndex { get; set; }
+        public List<RotationDecisionPoint> DecisionPoints { get; set; } = new();
+
         /// <summary>
         /// 지정 라운드의 적들을 Stage에서 생성해 Enemies에 채운다.
         /// EnemyId로 EnemyDb에서 Enemy를 조회하고 StageEnemy.Position/IsBoss를 반영한다.

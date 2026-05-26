@@ -22,6 +22,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 캐릭터별 기여
         public List<SiegeCharacterResult> CharacterResults { get; set; } = new();
+
+        // 빔서치: 각 아군 스킬턴의 행동 후보 (config.RecordDecisionPoints=true일 때만 채워짐)
+        public List<RotationDecisionPoint> DecisionPoints { get; set; } = new();
     }
 
     /// <summary>공성전 캐릭터별 데미지 기여.</summary>

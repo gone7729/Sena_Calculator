@@ -33,5 +33,29 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 아군 스킬 로테이션 (캐릭터 인덱스별 스킬 사용 순서). 비면 자동(궁→4→3→2→1).
         public Dictionary<int, List<SkillType>> AllyRotations { get; set; } = new();
+
+        // 빔서치 로테이션 플랜: 아군 스킬턴(발생 순서)별 행동 지정. null이면 자동(PickAllySkill).
+        // 플랜 길이를 넘는 스킬턴은 자동으로 처리(빔서치의 디폴트 꼬리).
+        public List<RotationDecision> RotationPlan { get; set; }
+
+        // true면 매 아군 스킬턴의 (가능한 행동 후보)를 state.DecisionPoints에 기록 (빔서치 탐색용).
+        public bool RecordDecisionPoints { get; set; }
+    }
+
+    /// <summary>로테이션 플랜 1스텝: 특정 아군이 특정 스킬 시전, 또는 홀드(아무도 안 씀).</summary>
+    public class RotationDecision
+    {
+        public int HeroIndex { get; set; }       // AllyParty 인덱스
+        public SkillType Skill { get; set; }
+        public bool Hold { get; set; }            // true면 이 스킬턴 스킵
+        public override string ToString() => Hold ? "Hold" : $"H{HeroIndex}:{Skill}";
+    }
+
+    /// <summary>빔서치용 결정점: 한 아군 스킬턴에서 가능한 행동 후보 목록.</summary>
+    public class RotationDecisionPoint
+    {
+        public int SkillTurnIndex { get; set; }
+        public int Turn { get; set; }
+        public List<RotationDecision> Choices { get; set; } = new();   // Hold 포함
     }
 }
