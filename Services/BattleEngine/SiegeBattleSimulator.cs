@@ -25,6 +25,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>seed 지정 시 결정론적 RNG — 장비 후보를 같은 조건으로 공정 비교할 때 사용.</summary>
         public SiegeBattleSimulator(int? seed = null) => _rng = seed.HasValue ? new Random(seed.Value) : new Random();
 
+        /// <summary>[진단] 특정 스킬(아군→적) 타격 시 데미지 입력 구성요소를 덤프 (예: 죽음의 무도 보스 갭 추적).</summary>
+        public string DiagSkillName;          // 추적할 스킬명 (null이면 비활성)
+        public System.Text.StringBuilder DiagLog = new();
+        private int _diagCount;
+
         public SiegeBattleResult Simulate(SiegeBattleConfig config)
         {
             var state = Initialize(config);
@@ -202,36 +207,46 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (byAlly)
             {
-                // 아군 스킬턴: 한 명만 시전하되 라운드로빈(AllyRotationCursor)으로 순회 →
-                // 속공 높은 딜러가 독점하지 않고 버퍼/서포터도 자기 스킬을 시전할 기회를 얻는다.
+                int stIdx = state.AllySkillTurnIndex++;   // 이 아군 스킬턴의 발생 순서 인덱스
+
+                // 행동 후보 수집(살아있고 CC 아닌 아군 × 준비된 비평타 스킬, + Hold) — 빔서치 기록/플랜 폴백용
+                if (config.RecordDecisionPoints)
+                    state.DecisionPoints.Add(new RotationDecisionPoint
+                    {
+                        SkillTurnIndex = stIdx,
+                        Turn = state.CurrentTurn,
+                        Choices = CollectAllyChoices(state),
+                    });
+
+                // 플랜이 이 스킬턴을 지정하면 그대로 시전(또는 홀드). 무효/초과면 자동(라운드로빈) 폴백.
+                var plan = config.RotationPlan;
+                if (plan != null && stIdx < plan.Count)
+                {
+                    var dec = plan[stIdx];
+                    if (dec.Hold) return;   // 홀드: 스킬턴 스킵
+                    if (dec.HeroIndex >= 0 && dec.HeroIndex < state.AllyStates.Count)
+                    {
+                        var a = state.AllyStates[dec.HeroIndex];
+                        var sk = a.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == dec.Skill);
+                        if (!a.IsDead && !a.Effects.HasActionBlockingCC() && sk != null && a.IsSkillReady(dec.Skill))
+                        {
+                            ExecuteAllySkill(state, dec.HeroIndex, sk);
+                            return;
+                        }
+                    }
+                    // 무효 → 자동 폴백
+                }
+
+                // 자동: 라운드로빈(AllyRotationCursor)으로 순회 → 첫 시전 가능한 아군이 PickAllySkill 시전.
                 int n = state.AllyStates.Count;
                 for (int k = 0; k < n; k++)
                 {
                     int idx = (state.AllyRotationCursor + k) % n;
                     var ally = state.AllyStates[idx];
                     if (ally.IsDead || ally.Effects.HasActionBlockingCC()) continue;
-
                     var skill = PickAllySkill(ally);
                     if (skill == null) continue;
-
-                    int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
-                    var targets = PickTargets(state, tc);
-                    if (targets.Count == 0) return;
-                    foreach (var target in targets)
-                    {
-                        double dmg = CalcDamageToEnemy(ally, target, skill);
-                        ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
-                        RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
-                        ProcessAttackStacks(state, ally, target, isSkill: true);   // 공격 발동형 스택(타카 취약 등)
-                    }
-                    ApplySkillEffects(state, ally, skill, targets);   // 스킬 버프(아군)/디버프(적) 적용 + 로그
-                    state.AllyRotationCursor = (idx + 1) % n;          // 다음 스킬턴은 다음 아군부터
-
-                    double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
-                    if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
-
-                    // 스킬 소요시간만큼 전체 쿨다운 감소 (쿨=실시간, 1초당 1)
-                    AdvanceTime(state, GetActionDuration(skill));
+                    ExecuteAllySkill(state, idx, skill);
                     return;
                 }
             }
@@ -265,6 +280,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     double cd = skill.GetCooldown(false, 0);
                     if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
+                    // 상대(보스) 스킬 사용 → 아군 전원 스킬 쿨다운 5초 감소 (메인 sim과 동일, 5초 이하 잔여 미적용)
+                    foreach (var a in state.AllyStates)
+                        if (!a.IsDead) a.ReduceCooldowns(5);
                     AdvanceTime(state, GetActionDuration(skill));
                     return;
                 }
@@ -291,10 +309,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                             double dmg = CalcDamageToEnemy(ally, target, normal);
                             ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
-                            ProcessAttackStacks(state, ally, target, isSkill: false);   // 공격 발동형 스택(타카 취약 등)
                         }
                         if (targets.Count > 0)
+                        {
+                            ProcessAttackStacks(state, ally, isSkill: false);   // 공격 발동형 스택 — 평타 2회마다 1회
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
+                        }
                     }
                 }
             }
@@ -442,11 +462,25 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsTargetBoss = target.IsBoss,
                 SelfMaxHp = ally.MaxHp,
             };
-            double raw = _damageCalc.Calculate(input).FinalDamage;
+            var dr = _damageCalc.Calculate(input);
+            double raw = dr.FinalDamage;
 
             // 공성전 감쇄 = 곱연산 (받는 물/마 피해 N% 감소 × 타겟수별 감소). 합연산 시 180%↑ 차감으로 음수가 되므로.
             double reductionMult = (1 - elemReduction / 100.0) * (1 - targetReduction / 100.0);
-            return raw * Math.Max(0, reductionMult);
+            double final = raw * Math.Max(0, reductionMult);
+
+            // [진단] 추적 스킬 타격 시 입력 구성요소 덤프
+            if (DiagSkillName != null && skill.Name == DiagSkillName && _diagCount < 8)
+            {
+                _diagCount++;
+                DiagLog.AppendLine($"───────── {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
+                DiagLog.AppendLine($"  FinalAtk={input.FinalAtk:N0} 치피={input.CritDamage} 약피={input.WeakpointDmg}");
+                DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}");
+                DiagLog.AppendLine($"  [적디버프] 방깎={input.DefReduction} 취약={input.Vulnerability} 받피증={input.DmgTakenIncrease} 보스취약={input.BossVulnerability}");
+                DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
+                DiagLog.AppendLine($"  raw={raw:N0} × 감쇄{reductionMult:F3}(물마{elemReduction}/타겟{targetReduction}) = {final:N0}");
+            }
+            return final;
         }
 
         /// <summary>타겟 수에 따른 공성전 감쇄(1인/3인/5인기).</summary>
@@ -820,6 +854,47 @@ namespace GameDamageCalculator.Services.BattleEngine
                 .FirstOrDefault();
         }
 
+        /// <summary>한 아군이 스킬 1개를 시전 (데미지·DoT·스택·버프/디버프·쿨·시간경과). 스킬턴 본체.</summary>
+        private void ExecuteAllySkill(SiegeBattleState state, int allyIdx, Skill skill)
+        {
+            var ally = state.AllyStates[allyIdx];
+            int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
+            var targets = PickTargets(state, tc);
+            if (targets.Count == 0) return;
+            foreach (var target in targets)
+            {
+                double dmg = CalcDamageToEnemy(ally, target, skill);
+                ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
+                RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
+            }
+            ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
+            ApplySkillEffects(state, ally, skill, targets);    // 스킬 버프(아군)/디버프(적) 적용 + 로그
+            state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
+
+            double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
+            if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
+            AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소
+        }
+
+        /// <summary>이번 아군 스킬턴에 가능한 행동 후보(살아있고 CC 아닌 아군 × 준비된 비평타 스킬) + Hold. (빔서치용)</summary>
+        private List<RotationDecision> CollectAllyChoices(SiegeBattleState state)
+        {
+            var choices = new List<RotationDecision>();
+            for (int ai = 0; ai < state.AllyStates.Count; ai++)
+            {
+                var a = state.AllyStates[ai];
+                if (a.IsDead || a.Effects.HasActionBlockingCC()) continue;
+                foreach (var s in a.Source.Character.Skills ?? Enumerable.Empty<Skill>())
+                {
+                    if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
+                    if (!a.IsSkillReady(s.SkillType)) continue;
+                    choices.Add(new RotationDecision { HeroIndex = ai, Skill = s.SkillType });
+                }
+            }
+            choices.Add(new RotationDecision { Hold = true });
+            return choices;
+        }
+
         // ===== 로깅 보조 =====
 
         private void Log(SiegeBattleState state, string actor, bool isAlly, ActionType type,
@@ -958,10 +1033,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 아군 공격 발동형 스택 디버프 처리 (예: 타카 EagleClaw — 2회 공격마다 2스택, 최대 8, 스택당 취약4%).
-        /// 단일보스 sim과 동일하게 초월이 같은 StatusType을 override. 스택은 (아군·피격 적)별로 누적.
+        /// 아군 공격 발동형 스택 디버프 처리 (예: 타카 EagleClaw — 스택당 취약4%·받물3%, 최대 8).
+        /// **트리거: 기본공격(평타) 2회마다 1회 OR 스킬 발동 시 즉시 1회**(타겟 수 무관).
+        /// 트리거 시 **적군 3명**(R3=보스3, 그 외 최저HP 3)에게 +StacksPerTrigger. 라운드별 리셋, 적별 누적.
         /// </summary>
-        private void ProcessAttackStacks(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target, bool isSkill)
+        private void ProcessAttackStacks(SiegeBattleState state, CharacterBattleState ally, bool isSkill)
         {
             var passive = ally.Source.Character.Passive;
             var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced);
@@ -991,22 +1067,30 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                 var perStack = effect.Debuff;
 
-                // 키에 라운드 포함 → 라운드 전환 시 스택/카운터 리셋 (R1 스택이 R2로 이월 안 됨)
-                string key = $"siege_stack:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}:{target.Position}";
-                ally.StackTriggerCounters.TryGetValue(key, out int cnt);
-                cnt++;
-                if (cnt < System.Math.Max(1, effect.TriggerCount)) { ally.StackTriggerCounters[key] = cnt; continue; }
+                // 트리거 판정: 스킬 발동 시 즉시 1회. 평타는 TriggerCount회(=2)마다 1회. 카운터는 평타에만, 라운드별 리셋.
+                if (!isSkill)
+                {
+                    string ckey = $"siege_stackcnt:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}";
+                    ally.StackTriggerCounters.TryGetValue(ckey, out int cnt);
+                    cnt++;
+                    if (cnt < System.Math.Max(1, effect.TriggerCount)) { ally.StackTriggerCounters[ckey] = cnt; continue; }
+                    ally.StackTriggerCounters[ckey] = 0;
+                }
 
-                ally.StackTriggerCounters[key] = 0;
-                ally.CurrentStacks.TryGetValue(key, out int st);
-                int newStacks = System.Math.Min(st + effect.StacksPerTrigger, effect.MaxStacks);
-                ally.CurrentStacks[key] = newStacks;
+                // 발동 시 적군 3명에게 스택 부여 (보스 포함). 적별로 누적.
+                foreach (var en in PickTargets(state, 3))
+                {
+                    string skey = $"siege_stack:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}:{en.Position}";
+                    ally.CurrentStacks.TryGetValue(skey, out int st);
+                    int newStacks = System.Math.Min(st + effect.StacksPerTrigger, effect.MaxStacks);
+                    ally.CurrentStacks[skey] = newStacks;
 
-                var scaled = ScaleDebuff(perStack, newStacks);
-                AddEnemyDebuff(target, scaled, 99, key);   // 같은 key 갱신(스택 증가분 반영)
-                Log(state, ally.Source.Character.Name, true, ActionType.DebuffApplied,
-                    StatusEffectDb.Get(effect.StatusType)?.Name ?? effect.StatusType.ToString(), 0,
-                    $"{target.Source.Name} {effect.StatusType} {newStacks}스택: {SummarizeDebuff(scaled)}");
+                    var scaled = ScaleDebuff(perStack, newStacks);
+                    AddEnemyDebuff(en, scaled, 99, skey);   // 같은 key 갱신(스택 증가분 반영)
+                    Log(state, ally.Source.Character.Name, true, ActionType.DebuffApplied,
+                        StatusEffectDb.Get(effect.StatusType)?.Name ?? effect.StatusType.ToString(), 0,
+                        $"{en.Source.Name} {effect.StatusType} {newStacks}스택: {SummarizeDebuff(scaled)}");
+                }
             }
         }
 
@@ -1048,6 +1132,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TotalTurns = state.CurrentTurn,
                 RoundsCleared = state.CurrentRound - 1,
                 TurnLogs = state.TurnLogs,
+                DecisionPoints = state.DecisionPoints,
             };
             foreach (var ally in state.AllyStates)
             {
