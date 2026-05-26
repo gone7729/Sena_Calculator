@@ -142,6 +142,13 @@ namespace GameDamageCalculator.Models
             var levelData = GetLevelData(isEnhanced);
             if (levelData.Cooldown > 0) return levelData.Cooldown;
 
+            // 강화 레벨에 쿨 미입력(0)이면 기본 레벨 쿨로 폴백 (강화가 쿨을 0으로 만들지 않음 — 데이터 누락 방어)
+            if (isEnhanced)
+            {
+                var baseLevel = GetLevelData(false);
+                if (baseLevel.Cooldown > 0) return baseLevel.Cooldown;
+            }
+
             return CooldownSeconds;
         }
 

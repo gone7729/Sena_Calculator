@@ -90,6 +90,7 @@ sb.AppendLine("실측 T12: 스파이크(보스) 285,884 / 294,630 (조건O) | �
     sb.AppendLine(diagSim.DiagLog.ToString());
 }
 sb.AppendLine("================ [빔서치] 스킬 로테이션 최적화 ================");
+RotationBeamSearch.Result beam;
 {
     var rotCfg = new SiegeBattleConfig
     {
@@ -100,7 +101,7 @@ sb.AppendLine("================ [빔서치] 스킬 로테이션 최적화 ======
         MaxTurns = 70,
     };
     var swRot = System.Diagnostics.Stopwatch.StartNew();
-    var beam = new RotationBeamSearch(777).Search(rotCfg, beamWidth: 10, maxDepth: 18);
+    beam = new RotationBeamSearch(777).Search(rotCfg, beamWidth: 10, maxDepth: 18);
     swRot.Stop();
     double autoScore = beam.ScoreByDepth.Count > 0 ? beam.ScoreByDepth[0] : 0;
     sb.AppendLine($"자동 로테이션 점수: {autoScore:N0}");
@@ -115,8 +116,9 @@ sb.AppendLine("================ [빔서치] 스킬 로테이션 최적화 ======
     }
 }
 sb.AppendLine();
-sb.AppendLine($"================ 턴별 행동 로그 (총 {r.TurnLogs.Count}개) ================");
-foreach (var log in r.TurnLogs)
+var bestLogs = beam.Battle?.TurnLogs ?? r.TurnLogs;
+sb.AppendLine($"================ 턴별 행동 로그 (빔서치 최적 플랜, 총 {bestLogs.Count}개) ================");
+foreach (var log in bestLogs)
     sb.AppendLine($"T{log.Turn,2} [{(log.IsAlly ? "아군" : "적 ")}] {log.SkillName}: {log.Description}");
 
 string outPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
