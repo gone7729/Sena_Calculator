@@ -281,7 +281,7 @@ namespace GameDamageCalculator.Database
                             { 1, new SkillLevelData {
                                 TargetCount = 3,
                                 AtkCount = 1,
-                                Cooldown = 0,
+                                Cooldown = 105,   // 강화 시에도 쿨 동일 (이전 0은 데이터 누락 → 무한시전 버그)
                                 Ratio = 170,
                                 LostHpBonusDmgMax = 50,
                                 LostHpAssumedRemaining = 0,

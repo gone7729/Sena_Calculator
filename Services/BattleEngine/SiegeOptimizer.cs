@@ -23,6 +23,11 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 자동 장착할지 (R3 보스 기준 1회)
         public bool AutoEquip { get; set; } = true;
+
+        // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치를 적용해 로테이션 최적 점수·플랜 산출
+        public bool OptimizeRotation { get; set; } = true;
+        public int RotationBeamWidth { get; set; } = 10;
+        public int RotationMaxDepth { get; set; } = 18;
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -34,6 +39,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         public SiegeBattleResult BestResult { get; set; }
         public List<string> BestBackRow { get; set; } = new();   // 최적 후열 배치 영웅 이름
         internal int BestMask { get; set; }                       // 최적 후열 배치 비트마스크 (재적용용)
+        public List<RotationDecision> BestRotationPlan { get; set; } = new();   // 빔서치 최적 스킬 로테이션
+        public double AutoRotationScore { get; set; }             // 자동 로테이션 점수 (빔서치 전, 비교용)
         public int EvaluatedCount { get; set; }     // 평가한 (조합 × 진형 × 자리) 수
         public List<string> GearLog { get; set; } = new();   // 자동 장착된 영웅별 메인옵/부옵 값 로그
         public List<SiegeEvalEntry> EvalLog { get; set; } = new();   // 탐색 중 평가한 (팀×진형)별 점수
@@ -137,6 +144,22 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // team 객체가 탐색 중 변형되므로 최적 자리 배치를 BestParty에 재적용.
                 for (int i = 0; i < best.BestParty.Count; i++)
                     best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+
+                // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치 1회 → 로테이션 최적 점수·플랜.
+                // (진형·자리·기어 탐색은 자동 로테이션 점수로 했으므로 2단계 근사 — 빠르고 일관됨.)
+                if (config.OptimizeRotation)
+                {
+                    best.AutoRotationScore = best.BestScore;
+                    var beam = new RotationBeamSearch(GearCompareSeed).Search(
+                        BuildSimConfig(config, best.BestParty, best.BestFormation),
+                        config.RotationBeamWidth, config.RotationMaxDepth);
+                    if (beam.Score > best.BestScore)
+                    {
+                        best.BestScore = beam.Score;
+                        best.BestResult = beam.Battle;
+                        best.BestRotationPlan = beam.Plan;
+                    }
+                }
             }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
