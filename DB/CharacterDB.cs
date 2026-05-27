@@ -3801,9 +3801,13 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            // 2초월: 아군 후열 디버프 해제 2개 (모델 없음 → Effect 텍스트)
+                            // 2초월: 아군 후열 디버프 해제 2개
                             { 2, new SkillTranscend {
-                                Effect = "2초월: 아군 후열 디버프 해제 2개"
+                                Effect = "2초월: 아군 후열 디버프 해제 2개",
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.DebuffCleanse, DispelDebuffCount = 2 }
+                                }
                             }},
                             // 6초월: 약점 공격 피해 발생 시 마법 공격력의 75% 추가 피해
                             { 6, new SkillTranscend {

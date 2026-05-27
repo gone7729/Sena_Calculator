@@ -99,6 +99,13 @@ namespace GameDamageCalculator.Models
             if (kvp.Value.ConsumeExtra.AtkCap > 0)
                 result.ConsumeExtra.AtkCap = kvp.Value.ConsumeExtra.AtkCap;
         }
+
+        // 초월 Effects(SkillEffect 리스트) 누적 — 예: 미호 초월2 아군 디버프 해제. (기존 미병합 버그)
+        if (kvp.Value.Effects != null && kvp.Value.Effects.Count > 0)
+        {
+            result.Effects ??= new List<SkillEffect>();
+            result.Effects.AddRange(kvp.Value.Effects);
+        }
     }
     return result;
 }
