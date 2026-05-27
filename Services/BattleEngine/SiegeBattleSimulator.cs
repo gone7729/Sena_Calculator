@@ -314,6 +314,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         {
                             ProcessAttackStacks(state, ally, isSkill: false);   // 공격 발동형 스택 — 평타 2회마다 1회
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
+                            ApplyBasicAttackCdReduction(state, ally, normal);   // 평타 쿨감(예: 라이언 자신+최고공격력 아군 9초)
                         }
                     }
                 }
@@ -817,6 +818,34 @@ namespace GameDamageCalculator.Services.BattleEngine
                 SkillType.Skill2 => 5.0,                          // 컷신 2스킬
                 _ => 4.0,                                         // 그 외 스킬
             };
+        }
+
+        /// <summary>
+        /// 평타 발동형 쿨감 적용 (예: 라이언 평타 "자신과 공격력 최고 아군 스킬 쿨 9초 감소").
+        /// 평타 스킬의 Effects 중 Buff.Cooldown_Reduction>0을 찾아 대상(Self / SelfAndHighestAtkAlly)의 쿨 감소.
+        /// </summary>
+        private void ApplyBasicAttackCdReduction(SiegeBattleState state, CharacterBattleState ally, Skill normal)
+        {
+            var lvl = normal?.GetLevelData(ally.Source.IsSkillEnhanced);
+            if (lvl?.Effects == null) return;
+            foreach (var e in lvl.Effects)
+            {
+                double cdr = e.Buff?.Cooldown_Reduction ?? 0;
+                if (cdr <= 0) continue;
+
+                var targets = new List<CharacterBattleState> { ally };   // 항상 자신 포함
+                if (e.Target == EffectTarget.SelfAndHighestAtkAlly || e.TargetSelector == TargetSelector.HighestAtkAlly
+                    || e.Target == EffectTarget.Party)
+                {
+                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 최고공격력 아군 (서로 다른 2명에 적용)
+                    var top = state.AllyStates.Where(a => !a.IsDead && a != ally)
+                        .OrderByDescending(a => a.FinalAtk).FirstOrDefault();
+                    if (top != null) targets.Add(top);
+                }
+                foreach (var t in targets) t.ReduceCooldowns(cdr);
+                Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, normal.Name, 0,
+                    $"평타 쿨감 {cdr:0}초: {string.Join(",", targets.Select(t => t.Source.Character.Name))}");
+            }
         }
 
         /// <summary>행동 소요시간만큼 경과 + 전체 유닛(아군+적) 쿨다운 감소 (쿨=실시간 1초당 1).</summary>
