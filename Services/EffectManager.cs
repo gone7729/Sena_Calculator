@@ -137,7 +137,9 @@ namespace GameDamageCalculator.Services
         }
 
         /// <summary>
-        /// 지정한 카테고리들의 디버프를 한 묶음으로 보고 통합 MaxMerge.
+        /// 지정한 카테고리들의 디버프를 합산. **디버프는 버프와 달리 서로 다른 출처가 합산된다**
+        /// (예: 비스킷 방깎20 + 레이첼 불새 방깎36 = 56). DmgCheck로 검증된 실측 동작.
+        /// 같은 출처 재적용은 AddEnemyDebuff의 RemoveBySource로 1회만 유지되므로 중복 합산 없음.
         /// </summary>
         private DebuffSet AggregateDebuffsByCategories(params EffectCategory[] categories)
         {
@@ -147,7 +149,7 @@ namespace GameDamageCalculator.Services
                 foreach (var effect in _effects.Where(e =>
                     e.Category == category && e.IsStatDebuff && !e.IsExpired))
                 {
-                    total.MaxMerge(effect.DebuffValues);
+                    total.Add(effect.DebuffValues);
                 }
             }
             return total;
