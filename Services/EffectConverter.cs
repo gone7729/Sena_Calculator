@@ -623,7 +623,7 @@ namespace GameDamageCalculator.Services
         /// EffectManager에 흘려보내면 GetSeparatedBuffs/GetTotalBuffs/GetTotalDebuffs로 집계 가능.
         /// </summary>
         public static List<BattleEffect> FromBuffConfigs(
-            IEnumerable<BuffConfig> buffConfigs, Pet pet, int petStar, int petEnhance = 0)
+            IEnumerable<BuffConfig> buffConfigs, Pet pet, int petStar, int petEnhance = 0, string recipientClass = null)
         {
             var effects = new List<BattleEffect>();
 
@@ -641,7 +641,7 @@ namespace GameDamageCalculator.Services
                     if (config.IsBuff)
                     {
                         // 패시브 파티버프 (상시)
-                        var partyBuff = character.Passive?.GetPartyBuff(isEnhanced, transcendLevel);
+                        var partyBuff = character.Passive?.GetPartyBuff(isEnhanced, transcendLevel, recipientClass);
                         if (partyBuff != null && !IsEmpty(partyBuff))
                         {
                             effects.Add(new BattleEffect
@@ -657,7 +657,7 @@ namespace GameDamageCalculator.Services
                         }
 
                         // 패시브 파티버프 (조건부)
-                        var condPartyBuff = character.Passive?.GetConditionalPartyBuff(isEnhanced, transcendLevel);
+                        var condPartyBuff = character.Passive?.GetConditionalPartyBuff(isEnhanced, transcendLevel, recipientClass);
                         if (condPartyBuff != null && !IsEmpty(condPartyBuff))
                         {
                             effects.Add(new BattleEffect

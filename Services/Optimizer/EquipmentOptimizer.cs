@@ -499,7 +499,7 @@ namespace GameDamageCalculator.Services.Optimizer
             var partyBuffConfigs = BuildPartyBuffConfigs(config, charIndex);
             var partyEffects = new EffectManager();
             partyEffects.AddEffects(EffectConverter.FromBuffConfigs(
-                partyBuffConfigs, config.AllyPet, config.PetStar, config.PetEnhance));
+                partyBuffConfigs, config.AllyPet, config.PetStar, config.PetEnhance, battleChar.Character.Type));
             var (partyPerm, partyTimed, partyPet) = partyEffects.GetSeparatedBuffs();
             var totalDebuffs = partyEffects.GetTotalDebuffs();
 

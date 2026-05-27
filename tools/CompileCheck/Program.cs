@@ -5,9 +5,10 @@ using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Services.BattleEngine;
 
-// 토요일 공성전 풀시뮬 (시뮬 모드 세팅): 전원 12초월·스킬강화, 펫 윈디 6성 강화+3, 펫 잠재 공옵 72%(18×4).
-// 템세팅(세트·메인·부옵·장신구 전부 풀시뮬)·스킬순서 탐색 → 결과를 텍스트 파일로.
-int[] teamIds = { 1, 2, 201, 301, 51 };   // 타카, 라이언, 비스킷, 레이첼, 풍연
+// 수요일 공성전 교차검증: 루리·미호·오를리·비스킷·라이언. 오를리 패시브(마법형 아군 치확17/치피25)
+// 적용 검증 포함. 전원 12초월·스킬강화, 펫 윈디 6성 강화+3, 펫 잠재 공옵 72%(18×4).
+const string DAY = "수요일";
+int[] teamIds = { 102, 103, 203, 201, 2 };   // 루리, 미호, 오를리, 비스킷, 라이언
 var team = teamIds
     .Select(id => CharacterDb.Characters.First(c => c.Id == id))
     .Select(c => new BattleCharacter { Character = c, IsSkillEnhanced = true, TranscendLevel = 12 })
@@ -16,7 +17,7 @@ var team = teamIds
 var config = new SiegeOptimizerConfig
 {
     Candidates = team,
-    SiegeStage = EnemyDb.SiegeStages["토요일"],
+    SiegeStage = EnemyDb.SiegeStages[DAY],
     MaxTurns = 70,
     AutoEquip = true,                       // 세트·메인·부옵·장신구 풀시뮬 최적화
     AllyPet = PetDb.GetByName("윈디"),
@@ -31,7 +32,7 @@ sw.Stop();
 
 var r = result.BestResult;
 var sb = new StringBuilder();
-sb.AppendLine("================ 토요일 공성전 풀시뮬 (시뮬 모드) ================");
+sb.AppendLine($"================ {DAY} 공성전 풀시뮬 (시뮬 모드) ================");
 sb.AppendLine($"팀: {string.Join(", ", result.BestParty.Select(c => c.Character.Name))}");
 sb.AppendLine("세팅: 전원 12초월·스킬강화 / 펫 윈디 6성 강화+3 / 펫 잠재 공옵 72%(18×4)");
 sb.AppendLine($"진형: {result.BestFormation} / 후열: {(result.BestBackRow.Count > 0 ? string.Join(",", result.BestBackRow) : "없음(전원 전열)")}");
@@ -44,7 +45,7 @@ sb.AppendLine("캐릭터별 기여:");
 foreach (var c in r.CharacterResults.OrderByDescending(c => c.TotalDamage))
     sb.AppendLine($"  {c.CharacterName}: {c.TotalDamage:N0} ({c.DamageShare:F1}%)");
 sb.AppendLine();
-sb.AppendLine("================ 스탯 스냅샷 (FinalAtk — 비스킷 버프 대상 판정 기준) ================");
+sb.AppendLine("================ 스탯 스냅샷 (오를리 패시브 검증: 마법형만 치확+17/치피+25) ================");
 {
     var bsim = new BattleSimulator();
     var bcfg = new BattleConfig
@@ -56,7 +57,24 @@ sb.AppendLine("================ 스탯 스냅샷 (FinalAtk — 비스킷 버프 
     {
         var bc = result.BestParty[i];
         var cs = bsim.InitializeCharacterState(bcfg, bc, i);
-        sb.AppendLine($"  {bc.Character.Name} ({bc.Character.Type}/{bc.Character.AttackType}, {(bc.IsBackPosition ? "후열" : "전열")}): 인게임공격력(진형포함) {cs.FinalAtk:N0}, Spd {cs.FinalSpd}");
+        var ds = cs.DisplayStats;
+        sb.AppendLine($"  {bc.Character.Name} ({bc.Character.Type}/{bc.Character.AttackType}, {(bc.IsBackPosition ? "후열" : "전열")}): 공격력 {cs.FinalAtk:N0}, 치확 {ds?.Cri:F0}, 치피 {ds?.Cri_Dmg:F0}, 약확 {ds?.Wek:F0}, Spd {cs.FinalSpd}");
+    }
+
+    // [통제 비교] 오를리 패시브(마법형 치확+17/치피+25) 적용 검증: 오를리 있을 때 vs 없을 때 크릿 델타.
+    sb.AppendLine();
+    sb.AppendLine("  [오를리 패시브 통제검증] 오를리 포함 vs 제외 시 크릿 변화 (마법형만 +17/+25 기대):");
+    var partyNoOrli = result.BestParty.Where(c => c.Character.Name != "오를리").ToList();
+    var cfgNo = new BattleConfig { AllyParty = partyNoOrli, FormationName = result.BestFormation,
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72 };
+    foreach (var name in new[] { "루리", "라이언" })
+    {
+        int iFull = result.BestParty.FindIndex(c => c.Character.Name == name);
+        int iNo = partyNoOrli.FindIndex(c => c.Character.Name == name);
+        if (iFull < 0 || iNo < 0) continue;
+        var full = bsim.InitializeCharacterState(bcfg, result.BestParty[iFull], iFull).DisplayStats;
+        var no = bsim.InitializeCharacterState(cfgNo, partyNoOrli[iNo], iNo).DisplayStats;
+        sb.AppendLine($"    {name}: 치확 {no?.Cri:F0}→{full?.Cri:F0} (Δ{full?.Cri - no?.Cri:+0;-0;0}), 치피 {no?.Cri_Dmg:F0}→{full?.Cri_Dmg:F0} (Δ{full?.Cri_Dmg - no?.Cri_Dmg:+0;-0;0})");
     }
 }
 sb.AppendLine();
@@ -77,12 +95,12 @@ sb.AppendLine();
 sb.AppendLine("================ [진단] 죽음의 무도 보스/잡몹 데미지 입력 분해 ================");
 sb.AppendLine("실측 T12: 스파이크(보스) 285,884 / 294,630 (조건O) | 룩(잡몹) 113,024 (조건X). 정답 보스 ≈290,500.");
 {
-    var diagSim = new SiegeBattleSimulator(777) { DiagSkillName = "죽음의 무도" };
+    var diagSim = new SiegeBattleSimulator(777) { DiagSkillName = null };   // 수요일 팀엔 죽음의무도 없음 — 진단 비활성
     var diagCfg = new SiegeBattleConfig
     {
         AllyParty = result.BestParty,          // BestMask(자리) 이미 재적용됨
         FormationName = result.BestFormation,
-        SiegeStage = EnemyDb.SiegeStages["토요일"],
+        SiegeStage = EnemyDb.SiegeStages[DAY],
         AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
         MaxTurns = 70,
     };
@@ -105,6 +123,6 @@ foreach (var log in r.TurnLogs)
     sb.AppendLine($"T{log.Turn,2} [{(log.IsAlly ? "아군" : "적 ")}] {log.SkillName}: {log.Description}");
 
 string outPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
-    AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_토요일_풀시뮬.txt"));
+    AppContext.BaseDirectory, "..", "..", "..", "..", "..", $"siege_{DAY}_풀시뮬.txt"));
 System.IO.File.WriteAllText(outPath, sb.ToString(), Encoding.UTF8);
 Console.WriteLine($"DONE 출력: {outPath} (총점 {result.BestScore:N0}, 턴로그 {r.TurnLogs.Count}, {sw.ElapsedMilliseconds:N0}ms)");
