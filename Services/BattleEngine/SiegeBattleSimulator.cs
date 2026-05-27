@@ -424,13 +424,19 @@ namespace GameDamageCalculator.Services.BattleEngine
             var ds = ally.DisplayStats ?? new BaseStatSet();
             var midBuffs = ally.Effects.GetTotalBuffs();
 
+            // 아군에 걸린 공격력 감소 디버프(예: 보스 레이첼 불새 공감24/마공감24) → 실효 공격력 차감.
+            var allyDebuffs = ally.Effects.GetTotalDebuffs();
+            double atkRed = character.AttackType == AttackType.Magic
+                ? allyDebuffs.MagicAtk_Reduction : allyDebuffs.Atk_Reduction;
+            double effAtk = ally.FinalAtk * System.Math.Max(0, 1 - atkRed / 100.0);
+
             var input = new DamageCalculator.DamageInput
             {
                 Character = character,
                 Skill = skill,
                 IsSkillEnhanced = battleChar.IsSkillEnhanced,
                 TranscendLevel = battleChar.TranscendLevel,
-                FinalAtk = ally.FinalAtk,
+                FinalAtk = effAtk,
                 FinalDef = ally.FinalDef,
                 FinalHp = ally.MaxHp,
                 // 치명·약점: 100% 가정이 아니라 실제 확률로 기대 계수 (치확/약확 옵션이 의미를 갖도록)
@@ -645,6 +651,31 @@ namespace GameDamageCalculator.Services.BattleEngine
                 });
                 Log(state, "적", false, ActionType.DebuffApplied, stName, 0,
                     $"{ally.Source.Character.Name} {stName} 부여 [{dur}턴]");
+            }
+
+            // 적 스킬의 스탯 디버프(공격력/방어력 감소 등)를 아군에 적용 (보스 관점 Target=Enemy = 아군).
+            // 예: 레이첼 불새 → 아군 공감24·마공감24·방깎36 [5턴]. 미호 1스킬 등으로 해제 가능.
+            var effects = enemySkill.GetLevelData(false)?.Effects;
+            if (effects != null)
+            {
+                foreach (var e in effects)
+                {
+                    if (e.Type != SkillEffectType.Debuff || e.Debuff == null) continue;
+                    int dur = e.Duration > 0 ? e.Duration : 99;
+                    ally.Effects.AddEffect(new BattleEffect
+                    {
+                        Id = $"siege_enemydebuff:{ally.PartyIndex}:{enemySkill.Name}",
+                        SourceName = $"siege_enemydebuff:{ally.PartyIndex}:{enemySkill.Name}",
+                        Category = EffectCategory.ActiveDebuff,
+                        Target = EffectTarget.Self,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = false,
+                        RemainingTurns = dur,
+                        DebuffValues = e.Debuff.Clone(),
+                    });
+                    Log(state, "적", false, ActionType.DebuffApplied, enemySkill.Name, 0,
+                        $"{ally.Source.Character.Name} {SummarizeDebuff(e.Debuff)} [{dur}턴]");
+                }
             }
         }
 
@@ -1030,6 +1061,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                     }
                     else if (e.Type == SkillEffectType.Debuff && e.Debuff != null)
                         ApplyDebuff(e.Debuff, e.Duration, e.Target);
+                    else if (e.Type == SkillEffectType.DebuffCleanse && e.DispelDebuffCount > 0)
+                    {
+                        // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
+                        foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
+                        {
+                            int removed = a.Effects.RemoveDebuffs(e.DispelDebuffCount);
+                            if (removed > 0)
+                                Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                                    $"{a.Source.Character.Name} 디버프 {removed}개 해제");
+                        }
+                    }
                 }
             }
 

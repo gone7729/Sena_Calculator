@@ -92,6 +92,31 @@ sb.AppendLine("================ 템세팅 (풀시뮬 자동 최적) ============
 foreach (var line in result.GearLog)
     sb.AppendLine(line);
 sb.AppendLine();
+sb.AppendLine("================ [통제] 빠른클리어(루리/미호 강AoE 선두) vs 빔서치 ================");
+{
+    int iLuri = result.BestParty.FindIndex(c => c.Character.Name == "루리");
+    int iMiho = result.BestParty.FindIndex(c => c.Character.Name == "미호");
+    // R1/R2 진입에 강 AoE를 몰아 0턴 연쇄로 R3 조기 진입 시도
+    var fastPlan = new System.Collections.Generic.List<RotationDecision>
+    {
+        new() { HeroIndex = iLuri, Skill = SkillType.Skill2 },
+        new() { HeroIndex = iMiho, Skill = SkillType.Skill2 },
+        new() { HeroIndex = iLuri, Skill = SkillType.Skill1 },
+        new() { HeroIndex = iMiho, Skill = SkillType.Skill1 },
+    };
+    var fastCfg = new SiegeBattleConfig
+    {
+        AllyParty = result.BestParty, FormationName = result.BestFormation,
+        SiegeStage = EnemyDb.SiegeStages[DAY],
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
+        MaxTurns = 70, RotationPlan = fastPlan,
+    };
+    var fastR = new SiegeBattleSimulator(777).Simulate(fastCfg);
+    int r3start = fastR.TurnLogs.FirstOrDefault(l => l.Description != null && l.Description.Contains("R2 클리어"))?.Turn ?? -1;
+    sb.AppendLine($"빔서치 점수: {result.BestScore:N0}");
+    sb.AppendLine($"빠른클리어 점수: {fastR.TotalScore:N0} (R2클리어 T{r3start}, R3진입)");
+    sb.AppendLine($"라운드별(빠른클리어): {string.Join(", ", fastR.RoundScore.OrderBy(kv=>kv.Key).Select(kv=>$"R{kv.Key}={kv.Value:N0}"))}");
+}
 sb.AppendLine("================ [진단] 죽음의 무도 보스/잡몹 데미지 입력 분해 ================");
 sb.AppendLine("실측 T12: 스파이크(보스) 285,884 / 294,630 (조건O) | 룩(잡몹) 113,024 (조건X). 정답 보스 ≈290,500.");
 {
