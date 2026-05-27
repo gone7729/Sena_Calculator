@@ -25,7 +25,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         private class Beam
         {
             public List<RotationDecision> Plan;
-            public double Score;
+            public double Score;          // 이 플랜의 풀시뮬 점수(디폴트 꼬리 포함)
+            public double LookScore;      // 1-스텝 lookahead 점수(자식 중 최고) — 가지치기 랭킹용
             public List<RotationDecisionPoint> Dps;
             public SiegeBattleResult Battle;
         }
@@ -72,9 +73,25 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
 
                 if (candidates.Count == 0) break;
-                beams = candidates.OrderByDescending(c => c.Score).Take(beamWidth).ToList();
 
-                var top = beams[0];
+                // 1-스텝 lookahead 재평가: 셋업(예: 레이첼 불새)은 자기 점수는 낮아도 다음 스텝 버스트가
+                // 따라붙으면 점수가 크게 오른다. 즉시점수 상위 풀(=2K)만 자식 최고점으로 재랭킹해
+                // "셋업→버스트" 후보가 가지치기로 사라지지 않게 한다. (best는 실제 점수로 추적)
+                int pool = System.Math.Min(candidates.Count, System.Math.Max(beamWidth * 2, beamWidth + 4));
+                var ranked = candidates.OrderByDescending(c => c.Score).Take(pool).ToList();
+                foreach (var c in ranked)
+                {
+                    c.LookScore = c.Score;
+                    if (d + 1 < c.Dps.Count)
+                        foreach (var choice2 in c.Dps[d + 1].Choices)
+                        {
+                            double s = Run(baseConfig, new List<RotationDecision>(c.Plan) { choice2 }).Score;
+                            if (s > c.LookScore) c.LookScore = s;
+                        }
+                }
+                beams = ranked.OrderByDescending(c => c.LookScore).Take(beamWidth).ToList();
+
+                var top = candidates.OrderByDescending(c => c.Score).First();   // best는 실제 점수 기준
                 if (top.Score > best.Score)
                 {
                     best.Plan = top.Plan;
