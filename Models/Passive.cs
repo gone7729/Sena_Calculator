@@ -143,7 +143,12 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 아군용 상시 버프 (PartyBuff만)
         /// </summary>
-        public PermanentBuff GetPartyBuff(bool isEnhanced, int transcendLevel)
+        /// <summary>직업 제한 효과(TargetClasses) 매칭. 제한 없거나 수신자 직업 미지정이면 통과; 지정 시 포함돼야 함.</summary>
+        private static bool ClassMatches(string[] targetClasses, string recipientClass)
+            => targetClasses == null || targetClasses.Length == 0
+               || recipientClass == null || System.Array.IndexOf(targetClasses, recipientClass) >= 0;
+
+        public PermanentBuff GetPartyBuff(bool isEnhanced, int transcendLevel, string recipientClass = null)
         {
             var result = new PermanentBuff();
             var levelData = GetLevelData(isEnhanced);
@@ -153,7 +158,8 @@ namespace GameDamageCalculator.Models
                 foreach (var e in levelData.Effects)
                 {
                     if (e.Type == Effects.PersistentEffectType.Buff && !e.IsConditional
-                        && e.Target == Effects.EffectTarget.Party && e.Buff != null)
+                        && e.Target == Effects.EffectTarget.Party && e.Buff != null
+                        && ClassMatches(e.TargetClasses, recipientClass))   // 직업 제한(예: 오를리 마법형 한정)
                         result.Add(e.Buff);
                 }
             }
@@ -172,7 +178,7 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 아군용 턴제 버프 (조건부 PartyBuff)
         /// </summary>
-        public TimedBuff GetConditionalPartyBuff(bool isEnhanced, int transcendLevel)
+        public TimedBuff GetConditionalPartyBuff(bool isEnhanced, int transcendLevel, string recipientClass = null)
         {
             var result = new TimedBuff();
             var levelData = GetLevelData(isEnhanced);
@@ -182,7 +188,8 @@ namespace GameDamageCalculator.Models
                 foreach (var e in levelData.Effects)
                 {
                     if (e.Type == Effects.PersistentEffectType.Buff && e.IsConditional
-                        && e.Target == Effects.EffectTarget.Party && e.Buff != null)
+                        && e.Target == Effects.EffectTarget.Party && e.Buff != null
+                        && ClassMatches(e.TargetClasses, recipientClass))
                         result.Add(e.Buff);
                 }
             }
