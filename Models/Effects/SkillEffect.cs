@@ -16,6 +16,11 @@ namespace GameDamageCalculator.Models.Effects
         // === 유형 ===
         public SkillEffectType Type { get; set; }
 
+        // === 적용 순서 (툴팁 위→아래) ===
+        // true면 이 효과를 스킬 피해 前에 적용 (예: 레이첼 불새 방깎→피해, 미호 턴감소→피해 = 피해 증폭/면역관통).
+        // 기본 false = 피해 後 적용 (예: 오를리 유성 피해→버프해제, 레이첼 염화 피해→공감).
+        public bool PreDamage { get; set; }
+
         // === 지속 ===
         public int Duration { get; set; }            // 지속 턴 (0이면 기본값 사용)
         public double Chance { get; set; } = 100;    // 적용 확률%

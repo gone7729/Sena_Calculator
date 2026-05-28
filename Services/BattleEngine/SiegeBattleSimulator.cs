@@ -968,6 +968,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
             var targets = PickTargets(state, tc);
             if (targets.Count == 0) return;
+            // 툴팁 순서: 적 대상 효과(디버프·턴감소·버프해제)를 피해 前에 적용 → 같은 스킬 피해가 증폭/면역관통/보호막관통.
+            ApplySkillEffects(state, ally, skill, targets, preDamage: true);
             foreach (var target in targets)
             {
                 double dmg = CalcDamageToEnemy(ally, target, skill);
@@ -975,7 +977,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
-            ApplySkillEffects(state, ally, skill, targets);    // 스킬 버프(아군)/디버프(적) 적용 + 로그
+            ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
             state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
 
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
@@ -1047,7 +1049,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 새 Effects 리스트 + 레거시 SelfBuff/PartyBuff/DebuffEffect + 초월 보너스 모두 처리.
         /// </summary>
         private void ApplySkillEffects(SiegeBattleState state, CharacterBattleState ally, Skill skill,
-            List<SiegeEnemyState> hitEnemies)
+            List<SiegeEnemyState> hitEnemies, bool preDamage)
         {
             bool enh = ally.Source.IsSkillEnhanced;
             string actor = ally.Source.Character.Name;
@@ -1095,54 +1097,82 @@ namespace GameDamageCalculator.Services.BattleEngine
             var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
             int? buffTgtOverride = tr?.TargetCountOverride;   // HighestAtkAlly 버프 대상 수 오버라이드
 
+            // 적 피해면역(EnemyImmunityTurns)을 턴감소만큼 깎기 (미호 2스킬 등). 피해 전 적용 시 피해가 막히지 않음.
+            void ReduceEnemyImmunity(int turns)
+            {
+                if (turns <= 0 || state.EnemyImmunityTurns <= 0) return;
+                int before = state.EnemyImmunityTurns;
+                state.EnemyImmunityTurns = System.Math.Max(0, state.EnemyImmunityTurns - turns);
+                Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                    $"적 피해면역 {before}→{state.EnemyImmunityTurns}턴 (턴감소 {turns})");
+            }
+
+            // 적 보호막(루디 등) 버프해제로 제거 → 이후 피해가 점수로 집계.
+            void DispelEnemyShield()
+            {
+                foreach (var en in hitEnemies.Where(x => x.Shield > 0))
+                {
+                    Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                        $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
+                    en.Shield = 0; en.ShieldTurns = 0;
+                }
+            }
+
+            // 효과는 툴팁 위→아래 순서대로 적용된다. 각 효과의 PreDamage 플래그가 이 단계(피해 前/後)와 일치할 때만 처리.
+            // 예: 레이첼 불새 방깎/취약(PreDamage)→피해 증폭, 미호 턴감소(PreDamage)→면역관통, 오를리 유성 피해→버프해제(後).
             void HandleEffects(List<SkillEffect> effects)
             {
                 if (effects == null) return;
                 foreach (var e in effects)
                 {
-                    if (e.Type == SkillEffectType.Buff && e.Buff != null)
+                    if (e.PreDamage != preDamage) continue;   // 이 단계에 맞는 효과만
+                    switch (e.Type)
                     {
-                        int tc = (e.TargetSelector == TargetSelector.HighestAtkAlly && buffTgtOverride.HasValue)
-                            ? buffTgtOverride.Value : e.TargetCount;
-                        ApplyBuff(e.Target, e.TargetSelector, tc, e.Buff, e.Duration);
-                    }
-                    else if (e.Type == SkillEffectType.Debuff && e.Debuff != null)
-                        ApplyDebuff(e.Debuff, e.Duration, e.Target);
-                    else if (e.Type == SkillEffectType.DebuffCleanse && e.DispelDebuffCount > 0)
-                    {
-                        // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
-                        foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
+                        case SkillEffectType.Buff when e.Buff != null:
                         {
-                            int removed = a.Effects.RemoveDebuffs(e.DispelDebuffCount);
-                            if (removed > 0)
-                                Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
-                                    $"{a.Source.Character.Name} 디버프 {removed}개 해제");
+                            int tc = (e.TargetSelector == TargetSelector.HighestAtkAlly && buffTgtOverride.HasValue)
+                                ? buffTgtOverride.Value : e.TargetCount;
+                            ApplyBuff(e.Target, e.TargetSelector, tc, e.Buff, e.Duration);
+                            break;
                         }
-                    }
-                    else if (e.Type == SkillEffectType.BuffDispel && e.DispelBuffCount > 0)
-                    {
-                        // 적 버프 해제 — 보스 보호막(예: 루디) 즉시 제거 → 딜이 점수로 들어가기 시작.
-                        foreach (var en in hitEnemies.Where(x => x.Shield > 0))
-                        {
-                            Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
-                                $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
-                            en.Shield = 0; en.ShieldTurns = 0;
-                        }
+                        case SkillEffectType.Debuff when e.Debuff != null:
+                            ApplyDebuff(e.Debuff, e.Duration, e.Target);
+                            break;
+                        case SkillEffectType.BuffTurnReduction
+                            when e.TurnReduction > 0 && (e.Target == EffectTarget.Enemy || e.Target == EffectTarget.AllEnemies):
+                            ReduceEnemyImmunity(e.TurnReduction);
+                            break;
+                        case SkillEffectType.BuffDispel when e.DispelBuffCount > 0:
+                            DispelEnemyShield();
+                            break;
+                        case SkillEffectType.DebuffCleanse when e.DispelDebuffCount > 0:
+                            // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
+                            foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
+                            {
+                                int removed = a.Effects.RemoveDebuffs(e.DispelDebuffCount);
+                                if (removed > 0)
+                                    Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                                        $"{a.Source.Character.Name} 디버프 {removed}개 해제");
+                            }
+                            break;
                     }
                 }
             }
 
             HandleEffects(lvl.Effects);
-            // 레거시 필드
-            if (lvl.SelfBuff != null) ApplyBuff(EffectTarget.Self, null, 1, lvl.SelfBuff, lvl.EffectDuration);
-            if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
-            if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
+            // 레거시 필드는 PreDamage 플래그가 없으므로 피해 後(기본)로 처리.
+            if (!preDamage)
+            {
+                if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
+                if (lvl.SelfBuff != null) ApplyBuff(EffectTarget.Self, null, 1, lvl.SelfBuff, lvl.EffectDuration);
+                if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
+            }
 
             if (tr != null)
             {
                 HandleEffects(tr.Effects);
-                if (tr.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, tr.PartyBuff, 0);
-                if (tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);
+                if (!preDamage && tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);
+                if (!preDamage && tr.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, tr.PartyBuff, 0);
             }
         }
 
