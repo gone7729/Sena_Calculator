@@ -355,6 +355,11 @@ namespace GameDamageCalculator.Models
         // 공성전: 이 스킬 사용 시 적(보스) 진영 전체가 N턴간 모든 피해 면역 (화 R3 룩 등). 0이면 없음.
         public int GrantEnemyImmunityTurns { get; set; }
 
+        // 공성전 보스 자기 보호막 (예: 루디 방어 준비). 보호막량 = 시전자 방어력 × SelfShieldDefRatio/100.
+        // (10000 = 방어력 100배). 0이면 없음. 지속턴 = SelfShieldTurns.
+        public double SelfShieldDefRatio { get; set; }
+        public int SelfShieldTurns { get; set; }
+
         // 처치 시 같은 스킬 1회 재시전 (모든 효과 재적용, 연쇄 없음)
         public OnKillRecast OnKillRecast { get; set; }
     }

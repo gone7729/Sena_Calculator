@@ -46,10 +46,13 @@ const API_BASE = process.env.NEXT_PUBLIC_SIEGE_API ?? "http://localhost:5179";
 interface PartyMember {
   id: number;
   name: string;
+  role: string;
   transcend: number;
   position: number;
   totalDamage: number;
   damageShare: number;
+  isBackRow: boolean;
+  isBuffTarget: boolean;
 }
 
 interface TurnLog {
@@ -466,6 +469,66 @@ export default function SiegePage() {
               <div key={r} className="siege-score-round">
                 <span className="siege-score-label">R{r}</span>
                 <span className="siege-score-value">{Math.round(s).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 진형 배치 (전열/후열 + 버프 수령 영웅 테두리 강조) */}
+          <h3 className="siege-result-sub">진형 배치 ({result.formation})</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, margin: "8px 0 18px" }}>
+            {[
+              { label: "후열", members: result.party.filter((p) => p.isBackRow) },
+              { label: "전열", members: result.party.filter((p) => !p.isBackRow) },
+            ].map((row) => (
+              <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 34, color: "#9ab", fontSize: 13, flexShrink: 0 }}>{row.label}</span>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  {row.members.length === 0 ? (
+                    <span style={{ color: "#667", fontSize: 13 }}>없음</span>
+                  ) : (
+                    row.members.map((p) => (
+                      <div
+                        key={p.position}
+                        title={p.isBuffTarget ? "버프 수령 (비스킷 장비강화·라이언 쿨감)" : undefined}
+                        style={{
+                          position: "relative",
+                          minWidth: 86,
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          textAlign: "center",
+                          background: "#1a2230",
+                          border: p.isBuffTarget ? "2px solid #f5c451" : "2px solid #2c3647",
+                          boxShadow: p.isBuffTarget ? "0 0 8px rgba(245,196,81,0.45)" : "none",
+                        }}
+                      >
+                        {p.isBuffTarget && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: -8,
+                              right: -6,
+                              background: "#f5c451",
+                              color: "#1a2230",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: "1px 5px",
+                              borderRadius: 6,
+                            }}
+                          >
+                            버프
+                          </span>
+                        )}
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: "#8aa" }}>
+                          {p.role} · {p.transcend}초월
+                        </div>
+                        <div style={{ fontSize: 11, color: "#d7c45a", marginTop: 2 }}>
+                          {p.damageShare.toFixed(0)}%
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             ))}
           </div>

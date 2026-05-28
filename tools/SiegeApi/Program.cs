@@ -94,6 +94,13 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
     var byIndex = (r.BestResult?.CharacterResults ?? new())
         .ToDictionary(c => c.PartyIndex, c => c);
 
+    // 버프 대상 = 딜러(공격/마법/만능형) 중 실제 누적딜 top-2 (비스킷 장비강화·라이언 쿨감 수령자).
+    var dealerRoles = new HashSet<string> { "공격형", "마법형", "만능형" };
+    var buffTargetIdx = r.BestParty
+        .Select((bc, i) => (i, bc, dmg: byIndex.TryGetValue(i, out var cr) ? cr.TotalDamage : 0))
+        .Where(x => x.bc.Character.Type != null && dealerRoles.Contains(x.bc.Character.Type))
+        .OrderByDescending(x => x.dmg).Take(2).Select(x => x.i).ToHashSet();
+
     var party = r.BestParty.Select((bc, i) =>
     {
         byIndex.TryGetValue(i, out var cr);
@@ -101,10 +108,13 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
         {
             Id = bc.Character.Id,
             Name = bc.Character.Name,
+            Role = bc.Character.Type,
             Transcend = bc.TranscendLevel,
             Position = i + 1,
             TotalDamage = cr?.TotalDamage ?? 0,
             DamageShare = cr?.DamageShare ?? 0,
+            IsBackRow = r.BestBackRow?.Contains(bc.Character.Name) ?? false,
+            IsBuffTarget = buffTargetIdx.Contains(i),
         };
     }).ToList();
 
@@ -172,10 +182,13 @@ class PartyMemberDto
 {
     public int Id { get; set; }
     public string Name { get; set; }
+    public string Role { get; set; }          // 공격형/마법형/만능형/방어형/지원형
     public int Transcend { get; set; }
     public int Position { get; set; }
     public double TotalDamage { get; set; }
     public double DamageShare { get; set; }
+    public bool IsBackRow { get; set; }        // 진형 후열 배치 여부
+    public bool IsBuffTarget { get; set; }     // 비스킷 버프·라이언 쿨감 수령(딜 top-2 딜러)
 }
 
 class TurnLogDto

@@ -296,6 +296,15 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     double cd = skill.GetCooldown(false, 0);
                     if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
+                    // 보스 자기 보호막 생성 (예: 루디 방어 준비 = 방어력 100배). 아군 피해를 흡수(점수 미집계)·버프해제로 제거.
+                    var sld = skill.GetLevelData(false);
+                    if (sld != null && sld.SelfShieldDefRatio > 0)
+                    {
+                        enemy.Shield = enemy.Source.Stats.Def * sld.SelfShieldDefRatio / 100.0;
+                        enemy.ShieldTurns = sld.SelfShieldTurns > 0 ? sld.SelfShieldTurns : 99;
+                        Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
+                            $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴] (버프해제/소진 시 제거)");
+                    }
                     // 상대(보스) 스킬 사용 → 아군 전원 스킬 쿨다운 5초 감소 (메인 sim과 동일, 5초 이하 잔여 미적용)
                     foreach (var a in state.AllyStates)
                         if (!a.IsDead) a.ReduceCooldowns(5);
@@ -366,6 +375,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
                 ApplyHitCdReduce(state, target);   // 피격 자체는 발생 → 일 쿨감 패시브는 트리거
                 return;
+            }
+
+            // 보호막 흡수: 보호막이 있으면 그만큼 먼저 깎이고 점수에 집계되지 않음. 파괴되면 잔여만 HP로(점수 집계).
+            if (target.Shield > 0)
+            {
+                double absorbed = Math.Min(target.Shield, dmg);
+                target.Shield -= absorbed;
+                dmg -= absorbed;
+                bool broke = target.Shield <= 0;
+                Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
+                    label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 보호막 흡수 {absorbed:N0}{(broke ? " (보호막 파괴)" : $" (잔여 {target.Shield:N0})")} — 점수 미집계");
+                ApplyHitCdReduce(state, target);
+                if (dmg <= 0) return;   // 전부 보호막에 흡수 → HP 피해 없음
+                // 파괴 후 잔여 피해는 HP로 (아래 점수 집계). def0 기준이라 파괴 1타는 약간 과대(근사).
             }
 
             target.CurrentHp -= dmg;            // HP 0 이하 허용 (무사망)
@@ -467,7 +490,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Dmg1to3 = ds.Dmg_Dealt_1to3 + midBuffs.Dmg_Dealt_1to3,
                 Dmg4to5 = ds.Dmg_Dealt_4to5 + midBuffs.Dmg_Dealt_4to5,
                 ArmorPen = ds.Arm_Pen + midBuffs.Arm_Pen,
-                BossDef = enemy.Stats.Def,
+                BossDef = enemy.Stats.Def,   // 보호막 흡수는 ApplyDamage에서 처리(보호막량만 미집계, 점수 일관성 위해 def 유지)
                 // 공성전 감쇄(물/마·타겟수)는 합연산이 아니라 곱연산으로 후처리 (아래) — DamageCalculator엔 0으로
                 BossDmgReduction = 0,
                 BossTargetReduction = 0,
@@ -829,6 +852,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             foreach (var enemy in state.Enemies)
             {
+                // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
+                if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
+
                 foreach (var dot in enemy.ActiveDots)
                 {
                     if (dot.TickDamage > 0 && !immune)
@@ -1091,6 +1117,16 @@ namespace GameDamageCalculator.Services.BattleEngine
                             if (removed > 0)
                                 Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
                                     $"{a.Source.Character.Name} 디버프 {removed}개 해제");
+                        }
+                    }
+                    else if (e.Type == SkillEffectType.BuffDispel && e.DispelBuffCount > 0)
+                    {
+                        // 적 버프 해제 — 보스 보호막(예: 루디) 즉시 제거 → 딜이 점수로 들어가기 시작.
+                        foreach (var en in hitEnemies.Where(x => x.Shield > 0))
+                        {
+                            Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                                $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
+                            en.Shield = 0; en.ShieldTurns = 0;
                         }
                     }
                 }
