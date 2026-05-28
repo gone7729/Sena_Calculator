@@ -5991,13 +5991,21 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Ratio = 100,
-                                Effect = "자신·공격력이 가장 높은 아군 스킬 쿨타임 감소 8초"
+                                Effect = "자신·공격력이 가장 높은 아군 스킬 쿨타임 감소 8초",
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.SelfAndHighestAtkAlly, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 8 } }
+                                }
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Ratio = 130,
-                                Effect = "자신·공격력이 가장 높은 아군 스킬 쿨타임 감소 8초"
+                                Effect = "자신·공격력이 가장 높은 아군 스킬 쿨타임 감소 8초",
+                                Effects = new List<SkillEffect>
+                                {
+                                    new SkillEffect { Target = EffectTarget.SelfAndHighestAtkAlly, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 8 } }
+                                }
                                 } }
                         }
                     },
