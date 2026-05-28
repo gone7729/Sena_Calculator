@@ -1371,7 +1371,7 @@ namespace GameDamageCalculator.Database
                                 Effect = "버프해제(100%)[2개], 관통, 단일적군(강자주시) 물공65%만큼 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, Chance = 100, DispelBuffCount = 2 }
                                 }
                                 } },
                             { 1, new SkillLevelData {
@@ -1384,7 +1384,7 @@ namespace GameDamageCalculator.Database
                                 Effect = "버프해제(100%)[2개], 관통, 단일적군(강자주시) 물공65%만큼 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, Chance = 100, DispelBuffCount = 2 }
                                 }
                                 } }
                         },
@@ -2975,7 +2975,7 @@ namespace GameDamageCalculator.Database
                                 AtkCap = 300,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 3 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 3 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
                                 Effect = "단일 적군: 버프 해제 3개, 화상 [100%] [3턴], 대상 최대 생명력 20% 비례 피해(시전자 공격력 300% 제한), 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용). 주 대상 동일열 적군: 화상 [60%] [2턴], 물리 공격력 120% + 대상 최대 생명력 14% 비례 피해(시전자 공격력 150% 제한)"
@@ -2989,7 +2989,7 @@ namespace GameDamageCalculator.Database
                                 AtkCap = 300,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 3 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 3 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
                                 Effect = "단일 적군: 버프 해제 3개, 화상 [100%] [3턴], 대상 최대 생명력 26% 비례 피해(시전자 공격력 300% 제한), 생명력 24% 이하 적 즉시 처형(현재 생명력이 시전자 공격력 120% 초과 시 미적용). 주 대상 동일열 적군: 화상 [60%] [2턴], 물리 공격력 120% + 대상 최대 생명력 14% 비례 피해(시전자 공격력 150% 제한)"
@@ -4559,7 +4559,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 27 }, Duration = 3 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 1, Chance = 100 }
                                 },
                                 Effect = ""
                                 } },
@@ -4571,7 +4571,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Buff = new BuffSet { MagicAtk_Rate = 33 }, Duration = 3 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 1, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 1, Chance = 100 }
                                 },
                                 Effect = ""
                                 } }
@@ -5246,7 +5246,7 @@ namespace GameDamageCalculator.Database
                                 DispelDefReduction = 11,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 2, Chance = 100 }
                                 },
                                 Effect = "버프 2개 해제, 해제한 버프 개수만큼 방어력 11% 감소(최대 4중첩)"
                                 } },
@@ -5258,7 +5258,7 @@ namespace GameDamageCalculator.Database
                                 DispelDefReduction = 11,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 75, Duration = 2 }
                                 },
                                 Effect = "버프 2개 해제, 해제한 버프 개수만큼 방어력 11% 감소(최대 4중첩)"
@@ -10283,7 +10283,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 3, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 3, Chance = 100 }
                                 },
                                 Effect = "버프 해제 3개"
                                 }},
@@ -10295,7 +10295,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet{ Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 3, Chance = 100 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 3, Chance = 100 }
                                 },
                                 Effect = "버프 해제 3개"
                                 }}
@@ -12636,7 +12636,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 125,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 1 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, Chance = 100, DispelBuffCount = 1 }
                                 },
                                 Effect = "모든 적군. 버프 해제 1개[100%]. 대상에게 해제 가능한 버프가 있어야 사용 가능"
                                 } },
@@ -12647,7 +12647,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 150,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 1 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, Chance = 100, DispelBuffCount = 1 }
                                 },
                                 Effect = "강화: 물리 공격력 150%. 모든 적군. 버프 해제 1개[100%]"
                                 } }
