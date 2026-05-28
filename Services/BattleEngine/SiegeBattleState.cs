@@ -128,6 +128,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double CurrentHp { get; set; }
         public double MaxHp { get; set; }
 
+        // 보호막 (대체 HP). >0이면 아군 피해를 흡수하며 그 피해는 점수 미집계. 방어력 0 취급(피해 풀 적용).
+        // 버프해제(BuffDispel)로 즉시 제거 가능. 보스 스킬(예: 루디 방어 준비)로 생성, 지속턴 경과 시 소멸.
+        public double Shield { get; set; }
+        public int ShieldTurns { get; set; }
+
         // 스탯 (공성전 적은 장비/버프 없이 Enemy.Stats 그대로)
         public double FinalAtk { get; set; }
         public double FinalDef { get; set; }

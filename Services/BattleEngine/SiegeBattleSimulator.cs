@@ -21,18 +21,33 @@ namespace GameDamageCalculator.Services.BattleEngine
         private readonly BattleSimulator _baseSim = new();   // 아군 스탯 초기화 재사용
         private readonly DamageCalculator _damageCalc = new();
         private readonly Random _rng;
+        private readonly int? _seed;
 
         /// <summary>seed 지정 시 결정론적 RNG — 장비 후보를 같은 조건으로 공정 비교할 때 사용.</summary>
-        public SiegeBattleSimulator(int? seed = null) => _rng = seed.HasValue ? new Random(seed.Value) : new Random();
+        public SiegeBattleSimulator(int? seed = null) { _seed = seed; _rng = seed.HasValue ? new Random(seed.Value) : new Random(); }
 
         /// <summary>[진단] 특정 스킬(아군→적) 타격 시 데미지 입력 구성요소를 덤프 (예: 죽음의 무도 보스 갭 추적).</summary>
         public string DiagSkillName;          // 추적할 스킬명 (null이면 비활성)
         public System.Text.StringBuilder DiagLog = new();
         private int _diagCount;
 
-        public SiegeBattleResult Simulate(SiegeBattleConfig config)
+        public SiegeBattleResult Simulate(SiegeBattleConfig config) => Simulate(config, computeWeights: true);
+
+        private SiegeBattleResult Simulate(SiegeBattleConfig config, bool computeWeights)
         {
             var state = Initialize(config);
+            if (computeWeights)
+            {
+                // 2-패스 버프 타게팅: 스카우팅 sim(raw-atk 타게팅)으로 실제 캐릭별 누적딜을 얻어,
+                // 그걸 DamageWeight로 써서 비스킷 버프·라이언 쿨감을 "실제 딜 1위 딜러"에게 배분.
+                // 비딜러(지원/방어형)는 0으로 제외. (1타 추정이 아닌 실제 기여 기반)
+                var byName = new SiegeBattleSimulator(_seed).Simulate(config, computeWeights: false)
+                    .CharacterResults.ToDictionary(c => c.CharacterName, c => c.TotalDamage);
+                foreach (var a in state.AllyStates)
+                    a.DamageWeight = (a.Source?.Character?.Type != null && DealerRoles.Contains(a.Source.Character.Type)
+                        && byName.TryGetValue(a.Source.Character.Name, out var d)) ? d : 0;
+            }
+            // computeWeights=false(스카우팅): DamageWeight=0 → raw FinalAtk 타게팅(원래 동작)
             RunTurnLoop(config, state);
             return BuildResult(state);
         }
@@ -61,6 +76,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             };
             for (int i = 0; i < config.AllyParty.Count; i++)
                 state.AllyStates.Add(_baseSim.InitializeCharacterState(tempConfig, config.AllyParty[i], i));
+            // DamageWeight는 Simulate의 2-패스에서 설정 (스카우팅 누적딜 기반). 스카우팅 패스에선 0(raw-atk 타게팅).
 
             // 1라운드 적 생성
             state.InitializeRound(1);
@@ -280,6 +296,15 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     double cd = skill.GetCooldown(false, 0);
                     if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
+                    // 보스 자기 보호막 생성 (예: 루디 방어 준비 = 방어력 100배). 아군 피해를 흡수(점수 미집계)·버프해제로 제거.
+                    var sld = skill.GetLevelData(false);
+                    if (sld != null && sld.SelfShieldDefRatio > 0)
+                    {
+                        enemy.Shield = enemy.Source.Stats.Def * sld.SelfShieldDefRatio / 100.0;
+                        enemy.ShieldTurns = sld.SelfShieldTurns > 0 ? sld.SelfShieldTurns : 99;
+                        Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
+                            $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴] (버프해제/소진 시 제거)");
+                    }
                     // 상대(보스) 스킬 사용 → 아군 전원 스킬 쿨다운 5초 감소 (메인 sim과 동일, 5초 이하 잔여 미적용)
                     foreach (var a in state.AllyStates)
                         if (!a.IsDead) a.ReduceCooldowns(5);
@@ -350,6 +375,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
                 ApplyHitCdReduce(state, target);   // 피격 자체는 발생 → 일 쿨감 패시브는 트리거
                 return;
+            }
+
+            // 보호막 흡수: 보호막이 있으면 그만큼 먼저 깎이고 점수에 집계되지 않음. 파괴되면 잔여만 HP로(점수 집계).
+            if (target.Shield > 0)
+            {
+                double absorbed = Math.Min(target.Shield, dmg);
+                target.Shield -= absorbed;
+                dmg -= absorbed;
+                bool broke = target.Shield <= 0;
+                Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
+                    label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 보호막 흡수 {absorbed:N0}{(broke ? " (보호막 파괴)" : $" (잔여 {target.Shield:N0})")} — 점수 미집계");
+                ApplyHitCdReduce(state, target);
+                if (dmg <= 0) return;   // 전부 보호막에 흡수 → HP 피해 없음
+                // 파괴 후 잔여 피해는 HP로 (아래 점수 집계). def0 기준이라 파괴 1타는 약간 과대(근사).
             }
 
             target.CurrentHp -= dmg;            // HP 0 이하 허용 (무사망)
@@ -451,7 +490,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Dmg1to3 = ds.Dmg_Dealt_1to3 + midBuffs.Dmg_Dealt_1to3,
                 Dmg4to5 = ds.Dmg_Dealt_4to5 + midBuffs.Dmg_Dealt_4to5,
                 ArmorPen = ds.Arm_Pen + midBuffs.Arm_Pen,
-                BossDef = enemy.Stats.Def,
+                BossDef = enemy.Stats.Def,   // 보호막 흡수는 ApplyDamage에서 처리(보호막량만 미집계, 점수 일관성 위해 def 유지)
                 // 공성전 감쇄(물/마·타겟수)는 합연산이 아니라 곱연산으로 후처리 (아래) — DamageCalculator엔 0으로
                 BossDmgReduction = 0,
                 BossTargetReduction = 0,
@@ -465,6 +504,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsCritical = true,
                 IsWeakpoint = true,
                 IsSkillConditionMet = true,
+                // 잃은HP 비례 보너스(예: 광풍참 +50%) — 대상 실제 잔여HP%로 비례. R3 보스 음수HP면 0%잔여→풀보너스.
+                IsLostHpConditionMet = true,
+                LostHpActualRemainingPct = target.MaxHp > 0 ? target.CurrentHp / target.MaxHp * 100.0 : 0,
                 Mode = BattleMode.Boss,
                 IsTargetBoss = target.IsBoss,
                 SelfMaxHp = ally.MaxHp,
@@ -489,6 +531,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             return final;
         }
+
+        private static readonly System.Collections.Generic.HashSet<string> DealerRoles = new() { "공격형", "마법형", "만능형" };
 
         /// <summary>타겟 수에 따른 공성전 감쇄(1인/3인/5인기).</summary>
         private double GetTargetReduction(Enemy enemy, int targetCount) => targetCount switch
@@ -808,6 +852,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             foreach (var enemy in state.Enemies)
             {
+                // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
+                if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
+
                 foreach (var dot in enemy.ActiveDots)
                 {
                     if (dot.TickDamage > 0 && !immune)
@@ -868,9 +915,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (e.Target == EffectTarget.SelfAndHighestAtkAlly || e.TargetSelector == TargetSelector.HighestAtkAlly
                     || e.Target == EffectTarget.Party)
                 {
-                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 최고공격력 아군 (서로 다른 2명에 적용)
+                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 실효딜 최고 아군 (raw atk 아닌 데미지 가중치)
                     var top = state.AllyStates.Where(a => !a.IsDead && a != ally)
-                        .OrderByDescending(a => a.FinalAtk).FirstOrDefault();
+                        .OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk).FirstOrDefault();
                     if (top != null) targets.Add(top);
                 }
                 foreach (var t in targets) t.ReduceCooldowns(cdr);
@@ -921,6 +968,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
             var targets = PickTargets(state, tc);
             if (targets.Count == 0) return;
+            // 툴팁 순서: 적 대상 효과(디버프·턴감소·버프해제)를 피해 前에 적용 → 같은 스킬 피해가 증폭/면역관통/보호막관통.
+            ApplySkillEffects(state, ally, skill, targets, preDamage: true);
             foreach (var target in targets)
             {
                 double dmg = CalcDamageToEnemy(ally, target, skill);
@@ -928,7 +977,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
-            ApplySkillEffects(state, ally, skill, targets);    // 스킬 버프(아군)/디버프(적) 적용 + 로그
+            ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
             state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
 
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
@@ -1000,7 +1049,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 새 Effects 리스트 + 레거시 SelfBuff/PartyBuff/DebuffEffect + 초월 보너스 모두 처리.
         /// </summary>
         private void ApplySkillEffects(SiegeBattleState state, CharacterBattleState ally, Skill skill,
-            List<SiegeEnemyState> hitEnemies)
+            List<SiegeEnemyState> hitEnemies, bool preDamage)
         {
             bool enh = ally.Source.IsSkillEnhanced;
             string actor = ally.Source.Character.Name;
@@ -1048,44 +1097,82 @@ namespace GameDamageCalculator.Services.BattleEngine
             var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
             int? buffTgtOverride = tr?.TargetCountOverride;   // HighestAtkAlly 버프 대상 수 오버라이드
 
+            // 적 피해면역(EnemyImmunityTurns)을 턴감소만큼 깎기 (미호 2스킬 등). 피해 전 적용 시 피해가 막히지 않음.
+            void ReduceEnemyImmunity(int turns)
+            {
+                if (turns <= 0 || state.EnemyImmunityTurns <= 0) return;
+                int before = state.EnemyImmunityTurns;
+                state.EnemyImmunityTurns = System.Math.Max(0, state.EnemyImmunityTurns - turns);
+                Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                    $"적 피해면역 {before}→{state.EnemyImmunityTurns}턴 (턴감소 {turns})");
+            }
+
+            // 적 보호막(루디 등) 버프해제로 제거 → 이후 피해가 점수로 집계.
+            void DispelEnemyShield()
+            {
+                foreach (var en in hitEnemies.Where(x => x.Shield > 0))
+                {
+                    Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                        $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
+                    en.Shield = 0; en.ShieldTurns = 0;
+                }
+            }
+
+            // 효과는 툴팁 위→아래 순서대로 적용된다. 각 효과의 PreDamage 플래그가 이 단계(피해 前/後)와 일치할 때만 처리.
+            // 예: 레이첼 불새 방깎/취약(PreDamage)→피해 증폭, 미호 턴감소(PreDamage)→면역관통, 오를리 유성 피해→버프해제(後).
             void HandleEffects(List<SkillEffect> effects)
             {
                 if (effects == null) return;
                 foreach (var e in effects)
                 {
-                    if (e.Type == SkillEffectType.Buff && e.Buff != null)
+                    if (e.PreDamage != preDamage) continue;   // 이 단계에 맞는 효과만
+                    switch (e.Type)
                     {
-                        int tc = (e.TargetSelector == TargetSelector.HighestAtkAlly && buffTgtOverride.HasValue)
-                            ? buffTgtOverride.Value : e.TargetCount;
-                        ApplyBuff(e.Target, e.TargetSelector, tc, e.Buff, e.Duration);
-                    }
-                    else if (e.Type == SkillEffectType.Debuff && e.Debuff != null)
-                        ApplyDebuff(e.Debuff, e.Duration, e.Target);
-                    else if (e.Type == SkillEffectType.DebuffCleanse && e.DispelDebuffCount > 0)
-                    {
-                        // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
-                        foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
+                        case SkillEffectType.Buff when e.Buff != null:
                         {
-                            int removed = a.Effects.RemoveDebuffs(e.DispelDebuffCount);
-                            if (removed > 0)
-                                Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
-                                    $"{a.Source.Character.Name} 디버프 {removed}개 해제");
+                            int tc = (e.TargetSelector == TargetSelector.HighestAtkAlly && buffTgtOverride.HasValue)
+                                ? buffTgtOverride.Value : e.TargetCount;
+                            ApplyBuff(e.Target, e.TargetSelector, tc, e.Buff, e.Duration);
+                            break;
                         }
+                        case SkillEffectType.Debuff when e.Debuff != null:
+                            ApplyDebuff(e.Debuff, e.Duration, e.Target);
+                            break;
+                        case SkillEffectType.BuffTurnReduction
+                            when e.TurnReduction > 0 && (e.Target == EffectTarget.Enemy || e.Target == EffectTarget.AllEnemies):
+                            ReduceEnemyImmunity(e.TurnReduction);
+                            break;
+                        case SkillEffectType.BuffDispel when e.DispelBuffCount > 0:
+                            DispelEnemyShield();
+                            break;
+                        case SkillEffectType.DebuffCleanse when e.DispelDebuffCount > 0:
+                            // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
+                            foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
+                            {
+                                int removed = a.Effects.RemoveDebuffs(e.DispelDebuffCount);
+                                if (removed > 0)
+                                    Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                                        $"{a.Source.Character.Name} 디버프 {removed}개 해제");
+                            }
+                            break;
                     }
                 }
             }
 
             HandleEffects(lvl.Effects);
-            // 레거시 필드
-            if (lvl.SelfBuff != null) ApplyBuff(EffectTarget.Self, null, 1, lvl.SelfBuff, lvl.EffectDuration);
-            if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
-            if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
+            // 레거시 필드는 PreDamage 플래그가 없으므로 피해 後(기본)로 처리.
+            if (!preDamage)
+            {
+                if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
+                if (lvl.SelfBuff != null) ApplyBuff(EffectTarget.Self, null, 1, lvl.SelfBuff, lvl.EffectDuration);
+                if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
+            }
 
             if (tr != null)
             {
                 HandleEffects(tr.Effects);
-                if (tr.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, tr.PartyBuff, 0);
-                if (tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);
+                if (!preDamage && tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);
+                if (!preDamage && tr.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, tr.PartyBuff, 0);
             }
         }
 
@@ -1097,9 +1184,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (target == EffectTarget.Self || target == EffectTarget.SingleAlly)
                 return new List<CharacterBattleState> { caster };
             if (selector == TargetSelector.HighestAtkAlly)
-                // 인게임 공격력(진형버프 포함) 상위 N명. FinalAtk는 InitializeCharacterState에서
-                // 진형(전/후열) 보너스까지 반영된 최종 공격력이므로 그대로 사용.
-                return alive.OrderByDescending(a => a.FinalAtk).Take(System.Math.Max(1, tgtCount)).ToList();
+                // 실효딜 가중치 상위 N명(딜러 우선). raw FinalAtk가 아니라 대표 스킬 데미지로 랭킹 →
+                // 공%로 atk만 뻥튀기한 캐릭(예: 레이첼)이 버프를 가로채는 문제 방지. 비딜러(=0)는 후순위.
+                return alive.OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk)
+                    .Take(System.Math.Max(1, tgtCount)).ToList();
             return alive;   // Party 전체
         }
 
@@ -1202,6 +1290,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 RoundScore = state.RoundScore,
                 TotalTurns = state.CurrentTurn,
                 RoundsCleared = state.CurrentRound - 1,
+                ElapsedSeconds = state.ElapsedSeconds,
                 TurnLogs = state.TurnLogs,
                 DecisionPoints = state.DecisionPoints,
             };

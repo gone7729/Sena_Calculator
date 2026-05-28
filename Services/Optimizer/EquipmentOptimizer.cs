@@ -135,7 +135,8 @@ namespace GameDamageCalculator.Services.Optimizer
         /// 공성전 풀시뮬 점수로 세트를 비교하기 위한 후보 목록. 세트 라벨과 함께 반환.
         /// </summary>
         public List<(string SetName, EquipmentLoadout Loadout)> BuildSetCandidates(
-            BattleCharacter battleChar, BattleConfig config, int charIndex, GearConstraints gc)
+            BattleCharacter battleChar, BattleConfig config, int charIndex, GearConstraints gc,
+            (double Cri, double Wek) partyCritWeakFloor = default)
         {
             var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
             var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
@@ -158,11 +159,11 @@ namespace GameDamageCalculator.Services.Optimizer
                     foreach (var am in armorMains)
                     {
                         var lo = BuildLoadout(setConfig, wm, wm, am, am);
-                        double d = EvaluateDamage(battleChar, config, charIndex, lo);
+                        double d = EvaluateDamage(battleChar, config, charIndex, lo, partyCritWeakFloor);
                         if (d > bestD) { bestD = d; best = lo; }
                     }
                 if (best == null) continue;
-                OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions);
+                OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions, null, partyCritWeakFloor);
                 OptimizeAccessory(best, battleChar, config, charIndex);
                 result.Add((setName, best));
             }
@@ -174,7 +175,8 @@ namespace GameDamageCalculator.Services.Optimizer
         /// 세트는 이미 정해졌고, 그 안에서 메인/부옵/장신구를 풀시뮬 기준으로 고른다.
         /// </summary>
         public EquipmentLoadout OptimizeForSetFull(BattleCharacter battleChar, BattleConfig config, int charIndex,
-            string setName, GearConstraints gc, Func<EquipmentLoadout, double> scorer)
+            string setName, GearConstraints gc, Func<EquipmentLoadout, double> scorer,
+            (double Cri, double Wek) partyCritWeakFloor = default)
         {
             var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
             var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
@@ -196,8 +198,8 @@ namespace GameDamageCalculator.Services.Optimizer
                 }
             if (best == null) return null;
 
-            // 2) 부옵·장신구: 스코어러 기준 그리디
-            OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions, scorer);
+            // 2) 부옵·장신구: 스코어러 기준 그리디 (치확/약확은 floor+장비가 100% 넘으면 캡)
+            OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions, scorer, partyCritWeakFloor);
             OptimizeAccessory(best, battleChar, config, charIndex, scorer);
             return best;
         }
@@ -340,13 +342,26 @@ namespace GameDamageCalculator.Services.Optimizer
             BattleConfig config,
             int charIndex,
             string[] subStatNames = null,
-            Func<EquipmentLoadout, double> scorer = null)
+            Func<EquipmentLoadout, double> scorer = null,
+            (double Cri, double Wek) partyCritWeakFloor = default)
         {
             const int SubSlotsPerEquip = 4;   // 부옵 슬롯 수
             const int TierUps = 5;             // 15강 동안 랜덤 티어업 횟수
             const int MaxTier = 6;             // 1(기본) + 5(전부 한 슬롯에)
             subStatNames ??= GetDpsSubStatNames();
-            double Score(EquipmentLoadout lo) => scorer != null ? scorer(lo) : EvaluateDamage(battleChar, config, charIndex, lo);
+            double Score(EquipmentLoadout lo) => scorer != null ? scorer(lo) : EvaluateDamage(battleChar, config, charIndex, lo, partyCritWeakFloor);
+
+            // 저점-우선 캡: 치확/약확이 100% 도달하면 그 이상은 순수 낭비 → 후보 거절(자연스럽게 치피/공%로 우회).
+            // 기준 = 프록시 DisplayStats(base·초월·펫·진형·장비) + 풀파티 버스트 버프 floor(비스킷 약확54·레이첼 약확27 등).
+            bool ExceedsCritWeakCap(string statName)
+            {
+                if (statName != "치명타확률%" && statName != "약점공격확률%") return false;
+                var (sr, _) = ComputeStatResult(loadout, battleChar, config, charIndex);
+                if (sr.DisplayStats == null) return false;
+                if (statName == "치명타확률%" && sr.DisplayStats.Cri + partyCritWeakFloor.Cri >= 100) return true;
+                if (statName == "약점공격확률%" && sr.DisplayStats.Wek + partyCritWeakFloor.Wek >= 100) return true;
+                return false;
+            }
 
             foreach (var equip in loadout.GetEquipments())
             {
@@ -356,7 +371,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 // 후보 부옵: 허용 목록 ∩ (메인옵 제외)
                 var cands = subStatNames.Where(n => n != equip.MainStatName).Distinct().ToList();
 
-                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 점수 최대)
+                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 점수 최대 / 치확·약확은 캡 초과 시 거절)
                 var used = new HashSet<string>();
                 for (int i = 0; i < nSlots; i++)
                 {
@@ -366,6 +381,7 @@ namespace GameDamageCalculator.Services.Optimizer
                     {
                         if (used.Contains(stat)) continue;
                         slot.StatName = stat; slot.Tier = 1;
+                        if (ExceedsCritWeakCap(stat)) { slot.StatName = ""; slot.Tier = 0; continue; }   // 캡 초과 → 거절
                         double d = Score(loadout);
                         if (d > bestDmg) { bestDmg = d; bestStat = stat; }
                         slot.StatName = ""; slot.Tier = 0;
@@ -374,7 +390,7 @@ namespace GameDamageCalculator.Services.Optimizer
                     slot.StatName = bestStat; slot.Tier = 1; used.Add(bestStat);
                 }
 
-                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 점수 증가 최대 슬롯에)
+                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 점수 증가 최대 슬롯에 / 캡 도달 슬롯 스킵)
                 for (int up = 0; up < TierUps; up++)
                 {
                     int bestSlot = -1; double bestDmg = -1;
@@ -383,6 +399,7 @@ namespace GameDamageCalculator.Services.Optimizer
                         var slot = equip.SubSlots[i];
                         if (string.IsNullOrEmpty(slot.StatName) || slot.Tier >= MaxTier) continue;
                         slot.Tier++;
+                        if (ExceedsCritWeakCap(slot.StatName)) { slot.Tier--; continue; }   // 캡 초과 → 거절
                         double d = Score(loadout);
                         if (d > bestDmg) { bestDmg = d; bestSlot = i; }
                         slot.Tier--;
@@ -474,15 +491,18 @@ namespace GameDamageCalculator.Services.Optimizer
         /// 주어진 장비 구성으로 기대 데미지 평가
         /// 대표 스킬 1회 사용 기준
         /// </summary>
-        private double EvaluateDamage(
+        /// <summary>
+        /// 영웅의 StatCalculationResult + 파티 디버프 합산을 계산 (EvaluateDamage 및 캡체크 공용).
+        /// 파티 패시브 + 펫 + 진형 + 장비 전부 포함. (턴제 스킬버프는 미포함 — 프록시는 패시브 기반)
+        /// </summary>
+        private (StatCalculationResult Stat, DebuffSet Debuffs) ComputeStatResult(
+            EquipmentLoadout loadout,
             BattleCharacter battleChar,
             BattleConfig config,
-            int charIndex,
-            EquipmentLoadout loadout)
+            int charIndex)
         {
             var character = battleChar.Character;
 
-            // 세트 정보
             var activeSets = loadout.GetActiveSets();
             string equipSetName = "";
             int equipSetCount = 0;
@@ -495,7 +515,6 @@ namespace GameDamageCalculator.Services.Optimizer
                 }
             }
 
-            // 파티 버프 (간소화: 패시브만 고려)
             var partyBuffConfigs = BuildPartyBuffConfigs(config, charIndex);
             var partyEffects = new EffectManager();
             partyEffects.AddEffects(EffectConverter.FromBuffConfigs(
@@ -535,7 +554,60 @@ namespace GameDamageCalculator.Services.Optimizer
                 PartyPetBuffs = partyPet
             };
 
-            var statResult = _statCalc.Calculate(statInput);
+            return (_statCalc.Calculate(statInput), totalDebuffs);
+        }
+
+        /// <summary>
+        /// (가 가정) 딜러가 버스트 윈도우에 받는 파티 치확/약확 합 (패시브 + 스킬버프).
+        /// 기어 최적화는 SoloConfig로 돌아 파티버프가 안 보이므로, 풀파티에서 따로 계산해 floor로 주입한다.
+        /// 대상 선정(예: 비스킷 장비강화=공격력최고 아군)·버프 업타임은 무시하고 "받는다"고 가정.
+        /// </summary>
+        public (double Cri, double Wek) PartyBuffCritWeak(
+            System.Collections.Generic.List<BattleCharacter> party, int charIndex, string dealerClass)
+        {
+            double cri = 0, wek = 0;
+            void AccBuff(BuffSet b) { if (b != null) { cri += b.Cri; wek += b.Wek; } }
+            void AccEffects(System.Collections.Generic.IEnumerable<Models.Effects.SkillEffect> effs)
+            {
+                if (effs == null) return;
+                foreach (var e in effs)
+                {
+                    if (e.Type != Models.Effects.SkillEffectType.Buff || e.Target != Models.Effects.EffectTarget.Party || e.Buff == null) continue;
+                    if (e.TargetClasses != null && dealerClass != null && !System.Linq.Enumerable.Contains(e.TargetClasses, dealerClass)) continue;
+                    AccBuff(e.Buff);
+                }
+            }
+            for (int i = 0; i < party.Count; i++)
+            {
+                if (i == charIndex || party[i]?.Character == null) continue;
+                var bc = party[i];
+                bool enh = bc.IsSkillEnhanced; int tx = bc.TranscendLevel;
+                // 패시브 파티버프 (상시 + 조건부)
+                AccBuff(bc.Character.Passive?.GetPartyBuff(enh, tx, dealerClass));
+                AccBuff(bc.Character.Passive?.GetConditionalPartyBuff(enh, tx, dealerClass));
+                // 스킬 파티버프 (Effects + 레거시 PartyBuff + 초월)
+                foreach (var skill in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
+                {
+                    var ld = skill.GetLevelData(enh);
+                    AccEffects(ld?.Effects);
+                    AccBuff(ld?.PartyBuff);
+                    var txb = skill.GetTranscendBonus(tx);
+                    AccEffects(txb?.Effects);
+                    AccBuff(txb?.PartyBuff);
+                }
+            }
+            return (cri, wek);
+        }
+
+        private double EvaluateDamage(
+            BattleCharacter battleChar,
+            BattleConfig config,
+            int charIndex,
+            EquipmentLoadout loadout,
+            (double Cri, double Wek) partyCritWeakFloor = default)
+        {
+            var character = battleChar.Character;
+            var (statResult, totalDebuffs) = ComputeStatResult(loadout, battleChar, config, charIndex);
 
             // 대표 스킬: 가장 높은 배율의 스킬 선택
             var bestSkill = character.Skills?
@@ -566,10 +638,11 @@ namespace GameDamageCalculator.Services.Optimizer
                 WeakpointDmg = statResult.DisplayStats.Wek_Dmg,
                 Dmg1to3 = statResult.DisplayStats.Dmg_Dealt_1to3,
                 Dmg4to5 = statResult.DisplayStats.Dmg_Dealt_4to5,
-                // 치명·약점 확률 기반 기댓값 — 치확/약확 메인옵·부옵 탐색이 의미를 갖도록
+                // 치명·약점 확률 기반 기댓값 — 치확/약확 메인옵·부옵 탐색이 의미를 갖도록.
+                // 파티 버스트 버프(floor)를 더해 realized 크리/약점 반영 → 캡(100%) 넘는 기어 치확/약확은 한계효용 0이 됨.
                 ExpectedCritWeak = true,
-                CritChance = statResult.DisplayStats.Cri,
-                WeakChance = statResult.DisplayStats.Wek,
+                CritChance = statResult.DisplayStats.Cri + partyCritWeakFloor.Cri,
+                WeakChance = statResult.DisplayStats.Wek + partyCritWeakFloor.Wek,
                 DefReduction = totalDebuffs.Def_Reduction,
                 DmgTakenIncrease = totalDebuffs.GetEffectiveDmgTakenIncrease(character.AttackType),
                 Vulnerability = totalDebuffs.Vulnerability + (enemy?.Vulnerability ?? 0),

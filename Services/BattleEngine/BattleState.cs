@@ -57,6 +57,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double FinalDef { get; set; }
         public double FinalSpd { get; set; }
 
+        // 버프 타게팅용 실효딜 가중치 (대표 스킬 per-hit 추정). 비딜러(지원/방어형)=0.
+        // 비스킷 장비강화·라이언 평타쿨감 등 HighestAtkAlly 버프를 raw atk가 아닌 이 값으로 배분.
+        public double DamageWeight { get; set; }
+
         // 전투 시작 시 최종 표시스탯 스냅샷 (치확·치피·약확·약피·피증·보스피증·타입피증·방관·n인기 등).
         // gear+세트+초월+버프+패시브가 모두 집계된 값. FinalAtk엔 공%만 반영됐고 이 배수들은 별도라
         // 데미지 계산 시 여기서 읽는다. 전투 중 스킬 버프는 Effects에 추가되어 델타로 합산됨.

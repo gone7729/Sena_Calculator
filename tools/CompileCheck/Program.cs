@@ -7,7 +7,7 @@ using GameDamageCalculator.Services.BattleEngine;
 
 // 수요일 공성전 교차검증: 루리·미호·오를리·비스킷·라이언. 오를리 패시브(마법형 아군 치확17/치피25)
 // 적용 검증 포함. 전원 12초월·스킬강화, 펫 윈디 6성 강화+3, 펫 잠재 공옵 72%(18×4).
-const string DAY = "수요일";
+const string DAY = "화요일";
 int[] teamIds = { 102, 103, 203, 201, 2 };   // 루리, 미호, 오를리, 비스킷, 라이언
 var team = teamIds
     .Select(id => CharacterDb.Characters.First(c => c.Id == id))

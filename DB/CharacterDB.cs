@@ -3782,8 +3782,8 @@ namespace GameDamageCalculator.Database
                                 Ratio = 145,
                                 Effects = new List<SkillEffect>
                                 {
-                                    // 마법 취약: 받는 마법 피해 22% 증가 [100% 확률] [3턴]
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 22 } }
+                                    // 마법 취약: 받는 마법 피해 22% 증가 [100% 확률] [3턴] — 툴팁상 피해 前(증폭)
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, PreDamage = true, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 22 } }
                                 },
                                 Effect = ""
                                 } },
@@ -3794,7 +3794,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 170,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 22 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, PreDamage = true, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 22 } }
                                 },
                                 Effect = ""
                                 } }
@@ -3829,8 +3829,8 @@ namespace GameDamageCalculator.Database
                                 Ratio = 160,
                                 Effects = new List<SkillEffect>
                                 {
-                                    // 대상의 턴제 버프 2턴 감소 [100% 확률]
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
+                                    // 대상의 턴제 버프 2턴 감소 [100% 확률] — 툴팁상 피해 前(피해면역 관통)
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, PreDamage = true, TurnReduction = 2 }
                                 },
                                 Effect = ""
                                 } },
@@ -3841,7 +3841,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 185,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, PreDamage = true, TurnReduction = 2 }
                                 },
                                 Effect = ""
                                 } }
@@ -7088,8 +7088,8 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    // 적군 3명(버프 많은 순) 버프 해제 2개 [100% 확률]
-                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    // 적군 3명(버프 많은 순) 버프 해제 2개 [100% 확률] — 툴팁상 피해 前(보호막 관통)
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, PreDamage = true, DispelBuffCount = 2 }
                                 },
                                 Effect = "방어 무시, 대상 선정: 버프가 많은 순"
                                 } },
@@ -7102,7 +7102,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, DispelBuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, TargetSelector = TargetSelector.MostBuffsEnemy, Type = SkillEffectType.BuffDispel, Chance = 100, PreDamage = true, DispelBuffCount = 2 }
                                 },
                                 Effect = "방어 무시, 대상 선정: 버프가 많은 순"
                                 } }
@@ -8395,7 +8395,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 160,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 36, Phys_Dmg_Taken_Increase = 28 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, PreDamage = true, Debuff = new DebuffSet { Def_Reduction = 36, Phys_Dmg_Taken_Increase = 28 } }   // 툴팁: 방깎/취약 먼저 → 그 피해 증폭
                                 },
                                 Effect = ""
                                 } }

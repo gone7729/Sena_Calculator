@@ -63,6 +63,8 @@ namespace GameDamageCalculator.Database
                         [0] = new SkillLevelData
                         {
                             Cooldown = 80,
+                            SelfShieldDefRatio = 10000,   // 방어력 100배 보호막 (대체HP, 점수 미집계, 버프해제로 제거)
+                            SelfShieldTurns = 5,
                             Effect = "모든 아군 링크[5턴] + 시전자 방어력의 10,000% 보호막[5턴]",
                         },
                     },
