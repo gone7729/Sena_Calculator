@@ -21,18 +21,33 @@ namespace GameDamageCalculator.Services.BattleEngine
         private readonly BattleSimulator _baseSim = new();   // 아군 스탯 초기화 재사용
         private readonly DamageCalculator _damageCalc = new();
         private readonly Random _rng;
+        private readonly int? _seed;
 
         /// <summary>seed 지정 시 결정론적 RNG — 장비 후보를 같은 조건으로 공정 비교할 때 사용.</summary>
-        public SiegeBattleSimulator(int? seed = null) => _rng = seed.HasValue ? new Random(seed.Value) : new Random();
+        public SiegeBattleSimulator(int? seed = null) { _seed = seed; _rng = seed.HasValue ? new Random(seed.Value) : new Random(); }
 
         /// <summary>[진단] 특정 스킬(아군→적) 타격 시 데미지 입력 구성요소를 덤프 (예: 죽음의 무도 보스 갭 추적).</summary>
         public string DiagSkillName;          // 추적할 스킬명 (null이면 비활성)
         public System.Text.StringBuilder DiagLog = new();
         private int _diagCount;
 
-        public SiegeBattleResult Simulate(SiegeBattleConfig config)
+        public SiegeBattleResult Simulate(SiegeBattleConfig config) => Simulate(config, computeWeights: true);
+
+        private SiegeBattleResult Simulate(SiegeBattleConfig config, bool computeWeights)
         {
             var state = Initialize(config);
+            if (computeWeights)
+            {
+                // 2-패스 버프 타게팅: 스카우팅 sim(raw-atk 타게팅)으로 실제 캐릭별 누적딜을 얻어,
+                // 그걸 DamageWeight로 써서 비스킷 버프·라이언 쿨감을 "실제 딜 1위 딜러"에게 배분.
+                // 비딜러(지원/방어형)는 0으로 제외. (1타 추정이 아닌 실제 기여 기반)
+                var byName = new SiegeBattleSimulator(_seed).Simulate(config, computeWeights: false)
+                    .CharacterResults.ToDictionary(c => c.CharacterName, c => c.TotalDamage);
+                foreach (var a in state.AllyStates)
+                    a.DamageWeight = (a.Source?.Character?.Type != null && DealerRoles.Contains(a.Source.Character.Type)
+                        && byName.TryGetValue(a.Source.Character.Name, out var d)) ? d : 0;
+            }
+            // computeWeights=false(스카우팅): DamageWeight=0 → raw FinalAtk 타게팅(원래 동작)
             RunTurnLoop(config, state);
             return BuildResult(state);
         }
@@ -61,6 +76,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             };
             for (int i = 0; i < config.AllyParty.Count; i++)
                 state.AllyStates.Add(_baseSim.InitializeCharacterState(tempConfig, config.AllyParty[i], i));
+            // DamageWeight는 Simulate의 2-패스에서 설정 (스카우팅 누적딜 기반). 스카우팅 패스에선 0(raw-atk 타게팅).
 
             // 1라운드 적 생성
             state.InitializeRound(1);
@@ -493,6 +509,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             return final;
         }
 
+        private static readonly System.Collections.Generic.HashSet<string> DealerRoles = new() { "공격형", "마법형", "만능형" };
+
         /// <summary>타겟 수에 따른 공성전 감쇄(1인/3인/5인기).</summary>
         private double GetTargetReduction(Enemy enemy, int targetCount) => targetCount switch
         {
@@ -871,9 +889,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (e.Target == EffectTarget.SelfAndHighestAtkAlly || e.TargetSelector == TargetSelector.HighestAtkAlly
                     || e.Target == EffectTarget.Party)
                 {
-                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 최고공격력 아군 (서로 다른 2명에 적용)
+                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 실효딜 최고 아군 (raw atk 아닌 데미지 가중치)
                     var top = state.AllyStates.Where(a => !a.IsDead && a != ally)
-                        .OrderByDescending(a => a.FinalAtk).FirstOrDefault();
+                        .OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk).FirstOrDefault();
                     if (top != null) targets.Add(top);
                 }
                 foreach (var t in targets) t.ReduceCooldowns(cdr);
@@ -1100,9 +1118,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (target == EffectTarget.Self || target == EffectTarget.SingleAlly)
                 return new List<CharacterBattleState> { caster };
             if (selector == TargetSelector.HighestAtkAlly)
-                // 인게임 공격력(진형버프 포함) 상위 N명. FinalAtk는 InitializeCharacterState에서
-                // 진형(전/후열) 보너스까지 반영된 최종 공격력이므로 그대로 사용.
-                return alive.OrderByDescending(a => a.FinalAtk).Take(System.Math.Max(1, tgtCount)).ToList();
+                // 실효딜 가중치 상위 N명(딜러 우선). raw FinalAtk가 아니라 대표 스킬 데미지로 랭킹 →
+                // 공%로 atk만 뻥튀기한 캐릭(예: 레이첼)이 버프를 가로채는 문제 방지. 비딜러(=0)는 후순위.
+                return alive.OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk)
+                    .Take(System.Math.Max(1, tgtCount)).ToList();
             return alive;   // Party 전체
         }
 
