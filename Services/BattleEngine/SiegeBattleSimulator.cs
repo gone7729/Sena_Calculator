@@ -465,6 +465,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsCritical = true,
                 IsWeakpoint = true,
                 IsSkillConditionMet = true,
+                // 잃은HP 비례 보너스(예: 광풍참 +50%) — 대상 실제 잔여HP%로 비례. R3 보스 음수HP면 0%잔여→풀보너스.
+                IsLostHpConditionMet = true,
+                LostHpActualRemainingPct = target.MaxHp > 0 ? target.CurrentHp / target.MaxHp * 100.0 : 0,
                 Mode = BattleMode.Boss,
                 IsTargetBoss = target.IsBoss,
                 SelfMaxHp = ally.MaxHp,
@@ -1202,6 +1205,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 RoundScore = state.RoundScore,
                 TotalTurns = state.CurrentTurn,
                 RoundsCleared = state.CurrentRound - 1,
+                ElapsedSeconds = state.ElapsedSeconds,
                 TurnLogs = state.TurnLogs,
                 DecisionPoints = state.DecisionPoints,
             };

@@ -63,6 +63,8 @@ namespace GameDamageCalculator.Services
             public bool IsBlocked { get; set; }
             public bool IsSkillConditionMet { get; set; }
             public bool IsLostHpConditionMet { get; set; }
+            // 시즈: 대상 실제 잔여HP%(0~100). 지정 시 잃은HP 보너스를 이 값으로 비례 계산(LostHpAssumedRemaining 대신).
+            public double? LostHpActualRemainingPct { get; set; }
 
             // ===== 상태이상 =====
             public double EffHit { get; set; }
@@ -417,6 +419,12 @@ namespace GameDamageCalculator.Services
         {
             if (levelData == null || levelData.LostHpBonusDmgMax <= 0) return 0;
             if (!input.IsLostHpConditionMet) return 0;
+            // 시즈 등: 대상 실제 잔여HP%가 주어지면 그 값으로 비례 (음수HP 스펀지면 0% 잔여 → 풀 보너스)
+            if (input.LostHpActualRemainingPct.HasValue)
+            {
+                double rem = System.Math.Max(0, System.Math.Min(100, input.LostHpActualRemainingPct.Value));
+                return levelData.LostHpBonusDmgMax * (100.0 - rem) / 100.0;
+            }
             // 잔여HP% 기준이 있으면 비례 계산 (예: 30% 남음 → 70% 손실 → 50% × 0.7 = 35%)
             if (levelData.LostHpAssumedRemaining > 0)
             {

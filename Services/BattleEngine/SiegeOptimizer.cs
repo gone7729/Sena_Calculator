@@ -24,6 +24,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 자동 장착할지 (R3 보스 기준 1회)
         public bool AutoEquip { get; set; } = true;
 
+        // 저점-우선 기어: 치확/약확을 (파티 버스트 버프 포함) 100%까지만 채우고 나머지는 치피/공%로.
+        // 버프-정렬 로테이션 전제(가 가정)라 정렬 안 되면 평균 점수 소폭 하락 가능 → 기본 OFF, Phase 2와 함께 평가.
+        public bool FloorFirstGear { get; set; } = false;
+
         // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치를 적용해 로테이션 최적 점수·플랜 산출
         public bool OptimizeRotation { get; set; } = true;
         public int RotationBeamWidth { get; set; } = 10;
@@ -183,9 +187,14 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 1) 영웅별 세트 후보 생성 (메인·부옵은 프록시 데미지로 최적). 기준선 = 첫 후보.
             var cands = new Dictionary<BattleCharacter, List<(string Set, EquipmentLoadout Lo)>>();
+            // 딜러별 풀파티 버스트 크리/약점 floor (SoloConfig엔 파티버프가 없으므로 풀팀에서 따로 계산해 주입)
+            // FloorFirstGear OFF면 default(0,0) → 기존 동작 그대로(회귀 없음).
+            (double Cri, double Wek) Floor(BattleCharacter bc) =>
+                config.FloorFirstGear ? optimizer.PartyBuffCritWeak(team, team.IndexOf(bc), bc.Character.Type) : default;
+
             foreach (var bc in targets)
             {
-                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GetGearConstraints(bc));
+                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GetGearConstraints(bc), Floor(bc));
                 if (cands[bc].Count > 0) bc.Equipment = cands[bc][0].Lo;
             }
 
@@ -216,7 +225,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (chosenSet != null)
                 {
                     var refined = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, chosenSet,
-                        GetGearConstraints(bc), lo => { bc.Equipment = lo; return FullScore(); });
+                        GetGearConstraints(bc), lo => { bc.Equipment = lo; return FullScore(); }, Floor(bc));
                     if (refined != null) bc.Equipment = refined;
                 }
                 log.Add(FormatGear(bc));

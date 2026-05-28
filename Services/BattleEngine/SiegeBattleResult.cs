@@ -16,6 +16,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 도달 턴 / 클리어한 라운드 수 (R1·R2 클리어 개수)
         public int TotalTurns { get; set; }
         public int RoundsCleared { get; set; }
+        public double ElapsedSeconds { get; set; }   // 총 경과 게임시간(쿨다운 모델 진단용)
 
         // 턴별 로그
         public List<BattleTurnLog> TurnLogs { get; set; } = new();
