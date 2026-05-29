@@ -3861,10 +3861,11 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
-                            // 약점 공격 피해량 23% 증가 [상시] (스킬 2회 발동 시 흡혈[2턴]은 회복 메카닉, 모델 없음 → Effect 텍스트)
+                            // 약점 공격 피해량 23% 증가 [상시]. 모든 아군: 자신 스킬 2회 발동 시 흡혈[2턴](피해량 20% 회복)
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Wek_Dmg = 23 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Wek_Dmg = 23 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Lifesteal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 2, Duration = 2, LifestealRatio = 20 }
                             },
                             Effect = "스킬 2회 발동 시 흡혈[2턴] (피해량 20% 회복)"
                         } },
@@ -3873,6 +3874,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Wek_Dmg = 23 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Lifesteal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, TriggerCount = 2, Duration = 2, LifestealRatio = 20 },
                                 new PersistentEffect {
                                     Target = EffectTarget.Self,
                                     Type = PersistentEffectType.Authority,
@@ -6080,11 +6082,12 @@ namespace GameDamageCalculator.Database
                     {
                         { 0, new PassiveLevelData {
                             // 자신 치명타 확률 27% 증가[상시]. 아군(마법형) 3인 공격기 피해량 증가 28%[상시]
-                            // 생명력 50% 이하 시 모든 피해 면역[2턴](전투당 1회)는 모델 없음 → Effect 텍스트
+                            // 생명력 50% 이하 시 모든 피해 면역[2턴](전투당 1회)
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } },
-                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 28 } }
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 28 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, OncePerBattle = true, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
                             },
                             Effect = "[자신] 생명력 50% 이하 시 모든 피해 면역[2턴](전투당 1회), 치명타 확률 27% 증가[상시]. [아군(마법형)] 3인 공격기 피해량 증가 28%[상시]"
                         }},
@@ -6093,15 +6096,20 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 33 } },
-                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 33 } }
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 33 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, OncePerBattle = true, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
                             },
                             Effect = "강화: [자신] 치명타 확률 33% 증가, 생명력 50% 이하 시 모든 피해 면역[2턴](전투당 1회). [아군(마법형)] 3인 공격기 피해량 증가 33%[상시]"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
-                        // 2초월: 모든 아군 스킬 1회 발동 시 시전자 마법 공격력 55% 보호막[2턴] (모델 없음 → Effect)
+                        // 2초월: 모든 아군 스킬 1회 발동 시 시전자 마법 공격력 55% 보호막[2턴]
                         { 2, new PassiveTranscend {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 55 } }
+                            },
                             Effect = "2초월: [모든 아군] 스킬 1회 발동 시 시전자 마법 공격력 55% 보호막[2턴]"
                         }}
                     }

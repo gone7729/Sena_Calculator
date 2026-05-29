@@ -13,15 +13,8 @@ Console.WriteLine("사용 가능한 시즈 요일: " + string.Join(", ", EnemyDb
 
 var pools = new (string Day, string[] Heroes)[]
 {
-    // 물리감소 요일(월/화/수): 마법딜러 풀
-    ("월요일", new[] { "나타", "루리", "미호", "오를리", "비스킷", "리나", "지크", "에반" }),
-    ("화요일", new[] { "나타", "루리", "미호", "오를리", "비스킷", "리나", "클로에" }),
-    ("수요일", new[] { "나타", "루리", "미호", "오를리", "비스킷", "리나", "클로에", "라이언", "아리엘" }),
-    // 마법감소 요일(목/금): 물리딜러 풀
-    ("목요일", new[] { "타카", "라이언", "풍연", "레이첼", "비스킷", "오를리" }),
-    ("금요일", new[] { "타카", "라이언", "풍연", "레이첼", "비스킷", "오를리" }),
-    // 일요일(5인기감쇄만): 물리+마법 혼합 풀
-    ("일요일", new[] { "타카", "라이언", "풍연", "나타", "루리", "미호", "비스킷", "오를리" }),
+    // [임시 진단] 수요일 실측 comp: 1딜러 나타 + 미호(cleanse) + 비스킷·리나(버퍼) + 라이언(면역+나타쿨감), 보호진형
+    ("수요일", new[] { "나타", "미호", "비스킷", "리나", "라이언" }),
 };
 
 foreach (var (day, heroes) in pools)
@@ -39,7 +32,8 @@ foreach (var (day, heroes) in pools)
     {
         var ch = CharacterDb.Characters.FirstOrDefault(c => c.Name == name);
         if (ch == null) { missing.Add(name); continue; }
-        candidates.Add(new BattleCharacter { Character = ch, IsSkillEnhanced = true, TranscendLevel = 12 });
+        candidates.Add(new BattleCharacter { Character = ch, IsSkillEnhanced = true, TranscendLevel = 12,
+            PotentialAtkLevel = 3, PotentialDefLevel = 3, PotentialHpLevel = 3 });
     }
     if (missing.Count > 0) Console.WriteLine($"[경고] 미구현 영웅 제외: {string.Join(", ", missing)}");
     if (candidates.Count < 5) { Console.WriteLine($"[skip] 후보 부족({candidates.Count}명)"); continue; }
@@ -50,6 +44,8 @@ foreach (var (day, heroes) in pools)
         SiegeStage = stage,
         MaxTurns = 70,
         AutoEquip = true,
+        RotationBeamWidth = 30,    // 기본10 → 30 (더 넓게 탐색)
+        RotationMaxDepth = 40,     // 기본18 → 40 (전 배틀 스킬턴 커버: R1~R3 전부)
         AllyPet = PetDb.GetByName("윈디"),
         PetStar = 6,
         PetEnhance = 3,

@@ -42,6 +42,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double CurrentHp { get; set; }
         public double MaxHp { get; set; }
 
+        // ===== 공성전 아군 회복/보호막 (단일보스 sim 미사용) =====
+        public double Shield { get; set; }                  // 흡수 보호막 풀 (Shield_HpRatio/AtkRatio 버프 → 피격 시 먼저 소진)
+        public int ShieldTurns { get; set; }                // 보호막 잔여 턴
+        public List<SiegeAllyRegen> Regens { get; set; } = new();  // 지속 회복(재생) — 매 턴 PerTurn만큼 회복
+        public int LifestealTurns { get; set; }             // 흡혈 잔여 턴 (미호 등) — 활성 중 적에 준 피해의 LifestealRatio% 회복
+        public double LifestealRatio { get; set; }          // 흡혈 회복 비율% (피해량 대비)
+        public int SkillCastCount { get; set; }             // 자신 스킬 발동 누적 횟수 (N회마다 트리거용)
+        public bool HpThresholdNullifyUsed { get; set; }    // 생명력 임계 피해무효(나타 50% 등) 전투당 1회 소비
+
         // ===== 생존 메카닉 런타임 상태 =====
         public bool IsDead { get; set; }                    // 사망 시 이후 자기 턴 스킵
         public int NullifyHitsRemaining { get; set; }       // 피해 무효화 잔여 피격 횟수
@@ -129,6 +138,14 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double PerTurnAmount { get; set; }
         public int RemainingTurns { get; set; }
         public string SourceLabel { get; set; }   // 로그용 (예: "보스 광역 / 트루드")
+    }
+
+    /// <summary>공성전 아군 지속 회복(재생) 1건. 매 턴 PerTurn만큼 회복하고 RemainingTurns--.</summary>
+    public class SiegeAllyRegen
+    {
+        public double PerTurn { get; set; }        // 턴당 회복량 (시전 시점 시전자 최대HP 비례 스냅샷)
+        public int RemainingTurns { get; set; }
+        public string SourceName { get; set; }     // 로그용 시전자명
     }
 
     /// <summary>
