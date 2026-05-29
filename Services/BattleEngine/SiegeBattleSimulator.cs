@@ -340,6 +340,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             ProcessAttackStacks(state, ally, isSkill: false);   // 공격 발동형 스택 — 평타 2회마다 1회
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                             ApplyBasicAttackCdReduction(state, ally, normal);   // 평타 쿨감(예: 라이언 자신+최고공격력 아군 9초)
+                            ApplySkillHeal(state, ally, normal);   // 평타 회복(예: 리나 강화평타 최저HP 아군 7%)
                         }
                     }
                 }
@@ -396,6 +397,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             ally.TotalDamageDealt += dmg;
             state.TotalScore += dmg;
             state.RoundScore[state.CurrentRound] = state.RoundScore.GetValueOrDefault(state.CurrentRound) + dmg;
+
+            // 흡혈: 활성 중이면 적에 준 피해의 LifestealRatio%만큼 시전자 회복 (미호 파티 흡혈 등)
+            if (ally.LifestealTurns > 0 && ally.LifestealRatio > 0)
+                HealAlly(state, ally, dmg * ally.LifestealRatio / 100.0, ally.Source.Character.Name, "흡혈");
 
             state.TurnLogs.Add(new BattleTurnLog
             {
@@ -597,6 +602,24 @@ namespace GameDamageCalculator.Services.BattleEngine
                 return;
             }
 
+            // 아군 보호막 흡수 (Shield_HpRatio 버프). 흡수분은 HP 피해가 아님. 전부 막으면 HP 피해 없음.
+            if (ally.Shield > 0)
+            {
+                double absorbed = Math.Min(ally.Shield, dmg);
+                ally.Shield -= absorbed;
+                dmg -= absorbed;
+                if (dmg <= 0)
+                {
+                    state.TurnLogs.Add(new BattleTurnLog
+                    {
+                        Turn = state.CurrentTurn, ActorName = enemy.Source.Name, IsAlly = false,
+                        ActionType = ActionType.BuffApplied, SkillName = "보호막", DamageDealt = 0,
+                        Description = $"{ally.Source.Character.Name} 보호막 흡수 {absorbed:N0} (잔여 {ally.Shield:N0})",
+                    });
+                    return;
+                }
+            }
+
             ally.CurrentHp -= dmg;
             string outcome = "";
             if (ally.CurrentHp <= 0)
@@ -617,6 +640,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = dmg,
                 Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
             });
+
+            CheckHpThresholdNullify(state, ally);   // 생명력 임계 피해무효(나타 50% 등) 트리거
         }
 
         /// <summary>살아있는 아군 중 랜덤 1명 (없으면 null).</summary>
@@ -734,6 +759,125 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 턴 기반 생존(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소
                 if (ally.NullifyTurnsRemaining > 0) ally.NullifyTurnsRemaining--;
                 if (ally.ImmortalTurnsRemaining > 0) ally.ImmortalTurnsRemaining--;
+                if (ally.LifestealTurns > 0) ally.LifestealTurns--;   // 흡혈 잔여 턴 감소
+
+                // 지속 회복(재생) 틱 + 잔여 턴 감소 (예: 리나 행진가 매턴 시전자 최대HP 15%)
+                if (ally.Regens.Count > 0 && !ally.IsDead)
+                {
+                    foreach (var rg in ally.Regens)
+                    {
+                        HealAlly(state, ally, rg.PerTurn, rg.SourceName, "재생");
+                        rg.RemainingTurns--;
+                    }
+                    ally.Regens.RemoveAll(r => r.RemainingTurns <= 0);
+                }
+                // 보호막 잔여 턴 (만료 시 소멸)
+                if (ally.ShieldTurns > 0 && --ally.ShieldTurns <= 0) ally.Shield = 0;
+            }
+        }
+
+        /// <summary>아군 회복 (MaxHp 상한). 점수와 무관 — 로그만 남긴다.</summary>
+        private void HealAlly(SiegeBattleState state, CharacterBattleState target, double amount, string srcName, string label)
+        {
+            if (target == null || target.IsDead || amount <= 0) return;
+            double before = target.CurrentHp;
+            target.CurrentHp = Math.Min(target.MaxHp, target.CurrentHp + amount);
+            double healed = target.CurrentHp - before;
+            if (healed <= 0) return;
+            Log(state, srcName, true, ActionType.BuffApplied, label, 0,
+                $"{target.Source.Character.Name} 회복 +{healed:N0} (HP {target.CurrentHp:N0}/{target.MaxHp:N0})");
+        }
+
+        /// <summary>
+        /// 스킬/평타의 직접 회복(HealHpRatio = 시전자 최대HP 비례)을 대상 아군에 적용.
+        /// 대상: LowestHpAlly 셀렉터 → 최저HP 아군(자신 제외) / TargetCount≥파티수 → 전체 / 그 외 → 자신.
+        /// </summary>
+        private void ApplySkillHeal(SiegeBattleState state, CharacterBattleState caster, Skill skill)
+        {
+            var lvl = skill.GetLevelData(caster.Source.IsSkillEnhanced);
+            if (lvl == null) return;
+            double ratio = lvl.HealHpRatio + (skill.GetTranscendBonus(caster.Source.TranscendLevel)?.HealHpRatio ?? 0);
+            if (ratio <= 0) return;
+            double amount = caster.MaxHp * ratio / 100.0;
+
+            var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
+            List<CharacterBattleState> targets;
+            if (lvl.TargetSelector == TargetSelector.LowestHpAlly)
+                targets = alive.Where(a => a != caster)
+                    .OrderBy(a => a.MaxHp > 0 ? a.CurrentHp / a.MaxHp : 1).Take(1).ToList();
+            else if (lvl.TargetCount >= state.AllyStates.Count)
+                targets = alive;   // 전체 회복 (예: 리나 행진가 TargetCount=5)
+            else
+                targets = new List<CharacterBattleState> { caster };
+            foreach (var t in targets) HealAlly(state, t, amount, caster.Source.Character.Name, skill.Name);
+        }
+
+        /// <summary>
+        /// 아군 스킬 시전 시 발동하는 파티 패시브(시전자 대상). 패시브 보유 아군이 살아있어야 발동.
+        ///  - 나타 2초월: [모든 아군] 자신 스킬 발동 시 시전자 공격력 55% 보호막[2턴]
+        ///  - 미호: [모든 아군] 자신 스킬 2회 발동 시 흡혈[2턴](피해 20% 회복)
+        /// </summary>
+        private void ApplyPartyOnSkillCastPassives(SiegeBattleState state, CharacterBattleState caster)
+        {
+            caster.SkillCastCount++;
+            foreach (var owner in state.AllyStates.Where(a => !a.IsDead))
+            {
+                var passive = owner.Source.Character.Passive;
+                if (passive == null) continue;
+                foreach (var e in GetPassiveEffects(passive, owner))
+                {
+                    if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.SkillOnly) continue;
+                    if (e.Target != EffectTarget.Party) continue;
+
+                    // 보호막 (시전자 공격력 비례) — 더 큰 값으로만 갱신
+                    if (e.Type == PersistentEffectType.Buff && (e.Buff?.Shield_AtkRatio ?? 0) > 0)
+                    {
+                        double shield = caster.FinalAtk * e.Buff.Shield_AtkRatio / 100.0;
+                        int dur = e.Duration > 0 ? e.Duration : 2;
+                        if (shield > caster.Shield) { caster.Shield = shield; caster.ShieldTurns = Math.Max(caster.ShieldTurns, dur); }
+                        Log(state, owner.Source.Character.Name, true, ActionType.BuffApplied, "보호막", 0,
+                            $"{caster.Source.Character.Name} 보호막 {shield:N0} [{dur}턴]");
+                    }
+
+                    // 흡혈 (N회 발동마다 활성화)
+                    if (e.Type == PersistentEffectType.Lifesteal && e.LifestealRatio > 0)
+                    {
+                        int need = Math.Max(1, e.TriggerCount);
+                        if (caster.SkillCastCount % need == 0)
+                        {
+                            int dur = e.Duration > 0 ? e.Duration : 2;
+                            caster.LifestealTurns = Math.Max(caster.LifestealTurns, dur);
+                            caster.LifestealRatio = e.LifestealRatio;
+                            Log(state, owner.Source.Character.Name, true, ActionType.BuffApplied, "흡혈", 0,
+                                $"{caster.Source.Character.Name} 흡혈 {e.LifestealRatio:0}% [{dur}턴]");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>생명력 임계 트리거 피해무효 (예: 나타 생명력 50% 이하 → 모든 피해 면역 2턴, 전투당 1회).</summary>
+        private void CheckHpThresholdNullify(SiegeBattleState state, CharacterBattleState ally)
+        {
+            if (ally.IsDead || ally.HpThresholdNullifyUsed || ally.MaxHp <= 0) return;
+            double hpPct = ally.CurrentHp / ally.MaxHp * 100.0;
+            var passive = ally.Source.Character.Passive;
+            if (passive == null) return;
+            foreach (var e in GetPassiveEffects(passive, ally))
+            {
+                if (e.Type != PersistentEffectType.DamageNullification || e.DamageNullification == null) continue;
+                if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnHpBelow) continue;
+                if (hpPct > e.TriggerHpThreshold) continue;
+
+                ally.HpThresholdNullifyUsed = true;
+                ally.NullifyType = e.DamageNullification.Type;
+                if (e.DamageNullification.Duration > 0)
+                    ally.NullifyTurnsRemaining = Math.Max(ally.NullifyTurnsRemaining, e.DamageNullification.Duration);
+                if (e.DamageNullification.HitCount > 0)
+                    ally.NullifyHitsRemaining = Math.Max(ally.NullifyHitsRemaining, e.DamageNullification.HitCount);
+                Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "피해 면역", 0,
+                    $"{ally.Source.Character.Name} 생명력 {hpPct:0}%↓ → 모든 피해 면역 [{e.DamageNullification.Duration}턴]");
+                break;
             }
         }
 
@@ -978,6 +1122,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
             ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
+            ApplySkillHeal(state, ally, skill);   // 스킬 직접 회복(HealHpRatio, 예: 리나 행진가 전체회복 24%)
+            ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
             state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
 
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
@@ -1064,6 +1210,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var targets = ResolveAllyBuffTargets(state, ally, target, selector, tgtCount);
                 int d = dur > 0 ? dur : 99;
                 foreach (var t in targets)
+                {
                     t.Effects.AddEffect(new BattleEffect
                     {
                         Id = $"siege_skbuff:{actor}:{skill.Name}:{t.PartyIndex}",
@@ -1075,6 +1222,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                         RemainingTurns = d,
                         BuffValues = b.Clone(),
                     });
+                    // 보호막(Shield_HpRatio) → 흡수 풀 생성 (대상 최대HP 비례). 더 큰 값으로만 갱신.
+                    if (b.Shield_HpRatio > 0)
+                    {
+                        double shield = t.MaxHp * b.Shield_HpRatio / 100.0;
+                        if (shield > t.Shield) { t.Shield = shield; t.ShieldTurns = Math.Max(t.ShieldTurns, d); }
+                    }
+                }
                 string names = string.Join(",", targets.Select(t => t.Source.Character.Name));
                 Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0, $"버프 {names}: {s} [{d}턴]");
             }
@@ -1145,6 +1299,24 @@ namespace GameDamageCalculator.Services.BattleEngine
                         case SkillEffectType.BuffDispel when e.DispelBuffCount > 0:
                             DispelEnemyShield();
                             break;
+                        case SkillEffectType.StatusAilment when e.StatusType == StatusEffectType.Regeneration:
+                        {
+                            // 지속 회복(재생): 매 턴 시전자 최대HP × CustomHpRatio% 회복. 대상 아군에 등록.
+                            double rr = e.CustomHpRatio ?? 0;
+                            if (rr <= 0) break;
+                            double perTurn = ally.MaxHp * rr / 100.0;
+                            int turns = e.Duration > 0 ? e.Duration : 1;
+                            IEnumerable<CharacterBattleState> rt = e.Target == EffectTarget.Party
+                                ? state.AllyStates.Where(x => !x.IsDead)
+                                : (e.TargetSelector == TargetSelector.LowestHpAlly
+                                    ? state.AllyStates.Where(x => !x.IsDead).OrderBy(x => x.MaxHp > 0 ? x.CurrentHp / x.MaxHp : 1).Take(1)
+                                    : new[] { ally });
+                            foreach (var t in rt.ToList())
+                                t.Regens.Add(new SiegeAllyRegen { PerTurn = perTurn, RemainingTurns = turns, SourceName = actor });
+                            Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                                $"지속회복 +{perTurn:N0}/턴 [{turns}턴]");
+                            break;
+                        }
                         case SkillEffectType.DebuffCleanse when e.DispelDebuffCount > 0:
                             // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
                             foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
