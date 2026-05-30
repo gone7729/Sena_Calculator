@@ -79,7 +79,6 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 점수가 크게 오르는 보상이 계산되기 전에 사라진다. → lookahead를 전체 후보에 적용해
                 // "셋업→버스트" 후보가 살아남게 한다. (best는 실제 점수로 추적)
                 var ranked = candidates;
-                // 1-스텝: 전체 후보 (셋업이 가지치기 전에 다음-버스트 보상 반영)
                 foreach (var c in ranked)
                 {
                     c.LookScore = c.Score;

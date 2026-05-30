@@ -260,7 +260,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     int idx = (state.AllyRotationCursor + k) % n;
                     var ally = state.AllyStates[idx];
                     if (ally.IsDead || ally.Effects.HasActionBlockingCC()) continue;
-                    var skill = PickAllySkill(ally);
+                    var skill = PickAllySkill(ally, state);
                     if (skill == null) continue;
                     ExecuteAllySkill(state, idx, skill);
                     return;
@@ -1091,15 +1091,25 @@ namespace GameDamageCalculator.Services.BattleEngine
         private bool AllEnemiesDown(SiegeBattleState state)
             => state.Enemies.Count > 0 && state.Enemies.All(e => e.CurrentHp <= 0);
 
-        private Skill PickAllySkill(CharacterBattleState ally)
+        private Skill PickAllySkill(CharacterBattleState ally, SiegeBattleState state)
         {
             // 쿨 충족 스킬 중 기본 쿨타임이 긴 핵심 스킬 우선 (버퍼의 버프 스킬이 쿨이 길어 우선 시전됨).
             // 동률은 SkillType 높은 순(궁→…→1). 평타 제외.
+            // 단 어떤 아군이 60%HP 미만이면 힐 스킬(HealHpRatio>0) 우선 — 실측 리나가 행진가로 팀을 살림.
             bool enh = ally.Source.IsSkillEnhanced;
             int tr = ally.Source.TranscendLevel;
-            return ally.Source.Character.Skills?
+            var ready = ally.Source.Character.Skills?
                 .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
                 .Where(s => ally.IsSkillReady(s.SkillType))
+                .ToList();
+            if (ready == null || ready.Count == 0) return null;
+            bool teamNeedsHeal = state.AllyStates.Any(a => !a.IsDead && a.MaxHp > 0 && a.CurrentHp < a.MaxHp * 0.6);
+            if (teamNeedsHeal)
+            {
+                var heal = ready.FirstOrDefault(s => (s.GetLevelData(enh)?.HealHpRatio ?? 0) > 0);
+                if (heal != null) return heal;
+            }
+            return ready
                 .OrderByDescending(s => s.GetCooldown(enh, tr))
                 .ThenByDescending(s => s.SkillType)
                 .FirstOrDefault();
@@ -1463,6 +1473,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TotalTurns = state.CurrentTurn,
                 RoundsCleared = state.CurrentRound - 1,
                 ElapsedSeconds = state.ElapsedSeconds,
+                AlliesAlive = state.AllyStates.Count(a => !a.IsDead),
                 TurnLogs = state.TurnLogs,
                 DecisionPoints = state.DecisionPoints,
             };
