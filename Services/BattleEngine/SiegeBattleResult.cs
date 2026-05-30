@@ -17,6 +17,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public int TotalTurns { get; set; }
         public int RoundsCleared { get; set; }
         public double ElapsedSeconds { get; set; }   // 총 경과 게임시간(쿨다운 모델 진단용)
+        public int AlliesAlive { get; set; }         // 전투 종료 시 살아있는 아군 수 (빔 생존 가치 평가용)
 
         // 턴별 로그
         public List<BattleTurnLog> TurnLogs { get; set; } = new();
