@@ -3880,7 +3880,7 @@ namespace GameDamageCalculator.Database
                                     Type = PersistentEffectType.Authority,
                                     ApplyMode = ApplyMode.Triggered,
                                     TriggerCondition = TriggerCondition.OnHpBelow,
-                                    Authority = new Authority { ReviveHp = 1, OncePerBattle = true } }
+                                    Authority = new Authority { ReviveHpPercent = 30, OncePerBattle = true } }
                             },
                             Effect = "스킬 2회 발동 시 흡혈[2턴] (피해량 20% 회복), 권능(전투당 1회) + 발동 시 최대 생명력 30% 회복"
                         } }

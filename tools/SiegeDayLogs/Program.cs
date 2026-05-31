@@ -44,7 +44,7 @@ foreach (var (day, heroes) in pools)
         SiegeStage = stage,
         MaxTurns = 70,
         AutoEquip = true,
-        RotationBeamWidth = 30,    // 기본10 → 30 (더 넓게 탐색)
+        RotationBeamWidth = 30,    // 기본10 → 30 (stress test로 100 시도해도 점수 동일 — 30이 이미 천장)
         RotationMaxDepth = 40,     // 기본18 → 40 (전 배틀 스킬턴 커버: R1~R3 전부)
         AllyPet = PetDb.GetByName("윈디"),
         PetStar = 6,
