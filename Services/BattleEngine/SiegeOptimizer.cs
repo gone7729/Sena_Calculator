@@ -194,7 +194,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             foreach (var bc in targets)
             {
-                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GetGearConstraints(bc), Floor(bc));
+                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GetGearConstraints(bc, config.SiegeStage), Floor(bc));
                 if (cands[bc].Count > 0) bc.Equipment = cands[bc][0].Lo;
             }
 
@@ -225,7 +225,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (chosenSet != null)
                 {
                     var refined = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, chosenSet,
-                        GetGearConstraints(bc), lo => { bc.Equipment = lo; return FullScore(); }, Floor(bc));
+                        GetGearConstraints(bc, config.SiegeStage), lo => { bc.Equipment = lo; return FullScore(); }, Floor(bc));
                     if (refined != null) bc.Equipment = refined;
                 }
                 log.Add(FormatGear(bc));
@@ -293,11 +293,11 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>
         /// 역할 기반 장비 탐색 제약. 치명·약점은 확률 기반 기댓값이라 치확%·약확%도 의미가 있어 포함.
-        /// 딜러: 세트 복수자/암살자/추적자/선봉장. 딜러제외: 복수자/수문장(+받피감/생명력/방어력).
+        /// 효과적 딜러: DPS 세트만. 효과적 비딜러(자연 비딜러 + 요일감쇄로 무력화된 딜러): 복수자/수문장 둘 다 시도.
         /// </summary>
-        private static GearConstraints GetGearConstraints(BattleCharacter bc)
+        private static GearConstraints GetGearConstraints(BattleCharacter bc, Stage stage = null)
         {
-            return IsDealer(bc)
+            return IsEffectiveDealer(bc, stage)
                 ? new GearConstraints
                 {
                     AllowedSets = new[] { "복수자", "암살자", "추적자", "선봉장" },
@@ -312,6 +312,22 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ArmorMains = new[] { "공격력%", "받피감%" },
                     SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력", "생명력%", "방어력%" },
                 };
+        }
+
+        /// <summary>
+        /// 효과적 딜러 판정: 타입이 딜러여도 요일 reduction으로 데미지가 90% 이상 차단되면 유틸 취급.
+        /// 예) 라이언(공격형)이 수요일(Phys90) 채용 시 → false → 생존 세팅 탐색.
+        /// </summary>
+        private static bool IsEffectiveDealer(BattleCharacter bc, Stage stage)
+        {
+            if (!IsDealer(bc)) return false;
+            if (stage == null) return true;
+            // 무대의 아무 적이나 골라 reduction 프로필 확인 (요일 reduction은 동일)
+            var anyEnemyId = stage.Waves?.FirstOrDefault()?.Enemies?.FirstOrDefault()?.EnemyId ?? 0;
+            var enemy = EnemyDb.AllEnemies.FirstOrDefault(e => e.Id == anyEnemyId);
+            if (enemy == null) return true;
+            double red = bc.Character.AttackType == AttackType.Physical ? enemy.PhysicalReduction : enemy.MagicReduction;
+            return red < 90;   // 90% 이상이면 효과적 비딜러
         }
 
         /// <summary>
