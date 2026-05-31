@@ -62,13 +62,16 @@ namespace GameDamageCalculator.Services.BattleEngine
                 return new SurvivalResult { Survived = true, Label = "불굴/불사", Description = $"치사 피해 무효 (잔여 피격 {target.ImmortalHitsRemaining})" };
             }
 
-            // 2. 권능 — 현재 생명력 이상 피해 시 ReviveHp로 1회 생존 (전투당 1회)
+            // 2. 권능 — 현재 생명력 이상 피해 시 ReviveHpPercent(MaxHp%) 또는 ReviveHp로 1회 생존 (전투당 1회)
             var authority = GetPassiveSurvival(target)?.Authority;
             if (authority != null && !target.AuthorityUsed)
             {
                 target.AuthorityUsed = true;
-                target.CurrentHp = System.Math.Max(1, authority.ReviveHp);
-                return new SurvivalResult { Survived = true, Label = "권능", Description = $"치사 피해 생존 → 생명력 {target.CurrentHp:N0}" };
+                double hp = authority.ReviveHpPercent > 0
+                    ? target.MaxHp * (authority.ReviveHpPercent / 100.0)
+                    : System.Math.Max(1, authority.ReviveHp);
+                target.CurrentHp = hp;
+                return new SurvivalResult { Survived = true, Label = "권능", Description = $"치사 피해 생존 → 생명력 {hp:N0}" };
             }
 
             // 3. 부활 — 사망 시 부활 (전투당 1회) + 무적 윈도우 설정

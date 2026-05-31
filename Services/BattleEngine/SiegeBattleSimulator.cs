@@ -392,11 +392,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 파괴 후 잔여 피해는 HP로 (아래 점수 집계). def0 기준이라 파괴 1타는 약간 과대(근사).
             }
 
+            // R1/R2: 적 최대체력만큼만 점수 누적(오버킬 미집계). R3: 적 미사망이라 오버킬 누적.
+            double scoredDmg = (state.CurrentRound < 3)
+                ? System.Math.Max(0, System.Math.Min(dmg, target.CurrentHp))
+                : dmg;
             target.CurrentHp -= dmg;            // HP 0 이하 허용 (무사망)
             target.TotalDamageTaken += dmg;
-            ally.TotalDamageDealt += dmg;
-            state.TotalScore += dmg;
-            state.RoundScore[state.CurrentRound] = state.RoundScore.GetValueOrDefault(state.CurrentRound) + dmg;
+            ally.TotalDamageDealt += scoredDmg;
+            state.TotalScore += scoredDmg;
+            state.RoundScore[state.CurrentRound] = state.RoundScore.GetValueOrDefault(state.CurrentRound) + scoredDmg;
 
             // 흡혈: 활성 중이면 적에 준 피해의 LifestealRatio%만큼 시전자 회복 (미호 파티 흡혈 등)
             if (ally.LifestealTurns > 0 && ally.LifestealRatio > 0)
@@ -813,9 +817,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 아군 스킬 시전 시 발동하는 파티 패시브(시전자 대상). 패시브 보유 아군이 살아있어야 발동.
-        ///  - 나타 2초월: [모든 아군] 자신 스킬 발동 시 시전자 공격력 55% 보호막[2턴]
-        ///  - 미호: [모든 아군] 자신 스킬 2회 발동 시 흡혈[2턴](피해 20% 회복)
+        /// 아군 스킬 시전 시 발동하는 파티/자기 패시브(시전자 대상). 패시브 보유 아군이 살아있어야 발동.
+        ///  - 나타 2초월: [모든 아군] 자신 스킬 발동 시 시전자 마공 55% 보호막[2턴] (Target=Party)
+        ///  - 미호: [모든 아군] 자신 스킬 2회 발동 시 흡혈[2턴] (Target=Party)
+        ///  - 라이언 강화: [자신] 스킬 1회 발동 시 모든 피해 무효화[피격 1회] (Target=Self)
         /// </summary>
         private void ApplyPartyOnSkillCastPassives(SiegeBattleState state, CharacterBattleState caster)
         {
@@ -827,7 +832,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 foreach (var e in GetPassiveEffects(passive, owner))
                 {
                     if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.SkillOnly) continue;
-                    if (e.Target != EffectTarget.Party) continue;
+                    // Party: 패시브 보유자가 누구든 시전자에게 적용. Self: 패시브 보유자가 자기 스킬 시전 시만 자기에게.
+                    if (e.Target != EffectTarget.Party && e.Target != EffectTarget.Self) continue;
+                    if (e.Target == EffectTarget.Self && owner != caster) continue;
 
                     // 보호막 (시전자 공격력 비례) — 더 큰 값으로만 갱신
                     if (e.Type == PersistentEffectType.Buff && (e.Buff?.Shield_AtkRatio ?? 0) > 0)
@@ -851,6 +858,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                             Log(state, owner.Source.Character.Name, true, ActionType.BuffApplied, "흡혈", 0,
                                 $"{caster.Source.Character.Name} 흡혈 {e.LifestealRatio:0}% [{dur}턴]");
                         }
+                    }
+
+                    // 피해 무효화 (예: 타카 강화 - 스킬 1회 발동 시 피격 N회 무효)
+                    if (e.Type == PersistentEffectType.DamageNullification && e.DamageNullification != null)
+                    {
+                        var n = e.DamageNullification;
+                        if (n.HitCount > 0)
+                            caster.NullifyHitsRemaining = Math.Max(caster.NullifyHitsRemaining, n.HitCount);
+                        if (n.Duration > 0)
+                            caster.NullifyTurnsRemaining = Math.Max(caster.NullifyTurnsRemaining, n.Duration);
+                        caster.NullifyType = n.Type;
+                        Log(state, owner.Source.Character.Name, true, ActionType.BuffApplied, "피해 무효화", 0,
+                            $"{caster.Source.Character.Name} 피해 무효 [피격 {n.HitCount}회{(n.Duration > 0 ? $"/{n.Duration}턴" : "")}]");
                     }
                 }
             }
@@ -1003,14 +1023,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     if (dot.TickDamage > 0 && !immune)
                     {
+                        // R1/R2: 오버킬 미집계, R3: 누적
+                        double scoredTick = (state.CurrentRound < 3)
+                            ? System.Math.Max(0, System.Math.Min(dot.TickDamage, enemy.CurrentHp))
+                            : dot.TickDamage;
                         enemy.CurrentHp -= dot.TickDamage;
                         enemy.TotalDamageTaken += dot.TickDamage;
-                        state.TotalScore += dot.TickDamage;
+                        state.TotalScore += scoredTick;
                         state.RoundScore[state.CurrentRound] =
-                            state.RoundScore.GetValueOrDefault(state.CurrentRound) + dot.TickDamage;
+                            state.RoundScore.GetValueOrDefault(state.CurrentRound) + scoredTick;
 
                         var src = state.AllyStates.FirstOrDefault(a => a.Source.Character.Name == dot.SourceName);
-                        if (src != null) src.TotalDamageDealt += dot.TickDamage;
+                        if (src != null) src.TotalDamageDealt += scoredTick;
 
                         var dotName = StatusEffectDb.Get(dot.Type)?.Name ?? dot.Type.ToString();
                         state.TurnLogs.Add(new BattleTurnLog

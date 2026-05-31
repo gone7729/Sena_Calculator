@@ -296,9 +296,10 @@ namespace GameDamageCalculator.Models.Effects
     /// </summary>
     public class Authority
     {
-        public double ReviveHp { get; set; } = 1;        // 생존 시 남는 생명력 (고정값)
-        public bool OncePerBattle { get; set; } = true;  // 전투당 1회
-        public double ShieldAtkRatio { get; set; }       // 발동 시 시전자 공격력 비례 보호막% (0이면 없음)
-        public int ShieldDuration { get; set; }          // 보호막 지속 턴
+        public double ReviveHp { get; set; } = 1;          // 생존 시 남는 생명력 (고정값, ReviveHpPercent=0일 때 사용)
+        public double ReviveHpPercent { get; set; }        // 생존 시 최대HP% (예: 30=30%, 0이면 ReviveHp 고정값) — 미호 호시탐탐 등
+        public bool OncePerBattle { get; set; } = true;    // 전투당 1회
+        public double ShieldAtkRatio { get; set; }         // 발동 시 시전자 공격력 비례 보호막% (0이면 없음)
+        public int ShieldDuration { get; set; }            // 보호막 지속 턴
     }
 }
