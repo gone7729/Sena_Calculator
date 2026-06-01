@@ -559,7 +559,18 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 아군 받피감(자버프) + 아군에게 걸린 받피증/취약(적 디버프)
             var (perm, timed, pet) = ally.Effects.GetSeparatedBuffs();
             double allyDmgRdc = perm.Dmg_Rdc + timed.Dmg_Rdc + pet.Dmg_Rdc;
+            // 5인기 받피감(Dmg_Rdc_Multi, 예: 비스킷 패시브 20%)은 적의 광역(4~5인) 공격에만 적용.
+            int enemyTgtCount = enemySkill?.GetTargetCount(false, 0) ?? 1;
+            if (enemyTgtCount >= 4)
+                allyDmgRdc += perm.Dmg_Rdc_Multi + timed.Dmg_Rdc_Multi + pet.Dmg_Rdc_Multi;
             var allyDebuffs = ally.Effects.GetTotalDebuffs();
+            // 적에 부여된 디버프 반영 (그간 enemy.Effects가 CalcDamageToAlly에서 무시됐음):
+            //  - Atk_Reduction: 적 공격력 감소
+            //  - Dmg_Reduction: 적이 입히는 피해 감소(피감, 비스킷 평타 강화 6%)
+            //  - allyDebuffs.Def_Reduction: 적이 ally에 부여한 방깎(불새 방깎36) → ally 방어 감소
+            var enemyDebuffs = enemy.Effects.GetTotalDebuffs();
+            double effEnemyAtk = enemy.FinalAtk * System.Math.Max(0, 1 - enemyDebuffs.Atk_Reduction / 100.0);
+            double effDmgRdc = allyDmgRdc + enemyDebuffs.Dmg_Reduction;
 
             var input = new DamageCalculator.DamageInput
             {
@@ -567,11 +578,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Skill = enemySkill,
                 IsSkillEnhanced = false,
                 TranscendLevel = 0,
-                FinalAtk = enemy.FinalAtk,
+                FinalAtk = effEnemyAtk,                 // 적 공격력 감소 디버프 반영
                 FinalDef = enemy.FinalDef,
                 CritDamage = e.Stats.Cri_Dmg,
                 BossDef = ally.FinalDef,                // 의미상 target(아군) 방어
-                BossDmgReduction = allyDmgRdc,          // 아군 받피감 (합연산 차감, 보통 작아 음수 없음)
+                DefReduction = allyDebuffs.Def_Reduction,  // 적이 ally에 부여한 방깎(불새 36 등) → ally 방어 감소
+                BossDmgReduction = effDmgRdc,           // 아군 받피감 + 적 출력감소(피감) 합산
                 BossHp = ally.MaxHp,
                 TargetHp = ally.MaxHp,
                 TargetCurrentHp = ally.CurrentHp,
@@ -1016,6 +1028,11 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             foreach (var enemy in state.Enemies)
             {
+                // 적 Effects 잔여 턴 감소 (아군 디버프 만료 처리) — 단일보스 sim과 동치.
+                // 그간 누락돼 따뜻한울림 방깎34/살육의춤 마법취약22 등이 영구 지속됐음.
+                // (IsPermanent=true인 상시 디버프는 영향 없음)
+                enemy.Effects.TickTurn();
+
                 // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
                 if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
 
