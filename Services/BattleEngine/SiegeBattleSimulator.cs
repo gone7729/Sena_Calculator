@@ -132,9 +132,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                     state.IsSkillTurn = false;
                 }
 
-                // 턴 경과: 적 DoT 틱(점수 누적) + 아군 CC/상태이상·면역 잔여턴 감소
-                TickEnemyDots(state);
-                TickAllyStatus(state);
+                // 효과 잔여턴/DoT는 각 캐릭터의 행동 직후에 처리(per-character-action 모델).
+                //   글로벌 sim-turn tick이 아니라, 행동자(actor)만 tick — n턴 지속 = "부여받은 캐릭의 n번 행동".
+                //   이렇게 해야 따뜻한울림 3턴(보스 3번 행동≈24 sim-turn) 같은 셋업이 후속 nuke까지 닿는다.
+                // 전역 효과(EnemyImmunityTurns: 적 진영 피해 면역)만 매 sim-turn 글로벌 감소.
+                if (state.EnemyImmunityTurns > 0) state.EnemyImmunityTurns--;
 
                 // 라운드 전환: 적 전멸 시 다음 라운드 진입 → 선공 스킬턴(0턴, 연쇄)
                 if (state.CurrentRound < 3 && AllEnemiesDown(state))
@@ -309,6 +311,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                     foreach (var a in state.AllyStates)
                         if (!a.IsDead) a.ReduceCooldowns(5);
                     AdvanceTime(state, GetActionDuration(skill));
+
+                    // 행동자(시전 적)만 효과 tick (per-character-action 모델)
+                    TickEnemyAfterAction(state, enemy);
                     return;
                 }
                 // 사용 가능한 스킬이 없으면 스킬턴 스킵
@@ -361,6 +366,12 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 기본공격 소요시간(평타 2초)만큼 전체 쿨다운 감소
             AdvanceTime(state, GetActionDuration(null));
+
+            // 행동자(actor)만 효과 tick (per-character-action 모델)
+            if (actor.IsAlly && actor.Ally != null)
+                TickAllyAfterAction(state, actor.Ally);
+            else if (!actor.IsAlly && actor.Enemy != null && actor.Enemy.CurrentHp > 0)
+                TickEnemyAfterAction(state, actor.Enemy);
         }
 
         /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
@@ -764,32 +775,35 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>턴 경과: 아군 상태이상(CC 등) + 면역 잔여턴 1 감소.</summary>
-        private void TickAllyStatus(SiegeBattleState state)
+        /// <summary>
+        /// 행동 직후 호출 — 행동한 아군 한 명의 효과/잔여턴/재생/보호막을 한 번씩 tick.
+        /// per-character-action 모델: "n턴 지속" = 부여받은 캐릭의 n번 행동(기본공격/스킬) 동안 유효.
+        /// 글로벌 sim-turn tick이 아니라 행동자만 tick하므로, 셋업(따뜻한울림 3턴)이
+        /// 보스의 3번 행동(≈24 sim-turn) 동안 유효 → 후속 nuke들에 닿는다.
+        /// </summary>
+        private void TickAllyAfterAction(SiegeBattleState state, CharacterBattleState ally)
         {
-            foreach (var ally in state.AllyStates)
-            {
-                ally.Effects.TickTurn();
-                foreach (var k in ally.StatusImmunityTurns.Keys.ToList())
-                    ally.StatusImmunityTurns[k] = Math.Max(0, ally.StatusImmunityTurns[k] - 1);
-                // 턴 기반 생존(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소
-                if (ally.NullifyTurnsRemaining > 0) ally.NullifyTurnsRemaining--;
-                if (ally.ImmortalTurnsRemaining > 0) ally.ImmortalTurnsRemaining--;
-                if (ally.LifestealTurns > 0) ally.LifestealTurns--;   // 흡혈 잔여 턴 감소
+            if (ally.IsDead) return;
+            ally.Effects.TickTurn();
+            foreach (var k in ally.StatusImmunityTurns.Keys.ToList())
+                ally.StatusImmunityTurns[k] = Math.Max(0, ally.StatusImmunityTurns[k] - 1);
+            // 턴 기반 생존(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소
+            if (ally.NullifyTurnsRemaining > 0) ally.NullifyTurnsRemaining--;
+            if (ally.ImmortalTurnsRemaining > 0) ally.ImmortalTurnsRemaining--;
+            if (ally.LifestealTurns > 0) ally.LifestealTurns--;   // 흡혈 잔여 턴 감소
 
-                // 지속 회복(재생) 틱 + 잔여 턴 감소 (예: 리나 행진가 매턴 시전자 최대HP 15%)
-                if (ally.Regens.Count > 0 && !ally.IsDead)
+            // 지속 회복(재생) 틱 + 잔여 턴 감소 (예: 리나 행진가 매턴 시전자 최대HP 15%)
+            if (ally.Regens.Count > 0)
+            {
+                foreach (var rg in ally.Regens)
                 {
-                    foreach (var rg in ally.Regens)
-                    {
-                        HealAlly(state, ally, rg.PerTurn, rg.SourceName, "재생");
-                        rg.RemainingTurns--;
-                    }
-                    ally.Regens.RemoveAll(r => r.RemainingTurns <= 0);
+                    HealAlly(state, ally, rg.PerTurn, rg.SourceName, "재생");
+                    rg.RemainingTurns--;
                 }
-                // 보호막 잔여 턴 (만료 시 소멸)
-                if (ally.ShieldTurns > 0 && --ally.ShieldTurns <= 0) ally.Shield = 0;
+                ally.Regens.RemoveAll(r => r.RemainingTurns <= 0);
             }
+            // 보호막 잔여 턴 (만료 시 소멸)
+            if (ally.ShieldTurns > 0 && --ally.ShieldTurns <= 0) ally.Shield = 0;
         }
 
         /// <summary>아군 회복 (MaxHp 상한). 점수와 무관 — 로그만 남긴다.</summary>
@@ -1020,51 +1034,47 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>매 턴 각 적의 DoT 틱 → 점수 누적 + 캐릭별 기여 반영, 잔여턴 감소. 적 면역 중엔 DoT도 무효.</summary>
-        private void TickEnemyDots(SiegeBattleState state)
+        /// <summary>
+        /// 행동 직후 호출 — 행동한 적 한 명의 Effects/보호막/DoT를 한 번씩 tick.
+        /// per-character-action 모델: 적에 걸린 아군 디버프(따뜻한울림 방깎/살육의춤 마법취약)도
+        /// "그 적의 N번 행동" 동안 유효 → 사이클이 짧은 셋업도 후속 nuke까지 닿음.
+        /// </summary>
+        private void TickEnemyAfterAction(SiegeBattleState state, SiegeEnemyState enemy)
         {
+            enemy.Effects.TickTurn();
+            // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
+            if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
+
+            // DoT 데미지 + 잔여 턴 감소 (적 진영 피해 면역 중엔 무효)
             bool immune = state.EnemyImmunityTurns > 0;
-            if (state.EnemyImmunityTurns > 0) state.EnemyImmunityTurns--;   // 면역 잔여 턴 감소
-
-            foreach (var enemy in state.Enemies)
+            foreach (var dot in enemy.ActiveDots)
             {
-                // 적 Effects 잔여 턴 감소 (아군 디버프 만료 처리) — 단일보스 sim과 동치.
-                // 그간 누락돼 따뜻한울림 방깎34/살육의춤 마법취약22 등이 영구 지속됐음.
-                // (IsPermanent=true인 상시 디버프는 영향 없음)
-                enemy.Effects.TickTurn();
-
-                // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
-                if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
-
-                foreach (var dot in enemy.ActiveDots)
+                if (dot.TickDamage > 0 && !immune)
                 {
-                    if (dot.TickDamage > 0 && !immune)
+                    // R1/R2: 오버킬 미집계, R3: 누적
+                    double scoredTick = (state.CurrentRound < 3)
+                        ? System.Math.Max(0, System.Math.Min(dot.TickDamage, enemy.CurrentHp))
+                        : dot.TickDamage;
+                    enemy.CurrentHp -= dot.TickDamage;
+                    enemy.TotalDamageTaken += dot.TickDamage;
+                    state.TotalScore += scoredTick;
+                    state.RoundScore[state.CurrentRound] =
+                        state.RoundScore.GetValueOrDefault(state.CurrentRound) + scoredTick;
+
+                    var src = state.AllyStates.FirstOrDefault(a => a.Source.Character.Name == dot.SourceName);
+                    if (src != null) src.TotalDamageDealt += scoredTick;
+
+                    var dotName = StatusEffectDb.Get(dot.Type)?.Name ?? dot.Type.ToString();
+                    state.TurnLogs.Add(new BattleTurnLog
                     {
-                        // R1/R2: 오버킬 미집계, R3: 누적
-                        double scoredTick = (state.CurrentRound < 3)
-                            ? System.Math.Max(0, System.Math.Min(dot.TickDamage, enemy.CurrentHp))
-                            : dot.TickDamage;
-                        enemy.CurrentHp -= dot.TickDamage;
-                        enemy.TotalDamageTaken += dot.TickDamage;
-                        state.TotalScore += scoredTick;
-                        state.RoundScore[state.CurrentRound] =
-                            state.RoundScore.GetValueOrDefault(state.CurrentRound) + scoredTick;
-
-                        var src = state.AllyStates.FirstOrDefault(a => a.Source.Character.Name == dot.SourceName);
-                        if (src != null) src.TotalDamageDealt += scoredTick;
-
-                        var dotName = StatusEffectDb.Get(dot.Type)?.Name ?? dot.Type.ToString();
-                        state.TurnLogs.Add(new BattleTurnLog
-                        {
-                            Turn = state.CurrentTurn, ActorName = dot.SourceName, IsAlly = true,
-                            ActionType = ActionType.DoTDamage, SkillName = dotName, DamageDealt = dot.TickDamage,
-                            Description = $"[DoT] {dotName} → {enemy.Source.Name}: {dot.TickDamage:N0}",
-                        });
-                    }
-                    dot.RemainingTurns--;
+                        Turn = state.CurrentTurn, ActorName = dot.SourceName, IsAlly = true,
+                        ActionType = ActionType.DoTDamage, SkillName = dotName, DamageDealt = dot.TickDamage,
+                        Description = $"[DoT] {dotName} → {enemy.Source.Name}: {dot.TickDamage:N0}",
+                    });
                 }
-                enemy.ActiveDots.RemoveAll(d => d.RemainingTurns <= 0);
+                dot.RemainingTurns--;
             }
+            enemy.ActiveDots.RemoveAll(d => d.RemainingTurns <= 0);
         }
 
         #endregion
@@ -1180,6 +1190,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
             if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
             AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소
+
+            // 행동자(시전 아군)만 효과 tick (per-character-action 모델)
+            TickAllyAfterAction(state, ally);
         }
 
         /// <summary>이번 아군 스킬턴에 가능한 행동 후보(살아있고 CC 아닌 아군 × 준비된 비평타 스킬) + Hold. (빔서치용)</summary>
