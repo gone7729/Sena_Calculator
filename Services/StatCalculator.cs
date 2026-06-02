@@ -32,6 +32,9 @@ namespace GameDamageCalculator.Services
         // 장신구
         public Accessory Accessory { get; set; }
 
+        // 전용무기 (공격력 flat 247 + 조율 4슬롯). null이면 미적용.
+        public ExclusiveWeapon ExclusiveWeapon { get; set; }
+
         // 진형
         public Formation Formation { get; set; }
 
@@ -120,6 +123,10 @@ namespace GameDamageCalculator.Services
             var transcendStats = input.Character?.GetTranscendStats(input.TranscendLevel) ?? new BaseStatSet();
             var setBonus = GetSetBonus(input.EquipSetName, input.EquipSetCount);
             var petBaseStats = input.Pet?.GetBaseStats(input.PetStar) ?? new BaseStatSet();
+
+            // 전용무기 (공격력 flat + 조율 4슬롯). null이면 빈 set — 영향 없음.
+            var exclusiveStats = new BaseStatSet();
+            input.ExclusiveWeapon?.ApplyTo(exclusiveStats);
 
             // ========== 버프 ==========
             BuffSet totalBuffs = input.TotalBuffs ?? new BuffSet();
@@ -237,8 +244,13 @@ namespace GameDamageCalculator.Services
             var passiveLevelData = input.Character?.Passive?.GetLevelData(input.IsSkillEnhanced);
             var passiveFlatBonus = passiveLevelData?.FlatBonus ?? new BaseStatSet();
 
+            // 전용무기 flat: 캐릭터 AttackType에 맞춰 Atk 또는 MagicAtk 한쪽만 채워져 있다.
+            // exclusiveStats.Atk (물리 무기) 또는 exclusiveStats.MagicAtk (마법 무기) 중 active한 값을 사용.
+            double exclusiveFlatAtk = atkType == AttackType.Magic ? exclusiveStats.MagicAtk : exclusiveStats.Atk;
+
             double flatAtk = equipFlatAtk + potentialStats.Atk + equipmentStats.SubStats.Atk
-                           + petBaseStats.Atk + equipmentStats.MainStats.Atk + passiveFlatBonus.Atk;
+                           + petBaseStats.Atk + equipmentStats.MainStats.Atk + passiveFlatBonus.Atk
+                           + exclusiveFlatAtk;
             double flatDef = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def
                            + petBaseStats.Def + equipmentStats.MainStats.Def + passiveFlatBonus.Def;
             double flatHp = equipFlatHp + potentialStats.Hp + equipmentStats.SubStats.Hp
@@ -252,20 +264,24 @@ namespace GameDamageCalculator.Services
             double formationDefRate = input.Formation?.GetDefRate() ?? 0;
 
             // 스탯창 공격력%: 진형, 펫잠재 제외 (이것들은 기초공에만 적용)
+            // 전용무기 조율(Atk_Rate/Def_Rate/Hp_Rate)도 합산.
             double totalAtkRate = transcendStats.Atk_Rate
                 + setBonus.Atk_Rate + equipmentStats.SubStats.Atk_Rate
                 + accessoryStats.Atk_Rate
-                + equipmentStats.MainStats.Atk_Rate;
+                + equipmentStats.MainStats.Atk_Rate
+                + exclusiveStats.Atk_Rate;
 
             double totalDefRate = transcendStats.Def_Rate
                 + setBonus.Def_Rate + equipmentStats.SubStats.Def_Rate
                 + accessoryStats.Def_Rate
-                + equipmentStats.MainStats.Def_Rate;
+                + equipmentStats.MainStats.Def_Rate
+                + exclusiveStats.Def_Rate;
 
             double totalHpRate = transcendStats.Hp_Rate
                 + setBonus.Hp_Rate + equipmentStats.SubStats.Hp_Rate
                 + accessoryStats.Hp_Rate + input.PetOptionHpRate
-                + equipmentStats.MainStats.Hp_Rate;
+                + equipmentStats.MainStats.Hp_Rate
+                + exclusiveStats.Hp_Rate;
 
             // ========== 버프% (지속끼리 Max, 턴제+펫 합연산) ==========
             result.DebugLog.AppendLine("\n[버프% 중복 처리 - 지속/턴제+펫 분리]");
@@ -347,7 +363,7 @@ namespace GameDamageCalculator.Services
             // ========== 기타 스탯 ==========
             result.DisplayStats = CalculateDisplayStats(
                 characterStats, transcendStats, setBonus,
-                equipmentStats, accessoryStats,
+                equipmentStats, accessoryStats, exclusiveStats,
                 totalBuffs, characterPassiveBuff,
                 totalAtkRate, scalingBonus.Cri, scalingBonus.DmgRdc,
                 permanentAtkRate, timedAtkRate, petAtkRate
@@ -504,6 +520,7 @@ namespace GameDamageCalculator.Services
         private BaseStatSet CalculateDisplayStats(
             BaseStatSet characterStats, BaseStatSet transcendStats, BaseStatSet setBonus,
             (BaseStatSet MainStats, BaseStatSet SubStats) equipmentStats, BaseStatSet accessoryStats,
+            BaseStatSet exclusiveStats,
             BuffSet totalBuffs, BuffSet characterPassiveBuff,
             double totalAtkRate, double scalingCri, double scalingDmgRdc,
             double buffPermanentAtkRate, double buffTimedAtkRate, double buffPetAtkRate)
@@ -526,7 +543,8 @@ namespace GameDamageCalculator.Services
                     + totalBuffs.Wek_Dmg + characterPassiveBuff.Wek_Dmg,
 
                 Dmg_Dealt = characterStats.Dmg_Dealt + transcendStats.Dmg_Dealt + setBonus.Dmg_Dealt
-                    + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt,
+                    + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt
+                    + exclusiveStats.Dmg_Dealt,
 
                 Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos
                     + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos
@@ -546,11 +564,13 @@ namespace GameDamageCalculator.Services
 
                 Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit
                     + equipmentStats.SubStats.Eff_Hit + equipmentStats.MainStats.Eff_Hit
-                    + accessoryStats.Eff_Hit + totalBuffs.Eff_Hit + characterPassiveBuff.Eff_Hit,
+                    + accessoryStats.Eff_Hit + totalBuffs.Eff_Hit + characterPassiveBuff.Eff_Hit
+                    + exclusiveStats.Eff_Hit,
 
                 Eff_Res = characterStats.Eff_Res + transcendStats.Eff_Res + setBonus.Eff_Res
                     + equipmentStats.SubStats.Eff_Res + equipmentStats.MainStats.Eff_Res
-                    + accessoryStats.Eff_Res + totalBuffs.Eff_Res + characterPassiveBuff.Eff_Res,
+                    + accessoryStats.Eff_Res + totalBuffs.Eff_Res + characterPassiveBuff.Eff_Res
+                    + exclusiveStats.Eff_Res,
 
                 Eff_Acc = characterStats.Eff_Acc + transcendStats.Eff_Acc + setBonus.Eff_Acc,
 
@@ -565,6 +585,10 @@ namespace GameDamageCalculator.Services
                 Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5
                     + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5
                     + totalBuffs.Dmg_Dealt_4to5 + characterPassiveBuff.Dmg_Dealt_4to5,
+
+                // 전용무기 신규 스탯 — 파쇄(공격 시 대상 막기↓) / 탄성(받는 치명 피해↓)
+                Block_Reduction = exclusiveStats.Block_Reduction,
+                CritDmg_Taken_Reduction = exclusiveStats.CritDmg_Taken_Reduction,
 
                 // 버프%: Max 처리된 지속+턴제+펫 값 사용
                 Atk_Rate = totalAtkRate + buffPermanentAtkRate + buffTimedAtkRate + buffPetAtkRate

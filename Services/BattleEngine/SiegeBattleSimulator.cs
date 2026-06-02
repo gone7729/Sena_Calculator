@@ -27,9 +27,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         public SiegeBattleSimulator(int? seed = null) { _seed = seed; _rng = seed.HasValue ? new Random(seed.Value) : new Random(); }
 
         /// <summary>[진단] 특정 스킬(아군→적) 타격 시 데미지 입력 구성요소를 덤프 (예: 죽음의 무도 보스 갭 추적).</summary>
-        public string DiagSkillName;          // 추적할 스킬명 (null이면 비활성)
+        public string DiagSkillName;          // 추적할 스킬명 1개 (null이면 비활성, 후방 호환)
+        public List<string> DiagSkillNames;   // 추적할 스킬명 여러개 (null이면 비활성)
         public System.Text.StringBuilder DiagLog = new();
         private int _diagCount;
+        private bool IsDiagSkill(string name)
+            => (DiagSkillName != null && name == DiagSkillName)
+            || (DiagSkillNames != null && DiagSkillNames.Contains(name));
 
         public SiegeBattleResult Simulate(SiegeBattleConfig config) => Simulate(config, computeWeights: true);
 
@@ -312,8 +316,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (!a.IsDead) a.ReduceCooldowns(5);
                     AdvanceTime(state, GetActionDuration(skill));
 
-                    // 행동자(시전 적)만 효과 tick (per-character-action 모델)
-                    TickEnemyAfterAction(state, enemy);
+                    // 스킬턴은 턴을 소모하지 않으므로 버프/디버프/DoT 턴 감소(tick) 없음 (게임 규칙 2-3).
+                    //   효과 턴 감소는 기본공격(턴 소모) 시에만 — ExecuteBasicAttack의 TickEnemyAfterAction.
+                    //   쿨다운(초 단위)은 위 AdvanceTime으로 스킬턴에도 정상 감소.
                     return;
                 }
                 // 사용 가능한 스킬이 없으면 스킬턴 스킵
@@ -336,7 +341,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         var targets = PickTargets(state, tc);
                         foreach (var target in targets)
                         {
-                            double dmg = CalcDamageToEnemy(ally, target, normal);
+                            double dmg = CalcDamageToEnemy(ally, target, normal, state);
                             ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
                         }
@@ -470,7 +475,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영. 시뮬은 치명·약점 항상 발동.</summary>
-        private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill)
+        private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill, SiegeBattleState state = null)
         {
             var battleChar = ally.Source;
             var character = battleChar.Character;
@@ -478,7 +483,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             var baseStats = character.GetBaseStats();
 
             int targetCount = skill.GetTargetCount(battleChar.IsSkillEnhanced, battleChar.TranscendLevel);
-            double targetReduction = GetTargetReduction(enemy, targetCount);
+            // 평타는 n인기 스킬이 아니므로 단일/광역 감쇄가 적용되지 않는다.
+            double targetReduction = skill.SkillType == SkillType.Normal ? 0 : GetTargetReduction(enemy, targetCount);
             // 공성전 감쇄: 캐릭터 공격속성에 따라 물리/마법 받피감
             double elemReduction = character.AttackType == AttackType.Magic
                 ? enemy.MagicReduction
@@ -495,7 +501,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             var allyDebuffs = ally.Effects.GetTotalDebuffs();
             double atkRed = character.AttackType == AttackType.Magic
                 ? allyDebuffs.MagicAtk_Reduction : allyDebuffs.Atk_Reduction;
-            double effAtk = ally.FinalAtk * System.Math.Max(0, 1 - atkRed / 100.0);
+            // 전투 중 부여된 공격%버프(예: 클로에 청소시간 마공20%)를 실효 공격력에 반영.
+            //   ally.FinalAtk = 전투시작 스냅샷(상시 패시브·파티버프 포함, 액티브 스킬버프 제외).
+            //   midBuffs는 전투 중 액티브 버프만 담으므로 스냅샷과 겹치지 않음 → 곱연산으로 stage-3 적용.
+            double midAtkRate = character.AttackType == AttackType.Magic
+                ? midBuffs.MagicAtk_Rate : midBuffs.Atk_Rate;
+            double effAtk = ally.FinalAtk * (1 + midAtkRate / 100.0) * System.Math.Max(0, 1 - atkRed / 100.0);
 
             var input = new DamageCalculator.DamageInput
             {
@@ -547,14 +558,18 @@ namespace GameDamageCalculator.Services.BattleEngine
             double final = raw * Math.Max(0, reductionMult);
 
             // [진단] 추적 스킬 타격 시 입력 구성요소 덤프
-            if (DiagSkillName != null && skill.Name == DiagSkillName && _diagCount < 8)
+            if (IsDiagSkill(skill.Name) && _diagCount < 200)
             {
                 _diagCount++;
-                DiagLog.AppendLine($"───────── {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
+                int diagTurn = state?.CurrentTurn ?? -1;
+                int diagRound = state?.CurrentRound ?? -1;
+                DiagLog.AppendLine($"───────── T{diagTurn,2} R{diagRound} {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
                 DiagLog.AppendLine($"  FinalAtk={input.FinalAtk:N0} 치피={input.CritDamage} 약피={input.WeakpointDmg}");
                 DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}");
                 DiagLog.AppendLine($"  [적디버프] 방깎={input.DefReduction} 취약={input.Vulnerability} 받피증={input.DmgTakenIncrease} 보스취약={input.BossVulnerability}");
                 DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
+                string lostHpFlag = dr.LostHpMultiplier > 1 ? "적용" : "미발동/0";
+                DiagLog.AppendLine($"  [잃은HP] 잔여HP%={input.LostHpActualRemainingPct:F1} → 보너스배수 ×{dr.LostHpMultiplier:F4} ({lostHpFlag})");
                 DiagLog.AppendLine($"  raw={raw:N0} × 감쇄{reductionMult:F3}(물마{elemReduction}/타겟{targetReduction}) = {final:N0}");
             }
             return final;
@@ -589,7 +604,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             //  - allyDebuffs.Def_Reduction: 적이 ally에 부여한 방깎(불새 방깎36) → ally 방어 감소
             var enemyDebuffs = enemy.Effects.GetTotalDebuffs();
             double effEnemyAtk = enemy.FinalAtk * System.Math.Max(0, 1 - enemyDebuffs.Atk_Reduction / 100.0);
-            double effDmgRdc = allyDmgRdc + enemyDebuffs.Dmg_Reduction;
+            bool enemyCrit = e.Stats.Cri >= 100;        // 적 치확(보통 0)
+            // 탄성(전용무기): 치명타 공격 피격 시 받는 피해 % 감소. 받피감과 동일 채널로 합산.
+            double tanseong = enemyCrit ? (ally.DisplayStats?.CritDmg_Taken_Reduction ?? 0) : 0;
+            double effDmgRdc = allyDmgRdc + enemyDebuffs.Dmg_Reduction + tanseong;
 
             var input = new DamageCalculator.DamageInput
             {
@@ -602,13 +620,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                 CritDamage = e.Stats.Cri_Dmg,
                 BossDef = ally.FinalDef,                // 의미상 target(아군) 방어
                 DefReduction = allyDebuffs.Def_Reduction,  // 적이 ally에 부여한 방깎(불새 36 등) → ally 방어 감소
-                BossDmgReduction = effDmgRdc,           // 아군 받피감 + 적 출력감소(피감) 합산
+                BossDmgReduction = effDmgRdc,           // 아군 받피감 + 적 출력감소(피감) + 탄성 합산
                 BossHp = ally.MaxHp,
                 TargetHp = ally.MaxHp,
                 TargetCurrentHp = ally.CurrentHp,
                 DmgTakenIncrease = allyDebuffs.Dmg_Taken_Increase,
                 Vulnerability = allyDebuffs.Vulnerability,
-                IsCritical = e.Stats.Cri >= 100,        // 적 치확(보통 0)
+                IsCritical = enemyCrit,
                 IsWeakpoint = false,
                 IsSkillConditionMet = true,
                 Mode = BattleMode.Boss,
@@ -784,10 +802,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 행동 직후 호출 — 행동한 아군 한 명의 효과/잔여턴/재생/보호막을 한 번씩 tick.
-        /// per-character-action 모델: "n턴 지속" = 부여받은 캐릭의 n번 행동(기본공격/스킬) 동안 유효.
-        /// 글로벌 sim-turn tick이 아니라 행동자만 tick하므로, 셋업(따뜻한울림 3턴)이
-        /// 보스의 3번 행동(≈24 sim-turn) 동안 유효 → 후속 nuke들에 닿는다.
+        /// 기본공격(턴 소모) 직후 호출 — 행동한 아군 한 명의 효과/잔여턴/재생/보호막을 한 번씩 tick.
+        /// 게임 규칙(2-3): "n턴 지속" = 부여받은 캐릭이 <b>기본공격</b>을 n번 하는 동안 유효.
+        /// 스킬턴(턴 미소모)에는 tick하지 않는다 → 셋업(따뜻한울림 3턴)이 보스의 기본공격 3회
+        /// (그 사이 스킬턴 다수 포함) 동안 유효해 후속 버스트에 닿는다. 쿨다운(초)만 스킬턴에도 감소.
         /// </summary>
         private void TickAllyAfterAction(SiegeBattleState state, CharacterBattleState ally)
         {
@@ -1185,7 +1203,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplySkillEffects(state, ally, skill, targets, preDamage: true);
             foreach (var target in targets)
             {
-                double dmg = CalcDamageToEnemy(ally, target, skill);
+                double dmg = CalcDamageToEnemy(ally, target, skill, state);
                 ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
             }
@@ -1403,7 +1421,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
             }
 
-            HandleEffects(lvl.Effects);
+            // base + 초월 Effects를 필드별 오버라이드로 병합한 유효 리스트 1회 적용(최종값 컨벤션).
+            //   예: 리나 울림 방깎 base34 + 초월41 → 41 (이전엔 base 후 초월을 같은 id로 덮어써 7만 남았음).
+            HandleEffects(skill.GetEffectiveEffects(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
             // 레거시 필드는 PreDamage 플래그가 없으므로 피해 後(기본)로 처리.
             if (!preDamage)
             {
@@ -1412,9 +1432,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
             }
 
+            // 초월 Effects는 위 GetEffectiveEffects에 병합됨. 레거시 초월 필드(tr.Debuff/tr.PartyBuff)만 별도 처리.
             if (tr != null)
             {
-                HandleEffects(tr.Effects);
                 if (!preDamage && tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);
                 if (!preDamage && tr.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, tr.PartyBuff, 0);
             }

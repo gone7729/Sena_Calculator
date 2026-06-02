@@ -32,6 +32,20 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool OptimizeRotation { get; set; } = true;
         public int RotationBeamWidth { get; set; } = 10;
         public int RotationMaxDepth { get; set; } = 18;
+
+        // 진형 단일 강제 (실측 비교용). null이면 전 진형 탐색.
+        public string ForcedFormation { get; set; }
+
+        // 후열 강제 (실측 비교용). null이면 전 마스크 탐색. 캐릭터 이름 리스트.
+        public List<string> ForcedBackRow { get; set; }
+
+        // 캐릭터별 강제 세트(실측 비교용). Key=Character.Id, Value=세트명("수문장","성기사" 등).
+        // EquipCandidates에서 해당 캐릭터는 이 세트 후보만 사용 — 메인/부옵은 기존 로직대로 최적.
+        public Dictionary<int, string> ForcedSetByCharId { get; set; } = new();
+
+        // 캐릭터별 강제 메인옵션(실측 비교용). Key=Character.Id, Value=(무기메인, 방어구메인).
+        // 지정 시 EquipCandidates는 해당 메인옵만 후보로 사용.
+        public Dictionary<int, (string WeaponMain, string ArmorMain)> ForcedMainByCharId { get; set; } = new();
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -91,16 +105,31 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (team.Count == 0) continue;
 
                 int n = team.Count;
-                foreach (var formation in Formations)
+                // 진형 강제 옵션 (실측 비교): null이면 전체 탐색.
+                var formationsToTry = string.IsNullOrEmpty(config.ForcedFormation)
+                    ? Formations
+                    : new[] { config.ForcedFormation };
+                foreach (var formation in formationsToTry)
                 {
                     // 진형별 후열 인원 고정(기본3·밸런스2·공격4·보호1). 후열공% × 인원 = 42 일정.
                     int requiredBack = GameDamageCalculator.Database.StatTable.FormationDb.Formations.TryGetValue(formation, out var fb)
                         ? System.Math.Min(fb.BackRowCount, n) : n;
 
+                    // 후열 강제 옵션 (실측 비교): 캐릭 이름으로 후열 마스크 고정.
+                    int? forcedMask = null;
+                    if (config.ForcedBackRow != null)
+                    {
+                        int fm = 0;
+                        for (int i = 0; i < n; i++)
+                            if (config.ForcedBackRow.Contains(team[i].Character?.Name)) fm |= (1 << i);
+                        forcedMask = fm;
+                    }
+
                     // 자리(전/후열) 배치 탐색: 후열 인원이 정확히 requiredBack인 마스크만.
                     //   누구를 후열에 둘지가 핵심 변수 (보호진형 후열 1 → 메인딜러 1명).
                     for (int mask = 0; mask < (1 << n); mask++)
                     {
+                        if (forcedMask.HasValue && mask != forcedMask.Value) continue;
                         if (System.Numerics.BitOperations.PopCount((uint)mask) != requiredBack) continue;
                         for (int i = 0; i < n; i++) team[i].IsBackPosition = (mask & (1 << i)) != 0;
 
@@ -197,9 +226,37 @@ namespace GameDamageCalculator.Services.BattleEngine
             (double Cri, double Wek) Floor(BattleCharacter bc) =>
                 config.FloorFirstGear ? optimizer.PartyBuffCritWeak(team, team.IndexOf(bc), bc.Character.Type) : default;
 
+            // 강제 옵션을 GearConstraints에 반영하는 헬퍼 — BuildSetCandidates와 OptimizeForSetFull에서 공통 사용.
+            GearConstraints GcForChar(BattleCharacter bc)
+            {
+                var gc = GetGearConstraints(bc, config.SiegeStage);
+                if (config.ForcedSetByCharId != null && bc.Character != null
+                    && config.ForcedSetByCharId.TryGetValue(bc.Character.Id, out var fs)
+                    && !string.IsNullOrEmpty(fs))
+                {
+                    gc = new GearConstraints
+                    {
+                        AllowedSets = new[] { fs },
+                        WeaponMains = gc?.WeaponMains, ArmorMains = gc?.ArmorMains, SubOptions = gc?.SubOptions,
+                    };
+                }
+                if (config.ForcedMainByCharId != null && bc.Character != null
+                    && config.ForcedMainByCharId.TryGetValue(bc.Character.Id, out var fm))
+                {
+                    gc = new GearConstraints
+                    {
+                        AllowedSets = gc?.AllowedSets,
+                        WeaponMains = string.IsNullOrEmpty(fm.WeaponMain) ? gc?.WeaponMains : new[] { fm.WeaponMain },
+                        ArmorMains = string.IsNullOrEmpty(fm.ArmorMain) ? gc?.ArmorMains : new[] { fm.ArmorMain },
+                        SubOptions = gc?.SubOptions,
+                    };
+                }
+                return gc;
+            }
+
             foreach (var bc in targets)
             {
-                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GetGearConstraints(bc, config.SiegeStage), Floor(bc));
+                cands[bc] = optimizer.BuildSetCandidates(bc, SoloConfig(config, boss, bc), 0, GcForChar(bc), Floor(bc));
                 if (cands[bc].Count > 0) bc.Equipment = cands[bc][0].Lo;
             }
 
@@ -226,11 +283,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                     log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {chosenSet}  ← {string.Join(" / ", perSet)}");
                 }
 
-                // 메인·부옵·장신구도 풀시뮬 점수로 재최적화 (선택된 세트 안에서)
+                // 메인·부옵·장신구도 풀시뮬 점수로 재최적화 (선택된 세트 안에서, 강제 옵션 반영)
                 if (chosenSet != null)
                 {
                     var refined = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, chosenSet,
-                        GetGearConstraints(bc, config.SiegeStage), lo => { bc.Equipment = lo; return FullScore(); }, Floor(bc));
+                        GcForChar(bc), lo => { bc.Equipment = lo; return FullScore(); }, Floor(bc));
                     if (refined != null) bc.Equipment = refined;
                 }
                 log.Add(FormatGear(bc));

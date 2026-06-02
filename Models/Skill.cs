@@ -111,6 +111,62 @@ namespace GameDamageCalculator.Models
 }
 
         /// <summary>
+        /// base 레벨 Effects + 초월 Effects를 "필드 단위 오버라이드"로 병합한 유효 Effects 반환.
+        /// 초월 컨벤션 = 최종값 선언(오버라이드). 같은 종류(Target·Type, 상태이상은 StatusType)의 효과가
+        /// base에 있으면 초월의 Buff/Debuff 0 아닌 필드로 덮어쓰고(예: 리나 울림 방깎 34→41), 없으면 추가한다.
+        /// 비중첩 필드는 Override가 곧 추가와 동일하므로 안전(BuffSet/DebuffSet.Override = 0 아닌 필드만 대체).
+        /// 양 경로(EffectConverter·SiegeBattleSimulator)가 이 메서드로 동일 병합을 공유한다.
+        /// </summary>
+        public List<SkillEffect> GetEffectiveEffects(bool isEnhanced, int transcendLevel)
+        {
+            var result = new List<SkillEffect>();
+            var baseEffects = GetLevelData(isEnhanced)?.Effects;
+            if (baseEffects != null)
+                foreach (var e in baseEffects) result.Add(CloneSkillEffect(e));
+
+            var txEffects = GetTranscendBonus(transcendLevel)?.Effects;
+            if (txEffects == null) return result;
+
+            foreach (var tx in txEffects)
+            {
+                // 같은 종류의 base 효과를 찾아 필드별 오버라이드 (없으면 추가)
+                var match = result.FirstOrDefault(b =>
+                    b.Target == tx.Target && b.Type == tx.Type &&
+                    (tx.Type != SkillEffectType.StatusAilment || b.StatusType == tx.StatusType));
+                if (match != null)
+                {
+                    if (tx.Buff != null) { match.Buff ??= new BuffSet(); match.Buff.Override(tx.Buff); }
+                    if (tx.Debuff != null) { match.Debuff ??= new DebuffSet(); match.Debuff.Override(tx.Debuff); }
+                    if (tx.Duration > 0) match.Duration = tx.Duration;
+                }
+                else
+                {
+                    result.Add(CloneSkillEffect(tx));
+                }
+            }
+            return result;
+        }
+
+        /// <summary>SkillEffect 얕은 복제(+ Buff/Debuff 깊은 복제) — DB 정적 객체 변경 방지.</summary>
+        private static SkillEffect CloneSkillEffect(SkillEffect e) => new SkillEffect
+        {
+            Target = e.Target, TargetCount = e.TargetCount, TargetSelector = e.TargetSelector,
+            TargetClasses = e.TargetClasses, Type = e.Type, PreDamage = e.PreDamage,
+            Duration = e.Duration, Chance = e.Chance, TurnReduction = e.TurnReduction,
+            DispelBuffCount = e.DispelBuffCount, DispelDebuffCount = e.DispelDebuffCount,
+            ApplyMode = e.ApplyMode, TriggerCondition = e.TriggerCondition, TriggerCount = e.TriggerCount,
+            StacksPerTrigger = e.StacksPerTrigger, MaxStacks = e.MaxStacks, RequiresStatusType = e.RequiresStatusType,
+            Buff = e.Buff?.Clone(), Debuff = e.Debuff?.Clone(),
+            StatusType = e.StatusType, Stacks = e.Stacks,
+            CustomAtkRatio = e.CustomAtkRatio, CustomHpRatio = e.CustomHpRatio, CustomAtkCap = e.CustomAtkCap,
+            CustomArmorPen = e.CustomArmorPen, CustomFixedDamage = e.CustomFixedDamage,
+            CustomTargetMaxHpRatio = e.CustomTargetMaxHpRatio, CustomTargetCurrentHpRatio = e.CustomTargetCurrentHpRatio,
+            CustomHpConversionRatio = e.CustomHpConversionRatio, CustomTriggerCount = e.CustomTriggerCount,
+            MaxConsume = e.MaxConsume, PercentPerDebuff = e.PercentPerDebuff, MaxDebuffStacks = e.MaxDebuffStacks,
+            DamageNullification = e.DamageNullification, StatusImmunity = e.StatusImmunity,
+        };
+
+        /// <summary>
         /// 티어별 대상 수. 우선순위: 초월 오버라이드 > 레벨별 > Skill.TargetCount
         /// </summary>
         public int GetTargetCount(bool isEnhanced, int transcendLevel)

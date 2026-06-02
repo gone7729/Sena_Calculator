@@ -162,6 +162,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 PotentialDefLevel = battleChar.PotentialDefLevel,
                 PotentialHpLevel = battleChar.PotentialHpLevel,
                 Accessory = loadout?.Accessory,
+                // 전용무기: Character에 명시된 경우만 적용. 미설정 = 미장착(영향 없음).
+                ExclusiveWeapon = battleChar.Character?.ExclusiveWeapon,
                 Formation = formation,
                 Pet = config.AllyPet,
                 PetStar = config.PetStar,

@@ -193,14 +193,10 @@ namespace GameDamageCalculator.Services
                     });
                 }
 
-                effects.AddRange(FromSkillEffects(levelData.Effects, characterName, skill.Name));
-
-                // 초월 Effects도 추가
-                var txBonus = skill.GetTranscendBonus(transcendLevel);
-                if (txBonus?.Effects != null && txBonus.Effects.Count > 0)
-                {
-                    effects.AddRange(FromSkillEffects(txBonus.Effects, characterName, $"{skill.Name}(초월)"));
-                }
+                // base + 초월 Effects를 필드별 오버라이드로 병합(최종값 컨벤션). 별도 source append(합산) 금지.
+                //   예: 리나 울림 방깎 base34 + 초월41 → 41 (이전엔 두 source로 합산되어 75가 됐음).
+                effects.AddRange(FromSkillEffects(
+                    skill.GetEffectiveEffects(isEnhanced, transcendLevel), characterName, skill.Name));
 
                 return effects;
             }

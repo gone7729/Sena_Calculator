@@ -49,6 +49,12 @@ namespace GameDamageCalculator.Models
         public bool IsSkillEnhanced { get; set; } = false;
 
         /// <summary>
+        /// 전용무기 (캐릭터별 또는 공용). null이면 미장착.
+        /// 시뮬은 항상 풀강(+15) 가정 — Atk flat 247 + 조율 4슬롯.
+        /// </summary>
+        public ExclusiveWeapon ExclusiveWeapon { get; set; }
+
+        /// <summary>
         /// 등급/타입에 따른 기본 스탯 가져오기
         /// </summary>
         public BaseStatSet GetBaseStats()

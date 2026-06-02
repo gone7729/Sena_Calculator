@@ -50,6 +50,10 @@ namespace GameDamageCalculator.Models
         public double Dmg_Rdc_Triple { get; set; }  // 3인기 받피감
         public double Dmg_Rdc_Multi { get; set; }   // 5인기 받피감
 
+        // ===== 전용무기 신규 스탯 =====
+        public double Block_Reduction { get; set; }        // 파쇄: 대상 막기확률 감소 (%)
+        public double CritDmg_Taken_Reduction { get; set; } // 탄성: 받는 치명타 피해 감소 (%)
+
         /// <summary>
         /// 다른 스탯 세트를 현재 세트에 더함
         /// </summary>
@@ -84,6 +88,8 @@ namespace GameDamageCalculator.Models
             Dmg_Rdc_Single += other.Dmg_Rdc_Single;
             Dmg_Rdc_Triple += other.Dmg_Rdc_Triple;
             Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
+            Block_Reduction += other.Block_Reduction;
+            CritDmg_Taken_Reduction += other.CritDmg_Taken_Reduction;
         }
 
         /// <summary>
@@ -117,6 +123,8 @@ namespace GameDamageCalculator.Models
                 case "보스피해량%": Dmg_Dealt_Bos += value; break;
                 case "1-3인기피해량%": Dmg_Dealt_1to3 += value; break;
                 case "4-5인기피해량%": Dmg_Dealt_4to5 += value; break;
+                case "파쇄%": Block_Reduction += value; break;
+                case "탄성%": CritDmg_Taken_Reduction += value; break;
             }
         }
 
@@ -153,7 +161,9 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5,
                 Dmg_Rdc_Single = this.Dmg_Rdc_Single,
                 Dmg_Rdc_Triple = this.Dmg_Rdc_Triple,
-                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi
+                Dmg_Rdc_Multi = this.Dmg_Rdc_Multi,
+                Block_Reduction = this.Block_Reduction,
+                CritDmg_Taken_Reduction = this.CritDmg_Taken_Reduction
             };
         }
 

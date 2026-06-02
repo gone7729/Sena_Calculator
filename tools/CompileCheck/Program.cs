@@ -33,7 +33,7 @@ foreach (var c in r.CharacterResults.OrderByDescending(c=>c.TotalDamage))
     sb.AppendLine($"  {c.CharacterName}: {c.TotalDamage:N0} ({c.DamageShare:F1}%)");
 
 // 빔 최적 플랜 재생 + 나타 혼천 진단
-var diagSim = new SiegeBattleSimulator(777) { DiagSkillName = "혼천릉파" };
+var diagSim = new SiegeBattleSimulator(777) { DiagSkillName = "화첨창술" };
 var diagCfg = new SiegeBattleConfig
 {
     AllyParty = result.BestParty, FormationName = result.BestFormation,
@@ -42,9 +42,9 @@ var diagCfg = new SiegeBattleConfig
     MaxTurns = 70, RotationPlan = result.BestRotationPlan,
 };
 diagSim.Simulate(diagCfg);
-sb.AppendLine("\n[나타 혼천릉파 per-hit 분해]");
+sb.AppendLine("\n[나타 화첨창술 per-hit 분해]");
 sb.AppendLine(diagSim.DiagLog.ToString());
-sb.AppendLine("\n실측 영상 비교: ~494k/타격 (3타겟 ×3) (t=220 프레임)");
+sb.AppendLine("\n실측 영상 비교: ~255k/타격 (3타겟, 보스 hit) (t=241 프레임). 혼천 494k vs 화첨 255k = 비율 1.94");
 
 string outPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
     AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_수요일_혼천perhit.txt"));

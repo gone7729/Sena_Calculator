@@ -7255,10 +7255,10 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            // 6초월: 디버프 대상 적군 전체로 변경 + 방어력 감소 34% → 41% (delta +7, Debuff.Add 합산)
+                            // 6초월: 디버프 대상 적군 전체로 변경 + 방어력 감소 34% → 41% (오버라이드: 최종값 41 선언)
                             { 6, new SkillTranscend {
                                 Effects = new List<SkillEffect> {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 7 } }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Debuff = new DebuffSet { Def_Reduction = 41 } }
                                 },
                                 Effect = "대상 수 변경: 적군 전체, 방어력 감소 41%"
                             }}
