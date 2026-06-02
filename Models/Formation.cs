@@ -9,6 +9,7 @@ namespace GameDamageCalculator.Models
     {
         public double Atk_Rate_Back { get; set; }   // 후방 공격력%
         public double Def_Rate_Front { get; set; }  // 전방 방어력%
+        public int BackRowCount { get; set; }       // 후열 배치 가능 인원 (진형별 고정)
     }
 
     /// <summary>
