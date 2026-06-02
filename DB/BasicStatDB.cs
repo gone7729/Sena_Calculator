@@ -338,10 +338,11 @@ namespace GameDamageCalculator.Database
             public static readonly Dictionary<string, FormationBonus> Formations = 
                 new Dictionary<string, FormationBonus>
             {
-                { "기본 진형", new FormationBonus { Atk_Rate_Back = 14, Def_Rate_Front = 21 } },
-                { "밸런스 진형", new FormationBonus { Atk_Rate_Back = 21, Def_Rate_Front = 14 } },
-                { "공격 진형", new FormationBonus { Atk_Rate_Back = 10.5, Def_Rate_Front = 42 } },
-                { "보호 진형", new FormationBonus { Atk_Rate_Back = 42, Def_Rate_Front = 10.5 } }
+                // 후열 인원 × 후열공% = 42 (일정). 옵티마이저가 진형별 후열 인원 제약을 반드시 준수해야 함.
+                { "기본 진형", new FormationBonus { Atk_Rate_Back = 14, Def_Rate_Front = 21, BackRowCount = 3 } },
+                { "밸런스 진형", new FormationBonus { Atk_Rate_Back = 21, Def_Rate_Front = 14, BackRowCount = 2 } },
+                { "공격 진형", new FormationBonus { Atk_Rate_Back = 10.5, Def_Rate_Front = 42, BackRowCount = 4 } },
+                { "보호 진형", new FormationBonus { Atk_Rate_Back = 42, Def_Rate_Front = 10.5, BackRowCount = 1 } }
             };
         }
     }

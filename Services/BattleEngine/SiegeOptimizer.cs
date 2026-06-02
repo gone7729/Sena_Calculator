@@ -93,10 +93,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                 int n = team.Count;
                 foreach (var formation in Formations)
                 {
-                    // 자리(전/후열) 자유 배치 탐색: 후열에 둘 영웅 부분집합 2^n 전수.
-                    //   진형 후열 공격력%는 후열 배치 영웅만 받으므로 누구를 뒤로 뺄지 = 핵심 변수.
+                    // 진형별 후열 인원 고정(기본3·밸런스2·공격4·보호1). 후열공% × 인원 = 42 일정.
+                    int requiredBack = GameDamageCalculator.Database.StatTable.FormationDb.Formations.TryGetValue(formation, out var fb)
+                        ? System.Math.Min(fb.BackRowCount, n) : n;
+
+                    // 자리(전/후열) 배치 탐색: 후열 인원이 정확히 requiredBack인 마스크만.
+                    //   누구를 후열에 둘지가 핵심 변수 (보호진형 후열 1 → 메인딜러 1명).
                     for (int mask = 0; mask < (1 << n); mask++)
                     {
+                        if (System.Numerics.BitOperations.PopCount((uint)mask) != requiredBack) continue;
                         for (int i = 0; i < n; i++) team[i].IsBackPosition = (mask & (1 << i)) != 0;
 
                         var simConfig = new SiegeBattleConfig
@@ -292,26 +297,48 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 역할 기반 장비 탐색 제약. 치명·약점은 확률 기반 기댓값이라 치확%·약확%도 의미가 있어 포함.
-        /// 효과적 딜러: DPS 세트만. 효과적 비딜러(자연 비딜러 + 요일감쇄로 무력화된 딜러): 복수자/수문장 둘 다 시도.
+        /// 역할 기반 장비 탐색 제약. 3-tier 분류:
+        ///  · 효과적 딜러: DPS 기어
+        ///  · 면역/유틸리티(라이언 등 — 면역 패시브 보유 + 효과적 비딜러): 방어 전용 기어 (생존 우선, 죽으면 utility 손실)
+        ///  · 서포터/버퍼(비스킷·리나 등): 혼합 (데미지 + 방어)
         /// </summary>
         private static GearConstraints GetGearConstraints(BattleCharacter bc, Stage stage = null)
         {
-            return IsEffectiveDealer(bc, stage)
-                ? new GearConstraints
+            if (IsEffectiveDealer(bc, stage))
+                return new GearConstraints
                 {
                     AllowedSets = new[] { "복수자", "암살자", "추적자", "선봉장" },
                     WeaponMains = new[] { "치명타확률%", "치명타피해%", "공격력%", "약점공격확률%" },
                     ArmorMains = new[] { "공격력%" },
                     SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력" },
-                }
-                : new GearConstraints
-                {
-                    AllowedSets = new[] { "복수자", "수문장" },
-                    WeaponMains = new[] { "치명타확률%", "치명타피해%", "공격력%", "약점공격확률%" },
-                    ArmorMains = new[] { "공격력%", "받피감%" },
-                    SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력", "생명력%", "방어력%" },
                 };
+            // 면역 패시브 보유자(라이언 화상면역 등) — 죽으면 utility(쿨감·면역) 손실이 크므로 방어 전용.
+            if (HasImmunityPassive(bc))
+                return new GearConstraints
+                {
+                    AllowedSets = new[] { "수문장", "복수자" },
+                    WeaponMains = new[] { "생명력%", "방어력%" },
+                    ArmorMains = new[] { "생명력%", "방어력%", "받피감%" },
+                    SubOptions = new[] { "생명력%", "방어력%", "생명력", "방어력", "막기확률%" },
+                };
+            return new GearConstraints
+            {
+                AllowedSets = new[] { "복수자", "수문장" },
+                WeaponMains = new[] { "치명타확률%", "치명타피해%", "공격력%", "약점공격확률%" },
+                ArmorMains = new[] { "공격력%", "받피감%" },
+                SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력", "생명력%", "방어력%" },
+            };
+        }
+
+        /// <summary>면역 패시브(StatusImmunity) 보유 여부 — 라이언(화상)·풍연(빙결) 등. 죽으면 효과 손실.</summary>
+        private static bool HasImmunityPassive(BattleCharacter bc)
+        {
+            var passive = bc.Character.Passive;
+            if (passive == null) return false;
+            bool Has(System.Collections.Generic.IEnumerable<Models.Effects.PersistentEffect> effs) =>
+                effs != null && effs.Any(e => e.Type == Models.Effects.PersistentEffectType.Immunity);
+            return Has(passive.GetLevelData(bc.IsSkillEnhanced)?.Effects)
+                || Has(passive.GetTranscendBonus(bc.TranscendLevel)?.Effects);
         }
 
         /// <summary>

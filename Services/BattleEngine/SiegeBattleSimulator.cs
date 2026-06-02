@@ -365,15 +365,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
 
             AdvanceTime(state, GetActionDuration(null));
-            // 약점공격 발동 시 평타 시간 -0.5초 단축(게임 규칙) → 1-per-turn 시뮬에선 다른 cd가 추가로 진행되는 효과.
-            // expected: 약확 pw% 비율로 +0.5×pw 추가 cd advance. 약확↑인 라이언이 자주 약점 → cd cascade.
-            if (actor.IsAlly && actor.Ally != null)
-            {
-                var allyDs = actor.Ally.DisplayStats;
-                var allyBuffs = actor.Ally.Effects.GetTotalBuffs();
-                double pw = System.Math.Max(0, System.Math.Min(100, (allyDs?.Wek ?? 0) + allyBuffs.Wek)) / 100.0;
-                if (pw > 0) AdvanceTime(state, 0.5 * pw);
-            }
+            // [보류] 약점공격 발동 시 평타 시간 -0.5초 단축(게임 규칙) → 1-per-turn 시뮬에선 다른 cd가 추가로 진행되는 효과.
+            //   단축 시간(0.5초)이 정밀하게 측정된 값이 아니라 잠정 — 정확한 수치 확정 후 재활성화.
+            // if (actor.IsAlly && actor.Ally != null)
+            // {
+            //     var allyDs = actor.Ally.DisplayStats;
+            //     var allyBuffs = actor.Ally.Effects.GetTotalBuffs();
+            //     double pw = System.Math.Max(0, System.Math.Min(100, (allyDs?.Wek ?? 0) + allyBuffs.Wek)) / 100.0;
+            //     if (pw > 0) AdvanceTime(state, 0.5 * pw);
+            // }
 
             // 행동자(actor)만 효과 tick (per-character-action 모델)
             if (actor.IsAlly && actor.Ally != null)
