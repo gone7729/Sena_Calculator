@@ -37,30 +37,57 @@ app.MapGet("/api/siege/days", () =>
 app.MapGet("/api/siege/pets", () =>
     PetDb.Pets.Select(p => new { id = p.Id, name = p.Name, rarity = p.Rarity }));
 
-// 탐색 실행: 선택 영웅 풀에서 최고딜 5인 팀 + 진형 탐색
+// 탐색 실행: 선택 영웅 풀 → 전원 2/4/6초월 3루트 각각 (기어·전용조율·진형·로테이션) 탐색.
+//   캐시 HIT면 즉시 반환(미리 채운 요일별 시뮬값), MISS면 실탐색 후 파일 캐시 저장.
+//   잠재 0/0/0 고정. 전용장비는 전체포함(조율탐색)/전체제외 체크박스(includeExclusive).
 app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
 {
-    if (req?.Members == null || req.Members.Count < 5)
+    if (req?.HeroIds == null || req.HeroIds.Count < 5)
         return Results.BadRequest(new { error = "영웅을 5명 이상 선택하세요." });
 
     if (string.IsNullOrEmpty(req.Day) || !DayToStage.TryGetValue(req.Day, out var stageKey)
         || !EnemyDb.SiegeStages.TryGetValue(stageKey, out var stage))
         return Results.BadRequest(new { error = $"'{req.Day}' 요일 공성전 데이터가 없습니다." });
 
-    // 웹 영웅 id → CharacterDb 매핑 → BattleCharacter
-    var candidates = new List<BattleCharacter>();
-    foreach (var m in req.Members)
+    foreach (var id in req.HeroIds)
+        if (CharacterDb.Characters.All(c => c.Id != id))
+            return Results.BadRequest(new { error = $"영웅 id {id}를 찾을 수 없습니다." });
+
+    bool includeExclusive = req.IncludeExclusive ?? true;
+    var routes = new Dictionary<string, OptimizeResponse>();
+    foreach (int tr in new[] { 2, 4, 6 })
     {
-        var ch = CharacterDb.Characters.FirstOrDefault(c => c.Id == m.Id);
-        if (ch == null) return Results.BadRequest(new { error = $"영웅 id {m.Id}를 찾을 수 없습니다." });
+        string key = SiegeApi.SiegeCache.Key(req.Day, req.HeroIds, tr, includeExclusive);
+        if (SiegeApi.SiegeCache.TryGet<OptimizeResponse>(key, out var hit))
+        {
+            hit.Cached = true;
+            routes[tr.ToString()] = hit;
+            continue;
+        }
+        var dto = RunRoute(stage, req, tr, includeExclusive);
+        dto.Cached = false;
+        SiegeApi.SiegeCache.Set(key, dto);
+        routes[tr.ToString()] = dto;
+    }
+    return Results.Ok(new { day = req.Day, includeExclusive, routes });
+});
+
+app.Run();
+
+// ===== 한 루트(전원 transcend초월) 탐색 실행 → DTO =====
+static OptimizeResponse RunRoute(Stage stage, OptimizeRequest req, int transcend, bool includeExclusive)
+{
+    var candidates = new List<BattleCharacter>();
+    foreach (var id in req.HeroIds)
+    {
+        var ch = CharacterDb.Characters.First(c => c.Id == id);
+        if (!includeExclusive) ch.ExclusiveWeapon = null;   // 전용 제외: 전용무기 미장착
         candidates.Add(new BattleCharacter
         {
             Character = ch,
-            TranscendLevel = Math.Clamp(m.Transcend, 0, 12),
-            IsSkillEnhanced = m.SkillEnhanced ?? true,
-            PotentialAtkLevel = Math.Clamp(m.PotentialAtk ?? 0, 0, 3),
-            PotentialDefLevel = Math.Clamp(m.PotentialDef ?? 0, 0, 3),
-            PotentialHpLevel = Math.Clamp(m.PotentialHp ?? 0, 0, 3),
+            TranscendLevel = transcend,
+            IsSkillEnhanced = true,
+            // 잠재 0/0/0 고정 (BattleCharacter 기본값)
         });
     }
 
@@ -70,28 +97,28 @@ app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
         SiegeStage = stage,
         MaxTurns = req.MaxTurns ?? 70,
         PartySize = req.PartySize ?? 5,
-        // 기어·전용조율·진형·로테이션 탐색 (기본 ON). AutoEquip·OptimizeRotation은 config 기본값(true).
-        SearchExclusiveWeapon = req.SearchExclusiveWeapon ?? true,
+        SearchExclusiveWeapon = includeExclusive,   // 전체포함 시 전용조율 탐색
     };
 
-    // 펫 (선택). 검증 시 게임 세팅 그대로 맞추려면 펫·성급·강화·옵션이 필요.
     if (req.Pet != null && !string.IsNullOrEmpty(req.Pet.Name))
     {
         var pet = PetDb.GetByName(req.Pet.Name);
-        if (pet == null) return Results.BadRequest(new { error = $"펫 '{req.Pet.Name}'을(를) 찾을 수 없습니다." });
-        config.AllyPet = pet;
-        config.PetStar = req.Pet.Star is >= 1 and <= 6 ? req.Pet.Star : 6;
-        config.PetEnhance = Math.Clamp(req.Pet.Enhance, 0, 3);  // 6성에서만 실제 반영(Pet.GetSkillBuff 가드)
-        config.PetOptionAtkRate = req.Pet.OptAtkRate;
-        config.PetOptionDefRate = req.Pet.OptDefRate;
-        config.PetOptionHpRate = req.Pet.OptHpRate;
+        if (pet != null)
+        {
+            config.AllyPet = pet;
+            config.PetStar = req.Pet.Star is >= 1 and <= 6 ? req.Pet.Star : 6;
+            config.PetEnhance = Math.Clamp(req.Pet.Enhance, 0, 3);
+            config.PetOptionAtkRate = req.Pet.OptAtkRate;
+            config.PetOptionDefRate = req.Pet.OptDefRate;
+            config.PetOptionHpRate = req.Pet.OptHpRate;
+        }
     }
 
     var result = new SiegeOptimizer().Optimize(config);
-    return Results.Ok(ToDto(result));
-});
-
-app.Run();
+    var dto = ToDto(result);
+    dto.Transcend = transcend;
+    return dto;
+}
 
 // ===== DTO 변환 (Character 객체 그래프 대신 웹용 평면 구조) =====
 static OptimizeResponse ToDto(SiegeOptimizerResult r)
@@ -149,9 +176,6 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
 }
 
 // ===== 요청/응답 모델 =====
-record MemberInput(int Id, int Transcend, bool? SkillEnhanced,
-    int? PotentialAtk = null, int? PotentialDef = null, int? PotentialHp = null);
-
 class PetInput
 {
     public string Name { get; set; }
@@ -165,15 +189,17 @@ class PetInput
 class OptimizeRequest
 {
     public string Day { get; set; }
-    public List<MemberInput> Members { get; set; }
+    public List<int> HeroIds { get; set; }             // 선택 영웅 id (5명 이상). 잠재 0/0/0·강화·초월은 서버 고정/루트.
+    public bool? IncludeExclusive { get; set; }         // 전용장비 전체포함(조율탐색)/전체제외. 기본 true.
     public PetInput Pet { get; set; }
     public int? MaxTurns { get; set; }
     public int? PartySize { get; set; }
-    public bool? SearchExclusiveWeapon { get; set; }   // 전용무기 조율 탐색 (기본 true)
 }
 
 class OptimizeResponse
 {
+    public int Transcend { get; set; }            // 이 루트의 전원 초월 단계 (2/4/6)
+    public bool Cached { get; set; }              // 캐시에서 즉시 반환됐는지
     public double Score { get; set; }
     public string Formation { get; set; }
     public int EvaluatedCount { get; set; }

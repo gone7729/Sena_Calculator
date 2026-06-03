@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="SiegeCache.cs" />
     <Compile Include="..\..\DB\**\*.cs" />
     <Compile Include="..\..\Models\**\*.cs" />
     <Compile Include="..\..\Services\**\*.cs" />
