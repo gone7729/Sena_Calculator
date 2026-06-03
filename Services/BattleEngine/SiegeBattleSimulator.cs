@@ -196,11 +196,17 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var e in state.Enemies)
                 actors.Add(new SiegeActor { IsAlly = false, Enemy = e, Spd = e.FinalSpd, Position = e.Position });
 
-            return actors
+            var ordered = actors
                 .GroupBy(x => x.Spd)
                 .OrderByDescending(g => g.Key)
                 .SelectMany(g => OrderSameSpeed(g.ToList()))
                 .ToList();
+
+            // 속공 순서 로그 — 누가 어떤 속공으로 이 순서가 됐는지 (라운드별 행동 순서)
+            Log(state, "행동순서", true, ActionType.BuffApplied, "속공순", 0,
+                $"R{state.CurrentRound} 기본공격 순서: " + string.Join(" > ", ordered.Select(o =>
+                    $"{(o.IsAlly ? o.Ally.Source.Character.Name : o.Enemy.Source.Name)}(속공{o.Spd:F0}{(o.IsAlly ? "" : "·적")})")));
+            return ordered;
         }
 
         /// <summary>동속공 그룹: 같은 팀은 자리(Position)순, 팀 간 순서는 랜덤 인터리브.</summary>
@@ -311,9 +317,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                         Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
                             $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴] (버프해제/소진 시 제거)");
                     }
-                    // 상대(보스) 스킬 사용 → 아군 전원 스킬 쿨다운 5초 감소 (메인 sim과 동일, 5초 이하 잔여 미적용)
-                    foreach (var a in state.AllyStates)
-                        if (!a.IsDead) a.ReduceCooldowns(5);
+                    // 상대(보스) 스킬 사용 → 그 스킬 소요시간(2스킬 5초·1스킬 4초)만큼 시간 경과 → 전체(아군+적) 쿨 감소.
+                    //   [정정] 이전엔 별도 ReduceCooldowns(5)까지 더해 이중 감소 → 교만 등 쿨이 실시간보다 빨리 회복됐음.
+                    //   시간경과(AdvanceTime)만으로 충분(쿨=실시간). 별도 -5초 메커니즘 제거.
+                    double enemyCd = GetActionDuration(skill);
+                    Log(state, enemy.Source.Name, false, ActionType.BuffApplied, "쿨감", 0,
+                        $"적 {skill.Name}({skill.SkillType}) 시전 → 시간경과 {enemyCd:F0}초 → 전체 쿨 -{enemyCd:F0}초 (경과 {state.ElapsedSeconds:F0}초)");
                     AdvanceTime(state, GetActionDuration(skill));
 
                     // 스킬턴은 턴을 소모하지 않으므로 버프/디버프/DoT 턴 감소(tick) 없음 (게임 규칙 2-3).
@@ -564,7 +573,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 int diagTurn = state?.CurrentTurn ?? -1;
                 int diagRound = state?.CurrentRound ?? -1;
                 DiagLog.AppendLine($"───────── T{diagTurn,2} R{diagRound} {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
-                DiagLog.AppendLine($"  FinalAtk={input.FinalAtk:N0} 치피={input.CritDamage} 약피={input.WeakpointDmg}");
+                DiagLog.AppendLine($"  FinalAtk(공감반영후)={input.FinalAtk:N0} (공감={atkRed:F0}%, 스냅FinalAtk={ally.FinalAtk:N0}) 치피={input.CritDamage} 약피={input.WeakpointDmg}");
                 DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}");
                 DiagLog.AppendLine($"  [적디버프] 방깎={input.DefReduction} 취약={input.Vulnerability} 받피증={input.DmgTakenIncrease} 보스취약={input.BossVulnerability}");
                 DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
@@ -1215,6 +1224,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
             if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
+            // [쿨추적] 시전 시점 경과초 + 이 스킬 쿨 설정값 (게임 실측과 쿨회복 속도 대조용)
+            Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "쿨", 0,
+                $"{skill.Name} 시전 — 쿨 {cd:F0}초 설정 (경과 {state.ElapsedSeconds:F0}초)");
             AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소
 
             // 행동자(시전 아군)만 효과 tick (per-character-action 모델)

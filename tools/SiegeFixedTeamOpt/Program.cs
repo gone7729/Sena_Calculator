@@ -14,8 +14,8 @@ using GameDamageCalculator.Services.BattleEngine;
 //   실측 총점 6,862,365 대비 "이 영웅구성의 최적 기어+진형+플레이 천장"을 본다.
 // ============================================================================
 
-const string DAY = "화요일";
-const double REAL_SCORE = 6_862_365.0;
+const string DAY = "수요일";
+const double REAL_SCORE = 10_659_698.0;   // 수요일 실측(나타·미호·라이언·리나·비스킷, 다른 초월/기어)
 
 static BattleCharacter Hero(int id, int tr, int pa, int pd, int ph, bool magicExclusive = false)
 {
@@ -29,13 +29,13 @@ static BattleCharacter Hero(int id, int tr, int pa, int pd, int ph, bool magicEx
     };
 }
 
-// 영웅 5인 (실측과 동일한 초월/잠재/전용, 기어만 미지정)
-var nata   = Hero(118, 4, 1, 1, 1, magicExclusive: true);   // 나타 T4, 전용 마공247
-var miho   = Hero(103, 9, 3, 3, 3);                          // 미호 T9
-var biskit = Hero(201, 9, 0, 0, 0);                          // 비스킷 T9
-var chloe  = Hero(255, 12, 0, 0, 0);                         // 클로에 T12
-var lena   = Hero(202, 10, 0, 0, 0);                         // 리나 T10
-var team = new List<BattleCharacter> { chloe, lena, biskit, miho, nata };
+// 영웅 5인 — 실측 조건: 전원 6초월·잠재 3/3/3·전용무기 없음
+var nata   = Hero(118, 6, 3, 3, 3);   // 나타
+var miho   = Hero(103, 6, 3, 3, 3);   // 미호
+var ryan   = Hero(2,   6, 3, 3, 3);   // 라이언
+var lena   = Hero(202, 6, 3, 3, 3);   // 리나
+var biskit = Hero(201, 6, 3, 3, 3);   // 비스킷
+var team = new List<BattleCharacter> { nata, miho, ryan, lena, biskit };
 
 if (!EnemyDb.SiegeStages.TryGetValue(DAY, out var stage))
 {
@@ -52,7 +52,7 @@ var cfg = new SiegeOptimizerConfig
     PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
     MaxTurns = 70,
     AutoEquip = true,            // ← 기어 탐색
-    SearchExclusiveWeapon = true,// ← 전용무기 조율 4슬롯 탐색
+    SearchExclusiveWeapon = false,// ← 전용무기 없음(유저 지정)
     OptimizeRotation = true,     // ← 스킬 로테이션 빔서치
     RotationBeamWidth = 10,
     RotationMaxDepth = 28,
@@ -63,8 +63,17 @@ var sw = System.Diagnostics.Stopwatch.StartNew();
 var res = new SiegeOptimizer().Optimize(cfg);
 sw.Stop();
 
+// ── per-hit 진단: best 플랜으로 최종 1회 시뮬 (나타 화첨/혼천 덤프) → 실측 영상(화첨255k·혼천494k) 대조
+var diagSim = new SiegeBattleSimulator(777) { DiagSkillNames = new List<string> { "화첨창술", "혼천릉파" } };
+var diagResult = diagSim.Simulate(new SiegeBattleConfig
+{
+    AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
+    AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
+    MaxTurns = 70, RotationPlan = res.BestRotationPlan,
+});
+
 var sb = new StringBuilder();
-sb.AppendLine("════════ 화요일: 영웅·펫 고정 + 기어·전용조율·진형·로테이션 탐색 ════════");
+sb.AppendLine("════════ 수요일: 나타·미호·라이언·리나·비스킷 전원6초월·잠재3 전용없음 — 기어·진형·로테이션 탐색 ════════");
 sb.AppendLine($"보스: {stage.Name}");
 sb.AppendLine($"실측 총점: {REAL_SCORE:N0}");
 sb.AppendLine($"최적 총점: {res.BestScore:N0}  (실측의 {res.BestScore / REAL_SCORE * 100:F1}%)   [자동로테 {res.AutoRotationScore:N0} → 빔 {res.BestScore:N0}]");
@@ -94,8 +103,23 @@ if (res.BestRotationPlan != null && res.BestRotationPlan.Count > 0)
 else
     sb.AppendLine("  (빔이 자동로테를 못 넘어 플랜 비어있음)");
 
+sb.AppendLine("\n──── 속공순서 · 쿨다운 추적 · 불새↔살육 cleanse 턴로그 ────");
+foreach (var log in diagResult.TurnLogs)
+{
+    var dsc = log.Description ?? "";
+    var sk = log.SkillName ?? "";
+    bool keep = sk == "속공순" || sk == "쿨" || sk == "쿨감"
+        || sk == "불새" || sk == "살육의 춤" || sk == "교만의 일격" || sk == "혼천릉파" || sk == "화첨창술"
+        || (dsc.Contains("디버프") && dsc.Contains("해제"));
+    if (keep)
+        sb.AppendLine($"T{log.Turn,2} [{(log.IsAlly ? "아군" : "적 ")}] {sk}: {dsc}");
+}
+
+sb.AppendLine("\n──── 나타 화첨창술·혼천릉파 per-hit (실측 영상: 화첨≈255k·혼천≈494k/타격) ────");
+sb.AppendLine(diagSim.DiagLog.ToString());
+
 string outPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
-    AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_화요일_팀펫고정_기어로테진형탐색.txt"));
+    AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_수요일_라이언_6초월잠재3_쿨이중감소제거_perhit.txt"));
 System.IO.File.WriteAllText(outPath, sb.ToString(), Encoding.UTF8);
 Console.WriteLine(sb.ToString());
 Console.WriteLine($"→ {outPath}");
