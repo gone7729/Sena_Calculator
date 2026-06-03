@@ -162,6 +162,15 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
             .ToDictionary(kv => kv.Key.ToString(), kv => kv.Value),
         GearLog = r.GearLog ?? new(),
         Party = party,
+        // 최적 스킬 순서 (빔서치 결과) — 유저 핵심 목적. 스킬턴 순서대로 영웅·스킬명.
+        SkillOrder = (r.BestRotationPlan ?? new()).Select((d, i) =>
+        {
+            if (d.Hold || d.HeroIndex < 0 || d.HeroIndex >= r.BestParty.Count)
+                return new SkillStepDto { Step = i + 1, Hero = "(홀드)", Skill = "" };
+            var bc = r.BestParty[d.HeroIndex];
+            var sk = bc.Character.Skills?.FirstOrDefault(s => s.SkillType == d.Skill);
+            return new SkillStepDto { Step = i + 1, Hero = bc.Character.Name, Skill = sk?.Name ?? d.Skill.ToString() };
+        }).ToList(),
         TurnLogs = (r.BestResult?.TurnLogs ?? new()).Select(t => new TurnLogDto
         {
             Turn = t.Turn,
@@ -208,7 +217,15 @@ class OptimizeResponse
     public Dictionary<string, double> RoundScore { get; set; }
     public List<string> GearLog { get; set; }   // 영웅별 선택 장비 메인옵/부옵 값
     public List<PartyMemberDto> Party { get; set; }
+    public List<SkillStepDto> SkillOrder { get; set; }   // 최적 스킬 순서 (스킬턴 순)
     public List<TurnLogDto> TurnLogs { get; set; }
+}
+
+class SkillStepDto
+{
+    public int Step { get; set; }
+    public string Hero { get; set; }
+    public string Skill { get; set; }
 }
 
 class PartyMemberDto

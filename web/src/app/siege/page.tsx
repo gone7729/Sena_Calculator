@@ -36,8 +36,7 @@ const MAX_PARTY = 8;
 const MIN_PARTY = 5;
 const LIST_MIN_HEIGHT = 480; // 영웅 리스트 최소 높이(px) — 우측 패널이 짧아도 리스트가 찌부러지지 않도록
 
-// 시뮬 모드 고정값: 전원 12초월·스킬강화, 펫 윈디 6성 강화3, 펫 잠재 공옵 72%(18×4)
-const SIM_TRANSCEND = 12;
+// 시뮬 모드 고정값: 펫 윈디 6성 강화3, 펫 잠재 공옵 72%(18×4). 초월은 전원 2/4/6 3루트로 탐색.
 const SIM_PET = { name: "윈디", star: 6, enhance: 3, optAtk: 72 };
 
 // 공성전 백엔드 (.NET SiegeApi). 로컬 개발 기본값, 배포 시 NEXT_PUBLIC_SIEGE_API로 덮어쓰기.
@@ -65,7 +64,15 @@ interface TurnLog {
   description: string;
 }
 
-interface OptimizeResult {
+interface SkillStep {
+  step: number;
+  hero: string;
+  skill: string;
+}
+
+interface RouteResult {
+  transcend: number;
+  cached: boolean;
   score: number;
   formation: string;
   evaluatedCount: number;
@@ -74,19 +81,31 @@ interface OptimizeResult {
   roundScore: Record<string, number>;
   gearLog: string[];
   party: PartyMember[];
+  skillOrder: SkillStep[];
   turnLogs: TurnLog[];
 }
+
+interface RoutesResponse {
+  day: string;
+  includeExclusive: boolean;
+  routes: Record<string, RouteResult>;
+}
+
+const TRANSCEND_ROUTES = [2, 4, 6];
 
 export default function SiegePage() {
   const [day, setDay] = useState("토");
   const [grade, setGrade] = useState("전체");
   const [role, setRole] = useState("전체");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [transcend, setTranscend] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<OptimizeResult | null>(null);
-  // 시뮬: 영웅만 선택(나머지 고정) / 커스텀: 초월·펫 직접 설정
+  const [routes, setRoutes] = useState<RoutesResponse | null>(null);
+  // 표시 중인 초월 루트 탭 (2/4/6)
+  const [activeTr, setActiveTr] = useState(6);
+  // 전용장비 전체 포함(조율 탐색) / 전체 제외
+  const [includeExclusive, setIncludeExclusive] = useState(true);
+  // 시뮬: 영웅만 선택(펫 고정) / 커스텀: 펫 직접 설정
   const [mode, setMode] = useState<"sim" | "custom">("sim");
 
   // 펫 (검증 시 게임 세팅 그대로 맞추기 위함)
@@ -130,6 +149,8 @@ export default function SiegePage() {
   // 선택 순서 유지를 위해 selectedIds를 순회하지 않고 heroes에서 필터
   const selectedHeroes = heroes.filter((h) => selectedIds.has(h.id));
   const boss = DAYS.find((d) => d.key === day)?.boss ?? "";
+  // 현재 활성 초월 루트 결과
+  const active = routes ? routes.routes[String(activeTr)] ?? null : null;
 
   const toggleHero = (id: number) => {
     setSelectedIds((prev) => {
@@ -138,23 +159,14 @@ export default function SiegePage() {
       else if (next.size < MAX_PARTY) next.add(id);
       return next;
     });
-    setTranscend((prev) => (prev[id] != null ? prev : { ...prev, [id]: 6 }));
   };
-
-  const setHeroTranscend = (id: number, level: number) =>
-    setTranscend((prev) => ({ ...prev, [id]: level }));
 
   const runSearch = async () => {
     setLoading(true);
     setError(null);
-    setResult(null);
+    setRoutes(null);
     try {
       const isSim = mode === "sim";
-      const members = selectedHeroes.map((h) => ({
-        id: h.id,
-        transcend: isSim ? SIM_TRANSCEND : (transcend[h.id] ?? 6),
-        skillEnhanced: true,
-      }));
       const pet = isSim
         ? {
             name: SIM_PET.name,
@@ -177,13 +189,20 @@ export default function SiegePage() {
       const res = await fetch(`${API_BASE}/api/siege/optimize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ day, members, pet }),
+        body: JSON.stringify({
+          day,
+          heroIds: selectedHeroes.map((h) => h.id),
+          includeExclusive,
+          pet,
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error ?? `요청 실패 (${res.status})`);
       }
-      setResult(await res.json());
+      const data: RoutesResponse = await res.json();
+      setRoutes(data);
+      setActiveTr(data.routes["6"] ? 6 : Number(Object.keys(data.routes)[0] ?? 6));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(
@@ -223,8 +242,8 @@ export default function SiegePage() {
 
       {mode === "sim" && (
         <p className="siege-mode-note">
-          풀 시뮬레이터 — 영웅만 선택하면 전원 <b>12초월·스킬강화</b>, 펫 <b>윈디 6성 강화+3</b>,
-          펫 잠재 <b>공격력 72%</b> 고정으로 템세팅·스킬순서를 탐색합니다.
+          영웅만 선택하면 <b>전원 2/4/6초월</b> 3가지 루트로 <b>템세팅·스킬순서</b>를 탐색합니다.
+          잠재 0/0/0·스킬강화·펫 <b>윈디 6성 강화+3</b> 고정. (목적 = 최적 스킬순서·템세팅, 점수는 따라옴)
         </p>
       )}
 
@@ -325,21 +344,6 @@ export default function SiegePage() {
               {selectedHeroes.map((h) => (
                 <div key={h.id} className="siege-selected-row">
                   <span className="siege-selected-name">{h.name}</span>
-                  {mode === "custom" ? (
-                    <select
-                      className="siege-transcend"
-                      value={transcend[h.id] ?? 6}
-                      onChange={(e) => setHeroTranscend(h.id, Number(e.target.value))}
-                    >
-                      {Array.from({ length: 13 }, (_, t) => (
-                        <option key={t} value={t}>
-                          {t}초월
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="siege-fixed-tag">12초월·강화</span>
-                  )}
                   <button type="button" className="chip" onClick={() => toggleHero(h.id)}>
                     제거
                   </button>
@@ -431,6 +435,19 @@ export default function SiegePage() {
           </>
           )}
 
+          {/* 전용장비 전체 포함/제외 */}
+          <label
+            style={{ display: "flex", alignItems: "center", gap: 8, margin: "14px 0 4px", fontSize: 14, cursor: "pointer" }}
+            title="포함=전용무기 조율(전설 4슬롯)까지 탐색 / 제외=전용무기 미장착"
+          >
+            <input
+              type="checkbox"
+              checked={includeExclusive}
+              onChange={(e) => setIncludeExclusive(e.target.checked)}
+            />
+            전용장비 포함 (조율 탐색)
+          </label>
+
           <button
             type="button"
             className="siege-search-btn"
@@ -448,13 +465,35 @@ export default function SiegePage() {
         </section>
       </div>
 
-      {/* ===== 탐색 결과 ===== */}
-      {result && (
+      {/* ===== 탐색 결과 (전원 2/4/6초월 3루트) ===== */}
+      {routes && active && (
         <section className="panel siege-result">
           <h2 className="panel-title">탐색 결과</h2>
+
+          {/* 초월 루트 탭 */}
+          <div style={{ display: "flex", gap: 8, margin: "4px 0 14px", flexWrap: "wrap" }}>
+            {TRANSCEND_ROUTES.filter((t) => routes.routes[String(t)]).map((t) => {
+              const r = routes.routes[String(t)];
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  className={`chip${activeTr === t ? " active" : ""}`}
+                  onClick={() => setActiveTr(t)}
+                  title={r.cached ? "캐시된 결과" : "이번에 탐색됨"}
+                >
+                  전원 {t}초월 · {Math.round(r.score).toLocaleString()}
+                  {r.cached ? "" : " ●"}
+                </button>
+              );
+            })}
+          </div>
+
           <p className="panel-subtitle">
-            {boss} 공성전 · {result.formation} · {result.evaluatedCount}개 조합 평가 ·{" "}
-            {result.roundsCleared}라운드 클리어 · {result.totalTurns}턴
+            {boss} 공성전 · 전원 <b>{active.transcend}초월</b> · {active.formation} ·{" "}
+            전용장비 {routes.includeExclusive ? "포함" : "제외"} ·{" "}
+            {active.cached ? "캐시" : `${active.evaluatedCount}개 평가`} ·{" "}
+            {active.roundsCleared}R 클리어 · {active.totalTurns}턴
           </p>
 
           {/* 총점 + 라운드별 */}
@@ -462,10 +501,10 @@ export default function SiegePage() {
             <div className="siege-score-total">
               <span className="siege-score-label">총 점수</span>
               <span className="siege-score-value">
-                {Math.round(result.score).toLocaleString()}
+                {Math.round(active.score).toLocaleString()}
               </span>
             </div>
-            {Object.entries(result.roundScore).map(([r, s]) => (
+            {Object.entries(active.roundScore).map(([r, s]) => (
               <div key={r} className="siege-score-round">
                 <span className="siege-score-label">R{r}</span>
                 <span className="siege-score-value">{Math.round(s).toLocaleString()}</span>
@@ -473,12 +512,40 @@ export default function SiegePage() {
             ))}
           </div>
 
+          {/* 최적 스킬 순서 (핵심) */}
+          {active.skillOrder && active.skillOrder.length > 0 && (
+            <>
+              <h3 className="siege-result-sub">최적 스킬 순서 ({active.skillOrder.length}턴)</h3>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "8px 0 18px" }}>
+                {active.skillOrder.map((s) => (
+                  <span
+                    key={s.step}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "5px 9px",
+                      borderRadius: 8,
+                      background: "#1a2230",
+                      border: "1px solid #2c3647",
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ color: "#667", fontSize: 11 }}>{s.step}</span>
+                    <b style={{ color: "#9cd" }}>{s.hero}</b>
+                    <span style={{ color: "#d7c45a" }}>{s.skill || "홀드"}</span>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+
           {/* 진형 배치 (전열/후열 + 버프 수령 영웅 테두리 강조) */}
-          <h3 className="siege-result-sub">진형 배치 ({result.formation})</h3>
+          <h3 className="siege-result-sub">진형 배치 ({active.formation})</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, margin: "8px 0 18px" }}>
             {[
-              { label: "후열", members: result.party.filter((p) => p.isBackRow) },
-              { label: "전열", members: result.party.filter((p) => !p.isBackRow) },
+              { label: "후열", members: active.party.filter((p) => p.isBackRow) },
+              { label: "전열", members: active.party.filter((p) => !p.isBackRow) },
             ].map((row) => (
               <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ width: 34, color: "#9ab", fontSize: 13, flexShrink: 0 }}>{row.label}</span>
@@ -534,9 +601,9 @@ export default function SiegePage() {
           </div>
 
           {/* 정배 (팀 구성 + 기여도) */}
-          <h3 className="siege-result-sub">정배 ({result.formation})</h3>
+          <h3 className="siege-result-sub">정배 ({active.formation})</h3>
           <div className="siege-party">
-            {result.party.map((p) => (
+            {active.party.map((p) => (
               <div key={p.position} className="siege-party-row">
                 <span className="siege-party-pos">{p.position}</span>
                 <span className="siege-party-name">
@@ -557,17 +624,17 @@ export default function SiegePage() {
           </div>
 
           {/* 자동 장착 장비 (메인옵/부옵 값) */}
-          {result.gearLog && result.gearLog.length > 0 && (
+          {active.gearLog && active.gearLog.length > 0 && (
             <>
               <h3 className="siege-result-sub">자동 장착 장비 (메인옵·부옵 값)</h3>
-              <pre className="siege-gearlog">{result.gearLog.join("\n\n")}</pre>
+              <pre className="siege-gearlog">{active.gearLog.join("\n\n")}</pre>
             </>
           )}
 
           {/* 턴 로그 */}
-          <h3 className="siege-result-sub">턴 로그 ({result.turnLogs.length})</h3>
+          <h3 className="siege-result-sub">턴 로그 ({active.turnLogs.length})</h3>
           <div className="siege-log">
-            {result.turnLogs.map((t, i) => (
+            {active.turnLogs.map((t, i) => (
               <div
                 key={i}
                 className={`siege-log-row${t.isAlly ? "" : " enemy"}`}
