@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Text.Json.Serialization;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
@@ -20,6 +22,13 @@ builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p =>
 var app = builder.Build();
 app.UseCors(CorsPolicy);
 
+// 프리필 대상 추천 팀 (요일 → 팀들[영웅 id]). 캐시를 미리 채워 유저에게 즉시 표시.
+//   필요 시 요일·팀 추가. (화: 나타·미호·비스킷·클로에·리나)
+var RecommendedTeams = new Dictionary<string, List<List<int>>>
+{
+    ["화"] = new() { new() { 103, 118, 201, 202, 255 } },
+};
+
 // 요일 키(웹) → SiegeStages 키(EnemyDb). 현재 토요일만 데이터 존재.
 var DayToStage = new Dictionary<string, string>
 {
@@ -37,42 +46,105 @@ app.MapGet("/api/siege/days", () =>
 app.MapGet("/api/siege/pets", () =>
     PetDb.Pets.Select(p => new { id = p.Id, name = p.Name, rarity = p.Rarity }));
 
-// 탐색 실행: 선택 영웅 풀 → 전원 2/4/6초월 3루트 각각 (기어·전용조율·진형·로테이션) 탐색.
-//   캐시 HIT면 즉시 반환(미리 채운 요일별 시뮬값), MISS면 실탐색 후 파일 캐시 저장.
-//   잠재 0/0/0 고정. 전용장비는 전체포함(조율탐색)/전체제외 체크박스(includeExclusive).
+// 탐색 실행: 선택 영웅 풀 → 전원 2/4/6초월 3루트.
+//   캐시 HIT면 즉시 반환(done). MISS면 백그라운드 잡 시작(running) → 프론트가 /job 폴링.
+//   잠재 0/0/0 고정. 전용장비 전체포함(조율탐색)/전체제외 체크박스(includeExclusive).
 app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
 {
     if (req?.HeroIds == null || req.HeroIds.Count < 5)
         return Results.BadRequest(new { error = "영웅을 5명 이상 선택하세요." });
-
     if (string.IsNullOrEmpty(req.Day) || !DayToStage.TryGetValue(req.Day, out var stageKey)
         || !EnemyDb.SiegeStages.TryGetValue(stageKey, out var stage))
         return Results.BadRequest(new { error = $"'{req.Day}' 요일 공성전 데이터가 없습니다." });
-
     foreach (var id in req.HeroIds)
         if (CharacterDb.Characters.All(c => c.Id != id))
             return Results.BadRequest(new { error = $"영웅 id {id}를 찾을 수 없습니다." });
 
-    bool includeExclusive = req.IncludeExclusive ?? true;
-    var routes = new Dictionary<string, OptimizeResponse>();
+    bool incl = req.IncludeExclusive ?? true;
+    var cached = new Dictionary<string, OptimizeResponse>();
+    var missing = new List<int>();
     foreach (int tr in new[] { 2, 4, 6 })
     {
-        string key = SiegeApi.SiegeCache.Key(req.Day, req.HeroIds, tr, includeExclusive);
-        if (SiegeApi.SiegeCache.TryGet<OptimizeResponse>(key, out var hit))
+        if (SiegeApi.SiegeCache.TryGet<OptimizeResponse>(SiegeApi.SiegeCache.Key(req.Day, req.HeroIds, tr, incl), out var hit))
         {
             hit.Cached = true;
-            routes[tr.ToString()] = hit;
-            continue;
+            cached[tr.ToString()] = hit;
         }
-        var dto = RunRoute(stage, req, tr, includeExclusive);
-        dto.Cached = false;
-        SiegeApi.SiegeCache.Set(key, dto);
-        routes[tr.ToString()] = dto;
+        else missing.Add(tr);
     }
-    return Results.Ok(new { day = req.Day, includeExclusive, routes });
+
+    if (missing.Count == 0)
+        return Results.Ok(new { status = "done", day = req.Day, includeExclusive = incl, routes = cached });
+
+    // MISS → 백그라운드 잡 시작(이미 있으면 그대로 진행 상황 반환). 잡 = (요일·영웅·전용옵션) 결정적 id.
+    string jobId = JobKey(req.Day, req.HeroIds, incl);
+    var job = new JobState { Status = "running" };
+    foreach (var kv in cached) job.Routes[kv.Key] = kv.Value;
+    if (JobStore.Jobs.TryAdd(jobId, job))
+        _ = Task.Run(() => RunJob(jobId, stage, req, incl, missing));
+    var cur = JobStore.Jobs[jobId];
+    return Results.Ok(new { status = cur.Status, jobId, day = req.Day, includeExclusive = incl, routes = cur.Routes, error = cur.Error });
+});
+
+// 잡 폴링: 진행 상황·완료된 루트 반환.
+app.MapGet("/api/siege/job", (string id) =>
+    JobStore.Jobs.TryGetValue(id, out var j)
+        ? Results.Ok(new { status = j.Status, jobId = id, routes = j.Routes, error = j.Error })
+        : Results.NotFound(new { error = "작업을 찾을 수 없습니다." }));
+
+// 프리필: 요일별 추천 팀들의 잡을 미리 큐잉(캐시 채우기). 백그라운드 직렬 실행.
+app.MapPost("/api/siege/prefill", () =>
+{
+    int started = 0, alreadyCached = 0;
+    foreach (var (day, teams) in RecommendedTeams)
+    {
+        if (!DayToStage.TryGetValue(day, out var sk) || !EnemyDb.SiegeStages.TryGetValue(sk, out var st)) continue;
+        foreach (var ids in teams)
+            foreach (bool incl in new[] { true, false })
+            {
+                var missing = new[] { 2, 4, 6 }
+                    .Where(tr => !SiegeApi.SiegeCache.Has(SiegeApi.SiegeCache.Key(day, ids, tr, incl))).ToList();
+                if (missing.Count == 0) { alreadyCached++; continue; }
+                string jobId = JobKey(day, ids, incl);
+                var req = new OptimizeRequest { Day = day, HeroIds = ids, IncludeExclusive = incl };
+                if (JobStore.Jobs.TryAdd(jobId, new JobState { Status = "running" }))
+                {
+                    _ = Task.Run(() => RunJob(jobId, st, req, incl, missing));
+                    started++;
+                }
+            }
+    }
+    return Results.Ok(new { enqueued = started, alreadyCached });
 });
 
 app.Run();
+
+// ===== 잡 (백그라운드 탐색) =====
+static string JobKey(string day, List<int> ids, bool incl) =>
+    $"{day}|{string.Join(",", ids.OrderBy(i => i))}|x{(incl ? 1 : 0)}";
+
+// 한 잡 = 누락 루트들을 순차 탐색(공유 static 레이스 방지 위해 Gate로 전역 직렬화), 각 루트 완료 시 캐시·잡 갱신.
+static async Task RunJob(string jobId, Stage stage, OptimizeRequest req, bool incl, List<int> missing)
+{
+    await JobStore.Gate.WaitAsync();
+    try
+    {
+        foreach (int tr in missing)
+        {
+            var dto = RunRoute(stage, req, tr, incl);
+            dto.Cached = false;
+            SiegeApi.SiegeCache.Set(SiegeApi.SiegeCache.Key(req.Day, req.HeroIds, tr, incl), dto);
+            JobStore.Jobs[jobId].Routes[tr.ToString()] = dto;
+        }
+        JobStore.Jobs[jobId].Status = "done";
+    }
+    catch (Exception ex)
+    {
+        JobStore.Jobs[jobId].Status = "error";
+        JobStore.Jobs[jobId].Error = ex.Message;
+    }
+    finally { JobStore.Gate.Release(); }
+}
 
 // ===== 한 루트(전원 transcend초월) 탐색 실행 → DTO =====
 static OptimizeResponse RunRoute(Stage stage, OptimizeRequest req, int transcend, bool includeExclusive)
@@ -182,6 +254,22 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
             Description = t.Description,
         }).ToList(),
     };
+}
+
+// ===== 백그라운드 잡 저장소 =====
+static class JobStore
+{
+    // jobId → 상태. 결정적 jobId(요일·영웅·전용옵션)라 같은 팀 재요청 시 동일 잡 공유.
+    public static readonly ConcurrentDictionary<string, JobState> Jobs = new();
+    // 공유 static(Character.ExclusiveWeapon 등) 레이스 방지 — 탐색을 전역 1개씩 직렬화.
+    public static readonly SemaphoreSlim Gate = new(1, 1);
+}
+
+class JobState
+{
+    public string Status { get; set; } = "running";   // running / done / error
+    public ConcurrentDictionary<string, OptimizeResponse> Routes { get; set; } = new();
+    public string Error { get; set; }
 }
 
 // ===== 요청/응답 모델 =====

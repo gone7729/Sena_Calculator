@@ -86,9 +86,12 @@ interface RouteResult {
 }
 
 interface RoutesResponse {
+  status?: "done" | "running" | "error";
+  jobId?: string;
   day: string;
   includeExclusive: boolean;
   routes: Record<string, RouteResult>;
+  error?: string;
 }
 
 const TRANSCEND_ROUTES = [2, 4, 6];
@@ -121,6 +124,10 @@ export default function SiegePage() {
       .then((d: PetInfo[]) => setPets(d))
       .catch(() => setPets([]));
   }, []);
+
+  // 백그라운드 잡 폴링 타이머
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (pollRef.current) clearTimeout(pollRef.current); }, []);
 
   // 우측 패널(선택 영웅·펫·탐색) 높이를 측정해 좌측 리스트 패널 높이를 맞춤 → 리스트 내부 스크롤
   const rightRef = useRef<HTMLElement>(null);
@@ -161,7 +168,32 @@ export default function SiegePage() {
     });
   };
 
+  // 백그라운드 잡 폴링 — 완료된 루트가 채워지면 탭이 하나씩 갱신됨
+  const pollJob = (jobId: string) => {
+    const tick = async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/siege/job?id=${encodeURIComponent(jobId)}`);
+        if (r.ok) {
+          const j = await r.json();
+          setRoutes((prev) =>
+            prev ? { ...prev, status: j.status, routes: { ...prev.routes, ...(j.routes ?? {}) } } : prev
+          );
+          if (j.status === "error") {
+            setError(j.error ?? "탐색 중 오류가 발생했습니다.");
+            return;
+          }
+          if (j.status === "done") return;
+        }
+      } catch {
+        /* 일시적 네트워크 오류는 무시하고 재시도 */
+      }
+      pollRef.current = setTimeout(tick, 5000);
+    };
+    pollRef.current = setTimeout(tick, 4000);
+  };
+
   const runSearch = async () => {
+    if (pollRef.current) clearTimeout(pollRef.current);
     setLoading(true);
     setError(null);
     setRoutes(null);
@@ -202,7 +234,9 @@ export default function SiegePage() {
       }
       const data: RoutesResponse = await res.json();
       setRoutes(data);
-      setActiveTr(data.routes["6"] ? 6 : Number(Object.keys(data.routes)[0] ?? 6));
+      const keys = Object.keys(data.routes);
+      setActiveTr(data.routes["6"] ? 6 : keys.length ? Number(keys[0]) : 6);
+      if (data.status === "running" && data.jobId) pollJob(data.jobId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(
@@ -466,14 +500,27 @@ export default function SiegePage() {
       </div>
 
       {/* ===== 탐색 결과 (전원 2/4/6초월 3루트) ===== */}
-      {routes && active && (
+      {routes && (
         <section className="panel siege-result">
           <h2 className="panel-title">탐색 결과</h2>
 
-          {/* 초월 루트 탭 */}
+          {routes.status === "running" && (
+            <div className="siege-mode-note" style={{ marginTop: 0 }}>
+              새 영웅 조합이라 탐색 중입니다 — 루트가 완료되는 대로 탭이 채워집니다.
+              ({Object.keys(routes.routes).length}/3 완료, 루트당 수 분 소요)
+            </div>
+          )}
+
+          {/* 초월 루트 탭 (완료=클릭 / 미완료=탐색 중) */}
           <div style={{ display: "flex", gap: 8, margin: "4px 0 14px", flexWrap: "wrap" }}>
-            {TRANSCEND_ROUTES.filter((t) => routes.routes[String(t)]).map((t) => {
+            {TRANSCEND_ROUTES.map((t) => {
               const r = routes.routes[String(t)];
+              if (!r)
+                return (
+                  <span key={t} className="chip" style={{ opacity: 0.5, cursor: "default" }}>
+                    전원 {t}초월 · 탐색 중…
+                  </span>
+                );
               return (
                 <button
                   key={t}
@@ -489,6 +536,8 @@ export default function SiegePage() {
             })}
           </div>
 
+          {active && (
+          <>
           <p className="panel-subtitle">
             {boss} 공성전 · 전원 <b>{active.transcend}초월</b> · {active.formation} ·{" "}
             전용장비 {routes.includeExclusive ? "포함" : "제외"} ·{" "}
@@ -651,6 +700,8 @@ export default function SiegePage() {
           <p className="siege-note">
             ※ 템세팅(안정형·고점형)은 장비 옵티마이저 연동 후 제공됩니다.
           </p>
+          </>
+          )}
         </section>
       )}
     </>
