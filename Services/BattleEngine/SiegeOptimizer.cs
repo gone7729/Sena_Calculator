@@ -31,7 +31,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치를 적용해 로테이션 최적 점수·플랜 산출
         public bool OptimizeRotation { get; set; } = true;
         public int RotationBeamWidth { get; set; } = 10;
-        public int RotationMaxDepth { get; set; } = 18;
+        // 70턴 시즈의 아군 스킬턴(라운드 연쇄 포함 ~20개)을 전부 덮어야 막판 스킬턴까지 빔이 최적화한다.
+        //   빔은 결정점 소진 시 조기종료(!extended)하므로 이 값은 상한일 뿐 — 넉넉히 둬도 낭비 없음.
+        //   (이전 18은 막판 ~2 스킬턴을 자동 폴백=버프우선에 넘겨 끝물 공격스킬 채택을 놓쳤음)
+        public int RotationMaxDepth { get; set; } = 28;
 
         // 진형 단일 강제 (실측 비교용). null이면 전 진형 탐색.
         public string ForcedFormation { get; set; }
