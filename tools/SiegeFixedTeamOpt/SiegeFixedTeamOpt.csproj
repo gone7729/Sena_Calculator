@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 화요일: 영웅·진형·펫 고정 + 기어·스킬로테이션 탐색 (실측 천장 측정). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GameDamageCalculator</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\DB\**\*.cs" />
+    <Compile Include="..\..\Models\**\*.cs" />
+    <Compile Include="..\..\Services\**\*.cs" />
+  </ItemGroup>
+</Project>

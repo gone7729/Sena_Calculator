@@ -24,6 +24,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 장비 미지정 영웅에게 장비 옵티마이저로 최적 장비를 자동 장착할지 (R3 보스 기준 1회)
         public bool AutoEquip { get; set; } = true;
 
+        // 전용무기 조율 4슬롯(전설 가정)을 영웅별로 풀시뮬 점수로 탐색할지. (메인옵/세공은 현 모델 미포함)
+        //   기본 OFF(기존 동작 불변). ON이면 AutoEquip 기어 선택 후 영웅별 조율을 그리디 탐색.
+        public bool SearchExclusiveWeapon { get; set; } = false;
+
         // 저점-우선 기어: 치확/약확을 (파티 버스트 버프 포함) 100%까지만 채우고 나머지는 치피/공%로.
         // 버프-정렬 로테이션 전제(가 가정)라 정렬 안 되면 평균 점수 소폭 하락 가능 → 기본 OFF, Phase 2와 함께 평가.
         public bool FloorFirstGear { get; set; } = false;
@@ -295,7 +299,57 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
                 log.Add(FormatGear(bc));
             }
+
+            // 3) 전용무기 조율 4슬롯 탐색 (전설 가정) — 기어 확정 후 영웅별 그리디(풀시뮬 점수).
+            if (config.SearchExclusiveWeapon)
+            {
+                foreach (var bc in targets)
+                {
+                    if (bc.Character == null) continue;
+                    bool magic = bc.Character.AttackType == AttackType.Magic;
+                    ExclusiveWeapon bestW = bc.Character.ExclusiveWeapon; double bestS = -1;
+                    foreach (var w in ExclusiveTuningCandidates(magic, bc.Character.Id))
+                    {
+                        bc.Character.ExclusiveWeapon = w;
+                        double s = FullScore();
+                        if (s > bestS) { bestS = s; bestW = w; }
+                    }
+                    bc.Character.ExclusiveWeapon = bestW;
+                    log.Add($"[{bc.Character.Name}] 전용조율: {DescribeTuning(bestW)}");
+                }
+            }
             return log;
+        }
+
+        /// <summary>전용무기 조율 후보(전설 4슬롯) — 딜러/탱커 공통 소수 조합만(8^4 전수 대신).</summary>
+        private static List<ExclusiveWeapon> ExclusiveTuningCandidates(bool magic, int charId)
+        {
+            ExclusiveWeapon W(params TuningOption[] opts) => new()
+            {
+                Name = "조율탐색", OwnerCharacterId = charId, Atk = 247, IsMagic = magic,
+                Tuning = opts.Select(o => new TuningSlot { Option = o, Grade = ExclusiveWeaponGrade.전설 }).ToList(),
+            };
+            var A = TuningOption.모든공격력; var D = TuningOption.피해증폭;
+            var T = TuningOption.탄성; var H = TuningOption.생명력; var Df = TuningOption.방어력;
+            return new List<ExclusiveWeapon>
+            {
+                W(A, A, A, A),   // 딜러: 모든공격력 몰빵
+                W(A, A, A, D),
+                W(A, A, D, D),
+                W(A, D, D, D),
+                W(D, D, D, D),   // 피해증폭 몰빵
+                W(A, A, T, T),   // 공격 + 생존(탄성)
+                W(T, T, T, T),   // 생존
+                W(H, H, Df, Df), // 탱커
+            };
+        }
+
+        /// <summary>조율 구성 요약 문자열.</summary>
+        private static string DescribeTuning(ExclusiveWeapon w)
+        {
+            if (w == null || w.Tuning == null || w.Tuning.Count == 0) return "(없음)";
+            return string.Join("+", w.Tuning.GroupBy(t => t.Option)
+                .Select(g => $"{g.Key}×{g.Count()}"));
         }
 
         /// <summary>장비 프록시 평가용 단일 영웅 BattleConfig (R3 보스 타깃).</summary>

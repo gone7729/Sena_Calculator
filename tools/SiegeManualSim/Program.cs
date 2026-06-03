@@ -187,6 +187,24 @@ var sim = new SiegeBattleSimulator(seed: 777)
 var result = sim.Simulate(config);
 sw.Stop();
 
+// ===== 최적 로테이션 탐색 (팀·기어·진형·펫·자리 고정, 스킬 순서만 빔서치) =====
+//   속공(행동 순서)은 기어 고정이라 불변 → 탐색 대상은 "각 스킬턴에 누가 어떤 스킬을 쓰나".
+var optCfg = new SiegeBattleConfig
+{
+    AllyParty = party, SiegeStage = stage, FormationName = "밸런스 진형",
+    AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3,
+    PetOptionAtkRate = 72, MaxTurns = 70,
+};
+var beamSw = System.Diagnostics.Stopwatch.StartNew();
+var beam = new RotationBeamSearch(seed: 777).Search(optCfg, beamWidth: 10, maxDepth: 28);
+beamSw.Stop();
+string[] heroNm = { "클로에", "리나", "비스킷", "미호", "나타" };
+string SkNm(int hi, SkillType st)
+{
+    var sk = party[hi].Character.Skills?.FirstOrDefault(s => s.SkillType == st);
+    return sk?.Name ?? st.ToString();
+}
+
 // ----- 결과 정리 -----
 var sb = new StringBuilder();
 sb.AppendLine("================ 화요일 완전 잠금 시뮬 (옵티마이저 우회 · 실측 입력 그대로) ================");
@@ -201,6 +219,21 @@ sb.AppendLine("캐릭터별 기여:");
 foreach (var c in result.CharacterResults.OrderByDescending(c => c.TotalDamage))
     sb.AppendLine($"  {c.CharacterName}: {c.TotalDamage:N0} ({c.DamageShare:F1}%)");
 sb.AppendLine($"\n생존 (70턴 종료 시): {result.AlliesAlive}/5");
+
+// ===== 최적 로테이션 탐색 결과 =====
+sb.AppendLine("\n════════════════ 최적 로테이션 탐색 (기어 고정 · 스킬순서 빔서치) ════════════════");
+sb.AppendLine($"최적 총점: {beam.Score:N0}  (실측 {REAL_SCORE:N0}의 {beam.Score/REAL_SCORE*100:F1}%)  vs 실측로테 {result.TotalScore:N0}({result.TotalScore/REAL_SCORE*100:F1}%)");
+sb.AppendLine($"  탐색 {beam.Evaluated:N0}회 시뮬, {beamSw.ElapsedMilliseconds:N0}ms, 깊이별최고 {string.Join("→", beam.ScoreByDepth.TakeLast(6).Select(s => $"{s/1e6:F2}M"))}");
+sb.AppendLine($"  라운드별: {string.Join(", ", beam.Battle.RoundScore.OrderBy(k => k.Key).Select(k => $"R{k.Key}={k.Value:N0}"))}");
+sb.AppendLine("  캐릭터별 기여:");
+foreach (var c in beam.Battle.CharacterResults.OrderByDescending(c => c.TotalDamage))
+    sb.AppendLine($"    {c.CharacterName}: {c.TotalDamage:N0} ({c.DamageShare:F1}%)");
+sb.AppendLine($"  최적 스킬 순서 (스킬턴 {beam.Plan.Count}개):");
+for (int i = 0; i < beam.Plan.Count; i++)
+{
+    var d = beam.Plan[i];
+    sb.AppendLine($"    {i + 1,2}. " + (d.Hold ? "(홀드)" : $"{heroNm[d.HeroIndex]} → {SkNm(d.HeroIndex, d.Skill)}"));
+}
 
 sb.AppendLine("\n========== per-hit 진단 (나타 화첨창술·혼천릉파) ==========");
 sb.AppendLine(sim.DiagLog.ToString());

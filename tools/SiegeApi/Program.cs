@@ -58,6 +58,9 @@ app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
             Character = ch,
             TranscendLevel = Math.Clamp(m.Transcend, 0, 12),
             IsSkillEnhanced = m.SkillEnhanced ?? true,
+            PotentialAtkLevel = Math.Clamp(m.PotentialAtk ?? 0, 0, 3),
+            PotentialDefLevel = Math.Clamp(m.PotentialDef ?? 0, 0, 3),
+            PotentialHpLevel = Math.Clamp(m.PotentialHp ?? 0, 0, 3),
         });
     }
 
@@ -67,6 +70,8 @@ app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
         SiegeStage = stage,
         MaxTurns = req.MaxTurns ?? 70,
         PartySize = req.PartySize ?? 5,
+        // 기어·전용조율·진형·로테이션 탐색 (기본 ON). AutoEquip·OptimizeRotation은 config 기본값(true).
+        SearchExclusiveWeapon = req.SearchExclusiveWeapon ?? true,
     };
 
     // 펫 (선택). 검증 시 게임 세팅 그대로 맞추려면 펫·성급·강화·옵션이 필요.
@@ -144,7 +149,8 @@ static OptimizeResponse ToDto(SiegeOptimizerResult r)
 }
 
 // ===== 요청/응답 모델 =====
-record MemberInput(int Id, int Transcend, bool? SkillEnhanced);
+record MemberInput(int Id, int Transcend, bool? SkillEnhanced,
+    int? PotentialAtk = null, int? PotentialDef = null, int? PotentialHp = null);
 
 class PetInput
 {
@@ -163,6 +169,7 @@ class OptimizeRequest
     public PetInput Pet { get; set; }
     public int? MaxTurns { get; set; }
     public int? PartySize { get; set; }
+    public bool? SearchExclusiveWeapon { get; set; }   // 전용무기 조율 탐색 (기본 true)
 }
 
 class OptimizeResponse
