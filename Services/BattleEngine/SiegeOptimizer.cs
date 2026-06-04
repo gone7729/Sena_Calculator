@@ -102,6 +102,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             var gearLog = config.AutoEquip ? EquipCandidates(config) : new List<string>();
 
             SiegeOptimizerResult best = null;
+            // (B) 메인딜러 후열 휴리스틱 후보: 자동로테 점수가 가장 높은 "최고딜 캐릭이 후열인" config.
+            //   2-stage 근사 보정용 — cleanse→버스트 시너지는 자동로테 점수에 안 잡혀 우승 마스크에서
+            //   누락되기 쉬우므로, 빔서치 후보에 항상 함께 포함한다(공성전 한정).
+            SiegeOptimizerResult bestDealerBack = null;
             int evaluated = 0;
             var evalLog = new List<SiegeEvalEntry>();
 
@@ -177,34 +181,70 @@ namespace GameDamageCalculator.Services.BattleEngine
                                 BestMask = mask,
                             };
                         }
+
+                        // (B) 이 config의 최고딜 캐릭이 후열이면 메인딜러-후열 후보로 기록(자동로테 최고점 유지).
+                        //   특정 영웅 하드코딩 없이 "데미지 기여 1위"로 일반화 — 공성전 메인딜러는 사실상 고정.
+                        var topDealer = result.CharacterResults.Count > 0
+                            ? result.CharacterResults.OrderByDescending(c => c.TotalDamage).First()
+                            : null;
+                        bool dealerInBack = topDealer != null
+                            && team.Any(c => c.IsBackPosition && c.Character?.Name == topDealer.CharacterName);
+                        if (dealerInBack && (bestDealerBack == null || result.TotalScore > bestDealerBack.BestScore))
+                        {
+                            bestDealerBack = new SiegeOptimizerResult
+                            {
+                                BestParty = team,
+                                BestFormation = formation,
+                                BestScore = result.TotalScore,
+                                BestResult = result,
+                                BestBackRow = backRow,
+                                BestMask = mask,
+                            };
+                        }
                     }
                 }
             }
 
             if (best != null)
             {
+                // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치 → 로테이션 최적 점수·플랜.
+                // 진형·자리·기어 탐색은 자동 로테이션 점수로 했으므로 2단계 근사. 단, 자동로테는
+                // cleanse→버스트 시너지(메인딜러 후열 가치)를 과소평가 → 메인딜러-후열 후보(B)를
+                // 빔서치 후보에 함께 넣고, 빔 점수가 더 높은 쪽을 채택해 근사 오류를 보정한다.
+                if (config.OptimizeRotation)
+                {
+                    // 후보군: 자동로테 우승 + 메인딜러-후열(둘이 같은 마스크면 중복 제외).
+                    var beamCands = new List<SiegeOptimizerResult> { best };
+                    if (bestDealerBack != null
+                        && !(bestDealerBack.BestMask == best.BestMask && bestDealerBack.BestFormation == best.BestFormation))
+                        beamCands.Add(bestDealerBack);
+
+                    foreach (var cand in beamCands)
+                    {
+                        // team 객체가 탐색·다른 후보 빔으로 변형되므로 이 후보 자리 배치를 재적용 후 빔.
+                        for (int i = 0; i < cand.BestParty.Count; i++)
+                            cand.BestParty[i].IsBackPosition = (cand.BestMask & (1 << i)) != 0;
+                        cand.AutoRotationScore = cand.BestScore;
+                        var beam = new RotationBeamSearch(GearCompareSeed).Search(
+                            BuildSimConfig(config, cand.BestParty, cand.BestFormation),
+                            config.RotationBeamWidth, config.RotationMaxDepth);
+                        if (beam.Score > cand.BestScore)
+                        {
+                            cand.BestScore = beam.Score;
+                            cand.BestResult = beam.Battle;
+                            cand.BestRotationPlan = beam.Plan;
+                        }
+                    }
+                    // 빔 점수가 가장 높은 후보 채택.
+                    best = beamCands.OrderByDescending(c => c.BestScore).First();
+                }
+
                 best.EvaluatedCount = evaluated;
                 best.GearLog = gearLog;
                 best.EvalLog = evalLog;
-                // team 객체가 탐색 중 변형되므로 최적 자리 배치를 BestParty에 재적용.
+                // team은 공유·변형 객체이므로 최종 채택 config의 자리 배치를 마지막에 확정 재적용.
                 for (int i = 0; i < best.BestParty.Count; i++)
                     best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
-
-                // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치 1회 → 로테이션 최적 점수·플랜.
-                // (진형·자리·기어 탐색은 자동 로테이션 점수로 했으므로 2단계 근사 — 빠르고 일관됨.)
-                if (config.OptimizeRotation)
-                {
-                    best.AutoRotationScore = best.BestScore;
-                    var beam = new RotationBeamSearch(GearCompareSeed).Search(
-                        BuildSimConfig(config, best.BestParty, best.BestFormation),
-                        config.RotationBeamWidth, config.RotationMaxDepth);
-                    if (beam.Score > best.BestScore)
-                    {
-                        best.BestScore = beam.Score;
-                        best.BestResult = beam.Battle;
-                        best.BestRotationPlan = beam.Plan;
-                    }
-                }
             }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }

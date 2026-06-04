@@ -1,20 +1,19 @@
 ﻿{
   "day": "수요일",
   "boss": "수요일 공성전 (불멸의 성)",
-  "score": 6253230,
-  "autoRotationScore": 3709465,
-  "formation": "기본 진형",
+  "score": 7377515,
+  "autoRotationScore": 3675741,
+  "formation": "밸런스 진형",
   "backRow": [
-    "리나",
-    "비스킷",
-    "라이언"
+    "나타",
+    "미호"
   ],
   "roundsCleared": 2,
   "totalTurns": 70,
   "roundScore": {
     "1": 25170,
     "2": 31450,
-    "3": 6196610
+    "3": 7320895
   },
   "team": [
     {
@@ -22,45 +21,45 @@
       "name": "나타",
       "role": "마법형",
       "transcend": 6,
-      "isBackRow": false,
-      "totalDamage": 4561387,
-      "damageShare": 72.9
+      "isBackRow": true,
+      "totalDamage": 5513797,
+      "damageShare": 74.7
     },
     {
       "id": 103,
       "name": "미호",
       "role": "마법형",
       "transcend": 6,
-      "isBackRow": false,
-      "totalDamage": 1368609,
-      "damageShare": 21.9
+      "isBackRow": true,
+      "totalDamage": 1561195,
+      "damageShare": 21.2
     },
     {
       "id": 202,
       "name": "리나",
       "role": "지원형",
       "transcend": 6,
-      "isBackRow": true,
-      "totalDamage": 103956,
-      "damageShare": 1.7
+      "isBackRow": false,
+      "totalDamage": 67794,
+      "damageShare": 0.9
     },
     {
       "id": 201,
       "name": "비스킷",
       "role": "지원형",
       "transcend": 6,
-      "isBackRow": true,
-      "totalDamage": 215474,
-      "damageShare": 3.4
+      "isBackRow": false,
+      "totalDamage": 220532,
+      "damageShare": 3
     },
     {
       "id": 2,
       "name": "라이언",
       "role": "공격형",
       "transcend": 6,
-      "isBackRow": true,
-      "totalDamage": 3804,
-      "damageShare": 0.1
+      "isBackRow": false,
+      "totalDamage": 14197,
+      "damageShare": 0.2
     }
   ],
   "gear": [
@@ -88,13 +87,13 @@
     },
     {
       "step": 3,
-      "hero": "리나",
-      "skill": "행진가"
+      "hero": "나타",
+      "skill": "화첨창술"
     },
     {
       "step": 4,
-      "hero": "나타",
-      "skill": "화첨창술"
+      "hero": "비스킷",
+      "skill": "리프 어택"
     },
     {
       "step": 5,
@@ -103,18 +102,18 @@
     },
     {
       "step": 6,
+      "hero": "리나",
+      "skill": "행진가"
+    },
+    {
+      "step": 7,
       "hero": "미호",
       "skill": "살육의 춤"
     },
     {
-      "step": 7,
+      "step": 8,
       "hero": "나타",
       "skill": "혼천릉파"
-    },
-    {
-      "step": 8,
-      "hero": "미호",
-      "skill": "교만의 일격"
     },
     {
       "step": 9,
@@ -123,8 +122,8 @@
     },
     {
       "step": 10,
-      "hero": "(홀드)",
-      "skill": ""
+      "hero": "미호",
+      "skill": "교만의 일격"
     },
     {
       "step": 11,
@@ -138,18 +137,13 @@
     },
     {
       "step": 13,
-      "hero": "나타",
-      "skill": "화첨창술"
+      "hero": "라이언",
+      "skill": "광풍참"
     },
     {
       "step": 14,
       "hero": "미호",
       "skill": "살육의 춤"
-    },
-    {
-      "step": 15,
-      "hero": "비스킷",
-      "skill": "리프 어택"
     }
   ]
 }

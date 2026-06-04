@@ -24,6 +24,10 @@ var DAYS = new (string Day, int[] Ids)[]
     ("토요일", new[] { 2,   1,   301, 201, 51  }),   // 라이언·타카·레이첼·비스킷·풍연
 };
 
+// 인자로 요일 지정 시 해당 요일만 탐색 (예: dotnet run -- 수요일). 미지정이면 전 요일.
+if (args.Length > 0)
+    DAYS = DAYS.Where(d => args.Contains(d.Day)).ToArray();
+
 static BattleCharacter Hero(int id)
 {
     var c = CharacterDb.Characters.First(x => x.Id == id);
