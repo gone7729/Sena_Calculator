@@ -136,7 +136,8 @@ namespace GameDamageCalculator.Database
                 MultiTargetReduction = 90, //5인기감소
                 DamageReduction = 0,      // 보스 고유 받피감
                 DamageTakenIncrease = 0, //받는피해증가
-                Vulnerability = 0 // 취약%
+                Vulnerability = 0, // 취약%
+                OnAllyDeathNullifyHits = 4 // 「죽음의 경계」: 아군 사망 시 모든 피해 무효[피격 4회]
             },
 
             new Enemy

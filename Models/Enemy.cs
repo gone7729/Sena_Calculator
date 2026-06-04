@@ -43,6 +43,10 @@ namespace GameDamageCalculator.Models
         // 공성전: 이 적이 아군 공격에 피격될 때마다 공격력 최고 적의 스킬 쿨타임 N초 감소 (일요일 몹 패시브). 0이면 없음.
         public double SiegeHitCdReduce { get; set; }
 
+        // 공성전: 아군 사망 시 이 보스가 얻는 모든 피해 무효화 횟수 (델론즈 「죽음의 경계」: 피격 4회). 0이면 없음.
+        //   직격 1회당 1 차감(점수 미집계), DoT는 무효지만 차감 안 함.
+        public int OnAllyDeathNullifyHits { get; set; }
+
         // ===== 하위호환 속성 (Phase 3 전환 완료 전까지 유지) =====
         public double PhysicalReduction
         {

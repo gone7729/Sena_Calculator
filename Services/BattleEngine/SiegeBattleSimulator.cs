@@ -290,11 +290,25 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     // 광역은 타겟수만큼, 단일은 1명 — 모두 랜덤 아군
                     int targetCount = Math.Max(1, skill.GetTargetCount(false, 0));
+                    var recast = skill.GetLevelData(false)?.OnKillRecast;
                     foreach (var target in PickRandomAllies(state, targetCount))
                     {
+                        bool wasAlive = !target.IsDead;
                         double dmg = CalcDamageToAlly(enemy, target, skill);
                         ApplyDamageToAlly(state, enemy, target, dmg, skill.Name);
                         ApplyEnemyStatusToAlly(state, target, skill);
+
+                        // OnKillRecast: 직접 피해로 아군 처치 시 RatioPercent% 위력으로 1회 재시전(연쇄 1회 한도).
+                        if (recast != null && recast.RatioPercent > 0 && wasAlive && target.IsDead)
+                        {
+                            var rt = PickRandomAlly(state);
+                            if (rt != null)
+                            {
+                                double rdmg = CalcDamageToAlly(enemy, rt, skill) * recast.RatioPercent / 100.0;
+                                ApplyDamageToAlly(state, enemy, rt, rdmg, skill.Name + "(처치 재시전)");
+                                ApplyEnemyStatusToAlly(state, rt, skill);
+                            }
+                        }
                     }
 
                     // 적 진영 전체 피해 면역 부여 (화 R3 룩 등)
@@ -408,6 +422,16 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
                 ApplyHitCdReduce(state, target);   // 피격 자체는 발생 → 일 쿨감 패시브는 트리거
+                return;
+            }
+
+            // 보스 피해 무효화 (델론즈 「죽음의 경계」: 아군 사망 시 부여) — 직격 1회 무효·1 차감, 점수 미집계.
+            if (target.NullifyHitsRemaining > 0)
+            {
+                target.NullifyHitsRemaining--;
+                Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
+                    label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 무효 (죽음의 경계, 잔여 {target.NullifyHitsRemaining}회)");
+                ApplyHitCdReduce(state, target);
                 return;
             }
 
@@ -708,6 +732,16 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = dmg,
                 Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
             });
+
+            // 아군 사망 → 「죽음의 경계」 보유 보스(델론즈)에 피해무효화[N회] 부여 (이후 아군 직격 N회 무효).
+            if (ally.IsDead)
+                foreach (var en in state.Enemies)
+                    if (en.Source.OnAllyDeathNullifyHits > 0)
+                    {
+                        en.NullifyHitsRemaining = en.Source.OnAllyDeathNullifyHits;
+                        Log(state, en.Source.Name, false, ActionType.BuffApplied, "죽음의 경계", 0,
+                            $"{ally.Source.Character.Name} 사망 → {en.Source.Name} 피해무효화 [{en.NullifyHitsRemaining}회]");
+                    }
 
             CheckHpThresholdNullify(state, ally);   // 생명력 임계 피해무효(나타 50% 등) 트리거
         }
@@ -1086,8 +1120,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
             if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
 
-            // DoT 데미지 + 잔여 턴 감소 (적 진영 피해 면역 중엔 무효)
-            bool immune = state.EnemyImmunityTurns > 0;
+            // DoT 데미지 + 잔여 턴 감소 (적 진영 피해 면역 / 보스 무효화 중엔 무효).
+            //   델론즈 무효화는 DoT도 막지만 횟수는 차감하지 않음(직격만 차감) → 여기선 무효 처리만.
+            bool immune = state.EnemyImmunityTurns > 0 || enemy.NullifyHitsRemaining > 0;
             foreach (var dot in enemy.ActiveDots)
             {
                 if (dot.TickDamage > 0 && !immune)

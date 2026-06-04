@@ -14,8 +14,8 @@ using GameDamageCalculator.Services.BattleEngine;
 //   실측 총점 6,862,365 대비 "이 영웅구성의 최적 기어+진형+플레이 천장"을 본다.
 // ============================================================================
 
-const string DAY = "수요일";
-const double REAL_SCORE = 10_659_698.0;   // 수요일 실측(나타·미호·라이언·리나·비스킷, 다른 초월/기어)
+const string DAY = "목요일";
+const double REAL_SCORE = 12_470_914.0;   // 목요일 직전 배치 결과(비교 기준)
 
 static BattleCharacter Hero(int id, int tr, int pa, int pd, int ph, bool magicExclusive = false)
 {
@@ -30,12 +30,12 @@ static BattleCharacter Hero(int id, int tr, int pa, int pd, int ph, bool magicEx
 }
 
 // 영웅 5인 — 실측 조건: 전원 6초월·잠재 3/3/3·전용무기 없음
-var nata   = Hero(118, 6, 3, 3, 3);   // 나타
-var miho   = Hero(103, 6, 3, 3, 3);   // 미호
-var ryan   = Hero(2,   6, 3, 3, 3);   // 라이언
-var lena   = Hero(202, 6, 3, 3, 3);   // 리나
-var biskit = Hero(201, 6, 3, 3, 3);   // 비스킷
-var team = new List<BattleCharacter> { nata, miho, ryan, lena, biskit };
+var ryan   = Hero(2,   6, 0, 0, 0);   // 라이언
+var taka   = Hero(1,   6, 0, 0, 0);   // 타카
+var rachel = Hero(301, 6, 0, 0, 0);   // 레이첼
+var biskit = Hero(201, 6, 0, 0, 0);   // 비스킷
+var dweo   = Hero(15,  6, 0, 0, 0);   // 돼오
+var team = new List<BattleCharacter> { ryan, taka, rachel, biskit, dweo };
 
 if (!EnemyDb.SiegeStages.TryGetValue(DAY, out var stage))
 {
@@ -73,7 +73,7 @@ var diagResult = diagSim.Simulate(new SiegeBattleConfig
 });
 
 var sb = new StringBuilder();
-sb.AppendLine("════════ 수요일: 나타·미호·라이언·리나·비스킷 전원6초월·잠재3 전용없음 — 기어·진형·로테이션 탐색 ════════");
+sb.AppendLine("════════ 목요일: 라이언·타카·레이첼·비스킷·돼오 전원6초월·잠재0 전용없음 — 기어·진형·로테이션 탐색 (델론즈 재시전·죽음의경계 검증) ════════");
 sb.AppendLine($"보스: {stage.Name}");
 sb.AppendLine($"실측 총점: {REAL_SCORE:N0}");
 sb.AppendLine($"최적 총점: {res.BestScore:N0}  (실측의 {res.BestScore / REAL_SCORE * 100:F1}%)   [자동로테 {res.AutoRotationScore:N0} → 빔 {res.BestScore:N0}]");
@@ -108,7 +108,7 @@ foreach (var log in diagResult.TurnLogs)
 {
     var dsc = log.Description ?? "";
     var sk = log.SkillName ?? "";
-    bool keep = sk == "속공순" || sk == "쿨" || sk == "쿨감"
+    bool keep = sk == "죽음의 경계" || sk.Contains("죽음의 일격") || (log.Description??"").Contains("재시전") || (log.Description??"").Contains("사망") || (log.Description??"").Contains("무효 (죽음") || sk == "쿨감"
         || sk == "불새" || sk == "살육의 춤" || sk == "교만의 일격" || sk == "혼천릉파" || sk == "화첨창술"
         || (dsc.Contains("디버프") && dsc.Contains("해제"));
     if (keep)
@@ -119,7 +119,7 @@ sb.AppendLine("\n──── 나타 화첨창술·혼천릉파 per-hit (실측 
 sb.AppendLine(diagSim.DiagLog.ToString());
 
 string outPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
-    AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_수요일_라이언_6초월잠재3_쿨이중감소제거_perhit.txt"));
+    AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_목요일_델론즈검증_6초월잠재0_perhit.txt"));
 System.IO.File.WriteAllText(outPath, sb.ToString(), Encoding.UTF8);
 Console.WriteLine(sb.ToString());
 Console.WriteLine($"→ {outPath}");
