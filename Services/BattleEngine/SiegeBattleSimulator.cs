@@ -320,8 +320,6 @@ namespace GameDamageCalculator.Services.BattleEngine
                             $"적 진영 피해 면역[{imm}턴]");
                     }
 
-                    double cd = skill.GetCooldown(false, 0);
-                    if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
                     // 보스 자기 보호막 생성 (예: 루디 방어 준비 = 방어력 100배). 아군 피해를 흡수(점수 미집계)·버프해제로 제거.
                     var sld = skill.GetLevelData(false);
                     if (sld != null && sld.SelfShieldDefRatio > 0)
@@ -338,6 +336,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                     Log(state, enemy.Source.Name, false, ActionType.BuffApplied, "쿨감", 0,
                         $"적 {skill.Name}({skill.SkillType}) 시전 → 시간경과 {enemyCd:F0}초 → 전체 쿨 -{enemyCd:F0}초 (경과 {state.ElapsedSeconds:F0}초)");
                     AdvanceTime(state, GetActionDuration(skill));
+                    // 자기 쿨은 시전 완료 시점부터 카운트(자기 컷신 시간엔 자기 쿨 안 깎임) → AdvanceTime 後 set.
+                    double cd = skill.GetCooldown(false, 0);
+                    if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
 
                     // 스킬턴은 턴을 소모하지 않으므로 버프/디버프/DoT 턴 감소(tick) 없음 (게임 규칙 2-3).
                     //   효과 턴 감소는 기본공격(턴 소모) 시에만 — ExecuteBasicAttack의 TickEnemyAfterAction.
@@ -1263,12 +1264,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
             state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
 
+            // 시전 소요시간 경과: 다른 쿨다운은 이 시간만큼 감소하되, 방금 시전한 스킬 자신의 쿨은
+            //   "시전 완료 시점부터" 카운트(자기 컷신 시간엔 자기 쿨 안 깎임) → AdvanceTime을 쿨 set보다 먼저.
+            //   (이전 버그: set(105) 후 AdvanceTime(5)이 자기 쿨까지 깎아 105→100 = 자기 시전시간만큼 조기회복.)
+            AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소(자기 제외 효과)
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
             if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
             // [쿨추적] 시전 시점 경과초 + 이 스킬 쿨 설정값 (게임 실측과 쿨회복 속도 대조용)
             Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "쿨", 0,
                 $"{skill.Name} 시전 — 쿨 {cd:F0}초 설정 (경과 {state.ElapsedSeconds:F0}초)");
-            AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소
 
             // [실험] 스킬턴은 효과 tick하지 않음 — 함수 설계(815-817줄: "n턴 지속=기본공격 n회").
             //   스킬턴 tick 시 메인딜러 셋업 버프(따뜻한울림/청소)가 버스트 전 조기만료됨.
