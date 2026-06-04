@@ -420,16 +420,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>생존반지 후보 — 기존 장신구의 스탯(등급/메인/부옵)은 유지하고 부활/권능/불사 효과만 부여.
-        /// 죽는 저딜 서포터에 한해 시도(팀 점수로 채택 결정). 부활(100%HP)→권능(HP1)→불사(무적턴) 순 비교.</summary>
+        /// <summary>생존반지 후보 — 기존 장신구의 스탯(등급/메인/부옵)은 유지하고 권능 효과만 부여.
+        /// 공성전은 **권능의 반지만** 탐색한다: 권능은 사망하지 않고(생명력1로) 생존 → 버프 유지.
+        /// 부활/불사는 사망 후 부활이라 보유 버프가 해제돼 저딜 서포터 생존 가치가 떨어짐(제외).</summary>
         private static IEnumerable<Accessory> SurvivalRingCandidates(Accessory baseAcc)
         {
-            foreach (var name in new[] { "부활의 반지", "권능의 반지", "불사의 반지" })
-                yield return new Accessory
-                {
-                    Grade = baseAcc.Grade, MainOption = baseAcc.MainOption,
-                    SubOption = baseAcc.SubOption, RingName = name,
-                };
+            yield return new Accessory
+            {
+                Grade = baseAcc.Grade, MainOption = baseAcc.MainOption,
+                SubOption = baseAcc.SubOption, RingName = "권능의 반지",
+            };
         }
 
         /// <summary>전용무기 조율 후보(전설 4슬롯) — 딜러/탱커 공통 소수 조합만(8^4 전수 대신).</summary>

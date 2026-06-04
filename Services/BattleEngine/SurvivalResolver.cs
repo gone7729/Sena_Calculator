@@ -71,7 +71,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 return new SurvivalResult { Survived = true, Label = "불굴/불사", Description = $"치사 피해 무효 (잔여 피격 {target.ImmortalHitsRemaining})" };
             }
 
-            // 2. 권능 — 현재 생명력 이상 피해 시 ReviveHpPercent(MaxHp%) 또는 ReviveHp로 1회 생존 (전투당 1회)
+            // 2. 권능 — 현재 생명력 이상 피해 시 ReviveHpPercent(MaxHp%) 또는 ReviveHp로 1회 생존 (전투당 1회).
+            //    사망이 아니므로 보유 버프 유지(공성전 저딜 서포터 생존에 적합). 발동 연계 보호막(시전자 공격력%)도 부여
+            //    → HP1 맨몸으로 잡타에 즉사하지 않고 보호막 지속턴만큼 버틴다(공성전 ally.Shield 소비, 단일보스 sim 미사용).
             var authority = GetPassiveSurvival(target)?.Authority;
             if (authority != null && !target.AuthorityUsed)
             {
@@ -80,7 +82,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ? target.MaxHp * (authority.ReviveHpPercent / 100.0)
                     : System.Math.Max(1, authority.ReviveHp);
                 target.CurrentHp = hp;
-                return new SurvivalResult { Survived = true, Label = "권능", Description = $"치사 피해 생존 → 생명력 {hp:N0}" };
+                string shieldDesc = "";
+                if (authority.ShieldAtkRatio > 0)
+                {
+                    double shield = target.FinalAtk * (authority.ShieldAtkRatio / 100.0);
+                    if (shield > target.Shield) target.Shield = shield;
+                    target.ShieldTurns = System.Math.Max(target.ShieldTurns, authority.ShieldDuration);
+                    shieldDesc = $", 보호막 {shield:N0}[{authority.ShieldDuration}턴]";
+                }
+                return new SurvivalResult { Survived = true, Label = "권능", Description = $"치사 피해 생존 → 생명력 {hp:N0}{shieldDesc}" };
             }
 
             // 3. 부활 — 사망 시 부활 (전투당 1회) + 무적 윈도우 설정
