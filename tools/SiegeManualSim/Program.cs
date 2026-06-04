@@ -41,7 +41,18 @@ static Accessory Acc6(string name, string main, string sub = null) => new()
 
 // 나타 (Id=118, 마법형, T4 잠재 1/1/1) — 무기/방어구 복수자, 토벌의 반지, 공용 전용무기
 var nataChar = CharacterDb.Characters.First(c => c.Id == 118);
-nataChar.ExclusiveWeapon = ExclusiveWeaponDb.Universal(magic: true); // 마공 247만
+// 엑셀 나타 전용장비 그대로: 마공 247 + 조율(모든공격력 전설 12% + 피해증폭 희귀 2.4%×3 = 피증 7.2%)
+nataChar.ExclusiveWeapon = new ExclusiveWeapon
+{
+    Name = "나타 전용", OwnerCharacterId = 118, Atk = 247, IsMagic = true,
+    Tuning = new List<TuningSlot>
+    {
+        new() { Option = TuningOption.모든공격력, Grade = ExclusiveWeaponGrade.전설 }, // Atk_Rate +12%
+        new() { Option = TuningOption.피해증폭,   Grade = ExclusiveWeaponGrade.희귀 }, // Dmg_Dealt +2.4%
+        new() { Option = TuningOption.피해증폭,   Grade = ExclusiveWeaponGrade.희귀 }, // +2.4%
+        new() { Option = TuningOption.피해증폭,   Grade = ExclusiveWeaponGrade.희귀 }, // +2.4%
+    },
+};
 var nata = new BattleCharacter
 {
     Character = nataChar, IsSkillEnhanced = true, TranscendLevel = 4,

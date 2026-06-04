@@ -579,7 +579,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
                 string lostHpFlag = dr.LostHpMultiplier > 1 ? "적용" : "미발동/0";
                 DiagLog.AppendLine($"  [잃은HP] 잔여HP%={input.LostHpActualRemainingPct:F1} → 보너스배수 ×{dr.LostHpMultiplier:F4} ({lostHpFlag})");
-                DiagLog.AppendLine($"  raw={raw:N0} × 감쇄{reductionMult:F3}(물마{elemReduction}/타겟{targetReduction}) = {final:N0}");
+                DiagLog.AppendLine($"  raw={raw:N0} × 감쇄{reductionMult:F3}(물마{elemReduction}/타겟{targetReduction}) = {final:N0} [기대값: 치명{dr.CritMultiplier:F3}×약점{dr.WeakpointMultiplier:F3}]");
+                // ★엑셀 "치명·약점" 칸과 사과:사과 비교용 — 치명+약점 둘다 발동한 결정값.
+                input.ExpectedCritWeak = false;
+                var drDet = _damageCalc.Calculate(input);
+                input.ExpectedCritWeak = true;
+                double finalDet = drDet.FinalDamage * System.Math.Max(0, reductionMult);
+                DiagLog.AppendLine($"  ★결정값(치명+약점 둘다 발동)={finalDet:N0} [치명{drDet.CritMultiplier:F3}×약점{drDet.WeakpointMultiplier:F3}]");
             }
             return final;
         }
@@ -1229,8 +1235,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 $"{skill.Name} 시전 — 쿨 {cd:F0}초 설정 (경과 {state.ElapsedSeconds:F0}초)");
             AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소
 
-            // 행동자(시전 아군)만 효과 tick (per-character-action 모델)
-            TickAllyAfterAction(state, ally);
+            // [실험] 스킬턴은 효과 tick하지 않음 — 함수 설계(815-817줄: "n턴 지속=기본공격 n회").
+            //   스킬턴 tick 시 메인딜러 셋업 버프(따뜻한울림/청소)가 버스트 전 조기만료됨.
+            // TickAllyAfterAction(state, ally);
         }
 
         /// <summary>이번 아군 스킬턴에 가능한 행동 후보(살아있고 CC 아닌 아군 × 준비된 비평타 스킬) + Hold. (빔서치용)</summary>
