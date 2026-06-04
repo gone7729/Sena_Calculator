@@ -11,6 +11,16 @@ namespace GameDamageCalculator.Models
         public string MainOption { get; set; }
         public string SubOption { get; set; }  // 6성만
 
+        /// <summary>장신구 종류명(예: "권능의 반지"·"부활의 반지"·"불사의 반지"). null/빈값이면 스탯 전용(이름 없는 옵션 장신구).
+        /// 지정 시 GetEffects()로 부활/권능/불사 등 고유효과가 시뮬(SurvivalResolver)에 적용된다.</summary>
+        public string RingName { get; set; }
+
+        /// <summary>이 장신구의 고유 효과(부활/권능/불사·보호막 등). RingName이 지정된 경우만 반환(없으면 빈 리스트).</summary>
+        public System.Collections.Generic.List<Effects.PersistentEffect> GetEffects()
+            => string.IsNullOrEmpty(RingName)
+                ? new System.Collections.Generic.List<Effects.PersistentEffect>()
+                : AccessoryDb.GetEffects(RingName, Grade);
+
         /// <summary>
         /// 장신구 전체 스탯 계산
         /// </summary>

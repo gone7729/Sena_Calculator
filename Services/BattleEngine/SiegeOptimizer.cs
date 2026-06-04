@@ -245,6 +245,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // team은 공유·변형 객체이므로 최종 채택 config의 자리 배치를 마지막에 확정 재적용.
                 for (int i = 0; i < best.BestParty.Count; i++)
                     best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+
+                // 생존반지 후처리 — 최종 config(진형·자리·로테이션 확정)에서 죽는 캐릭에 생존반지 부여.
+                //   여기서 사망 감지를 하므로 전열 가정 과탐지 없이 "실제로 죽는" 캐릭만 대상.
+                if (config.AutoEquip)
+                    ApplySurvivalRings(config, best);
             }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
@@ -361,6 +366,72 @@ namespace GameDamageCalculator.Services.BattleEngine
             return log;
         }
 
+        /// <summary>
+        /// 생존반지 후처리 — 최종 best config(진형·자리·로테이션 고정)에서 죽는(부활 못 한) 캐릭에
+        /// 권능/부활/불사 반지를 같은 조건으로 재시뮬해 비교, 점수 개선 시 채택한다.
+        /// 사망캐 게이팅 + 캐스케이드(한 명 살리면 새로 죽는 캐릭) 대응으로 반복(상한 5). 매 회 최선의
+        /// (캐릭×반지) 1개만 그리디 채택. 스탯(등급/메인/부옵)은 기존 장신구 그대로, 생존효과만 부여.
+        /// </summary>
+        private void ApplySurvivalRings(SiegeOptimizerConfig config, SiegeOptimizerResult best)
+        {
+            SiegeBattleResult SimBest() => new SiegeBattleSimulator(GearCompareSeed).Simulate(new SiegeBattleConfig
+            {
+                AllyParty = best.BestParty, FormationName = best.BestFormation, SiegeStage = config.SiegeStage,
+                AllyPet = config.AllyPet, PetStar = config.PetStar, PetEnhance = config.PetEnhance,
+                PetOptionAtkRate = config.PetOptionAtkRate, PetOptionDefRate = config.PetOptionDefRate,
+                PetOptionHpRate = config.PetOptionHpRate, MaxTurns = config.MaxTurns,
+                RotationPlan = best.BestRotationPlan,
+            });
+
+            var ringed = new HashSet<BattleCharacter>();
+            for (int guard = 0; guard < 5; guard++)
+            {
+                var cur = SimBest();
+                var dyers = cur.CharacterResults.Where(c => c.Died).Select(c => c.CharacterName).ToHashSet();
+                if (dyers.Count == 0) break;
+
+                BattleCharacter pick = null; Accessory pickAcc = null; double pickScore = cur.TotalScore;
+                foreach (var bc in best.BestParty)
+                {
+                    if (bc.Character == null || bc.Equipment?.Accessory == null) continue;
+                    if (ringed.Contains(bc) || !dyers.Contains(bc.Character.Name)) continue;
+                    var orig = bc.Equipment.Accessory;
+                    foreach (var ring in SurvivalRingCandidates(orig))
+                    {
+                        bc.Equipment.Accessory = ring;
+                        double s = SimBest().TotalScore;
+                        if (s > pickScore) { pickScore = s; pick = bc; pickAcc = ring; }
+                    }
+                    bc.Equipment.Accessory = orig;   // 원복 (채택은 1회 1개만)
+                }
+
+                if (pick == null) break;             // 개선되는 생존반지 없음 → 종료
+                double before = cur.TotalScore;
+                pick.Equipment.Accessory = pickAcc;
+                ringed.Add(pick);
+                best.GearLog.Add($"[{pick.Character.Name}] 생존반지 채택: {pickAcc.RingName} (사망→생존, 팀점수 {before:N0}→{pickScore:N0})");
+            }
+
+            if (ringed.Count > 0)
+            {
+                var final = SimBest();
+                best.BestScore = final.TotalScore;
+                best.BestResult = final;
+            }
+        }
+
+        /// <summary>생존반지 후보 — 기존 장신구의 스탯(등급/메인/부옵)은 유지하고 부활/권능/불사 효과만 부여.
+        /// 죽는 저딜 서포터에 한해 시도(팀 점수로 채택 결정). 부활(100%HP)→권능(HP1)→불사(무적턴) 순 비교.</summary>
+        private static IEnumerable<Accessory> SurvivalRingCandidates(Accessory baseAcc)
+        {
+            foreach (var name in new[] { "부활의 반지", "권능의 반지", "불사의 반지" })
+                yield return new Accessory
+                {
+                    Grade = baseAcc.Grade, MainOption = baseAcc.MainOption,
+                    SubOption = baseAcc.SubOption, RingName = name,
+                };
+        }
+
         /// <summary>전용무기 조율 후보(전설 4슬롯) — 딜러/탱커 공통 소수 조합만(8^4 전수 대신).</summary>
         private static List<ExclusiveWeapon> ExclusiveTuningCandidates(bool magic, int charId)
         {
@@ -439,7 +510,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             // 장신구
             if (lo.Accessory != null)
-                sb.Append($"\n  장신구: {lo.Accessory.Grade}성 메인 {lo.Accessory.MainOption}{(string.IsNullOrEmpty(lo.Accessory.SubOption) ? "" : $" / 부 {lo.Accessory.SubOption}")}");
+                sb.Append($"\n  장신구: {(string.IsNullOrEmpty(lo.Accessory.RingName) ? "" : $"《{lo.Accessory.RingName}》 ")}{lo.Accessory.Grade}성 메인 {lo.Accessory.MainOption}{(string.IsNullOrEmpty(lo.Accessory.SubOption) ? "" : $" / 부 {lo.Accessory.SubOption}")}");
             return sb.ToString();
         }
 

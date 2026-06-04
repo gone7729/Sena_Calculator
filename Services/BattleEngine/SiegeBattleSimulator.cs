@@ -1621,6 +1621,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     PartyIndex = ally.PartyIndex,
                     TotalDamage = ally.TotalDamageDealt,
                     DamageShare = state.TotalScore > 0 ? ally.TotalDamageDealt / state.TotalScore * 100 : 0,
+                    Died = ally.IsDead,
                 });
             }
             return result;

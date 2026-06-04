@@ -36,5 +36,6 @@ namespace GameDamageCalculator.Services.BattleEngine
         public int PartyIndex { get; set; }
         public double TotalDamage { get; set; }
         public double DamageShare { get; set; }
+        public bool Died { get; set; }   // 전투 종료 시 사망(부활 못 함) 여부 — 생존반지 탐색 게이팅용
     }
 }

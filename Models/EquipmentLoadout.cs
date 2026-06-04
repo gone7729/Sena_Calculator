@@ -103,7 +103,8 @@ namespace GameDamageCalculator.Models
                 {
                     Grade = Accessory.Grade,
                     MainOption = Accessory.MainOption,
-                    SubOption = Accessory.SubOption
+                    SubOption = Accessory.SubOption,
+                    RingName = Accessory.RingName
                 } : null
             };
         }

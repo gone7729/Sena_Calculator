@@ -26,25 +26,34 @@ namespace GameDamageCalculator.Services.BattleEngine
             public string Description;
         }
 
-        /// <summary>캐릭터 패시브(레벨+초월)에서 부활/권능/피해무효화를 조회 (없으면 빈 결과).</summary>
+        /// <summary>캐릭터 패시브(레벨+초월) + 장착 장신구에서 부활/권능/피해무효화를 조회 (없으면 빈 결과).
+        /// 패시브가 우선이고, 장신구(권능/부활/불사 반지)는 패시브에 없는 슬롯만 보강한다.</summary>
         public static SurvivalEffects GetPassiveSurvival(CharacterBattleState charState)
         {
-            var passive = charState.Source.Character.Passive;
-            if (passive == null) return null;
-
             var result = new SurvivalEffects();
-            void Scan(IEnumerable<PersistentEffect> effects)
+            // fillOnly=false면 덮어쓰기(패시브 lvl/초월 last-wins), true면 빈 슬롯만 채움(장신구는 패시브 보강).
+            void Scan(IEnumerable<PersistentEffect> effects, bool fillOnly)
             {
                 if (effects == null) return;
                 foreach (var e in effects)
                 {
-                    if (e.Type == PersistentEffectType.Revival && e.Revival != null) result.Revival = e.Revival;
-                    else if (e.Type == PersistentEffectType.Authority && e.Authority != null) result.Authority = e.Authority;
-                    else if (e.Type == PersistentEffectType.DamageNullification && e.DamageNullification != null) result.Nullification = e.DamageNullification;
+                    if (e.Type == PersistentEffectType.Revival && e.Revival != null && (!fillOnly || result.Revival == null)) result.Revival = e.Revival;
+                    else if (e.Type == PersistentEffectType.Authority && e.Authority != null && (!fillOnly || result.Authority == null)) result.Authority = e.Authority;
+                    else if (e.Type == PersistentEffectType.DamageNullification && e.DamageNullification != null && (!fillOnly || result.Nullification == null)) result.Nullification = e.DamageNullification;
                 }
             }
-            Scan(passive.GetLevelData(charState.Source.IsSkillEnhanced)?.Effects);
-            Scan(passive.GetTranscendBonus(charState.Source.TranscendLevel)?.Effects);
+
+            var passive = charState.Source.Character.Passive;
+            if (passive != null)
+            {
+                Scan(passive.GetLevelData(charState.Source.IsSkillEnhanced)?.Effects, false);
+                Scan(passive.GetTranscendBonus(charState.Source.TranscendLevel)?.Effects, false);
+            }
+
+            // 장착 장신구(권능/부활/불사 반지)의 생존효과 — 패시브에 없을 때만 보강(패시브 우선).
+            var acc = charState.Source.Equipment?.Accessory;
+            if (acc != null) Scan(acc.GetEffects(), true);
+
             return result;
         }
 
