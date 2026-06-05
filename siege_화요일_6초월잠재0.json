@@ -1,7 +1,7 @@
 ﻿{
   "day": "화요일",
   "boss": "화요일 공성전 (포디나의 성)",
-  "score": 9106091,
+  "score": 9368469,
   "autoRotationScore": 5279998,
   "formation": "보호 진형",
   "backRow": [
@@ -12,7 +12,7 @@
   "roundScore": {
     "1": 25170,
     "2": 31450,
-    "3": 9049471
+    "3": 9311849
   },
   "team": [
     {
@@ -21,8 +21,8 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": true,
-      "totalDamage": 6988124,
-      "damageShare": 76.7
+      "totalDamage": 6640296,
+      "damageShare": 70.9
     },
     {
       "id": 103,
@@ -30,8 +30,8 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 1710264,
-      "damageShare": 18.8
+      "totalDamage": 2305945,
+      "damageShare": 24.6
     },
     {
       "id": 202,
@@ -39,8 +39,8 @@
       "role": "지원형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 225010,
-      "damageShare": 2.5
+      "totalDamage": 212643,
+      "damageShare": 2.3
     },
     {
       "id": 201,
@@ -48,8 +48,8 @@
       "role": "지원형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 120960,
-      "damageShare": 1.3
+      "totalDamage": 149668,
+      "damageShare": 1.6
     },
     {
       "id": 255,
@@ -57,8 +57,8 @@
       "role": "지원형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 61734,
-      "damageShare": 0.7
+      "totalDamage": 59918,
+      "damageShare": 0.6
     }
   ],
   "gear": [
@@ -81,8 +81,8 @@
     },
     {
       "step": 2,
-      "hero": "나타",
-      "skill": "화첨창술"
+      "hero": "비스킷",
+      "skill": "리프 어택"
     },
     {
       "step": 3,
@@ -91,88 +91,88 @@
     },
     {
       "step": 4,
-      "hero": "나타",
-      "skill": "혼천릉파"
-    },
-    {
-      "step": 5,
       "hero": "미호",
       "skill": "살육의 춤"
     },
     {
+      "step": 5,
+      "hero": "나타",
+      "skill": "혼천릉파"
+    },
+    {
       "step": 6,
+      "hero": "나타",
+      "skill": "화첨창술"
+    },
+    {
+      "step": 7,
       "hero": "미호",
       "skill": "교만의 일격"
     },
     {
-      "step": 7,
+      "step": 8,
       "hero": "비스킷",
       "skill": "장비 강화"
     },
     {
-      "step": 8,
+      "step": 9,
       "hero": "클로에",
       "skill": "청소 시간"
-    },
-    {
-      "step": 9,
-      "hero": "나타",
-      "skill": "혼천릉파"
     },
     {
       "step": 10,
       "hero": "나타",
-      "skill": "화첨창술"
+      "skill": "혼천릉파"
     },
     {
       "step": 11,
+      "hero": "나타",
+      "skill": "화첨창술"
+    },
+    {
+      "step": 12,
       "hero": "리나",
       "skill": "따뜻한 울림"
     },
     {
-      "step": 12,
-      "hero": "미호",
-      "skill": "살육의 춤"
-    },
-    {
       "step": 13,
-      "hero": "클로에",
-      "skill": "청소 시간"
-    },
-    {
-      "step": 14,
-      "hero": "나타",
-      "skill": "혼천릉파"
-    },
-    {
-      "step": 15,
-      "hero": "나타",
-      "skill": "화첨창술"
-    },
-    {
-      "step": 16,
       "hero": "미호",
       "skill": "교만의 일격"
     },
     {
-      "step": 17,
-      "hero": "비스킷",
-      "skill": "장비 강화"
-    },
-    {
-      "step": 18,
+      "step": 14,
       "hero": "클로에",
       "skill": "청소 시간"
     },
     {
-      "step": 19,
+      "step": 15,
       "hero": "나타",
       "skill": "혼천릉파"
     },
     {
-      "step": 20,
+      "step": 16,
       "hero": "나타",
       "skill": "화첨창술"
+    },
+    {
+      "step": 17,
+      "hero": "미호",
+      "skill": "살육의 춤"
+    },
+    {
+      "step": 18,
+      "hero": "비스킷",
+      "skill": "장비 강화"
+    },
+    {
+      "step": 19,
+      "hero": "미호",
+      "skill": "교만의 일격"
+    },
+    {
+      "step": 20,
+      "hero": "나타",
+      "skill": "혼천릉파"
     }
   ]
 }

@@ -22,7 +22,8 @@ namespace GameDamageCalculator.Models
         public BaseStatSet Stats { get; set; } = new BaseStatSet();
 
         // 적 공격의 피해 타입 (물리/마법) — 아군 타입별 피해무효(강자사냥 물리면역 등) 판정용.
-        //   공성 보스는 대부분 물리 근접(델론즈=공격형) → 기본 물리.
+        //   공성 보스는 전부 물리 공격력(Stats.Atk)으로 피해를 준다(유저 확인 + SiegeEnemyState.FinalAtk=Stats.Atk,
+        //   마법 경로 없음) → 기본 물리. 마법 공격 적이 생기면 그 적만 Magic으로 명시 선언.
         public AttackType AttackType { get; set; } = AttackType.Physical;
 
         // ===== 패시브 시스템 =====
