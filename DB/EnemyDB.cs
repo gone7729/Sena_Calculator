@@ -164,7 +164,13 @@ namespace GameDamageCalculator.Database
                 MultiTargetReduction = 90, //5인기감소
                 DamageReduction = 0,      // 보스 고유 받피감
                 DamageTakenIncrease = 0, //받는피해증가
-                Vulnerability = 0 // 취약%
+                Vulnerability = 0, // 취약%
+                // 「복수의 갑옷」 반격[25%] — 피격 hit당 발동 → 아군 3명 물리 60% [치확100%/치피650%(+500)] + (용염: 아군 DoT 후속)
+                //   3초 소요. 라이언 실명 시 빗나감 / 라이언 물리면역(도발)·화상면역으로 무력화 → 라이언 생존이 금요일 핵심.
+                Counterattack = new SiegeCounterattack
+                {
+                    Chance = 25, Ratio = 60, TargetCount = 3, ActionSeconds = 3, CritDamage = 650,
+                },
             },
 
             new Enemy

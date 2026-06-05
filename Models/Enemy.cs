@@ -52,6 +52,9 @@ namespace GameDamageCalculator.Models
         //   직격 1회당 1 차감(점수 미집계), DoT는 무효지만 차감 안 함.
         public int OnAllyDeathNullifyHits { get; set; }
 
+        // 공성전: 보스 반격 (제이브 「복수의 갑옷」). null이면 없음. 아군 피격 hit당 확률 발동.
+        public SiegeCounterattack Counterattack { get; set; }
+
         // ===== 하위호환 속성 (Phase 3 전환 완료 전까지 유지) =====
         public double PhysicalReduction
         {
@@ -159,6 +162,21 @@ namespace GameDamageCalculator.Models
         {
             ConditionalBuff ??= new TimedBuff();
         }
+    }
+
+    /// <summary>
+    /// 공성 보스 반격 정의 (제이브 「복수의 갑옷」: 반격[25%] — 적군 3명 물리 60% [치확100%/치피+500%] + 용염).
+    /// 아군이 보스를 1회 공격할 때 <b>피격 hit당</b>(AtkCount) Chance%로 발동. 발동 시 ActionSeconds초 소요.
+    /// 실명 중이면 빗나감(반격은 실명 턴을 소모하지 않음 — 기본공격만 소모).
+    /// 용염(아군 화상 DoT)은 아군 DoT 데미지 모델 후속 — 현재는 직격만. 화상면역(라이언 파티)으로 차단됨.
+    /// </summary>
+    public class SiegeCounterattack
+    {
+        public double Chance { get; set; }            // 피격 hit당 발동 확률 % (제이브 25)
+        public double Ratio { get; set; } = 60;       // 공격력 배율 %
+        public int TargetCount { get; set; } = 3;     // 피격 아군 수
+        public double ActionSeconds { get; set; } = 3;// 반격 소요시간(초) — 발동 시 전체 쿨 감소
+        public double CritDamage { get; set; } = 650; // 강제 치명 치피 % (base 150 + 500)
     }
 
     /// <summary>

@@ -42,6 +42,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         public Result Search(SiegeBattleConfig baseConfig, int beamWidth = 12, int maxDepth = 24)
         {
             _evaluated = 0;
+            // 빔서치는 반격 OFF(0%)로 로테를 평가·산출 — 반격 RNG·시간경과(쿨 흔들림)에 무의존한 견고한 로테.
+            //   금요일(제이브)만 영향; 그 외 보스는 Counterattack=null이라 무관. 채택 점수는 호출부가 ON으로 재평가.
+            baseConfig.CounterattackChanceOverride = 0;
             var init = Run(baseConfig, new List<RotationDecision>());
             var best = new Result
             {

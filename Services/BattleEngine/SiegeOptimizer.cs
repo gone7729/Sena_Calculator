@@ -260,10 +260,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                         var beam = new RotationBeamSearch(GearCompareSeed).Search(
                             BuildSimConfig(config, cand.BestParty, cand.BestFormation),
                             config.RotationBeamWidth, config.RotationMaxDepth);
-                        if (beam.Score > cand.BestScore)
+                        // 빔은 반격 OFF(0%)로 로테를 골랐다 → 채택·비교 점수는 반격 ON(실전·단일시드)으로 재평가.
+                        //   금요일(제이브)만 OFF≠ON; 그 외 보스는 반격 없어 동일(회귀 없음).
+                        var beamOn = ScoreOnPlan(config, cand.BestParty, cand.BestFormation, beam.Plan);
+                        if (beamOn.TotalScore > cand.BestScore)
                         {
-                            cand.BestScore = beam.Score;
-                            cand.BestResult = beam.Battle;
+                            cand.BestScore = beamOn.TotalScore;
+                            cand.BestResult = beamOn;
                             cand.BestRotationPlan = beam.Plan;
                         }
                     }
@@ -583,6 +586,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             PetOptionDefRate = config.PetOptionDefRate,
             PetOptionHpRate = config.PetOptionHpRate,
         };
+
+        /// <summary>빔이 OFF로 고른 로테를 반격 ON(실전·기본 25%)으로 재평가 — 채택 점수 일관성.</summary>
+        private static SiegeBattleResult ScoreOnPlan(SiegeOptimizerConfig config, List<BattleCharacter> team,
+            string formation, List<RotationDecision> plan)
+        {
+            var sc = BuildSimConfig(config, team, formation);   // override null = 반격 ON
+            sc.RotationPlan = plan;
+            return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+        }
 
         /// <summary>공성전 풀시뮬 SiegeBattleConfig 구성.</summary>
         private static SiegeBattleConfig BuildSimConfig(SiegeOptimizerConfig config, List<BattleCharacter> team, string formation) => new()

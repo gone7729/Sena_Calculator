@@ -40,6 +40,15 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // true면 매 아군 스킬턴의 (가능한 행동 후보)를 state.DecisionPoints에 기록 (빔서치 탐색용).
         public bool RecordDecisionPoints { get; set; }
+
+        // true면 RotationPlan의 각 스텝이 실제 계획대로 시전됐는지(폴백 여부)·쿨 여유를 기록(빌드 실행가능성 검증).
+        //   읽기 전용 계측 — 점수/전투 결과 불변. 보통 최종 빌드 1회 재생에만 켠다.
+        public bool RecordFeasibility { get; set; }
+
+        // 보스 반격(제이브 「복수의 갑옷」) 발동 확률 오버라이드(%). null이면 보스 정의값(25%) 그대로 사용.
+        //   0 = 반격 OFF — 빔서치는 반격 RNG·시간경과에 의존하지 않는 로테를 산출(0회 발동에도 실행가능한 빌드).
+        //   금요일(제이브) 외 보스는 Counterattack=null이라 이 값과 무관(월화수목토 무영향).
+        public double? CounterattackChanceOverride { get; set; }
     }
 
     /// <summary>로테이션 플랜 1스텝: 특정 아군이 특정 스킬 시전, 또는 홀드(아무도 안 씀).</summary>

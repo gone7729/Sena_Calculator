@@ -31,6 +31,22 @@ namespace GameDamageCalculator.Services.BattleEngine
         public List<string> DiagSkillNames;   // 추적할 스킬명 여러개 (null이면 비활성)
         public System.Text.StringBuilder DiagLog = new();
         private int _diagCount;
+
+        // [진단] true면 메인 패스 DamageWeight 확정 직후 각 아군의 raw FinalAtk·DamageWeight·MaxHp를 DiagLog에 덤프.
+        //   라이언쿨감·비스킷 버프가 누구(=DamageWeight 1위)에게 가는지, raw atk 순위와 어긋나는지 확인용.
+        public bool DiagAllyStats;
+
+        // [빌드 실행가능성 계측] config.RecordFeasibility=true(최종 빌드 재생)일 때만 동작 — 점수/전투 불변.
+        //   _readySince[(아군PartyIndex, 스킬)] = 그 스킬이 마지막 시전 후 쿨 0에 도달한 경과초(준비완료시각).
+        //   double.PositiveInfinity = 아직 쿨 중(준비 전). 시전 전 한번도 안 쓴 스킬은 dict에 없음 = 0초부터 준비.
+        private bool _recordFeasibility;
+        private readonly Dictionary<(int Idx, SkillType Skill), double> _readySince = new();
+        private readonly List<BuildStepFeasibility> _feasLog = new();
+
+        // [반격 오버라이드] config.CounterattackChanceOverride. null=보스 정의값(25%), 0=OFF.
+        //   빔서치는 0(반격 RNG·시간경과 무의존)으로 로테 산출, 최종 점수·기어·생존반지는 null(ON)로 평가.
+        //   금요일(제이브) 외 보스는 Counterattack=null이라 무관(월화수목토 무영향).
+        private double? _counterChanceOverride;
         private bool IsDiagSkill(string name)
             => (DiagSkillName != null && name == DiagSkillName)
             || (DiagSkillNames != null && DiagSkillNames.Contains(name));
@@ -39,6 +55,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         private SiegeBattleResult Simulate(SiegeBattleConfig config, bool computeWeights)
         {
+            // 실행가능성 계측은 최종(메인) 패스에만 — 스카우팅 서브시뮬(computeWeights=false)은 결과 폐기되므로 제외.
+            _recordFeasibility = config.RecordFeasibility && computeWeights;
+            _counterChanceOverride = config.CounterattackChanceOverride;   // 반격 확률 오버라이드(빔=0, 최종=null)
             var state = Initialize(config);
             if (computeWeights)
             {
@@ -50,9 +69,21 @@ namespace GameDamageCalculator.Services.BattleEngine
                 foreach (var a in state.AllyStates)
                     a.DamageWeight = (a.Source?.Character?.Type != null && DealerRoles.Contains(a.Source.Character.Type)
                         && byName.TryGetValue(a.Source.Character.Name, out var d)) ? d : 0;
+
+                if (DiagAllyStats)
+                {
+                    // raw FinalAtk 1위 vs DamageWeight 1위 — 둘이 다르면 버프 배분(인게임=raw atk, 시뮬=DamageWeight)이 어긋남.
+                    var rawTop = state.AllyStates.OrderByDescending(a => a.FinalAtk).FirstOrDefault()?.Source.Character.Name;
+                    var dwTop = state.AllyStates.OrderByDescending(a => a.DamageWeight).FirstOrDefault()?.Source.Character.Name;
+                    DiagLog.AppendLine($"───── [아군 스탯 스냅샷] rawAtk 1위={rawTop} / DamageWeight 1위={dwTop} {(rawTop == dwTop ? "(일치)" : "★불일치")} ─────");
+                    foreach (var a in state.AllyStates.OrderByDescending(a => a.DamageWeight))
+                        DiagLog.AppendLine($"  {a.Source.Character.Name,-6}({a.Source.Character.Type}) FinalAtk={a.FinalAtk,9:N0}  DamageWeight(스카우팅딜)={a.DamageWeight,12:N0}  MaxHp={a.MaxHp,9:N0}");
+                }
             }
             // computeWeights=false(스카우팅): DamageWeight=0 → raw FinalAtk 타게팅(원래 동작)
             RunTurnLoop(config, state);
+            if (_recordFeasibility && config.RotationPlan != null)
+                AppendUnreachedFeasSteps(config.RotationPlan, state);
             return BuildResult(state);
         }
 
@@ -251,17 +282,42 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (plan != null && stIdx < plan.Count)
                 {
                     var dec = plan[stIdx];
-                    if (dec.Hold) return;   // 홀드: 스킬턴 스킵
+                    if (dec.Hold)
+                    {
+                        if (_recordFeasibility) RecordFeasStep(state, stIdx, dec, null, null, true, null, 0, 0);
+                        return;   // 홀드: 스킬턴 스킵
+                    }
                     if (dec.HeroIndex >= 0 && dec.HeroIndex < state.AllyStates.Count)
                     {
                         var a = state.AllyStates[dec.HeroIndex];
                         var sk = a.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == dec.Skill);
-                        if (!a.IsDead && !a.Effects.HasActionBlockingCC() && sk != null && a.IsSkillReady(dec.Skill))
+                        bool ready = sk != null && a.IsSkillReady(dec.Skill);
+                        if (!a.IsDead && !a.Effects.HasActionBlockingCC() && ready)
                         {
+                            if (_recordFeasibility)
+                            {
+                                // 재시전(쿨 제약 받음)만 slack이 의미. 첫 시전은 readySince 키가 없음(쿨 무관).
+                                bool gated = _readySince.TryGetValue((dec.HeroIndex, dec.Skill), out var rs)
+                                             && !double.IsPositiveInfinity(rs);
+                                double slack = gated ? state.ElapsedSeconds - rs : 0;
+                                RecordFeasStep(state, stIdx, dec, a, sk, true, null, 0, slack, gated);
+                            }
                             ExecuteAllySkill(state, dec.HeroIndex, sk);
                             return;
                         }
+                        if (_recordFeasibility)
+                        {
+                            // 폴백 사유 판정 (우선순위: 사망 → CC → 스킬없음 → 쿨 미충족).
+                            double cdRem = sk != null ? a.SkillCooldowns.GetValueOrDefault(dec.Skill) : 0;
+                            string reason = a.IsDead ? "시전자 사망"
+                                : a.Effects.HasActionBlockingCC() ? "행동불가 CC"
+                                : sk == null ? "스킬 없음"
+                                : $"쿨 {cdRem:0.#}초 남음";
+                            RecordFeasStep(state, stIdx, dec, a, sk, false, reason, cdRem, 0);
+                        }
                     }
+                    else if (_recordFeasibility)
+                        RecordFeasStep(state, stIdx, dec, null, null, false, "잘못된 영웅 인덱스", 0, 0);
                     // 무효 → 자동 폴백
                 }
 
@@ -368,6 +424,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             double dmg = CalcDamageToEnemy(ally, target, normal, state);
                             ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
+                            MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
                         }
                         if (targets.Count > 0)
                         {
@@ -637,8 +694,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             _ => 0
         };
 
-        /// <summary>적 → 아군 데미지 (적 공격력 vs 아군 방어/받피감). 적은 치확·약확 0이라 비치명·비약점 기본.</summary>
-        private double CalcDamageToAlly(SiegeEnemyState enemy, CharacterBattleState ally, Skill enemySkill)
+        /// <summary>적 → 아군 데미지 (적 공격력 vs 아군 방어/받피감). 적은 치확·약확 0이라 비치명·비약점 기본.
+        /// forceCrit/critDmgOverride: 반격 등 강제 치명(제이브 반격 치확100·치피650)용.</summary>
+        private double CalcDamageToAlly(SiegeEnemyState enemy, CharacterBattleState ally, Skill enemySkill,
+            bool forceCrit = false, double critDmgOverride = -1)
         {
             var e = enemy.Source;
             // 아군 받피감(자버프) + 아군에게 걸린 받피증/취약(적 디버프)
@@ -655,7 +714,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             //  - allyDebuffs.Def_Reduction: 적이 ally에 부여한 방깎(불새 방깎36) → ally 방어 감소
             var enemyDebuffs = enemy.Effects.GetTotalDebuffs();
             double effEnemyAtk = enemy.FinalAtk * System.Math.Max(0, 1 - enemyDebuffs.Atk_Reduction / 100.0);
-            bool enemyCrit = e.Stats.Cri >= 100;        // 적 치확(보통 0)
+            bool enemyCrit = forceCrit || e.Stats.Cri >= 100;        // 적 치확(보통 0; 반격은 강제)
+            double critDmg = critDmgOverride >= 0 ? critDmgOverride : e.Stats.Cri_Dmg;
             // 탄성(전용무기): 치명타 공격 피격 시 받는 피해 % 감소. 받피감과 동일 채널로 합산.
             double tanseong = enemyCrit ? (ally.DisplayStats?.CritDmg_Taken_Reduction ?? 0) : 0;
             double effDmgRdc = allyDmgRdc + enemyDebuffs.Dmg_Reduction + tanseong;
@@ -668,7 +728,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TranscendLevel = 0,
                 FinalAtk = effEnemyAtk,                 // 적 공격력 감소 디버프 반영
                 FinalDef = enemy.FinalDef,
-                CritDamage = e.Stats.Cri_Dmg,
+                CritDamage = critDmg,
                 BossDef = ally.FinalDef,                // 의미상 target(아군) 방어
                 DefReduction = allyDebuffs.Def_Reduction,  // 적이 ally에 부여한 방깎(불새 36 등) → ally 방어 감소
                 BossDmgReduction = effDmgRdc,           // 아군 받피감 + 적 출력감소(피감) + 탄성 합산
@@ -685,6 +745,54 @@ namespace GameDamageCalculator.Services.BattleEngine
                 SelfMaxHp = enemy.MaxHp,
             };
             return _damageCalc.Calculate(input).FinalDamage;
+        }
+
+        /// <summary>
+        /// 보스 반격(제이브 「복수의 갑옷」) 판정 — 아군이 이 적을 1회 공격(스킬/평타)할 때 호출.
+        /// 게임 규칙대로 <b>피격 hit당</b>(AtkCount 횟수) Chance%로 롤 → 발동마다 ExecuteEnemyCounter.
+        /// Counterattack 미보유 적(제이브 외 전부)은 즉시 반환 → RNG 무소비(비-금요일 회귀 안전).
+        /// </summary>
+        private void MaybeEnemyCounter(SiegeBattleState state, SiegeEnemyState hitEnemy, int hits)
+        {
+            var ca = hitEnemy.Source?.Counterattack;
+            if (ca == null) return;
+            // 오버라이드(빔=0) 우선. 0이면 RNG 무소비로 즉시 반환 → 빔 로테 평가가 반격에 무의존(결정론).
+            double chance = _counterChanceOverride ?? ca.Chance;
+            if (chance <= 0) return;
+            for (int h = 0; h < Math.Max(1, hits); h++)
+                if (_rng.Next(100) < chance)
+                    ExecuteEnemyCounter(state, hitEnemy, ca);
+        }
+
+        /// <summary>
+        /// 반격 1회 발동 — 무작위 아군 TargetCount명(도발 시 도발자 우선)에게 물리 Ratio%[강제치명·치피 CritDamage].
+        /// 실명 중이면 빗나감(0뎀·시간 미소모; 실명 턴은 기본공격만 소모). 발동 시 ActionSeconds초 경과(전체 쿨 감소).
+        /// 라이언 물리면역(도발+면역) / 보호막 / 생존판정은 ApplyDamageToAlly가 자동 처리.
+        /// (용염=아군 화상 DoT는 아군 DoT 데미지 모델 후속 — 현재 직격만. 화상면역은 라이언 패시브로 이미 적용.)
+        /// </summary>
+        private void ExecuteEnemyCounter(SiegeBattleState state, SiegeEnemyState enemy, Models.SiegeCounterattack ca)
+        {
+            if (enemy.BlindTurnsRemaining > 0)
+            {
+                Log(state, enemy.Source.Name, false, ActionType.SkillAttack, "반격", 0,
+                    $"{enemy.Source.Name} 반격 빗나감 (실명)");
+                return;   // 실명 → 무효, 시간 미소모
+            }
+            var counterSkill = new Skill
+            {
+                Name = "반격", SkillType = SkillType.Skill1,
+                LevelData = new Dictionary<int, SkillLevelData>
+                { [0] = new SkillLevelData { Ratio = ca.Ratio, AtkCount = 1, TargetCount = 1 } },
+            };
+            var targets = PickRandomAllies(state, ca.TargetCount);   // 도발 우선 → 라이언 도발 시 라이언에게(물리면역=0뎀)
+            foreach (var t in targets)
+            {
+                double dmg = CalcDamageToAlly(enemy, t, counterSkill, forceCrit: true, critDmgOverride: ca.CritDamage);
+                ApplyDamageToAlly(state, enemy, t, dmg, "반격");
+            }
+            Log(state, enemy.Source.Name, false, ActionType.SkillAttack, "반격", 0,
+                $"{enemy.Source.Name} 반격 발동 → 아군 {targets.Count}명 (물리 {ca.Ratio:0}%·치명 치피{ca.CritDamage:0}%)");
+            AdvanceTime(state, ca.ActionSeconds);   // 반격 3초 → 전체(아군+적) 쿨 감소
         }
 
         /// <summary>적이 아군을 공격 → 피해 적용. (생존 메카닉: 부활·면역·권능은 후속 단계)</summary>
@@ -1218,6 +1326,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (top != null) targets.Add(top);
                 }
                 foreach (var t in targets) t.ReduceCooldowns(cdr);
+                // [실행가능성] 쿨감으로 즉시 0에 도달한 스킬의 준비완료시각 = 지금(이 행동 시점).
+                if (_recordFeasibility)
+                    foreach (var t in targets)
+                        foreach (var k in t.SkillCooldowns.Keys.ToList())
+                            if (t.SkillCooldowns[k] <= 0
+                                && _readySince.TryGetValue((t.PartyIndex, k), out var rs) && double.IsPositiveInfinity(rs))
+                                _readySince[(t.PartyIndex, k)] = state.ElapsedSeconds;
                 Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, normal.Name, 0,
                     $"평타 쿨감 {cdr:0}초: {string.Join(",", targets.Select(t => t.Source.Character.Name))}");
             }
@@ -1230,7 +1345,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             state.ElapsedSeconds += seconds;
             foreach (var a in state.AllyStates)
                 foreach (var k in a.SkillCooldowns.Keys.ToList())
-                    a.SkillCooldowns[k] = Math.Max(0, a.SkillCooldowns[k] - seconds);
+                {
+                    double before = a.SkillCooldowns[k];
+                    double after = Math.Max(0, before - seconds);
+                    a.SkillCooldowns[k] = after;
+                    // [실행가능성] 쿨이 이 구간에서 0에 도달 → 정확한 준비완료 경과초 기록(구간 내 보간).
+                    if (_recordFeasibility && before > 0 && after <= 0
+                        && _readySince.TryGetValue((a.PartyIndex, k), out var rs) && double.IsPositiveInfinity(rs))
+                        _readySince[(a.PartyIndex, k)] = (state.ElapsedSeconds - seconds) + before;
+                }
             foreach (var e in state.Enemies)
                 foreach (var k in e.SkillCooldowns.Keys.ToList())
                     e.SkillCooldowns[k] = Math.Max(0, e.SkillCooldowns[k] - seconds);
@@ -1282,6 +1405,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 double dmg = CalcDamageToEnemy(ally, target, skill, state);
                 ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
+                MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
             ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
@@ -1295,6 +1419,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소(자기 제외 효과)
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
             if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
+            // [실행가능성] 방금 시전 → 이 스킬은 쿨 중(준비 전). 다시 0 도달 시점까지 pending(∞) 마킹.
+            if (_recordFeasibility && cd > 0) _readySince[(allyIdx, skill.SkillType)] = double.PositiveInfinity;
             // [쿨추적] 시전 시점 경과초 + 이 스킬 쿨 설정값 (게임 실측과 쿨회복 속도 대조용)
             Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "쿨", 0,
                 $"{skill.Name} 시전 — 쿨 {cd:F0}초 설정 (경과 {state.ElapsedSeconds:F0}초)");
@@ -1664,6 +1790,56 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         #region 결과
 
+        /// <summary>[실행가능성] 빌드 1스텝 결과 기록 (계획대로 시전/폴백/홀드).</summary>
+        private void RecordFeasStep(SiegeBattleState state, int stepIdx, RotationDecision dec,
+            CharacterBattleState ally, Skill sk, bool executed, string reason, double cdRem, double slack, bool gated = false)
+        {
+            _feasLog.Add(new BuildStepFeasibility
+            {
+                StepIndex = stepIdx,
+                Turn = state.CurrentTurn,
+                Elapsed = state.ElapsedSeconds,
+                Hold = dec.Hold,
+                HeroName = dec.Hold ? "(홀드)" : (ally?.Source.Character.Name ?? ResolveHeroName(state, dec.HeroIndex)),
+                SkillName = dec.Hold ? "" : (sk?.Name ?? dec.Skill.ToString()),
+                ExecutedAsPlanned = executed,
+                FallbackReason = reason,
+                CooldownRemaining = cdRem,
+                Slack = slack,
+                CooldownGated = gated,
+            });
+        }
+
+        private static string ResolveHeroName(SiegeBattleState state, int idx)
+            => idx >= 0 && idx < state.AllyStates.Count ? state.AllyStates[idx].Source.Character.Name : $"H{idx}";
+
+        /// <summary>[실행가능성] 전투 중 도달 못 한 플랜 스텝(전투 조기종료/스킬턴 부족)을 미도달로 채우고 정렬.</summary>
+        private void AppendUnreachedFeasSteps(List<RotationDecision> plan, SiegeBattleState state)
+        {
+            var seen = _feasLog.Select(f => f.StepIndex).ToHashSet();
+            for (int i = 0; i < plan.Count; i++)
+            {
+                if (seen.Contains(i)) continue;
+                var dec = plan[i];
+                string skName = "";
+                if (!dec.Hold)
+                {
+                    var hero = dec.HeroIndex >= 0 && dec.HeroIndex < state.AllyStates.Count
+                        ? state.AllyStates[dec.HeroIndex] : null;
+                    skName = hero?.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == dec.Skill)?.Name
+                             ?? dec.Skill.ToString();
+                }
+                _feasLog.Add(new BuildStepFeasibility
+                {
+                    StepIndex = i, Reached = false, Hold = dec.Hold,
+                    HeroName = dec.Hold ? "(홀드)" : ResolveHeroName(state, dec.HeroIndex),
+                    SkillName = skName, ExecutedAsPlanned = false,
+                    FallbackReason = "미도달(전투 종료/스킬턴 부족)",
+                });
+            }
+            _feasLog.Sort((a, b) => a.StepIndex.CompareTo(b.StepIndex));
+        }
+
         private SiegeBattleResult BuildResult(SiegeBattleState state)
         {
             var result = new SiegeBattleResult
@@ -1676,6 +1852,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 AlliesAlive = state.AllyStates.Count(a => !a.IsDead),
                 TurnLogs = state.TurnLogs,
                 DecisionPoints = state.DecisionPoints,
+                Feasibility = _feasLog,
             };
             foreach (var ally in state.AllyStates)
             {

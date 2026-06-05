@@ -27,6 +27,29 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 빔서치: 각 아군 스킬턴의 행동 후보 (config.RecordDecisionPoints=true일 때만 채워짐)
         public List<RotationDecisionPoint> DecisionPoints { get; set; } = new();
+
+        // 빌드 실행가능성: RotationPlan 각 스텝의 계획대로-시전 여부·쿨 여유 (config.RecordFeasibility=true일 때만)
+        public List<BuildStepFeasibility> Feasibility { get; set; } = new();
+    }
+
+    /// <summary>
+    /// 빌드(생성 로테이션) 1스텝의 실행가능성 — 계획된 스킬이 그 시점에 실제로 시전됐는지와 쿨 여유.
+    /// 시뮬은 쿨≤0일 때만 시전하므로(IsSkillReady 게이트), 실행 불가는 폴백(auto로 대체)으로 드러난다.
+    /// </summary>
+    public class BuildStepFeasibility
+    {
+        public int StepIndex { get; set; }          // 플랜 스텝(=아군 스킬턴 순서) 인덱스
+        public int Turn { get; set; }               // 그 시점 누적 턴
+        public double Elapsed { get; set; }         // 그 시점 경과 게임시간(초)
+        public string HeroName { get; set; }        // 계획 영웅 (홀드면 "(홀드)")
+        public string SkillName { get; set; }       // 계획 스킬 (홀드면 "")
+        public bool Hold { get; set; }              // 의도된 홀드 스텝
+        public bool ExecutedAsPlanned { get; set; } // 계획대로 시전됨? (홀드는 true 취급)
+        public bool Reached { get; set; } = true;   // 전투 중 이 스텝에 도달했는지(false=전투 조기종료/스킬턴 부족)
+        public string FallbackReason { get; set; }  // 폴백 사유 (시전자 사망/행동불가 CC/쿨 N초 남음/스킬 없음)
+        public double CooldownRemaining { get; set; }// 폴백이 쿨 때문이면 잔여 쿨(초) = 위반 크기
+        public double Slack { get; set; }           // 시전 시 쿨 여유(초) = 시전시각 − 준비완료시각 (재시전만 의미; 클수록 견고)
+        public bool CooldownGated { get; set; }     // true=재시전(쿨 제약 받음, Slack 유효). false=첫 시전(쿨 무관 — 견고성 지표 제외)
     }
 
     /// <summary>공성전 캐릭터별 데미지 기여.</summary>
