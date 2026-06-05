@@ -127,18 +127,47 @@ swF.Stop();
 Both($"\n[D] 라이언-전열 (후열 {string.Join("·", resFront.BestBackRow)}) — AutoEquip+빔 {swF.ElapsedMilliseconds / 1000.0:F0}s");
 Both($"    자동로테 {resFront.AutoRotationScore:N0} → 빔(+생존반지) {resFront.BestScore:N0}");
 
-// ── 판정 ──
-Both("\n════════ 판정 ════════");
-Both($"  라이언-후열 빔        : {resBack.BestScore:N0}");
-Both($"  라이언-후열 실측로테  : {bestM:N0}  (홀드×{bestPre})");
-Both($"  라이언-전열 빔        : {resFront.BestScore:N0}");
-double vsFront = (bestM - resFront.BestScore) / resFront.BestScore * 100;
-double vsBeam = (bestM - resBack.BestScore) / resBack.BestScore * 100;
-Both($"  실측로테(후열) vs 전열빔 : {bestM - resFront.BestScore:+#,##0;-#,##0} ({vsFront:+0.00;-0.00}%)");
-Both($"  실측로테(후열) vs 후열빔 : {bestM - resBack.BestScore:+#,##0;-#,##0} ({vsBeam:+0.00;-0.00}%)");
-Both(bestM > resFront.BestScore
-    ? "  ✅ 실측로테(후열) > 전열빔 → 빔이 라이언-후열 최적을 못 찾음 = 아티팩트 확정. 라이언-후열이 옳음."
-    : "  ❌ 실측로테(후열) ≤ 전열빔 → 빔 아티팩트 아님. 라이언-전열이 실제로 우위(또는 동급).");
+// ── [E] 빔 공정화: 교차 로테 평가 + 고폭 빔 (후열 지역최적 탈출 시도) ──
+//   로테는 (HeroIndex,Skill) 리스트라 자리 무관 → 전열 우승로테를 후열 자리에 그대로 적용 가능.
+//   같은 기어로 같은 후보 풀을 양쪽에 평가해 빔 탐색품질 편차를 제거한 '천장'을 비교한다.
+SiegeBattleConfig BaseCfg(List<BattleCharacter> t) => SimCfg(t, new List<RotationDecision>());
+SiegeBattleResult Eval(List<BattleCharacter> t, List<RotationDecision> p) => new SiegeBattleSimulator(777).Simulate(SimCfg(t, p));
+void DumpChars(SiegeBattleResult r)
+{
+    foreach (var c in r.CharacterResults.OrderByDescending(c => c.TotalDamage))
+        Both($"        {c.CharacterName}: {c.TotalDamage:N0} ({c.DamageShare:F1}%){(c.Died ? " ☠사망" : "")}");
+}
+
+Both("\n[E] 빔 공정화 — 교차 로테 평가 + 고폭 빔(width 24, depth 28):");
+var fOnB = Eval(teamBack, resFront.BestRotationPlan);    // 전열 우승로테 → 후열 자리
+var bOnF = Eval(teamFront, resBack.BestRotationPlan);    // 후열 우승로테 → 전열 자리
+Both($"    전열우승로테 → 후열자리: {fOnB.TotalScore:N0} (생존 {fOnB.AlliesAlive}/5)");
+Both($"    후열우승로테 → 전열자리: {bOnF.TotalScore:N0} (생존 {bOnF.AlliesAlive}/5)");
+var deepBack = new RotationBeamSearch(777).Search(BaseCfg(teamBack), 24, 28);
+var deepFront = new RotationBeamSearch(777).Search(BaseCfg(teamFront), 24, 28);
+Both($"    후열 고폭빔(24): {deepBack.Score:N0}    전열 고폭빔(24): {deepFront.Score:N0}");
+
+double backCeil = new[] { resBack.BestScore, fOnB.TotalScore, deepBack.Score, bestM }.Max();
+double frontCeil = new[] { resFront.BestScore, bOnF.TotalScore, deepFront.Score }.Max();
+
+// 후열 천장 달성 로테의 캐릭별 기여 (어떻게 그 점수가 나오는지)
+Both("\n    [후열 천장 구성 캐릭터별]");
+var backBestRes = backCeil == deepBack.Score ? deepBack.Battle
+    : backCeil == fOnB.TotalScore ? fOnB
+    : backCeil == bestM ? bestMRes : resBack.BestResult;
+DumpChars(backBestRes);
+
+// ── 판정 (빔 공정화 후 천장 비교) ──
+Both("\n════════ 판정 (빔 공정화 후 천장 비교) ════════");
+Both($"  라이언-후열 천장 : {backCeil:N0}");
+Both($"     (후열빔 {resBack.BestScore:N0} / 전열로테@후열 {fOnB.TotalScore:N0} / 고폭빔 {deepBack.Score:N0} / 실측 {bestM:N0} 중 최대)");
+Both($"  라이언-전열 천장 : {frontCeil:N0}");
+Both($"     (전열빔 {resFront.BestScore:N0} / 후열로테@전열 {bOnF.TotalScore:N0} / 고폭빔 {deepFront.Score:N0} 중 최대)");
+double gap = (backCeil - frontCeil) / frontCeil * 100;
+Both($"  후열 − 전열 : {backCeil - frontCeil:+#,##0;-#,##0} ({gap:+0.00;-0.00}%)");
+Both(backCeil > frontCeil
+    ? "  ✅ 후열 천장 > 전열 천장 → 라이언-후열이 옳음(빔이 후열을 저평가했던 것)."
+    : "  ❌ 후열 천장 ≤ 전열 천장 → 공정 비교(교차로테+고폭빔)에서도 라이언-전열 우위.");
 
 string outPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
     AppContext.BaseDirectory, "..", "..", "..", "..", "..", "siege_목요일_라이언후열_실험.txt"));

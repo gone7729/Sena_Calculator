@@ -265,6 +265,32 @@ namespace GameDamageCalculator.Services.BattleEngine
                             cand.BestRotationPlan = beam.Plan;
                         }
                     }
+
+                    // 교차수분: 각 후보의 빔 플랜을 다른 후보 config에도 평가해, 빔이 그 config에서 못 찾은
+                    //   더 높은 로테(다른 자리/진형의 우승 로테)를 채택한다. 로테는 (HeroIndex,Skill) 리스트라
+                    //   자리·진형 무관 → 교차적용 가능. (목요일: 전열 우승로테를 라이언-후열 자리에 적용하면
+                    //   후열 자체 빔보다 높음 — 빔이 후열을 지역최적으로 저평가한 것을 교정.) 무회귀(더 높을 때만).
+                    var crossPlans = beamCands
+                        .Where(c => c.BestRotationPlan != null && c.BestRotationPlan.Count > 0)
+                        .Select(c => c.BestRotationPlan).ToList();
+                    foreach (var cand in beamCands)
+                    {
+                        for (int i = 0; i < cand.BestParty.Count; i++)
+                            cand.BestParty[i].IsBackPosition = (cand.BestMask & (1 << i)) != 0;
+                        foreach (var plan in crossPlans)
+                        {
+                            if (ReferenceEquals(plan, cand.BestRotationPlan)) continue;   // 자기 플랜은 이미 반영됨
+                            var sc = BuildSimConfig(config, cand.BestParty, cand.BestFormation);
+                            sc.RotationPlan = plan;
+                            var r = new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+                            if (r.TotalScore > cand.BestScore)
+                            {
+                                cand.BestScore = r.TotalScore;
+                                cand.BestResult = r;
+                                cand.BestRotationPlan = plan;
+                            }
+                        }
+                    }
                     // 빔 점수가 가장 높은 후보 채택.
                     best = beamCands.OrderByDescending(c => c.BestScore).First();
                 }

@@ -60,6 +60,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool RevivalUsed { get; set; }               // 부활/불사/불굴 전투당 1회 소비
         public int ImmortalHitsRemaining { get; set; }      // 부활 후 사망무효 잔여 피격 (불굴)
         public int ImmortalTurnsRemaining { get; set; }     // 부활 후 사망무효 잔여 턴 (불사)
+        public int TauntTurnsRemaining { get; set; }        // 도발 잔여 턴 — 활성 중 적 공격 타겟이 이 아군으로 유도됨 (라이언 강자사냥)
 
         // 최종 계산된 스탯 (장비/버프 적용 후)
         public double FinalAtk { get; set; }

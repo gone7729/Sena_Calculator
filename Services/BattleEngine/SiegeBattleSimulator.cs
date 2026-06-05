@@ -682,8 +682,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (dmg <= 0 || ally.IsDead) return;
 
-            // 피해 무효화 (피격 N회 / N턴) — 피해 자체를 0으로
-            if ((ally.NullifyHitsRemaining > 0 || ally.NullifyTurnsRemaining > 0) && ally.NullifyType == DamageNullType.All)
+            // 피해 무효화 (피격 N회 / N턴) — 피해 자체를 0으로. 타입 한정(물리/마법) 면역은 적 공격 타입과 일치할 때만.
+            var incomingType = enemy.Source.AttackType == AttackType.Magic ? DamageNullType.Magic : DamageNullType.Physical;
+            if ((ally.NullifyHitsRemaining > 0 || ally.NullifyTurnsRemaining > 0)
+                && (ally.NullifyType == DamageNullType.All || ally.NullifyType == incomingType))
             {
                 if (ally.NullifyHitsRemaining > 0) ally.NullifyHitsRemaining--;
                 state.TurnLogs.Add(new BattleTurnLog
@@ -747,17 +749,28 @@ namespace GameDamageCalculator.Services.BattleEngine
             CheckHpThresholdNullify(state, ally);   // 생명력 임계 피해무효(나타 50% 등) 트리거
         }
 
-        /// <summary>살아있는 아군 중 랜덤 1명 (없으면 null).</summary>
+        /// <summary>살아있는 아군 중 랜덤 1명 (없으면 null). 도발 중인 아군이 있으면 그 중에서 우선 선택.</summary>
         private CharacterBattleState PickRandomAlly(SiegeBattleState state)
         {
             var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
-            return alive.Count == 0 ? null : alive[_rng.Next(alive.Count)];
+            if (alive.Count == 0) return null;
+            var taunters = alive.Where(a => a.TauntTurnsRemaining > 0).ToList();
+            var pool = taunters.Count > 0 ? taunters : alive;
+            return pool[_rng.Next(pool.Count)];
         }
 
-        /// <summary>살아있는 아군 중 랜덤 N명 (중복 없이; 부족하면 가능한 만큼).</summary>
+        /// <summary>살아있는 아군 중 랜덤 N명 (중복 없이; 부족하면 가능한 만큼).
+        /// 도발 중인 아군이 있으면 우선 타겟 — 단일(N=1)은 도발자, 광역은 도발자 포함 후 나머지 랜덤.</summary>
         private List<CharacterBattleState> PickRandomAllies(SiegeBattleState state, int count)
         {
             var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
+            var taunters = alive.Where(a => a.TauntTurnsRemaining > 0).ToList();
+            if (taunters.Count > 0)
+            {
+                if (count <= taunters.Count) return taunters.OrderBy(_ => _rng.Next()).Take(count).ToList();
+                var rest = alive.Where(a => a.TauntTurnsRemaining <= 0).OrderBy(_ => _rng.Next()).Take(count - taunters.Count);
+                return taunters.Concat(rest).ToList();
+            }
             if (alive.Count <= count) return alive;
             return alive.OrderBy(_ => _rng.Next()).Take(count).ToList();
         }
@@ -866,6 +879,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 턴 기반 생존(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소
             if (ally.NullifyTurnsRemaining > 0) ally.NullifyTurnsRemaining--;
             if (ally.ImmortalTurnsRemaining > 0) ally.ImmortalTurnsRemaining--;
+            if (ally.TauntTurnsRemaining > 0) ally.TauntTurnsRemaining--;   // 도발 잔여 턴 감소
             if (ally.LifestealTurns > 0) ally.LifestealTurns--;   // 흡혈 잔여 턴 감소
 
             // 지속 회복(재생) 틱 + 잔여 턴 감소 (예: 리나 행진가 매턴 시전자 최대HP 15%)
@@ -1475,6 +1489,25 @@ namespace GameDamageCalculator.Services.BattleEngine
                                         $"{a.Source.Character.Name} 디버프 {removed}개 해제");
                             }
                             break;
+                        case SkillEffectType.DamageNullification when e.DamageNullification != null:
+                        {
+                            // 시전자 피해 무효(강자사냥 물리면역[2턴] 등) — 적 공격 타입과 일치하면 ApplyDamageToAlly에서 0뎀.
+                            var n = e.DamageNullification;
+                            if (n.Duration > 0) ally.NullifyTurnsRemaining = Math.Max(ally.NullifyTurnsRemaining, n.Duration);
+                            if (n.HitCount > 0) ally.NullifyHitsRemaining = Math.Max(ally.NullifyHitsRemaining, n.HitCount);
+                            ally.NullifyType = n.Type;
+                            Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                                $"{actor} {n.Type} 피해 면역 [{(n.Duration > 0 ? n.Duration + "턴" : n.HitCount + "회")}]");
+                            break;
+                        }
+                        case SkillEffectType.StatusAilment when e.StatusType == StatusEffectType.Taunt:
+                        {
+                            // 자신 도발(강자사냥[2턴]) — 시전자가 적 공격을 유도. PickRandomAll*에서 우선 타겟됨.
+                            int td = e.Duration > 0 ? e.Duration : 1;
+                            ally.TauntTurnsRemaining = Math.Max(ally.TauntTurnsRemaining, td);
+                            Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0, $"{actor} 도발 [{td}턴]");
+                            break;
+                        }
                     }
                 }
             }

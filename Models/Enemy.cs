@@ -21,6 +21,10 @@ namespace GameDamageCalculator.Models
         // 기본 스탯 (n인기 감쇄는 Stats.Dmg_Rdc_Single/Triple/Multi 사용)
         public BaseStatSet Stats { get; set; } = new BaseStatSet();
 
+        // 적 공격의 피해 타입 (물리/마법) — 아군 타입별 피해무효(강자사냥 물리면역 등) 판정용.
+        //   공성 보스는 대부분 물리 근접(델론즈=공격형) → 기본 물리.
+        public AttackType AttackType { get; set; } = AttackType.Physical;
+
         // ===== 패시브 시스템 =====
         // 고유 버프 (물리/마법 받피감, 일반 받피감 등)
         public PermanentBuff InnateBuff { get; set; }
