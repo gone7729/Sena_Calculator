@@ -106,6 +106,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   2-stage 근사 보정용 — cleanse→버스트 시너지는 자동로테 점수에 안 잡혀 우승 마스크에서
             //   누락되기 쉬우므로, 빔서치 후보에 항상 함께 포함한다(공성전 한정).
             SiegeOptimizerResult bestDealerBack = null;
+            // (B2) 위 (B)는 "1위 딜러"만 본다 — 밸런스(후열2)에서 1위가 이미 후열이면 (B)가 best와 같아져
+            //   2위 딜러-후열 config가 빔평가에서 누락된다(목요일 라이언). 보완: 후열이 데미지 상위
+            //   requiredBack명과 정확히 일치하는("상위 N딜러 전원 후열") config를 진형별로 추적해 빔 후보에
+            //   추가 → 2위 딜러 후열도 공정 비교. Key=진형, Value=그 진형의 최고 자동로테 config.
+            var bestDealerBackFull = new Dictionary<string, SiegeOptimizerResult>();
             int evaluated = 0;
             var evalLog = new List<SiegeEvalEntry>();
 
@@ -138,6 +143,8 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     // 자리(전/후열) 배치 탐색: 후열 인원이 정확히 requiredBack인 마스크만.
                     //   누구를 후열에 둘지가 핵심 변수 (보호진형 후열 1 → 메인딜러 1명).
+                    //   이 (조합×진형)의 전 마스크 결과를 모아 메인딜러-후열(B2) 판정에 재사용한다.
+                    var group = new List<(int Mask, SiegeBattleResult Result, List<string> BackRow)>();
                     for (int mask = 0; mask < (1 << n); mask++)
                     {
                         if (forcedMask.HasValue && mask != forcedMask.Value) continue;
@@ -168,6 +175,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             Score = result.TotalScore,
                             RoundScore = new Dictionary<int, double>(result.RoundScore),
                         });
+                        group.Add((mask, result, backRow));
 
                         if (best == null || result.TotalScore > best.BestScore)
                         {
@@ -182,25 +190,40 @@ namespace GameDamageCalculator.Services.BattleEngine
                             };
                         }
 
-                        // (B) 이 config의 최고딜 캐릭이 후열이면 메인딜러-후열 후보로 기록(자동로테 최고점 유지).
-                        //   특정 영웅 하드코딩 없이 "데미지 기여 1위"로 일반화 — 공성전 메인딜러는 사실상 고정.
+                        // (B) 데미지 1위 캐릭이 후열인 config (자동로테 최고점, 전역). 기존 동작 유지.
                         var topDealer = result.CharacterResults.Count > 0
-                            ? result.CharacterResults.OrderByDescending(c => c.TotalDamage).First()
-                            : null;
-                        bool dealerInBack = topDealer != null
-                            && team.Any(c => c.IsBackPosition && c.Character?.Name == topDealer.CharacterName);
-                        if (dealerInBack && (bestDealerBack == null || result.TotalScore > bestDealerBack.BestScore))
-                        {
+                            ? result.CharacterResults.OrderByDescending(c => c.TotalDamage).First() : null;
+                        if (topDealer != null && backRow.Contains(topDealer.CharacterName)
+                            && (bestDealerBack == null || result.TotalScore > bestDealerBack.BestScore))
                             bestDealerBack = new SiegeOptimizerResult
                             {
-                                BestParty = team,
-                                BestFormation = formation,
-                                BestScore = result.TotalScore,
-                                BestResult = result,
-                                BestBackRow = backRow,
-                                BestMask = mask,
+                                BestParty = team, BestFormation = formation, BestScore = result.TotalScore,
+                                BestResult = result, BestBackRow = backRow, BestMask = mask,
                             };
-                        }
+                    }
+
+                    // (B2) 이 (조합×진형)의 "상위 N딜러 전원 후열" config를 빔 후보로 추가(진형별 최고점).
+                    //   딜러 식별을 config별 자동로테 데미지로 하면 자기모순 — 자동로테는 딜러-후열 시너지를
+                    //   과소평가하므로 정작 후열딜러 config에서 그 딜러가 저평가돼 상위에서 빠진다(목요일 라이언).
+                    //   대신 이 그룹 내 캐릭별 '최대' 데미지(전열 등 최선 배치에서 찍은 값)로 딜러를 가린 뒤,
+                    //   그 상위 N명이 전원 후열인 config를 찾는다. requiredBack==1이면 (B)와 동일 → 제외(중복 빔 방지).
+                    if (requiredBack >= 2 && group.Count > 0)
+                    {
+                        var heroMax = new Dictionary<string, double>();
+                        foreach (var g in group)
+                            foreach (var cr in g.Result.CharacterResults)
+                                heroMax[cr.CharacterName] = System.Math.Max(
+                                    heroMax.TryGetValue(cr.CharacterName, out var v) ? v : 0, cr.TotalDamage);
+                        var carries = heroMax.OrderByDescending(kv => kv.Value).Take(requiredBack)
+                            .Select(kv => kv.Key).ToHashSet();
+                        foreach (var (m, r, br) in group)
+                            if (br.Count == carries.Count && br.All(carries.Contains)
+                                && (!bestDealerBackFull.TryGetValue(formation, out var cf) || r.TotalScore > cf.BestScore))
+                                bestDealerBackFull[formation] = new SiegeOptimizerResult
+                                {
+                                    BestParty = team, BestFormation = formation, BestScore = r.TotalScore,
+                                    BestResult = r, BestBackRow = br, BestMask = m,
+                                };
                     }
                 }
             }
@@ -213,11 +236,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 빔서치 후보에 함께 넣고, 빔 점수가 더 높은 쪽을 채택해 근사 오류를 보정한다.
                 if (config.OptimizeRotation)
                 {
-                    // 후보군: 자동로테 우승 + 메인딜러-후열(둘이 같은 마스크면 중복 제외).
+                    // 후보군: 자동로테 우승 + 메인딜러-후열(B) + 상위N딜러-전원후열(B2, 진형별).
+                    //   (팀·진형·마스크)가 같은 config는 중복 빔서치 방지로 제외.
                     var beamCands = new List<SiegeOptimizerResult> { best };
-                    if (bestDealerBack != null
-                        && !(bestDealerBack.BestMask == best.BestMask && bestDealerBack.BestFormation == best.BestFormation))
-                        beamCands.Add(bestDealerBack);
+                    void AddCand(SiegeOptimizerResult c)
+                    {
+                        if (c == null) return;
+                        bool dup = beamCands.Any(b => ReferenceEquals(b.BestParty, c.BestParty)
+                            && b.BestFormation == c.BestFormation && b.BestMask == c.BestMask);
+                        if (!dup) beamCands.Add(c);
+                    }
+                    AddCand(bestDealerBack);
+                    foreach (var full in bestDealerBackFull.Values) AddCand(full);
 
                     foreach (var cand in beamCands)
                     {
