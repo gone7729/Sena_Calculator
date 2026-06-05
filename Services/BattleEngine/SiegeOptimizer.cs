@@ -230,6 +230,8 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             if (best != null)
             {
+                // 빔 후보들의 우승 로테 모음 — 생존반지 후처리(ApplySurvivalRings) 後 재평가에 재사용.
+                var crossPlans = new List<List<RotationDecision>>();
                 // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치 → 로테이션 최적 점수·플랜.
                 // 진형·자리·기어 탐색은 자동 로테이션 점수로 했으므로 2단계 근사. 단, 자동로테는
                 // cleanse→버스트 시너지(메인딜러 후열 가치)를 과소평가 → 메인딜러-후열 후보(B)를
@@ -270,7 +272,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     //   더 높은 로테(다른 자리/진형의 우승 로테)를 채택한다. 로테는 (HeroIndex,Skill) 리스트라
                     //   자리·진형 무관 → 교차적용 가능. (목요일: 전열 우승로테를 라이언-후열 자리에 적용하면
                     //   후열 자체 빔보다 높음 — 빔이 후열을 지역최적으로 저평가한 것을 교정.) 무회귀(더 높을 때만).
-                    var crossPlans = beamCands
+                    crossPlans = beamCands
                         .Where(c => c.BestRotationPlan != null && c.BestRotationPlan.Count > 0)
                         .Select(c => c.BestRotationPlan).ToList();
                     foreach (var cand in beamCands)
@@ -305,7 +307,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 생존반지 후처리 — 최종 config(진형·자리·로테이션 확정)에서 죽는 캐릭에 생존반지 부여.
                 //   여기서 사망 감지를 하므로 전열 가정 과탐지 없이 "실제로 죽는" 캐릭만 대상.
                 if (config.AutoEquip)
-                    ApplySurvivalRings(config, best);
+                {
+                    bool ringsApplied = ApplySurvivalRings(config, best);
+                    // 반지 채택 → 저딜 서포터가 생존하며 버프를 유지 → 더 높은 로테 천장이 열린다.
+                    //   기존 BestRotationPlan은 반지 前 고정값이라 그 천장을 모름(목요일 후열 ~0.58M 손실).
+                    //   반지-장착 config에서 빔 재탐색 + crossPlans 재평가로 천장을 회수(무회귀, 더 높을 때만).
+                    if (ringsApplied && config.OptimizeRotation)
+                        ReoptimizeRotationAfterRings(config, best, crossPlans);
+                }
             }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
@@ -428,7 +437,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 사망캐 게이팅 + 캐스케이드(한 명 살리면 새로 죽는 캐릭) 대응으로 반복(상한 5). 매 회 최선의
         /// (캐릭×반지) 1개만 그리디 채택. 스탯(등급/메인/부옵)은 기존 장신구 그대로, 생존효과만 부여.
         /// </summary>
-        private void ApplySurvivalRings(SiegeOptimizerConfig config, SiegeOptimizerResult best)
+        /// <returns>생존반지를 1개 이상 채택했으면 true (호출부가 로테 재최적화 트리거).</returns>
+        private bool ApplySurvivalRings(SiegeOptimizerConfig config, SiegeOptimizerResult best)
         {
             SiegeBattleResult SimBest() => new SiegeBattleSimulator(GearCompareSeed).Simulate(new SiegeBattleConfig
             {
@@ -474,6 +484,47 @@ namespace GameDamageCalculator.Services.BattleEngine
                 best.BestScore = final.TotalScore;
                 best.BestResult = final;
             }
+            return ringed.Count > 0;
+        }
+
+        /// <summary>
+        /// 생존반지 채택 後 로테이션 재최적화 — 반지가 살린 캐릭의 버프 유지로 더 높은 로테가 가능해진다.
+        /// 반지-장착 best config에서 (1) 빔 재탐색 + (2) 기존 crossPlans 재평가 → 가장 높은 로테로 갱신(무회귀).
+        /// 자기 플랜(현 BestRotationPlan)도 후보에 포함해 절대 퇴보하지 않게 한다.
+        /// </summary>
+        private void ReoptimizeRotationAfterRings(SiegeOptimizerConfig config, SiegeOptimizerResult best,
+            List<List<RotationDecision>> crossPlans)
+        {
+            // 자리 재적용 (team은 공유·변형 객체).
+            for (int i = 0; i < best.BestParty.Count; i++)
+                best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+
+            // (1) 반지-장착 config에서 빔 재탐색 — 생존이 열어준 새 로테 공간 탐색.
+            var beam = new RotationBeamSearch(GearCompareSeed).Search(
+                BuildSimConfig(config, best.BestParty, best.BestFormation),
+                config.RotationBeamWidth, config.RotationMaxDepth);
+
+            // (2) 후보 플랜 = 새 빔 + 기존 crossPlans + 현 채택 플랜. 반지-장착 config로 동일 시드 재평가.
+            var candPlans = new List<List<RotationDecision>>();
+            if (beam.Plan != null && beam.Plan.Count > 0) candPlans.Add(beam.Plan);
+            candPlans.AddRange(crossPlans);
+            if (best.BestRotationPlan != null && best.BestRotationPlan.Count > 0) candPlans.Add(best.BestRotationPlan);
+
+            double before = best.BestScore;
+            foreach (var plan in candPlans)
+            {
+                var sc = BuildSimConfig(config, best.BestParty, best.BestFormation);
+                sc.RotationPlan = plan;
+                var r = new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+                if (r.TotalScore > best.BestScore)
+                {
+                    best.BestScore = r.TotalScore;
+                    best.BestResult = r;
+                    best.BestRotationPlan = plan;
+                }
+            }
+            if (best.BestScore > before)
+                best.GearLog.Add($"[로테 재최적화] 생존반지 後 천장 회수: {before:N0} → {best.BestScore:N0}");
         }
 
         /// <summary>생존반지 후보 — 기존 장신구의 스탯(등급/메인/부옵)은 유지하고 권능 효과만 부여.

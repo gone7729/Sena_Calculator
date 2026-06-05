@@ -137,6 +137,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   >0이면 아군 직격을 무효(점수 미집계)·1 차감. DoT는 무효지만 차감 안 함.
         public int NullifyHitsRemaining { get; set; }
 
+        // 실명 잔여 (라이언 강자사냥 등 아군이 부여): >0이면 이 적의 기본공격이 반드시 빗나감(스킬은 적중).
+        //   기본공격 1회당 1 차감(per-action 모델 — 적 기본공격만 실명을 소모·영향받음).
+        public int BlindTurnsRemaining { get; set; }
+
         // 스탯 (공성전 적은 장비/버프 없이 Enemy.Stats 그대로)
         public double FinalAtk { get; set; }
         public double FinalDef { get; set; }

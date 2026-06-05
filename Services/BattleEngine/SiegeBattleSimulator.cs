@@ -383,13 +383,24 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 // 적 기본공격 → 랜덤 아군 1명 피격 + 상태이상 부여
                 var enemy = actor.Enemy;
-                var normal = enemy.Source.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
-                var target = PickRandomAlly(state);
-                if (normal != null && target != null)
+                // 실명(라이언 강자사냥 등): 적 기본공격은 반드시 빗나감(피해·상태이상 없음). 스킬은 적중.
+                //   기본공격 1회로 실명 1턴 소모 (per-action 모델). HP와 무관하게 차감.
+                if (enemy.BlindTurnsRemaining > 0)
                 {
-                    double dmg = CalcDamageToAlly(enemy, target, normal);
-                    ApplyDamageToAlly(state, enemy, target, dmg, normal.Name);
-                    ApplyEnemyStatusToAlly(state, target, normal);
+                    enemy.BlindTurnsRemaining--;
+                    Log(state, enemy.Source.Name, false, ActionType.NormalAttack, "기본공격", 0,
+                        $"{enemy.Source.Name} 기본공격 빗나감 (실명, 잔여 {enemy.BlindTurnsRemaining}턴)");
+                }
+                else
+                {
+                    var normal = enemy.Source.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
+                    var target = PickRandomAlly(state);
+                    if (normal != null && target != null)
+                    {
+                        double dmg = CalcDamageToAlly(enemy, target, normal);
+                        ApplyDamageToAlly(state, enemy, target, dmg, normal.Name);
+                        ApplyEnemyStatusToAlly(state, target, normal);
+                    }
                 }
             }
 
@@ -1506,6 +1517,22 @@ namespace GameDamageCalculator.Services.BattleEngine
                             int td = e.Duration > 0 ? e.Duration : 1;
                             ally.TauntTurnsRemaining = Math.Max(ally.TauntTurnsRemaining, td);
                             Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0, $"{actor} 도발 [{td}턴]");
+                            break;
+                        }
+                        case SkillEffectType.StatusAilment when e.StatusType == StatusEffectType.Blind:
+                        {
+                            // 적 실명(라이언 강자사냥[2턴] 등) — 부여 적의 기본공격이 반드시 빗나감(스킬은 적중).
+                            //   확률: 0 또는 ≥100 = 무롤 확정(라이언 강자사냥=명시 100%). 0<c<100일 때만 RNG 롤
+                            //   (Ryan은 0이라 무롤 → RNG 시퀀스 무교란 = 비-실명 결과 회귀 안전).
+                            int bd = e.Duration > 0 ? e.Duration : 1;
+                            bool apply = e.Chance <= 0 || e.Chance >= 100 || _rng.Next(100) < e.Chance;
+                            if (!apply) break;
+                            var blindTargets = e.Target == EffectTarget.AllEnemies ? state.Enemies : hitEnemies;
+                            foreach (var en in blindTargets)
+                                en.BlindTurnsRemaining = Math.Max(en.BlindTurnsRemaining, bd);
+                            if (blindTargets.Count > 0)
+                                Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                                    $"적{blindTargets.Count} 실명 [{bd}턴] (기본공격 빗나감)");
                             break;
                         }
                     }
