@@ -7,8 +7,12 @@ namespace GameDamageCalculator.Services.BattleEngine
     /// </summary>
     public class SiegeBattleResult
     {
-        // 공성전 점수 (전 라운드 누적 데미지)
+        // 공성전 점수 (전 라운드 누적 데미지) — 보고용 실제 딜. 페널티 미반영.
         public double TotalScore { get; set; }
+
+        // 랭킹용 점수 = TotalScore − AllyDeathPenalty×사망수. 빔/옵티마이저가 이 값으로 빌드를 선택(생존 우선).
+        //   AllyDeathPenalty=0이면 TotalScore와 동일. 보고(총점)는 항상 TotalScore 사용.
+        public double RankScore { get; set; }
 
         // 라운드별 점수
         public Dictionary<int, double> RoundScore { get; set; } = new();
@@ -30,6 +34,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 빌드 실행가능성: RotationPlan 각 스텝의 계획대로-시전 여부·쿨 여유 (config.RecordFeasibility=true일 때만)
         public List<BuildStepFeasibility> Feasibility { get; set; } = new();
+
+        // 아군 사망 이벤트 (턴/경과초/이름/사인). 사망 로그용.
+        public List<SiegeDeathEvent> Deaths { get; set; } = new();
     }
 
     /// <summary>
@@ -51,6 +58,17 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double Slack { get; set; }           // 시전 시 쿨 여유(초) = 시전시각 − 준비완료시각 (재시전만 의미; 클수록 견고)
         public bool CooldownGated { get; set; }     // true=재시전(쿨 제약 받음, Slack 유효). false=첫 시전(쿨 무관 — 견고성 지표 제외)
         public List<string> BuffTargets { get; set; }   // 이 시전이 부여한 아군 버프 수령자(예: 비스킷 장비강화 → [타카,라이언]). 버프 없으면 null
+        public List<string> DebuffTargets { get; set; }  // 이 시전이 적에 부여한 디버프 대상(예: 레이첼 불새 → [스파이크,룩,챈슬러]). 없으면 null
+        public List<string> DispelTargets { get; set; }  // 이 시전이 버프해제한 적(예: 비스킷 리프어택 → [스파이크]). 없으면 null
+    }
+
+    /// <summary>아군 사망 이벤트 (사망 로그용).</summary>
+    public class SiegeDeathEvent
+    {
+        public int Turn { get; set; }
+        public double Elapsed { get; set; }
+        public string AllyName { get; set; }
+        public string Cause { get; set; }   // 가해 적 + 스킬 (예: "스파이크 혹한의 일격(추가타)")
     }
 
     /// <summary>공성전 캐릭터별 데미지 기여.</summary>

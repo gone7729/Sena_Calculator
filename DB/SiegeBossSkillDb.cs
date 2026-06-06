@@ -315,6 +315,7 @@ namespace GameDamageCalculator.Database
                         {
                             Ratio = 195, TargetCount = 1, AtkCount = 1, Cooldown = 40,
                             Effect = "주 대상과 동일 열 적군에게 물리 75% 1회 + 빙결[100%/3턴] 추가",
+                            EnemyExtraHitRatio = 75, EnemyExtraHitTargets = 1,   // 동일 열 75% 추가타(1명 근사) — 빙결 무관 직접딜
                             Effects = new()
                             {
                                 new() { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment,

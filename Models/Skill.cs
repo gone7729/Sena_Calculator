@@ -422,6 +422,11 @@ namespace GameDamageCalculator.Models
         public BuffSet GrantHighestAtkAllyBuff { get; set; }
         public int GrantHighestAtkAllyBuffTurns { get; set; }
 
+        // 공성전: 적 스킬의 주 타격과 별개로 추가 아군에게 들어가는 추가타(예: 스파이크 혹한의 일격 "동일 열 75% 1회").
+        //   빙결 무관 직접딜이라 면역으로 못 막음. 챈슬러 버프 시 추가타도 치명타로 들어감. 0이면 없음.
+        public double EnemyExtraHitRatio { get; set; }
+        public int EnemyExtraHitTargets { get; set; }
+
         // 처치 시 같은 스킬 1회 재시전 (모든 효과 재적용, 연쇄 없음)
         public OnKillRecast OnKillRecast { get; set; }
     }

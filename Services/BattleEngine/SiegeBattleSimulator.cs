@@ -44,11 +44,18 @@ namespace GameDamageCalculator.Services.BattleEngine
         private readonly List<BuildStepFeasibility> _feasLog = new();
         // 직전 아군 스킬 1회 시전이 부여한 아군 버프 수령자 이름(스킬 순서 로그의 [대상] 표기용). ExecuteAllySkill마다 초기화.
         private readonly List<string> _curCastAllyBuffTargets = new();
+        // 직전 시전이 적에 부여한 디버프 대상(예: 레이첼 불새 → [스파이크,룩,챈슬러]) / 버프해제한 적(예: 리프어택 → [스파이크]).
+        private readonly List<string> _curCastDebuffTargets = new();
+        private readonly List<string> _curCastDispelTargets = new();
+        // 아군 사망 이벤트 (턴·경과초·사망 영웅·가해 적/스킬). 최종 빌드 재생 시 사망 로그로 출력.
+        private readonly List<SiegeDeathEvent> _deaths = new();
 
         // [반격 오버라이드] config.CounterattackChanceOverride. null=보스 정의값(25%), 0=OFF.
         //   빔서치는 0(반격 RNG·시간경과 무의존)으로 로테 산출, 최종 점수·기어·생존반지는 null(ON)로 평가.
         //   금요일(제이브) 외 보스는 Counterattack=null이라 무관(월화수목토 무영향).
         private double? _counterChanceOverride;
+        // [사망 페널티] config.AllyDeathPenalty. RankScore(랭킹용)=TotalScore − 페널티×사망수. 보고 점수는 불변.
+        private double _allyDeathPenalty;
         private bool IsDiagSkill(string name)
             => (DiagSkillName != null && name == DiagSkillName)
             || (DiagSkillNames != null && DiagSkillNames.Contains(name));
@@ -60,6 +67,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 실행가능성 계측은 최종(메인) 패스에만 — 스카우팅 서브시뮬(computeWeights=false)은 결과 폐기되므로 제외.
             _recordFeasibility = config.RecordFeasibility && computeWeights;
             _counterChanceOverride = config.CounterattackChanceOverride;   // 반격 확률 오버라이드(빔=0, 최종=null)
+            _allyDeathPenalty = config.AllyDeathPenalty;   // 사망 페널티(RankScore용)
             var state = Initialize(config);
             if (computeWeights)
             {
@@ -305,9 +313,16 @@ namespace GameDamageCalculator.Services.BattleEngine
                                 RecordFeasStep(state, stIdx, dec, a, sk, true, null, 0, slack, gated);
                             }
                             ExecuteAllySkill(state, dec.HeroIndex, sk);
-                            // 방금 시전이 부여한 아군 버프 수령자를 이 스텝에 기록(스킬 순서 [대상] 표기).
-                            if (_recordFeasibility && _feasLog.Count > 0 && _curCastAllyBuffTargets.Count > 0)
-                                _feasLog[^1].BuffTargets = _curCastAllyBuffTargets.Distinct().ToList();
+                            // 방금 시전이 부여/적용한 대상을 이 스텝에 기록(스킬 순서 [대상] 표기).
+                            if (_recordFeasibility && _feasLog.Count > 0)
+                            {
+                                if (_curCastAllyBuffTargets.Count > 0)
+                                    _feasLog[^1].BuffTargets = _curCastAllyBuffTargets.Distinct().ToList();
+                                if (_curCastDebuffTargets.Count > 0)
+                                    _feasLog[^1].DebuffTargets = _curCastDebuffTargets.Distinct().ToList();
+                                if (_curCastDispelTargets.Count > 0)
+                                    _feasLog[^1].DispelTargets = _curCastDispelTargets.Distinct().ToList();
+                            }
                             return;
                         }
                         if (_recordFeasibility)
@@ -369,6 +384,25 @@ namespace GameDamageCalculator.Services.BattleEngine
                                 ApplyDamageToAlly(state, enemy, rt, rdmg, skill.Name + "(처치 재시전)");
                                 ApplyEnemyStatusToAlly(state, rt, skill);
                             }
+                        }
+                    }
+
+                    // 추가타(예: 스파이크 혹한의 일격 "동일 열 75% 1회"). 빙결 무관 직접딜 → 면역으로 못 막음.
+                    //   챈슬러 버프 시 추가타도 치명타(CalcDamageToAlly가 enemy.EnemyBuff 반영). 빙결 상태는 메인 skill로 부여(풍연 면역 차단).
+                    var lvld = skill.GetLevelData(false);
+                    if (lvld != null && lvld.EnemyExtraHitRatio > 0 && lvld.EnemyExtraHitTargets > 0)
+                    {
+                        var extraSkill = new Skill
+                        {
+                            Name = skill.Name + "(추가타)", SkillType = skill.SkillType,
+                            LevelData = new Dictionary<int, SkillLevelData>
+                            { [0] = new SkillLevelData { Ratio = lvld.EnemyExtraHitRatio, AtkCount = 1, TargetCount = 1 } },
+                        };
+                        foreach (var t in PickRandomAllies(state, lvld.EnemyExtraHitTargets))
+                        {
+                            double dmg = CalcDamageToAlly(enemy, t, extraSkill);
+                            ApplyDamageToAlly(state, enemy, t, dmg, extraSkill.Name);
+                            ApplyEnemyStatusToAlly(state, t, skill);   // 동일 열 빙결[3턴] (풍연 면역이 차단)
                         }
                     }
 
@@ -875,6 +909,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = dmg,
                 Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
             });
+
+            // 사망 이벤트 기록 (사망 로그용): 이번 피격으로 처음 사망(부활 못 함). 권능=생존이라 미기록.
+            if (ally.IsDead)
+                _deaths.Add(new SiegeDeathEvent
+                {
+                    Turn = state.CurrentTurn, Elapsed = state.ElapsedSeconds,
+                    AllyName = ally.Source.Character.Name, Cause = $"{enemy.Source.Name} {label}",
+                });
 
             // 아군 사망 → 「죽음의 경계」 보유 보스(델론즈)에 피해무효화[N회] 부여 (이후 아군 직격 N회 무효).
             if (ally.IsDead)
@@ -1421,6 +1463,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             var ally = state.AllyStates[allyIdx];
             _curCastAllyBuffTargets.Clear();   // 이 시전이 부여한 아군 버프 수령자 누적(스킬 순서 [대상] 표기용)
+            _curCastDebuffTargets.Clear();     // 디버프 대상(적) 누적
+            _curCastDispelTargets.Clear();     // 버프해제 대상(적) 누적
             int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
             var targets = PickTargets(state, tc);
             if (targets.Count == 0) return;
@@ -1568,9 +1612,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 int d = dur > 0 ? dur : 99;
                 foreach (var en in targets)
                     AddEnemyDebuff(en, dd, d, $"siege_skdebuff:{actor}:{skill.Name}:{en.Position}");
+                _curCastDebuffTargets.AddRange(targets.Select(en => en.Source.Name));   // 스킬 순서 [디버프 대상] 표기용
                 if (targets.Count > 0)
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
-                        $"디버프 적{targets.Count}: {s} [{d}턴]");
+                        $"디버프 [{string.Join(",", targets.Select(en => en.Source.Name))}]: {s} [{d}턴]");
             }
 
             // 초월 보너스 (대상수 변경 등). 6초월 비스킷 장비강화 = 버프 대상 2명 등.
@@ -1597,12 +1642,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
                         $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
                     en.Shield = 0; en.ShieldTurns = 0;
+                    _curCastDispelTargets.Add(en.Source.Name);
                 }
                 foreach (var en in state.Enemies.Where(x => x.HasEnemyBuff))
                 {
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
                         $"{en.Source.Name} 적 버프 해제 ({SummarizeBuff(en.EnemyBuff)})");
                     en.EnemyBuff = null; en.EnemyBuffTurns = 0;
+                    _curCastDispelTargets.Add(en.Source.Name);
                 }
             }
 
@@ -1893,7 +1940,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TurnLogs = state.TurnLogs,
                 DecisionPoints = state.DecisionPoints,
                 Feasibility = _feasLog,
+                Deaths = _deaths,
             };
+            // 랭킹용 점수: 실제 딜 − 사망 페널티×(전투 종료 시 사망 아군 수). 보고 점수(TotalScore)는 불변.
+            int deadCount = state.AllyStates.Count(a => a.IsDead);
+            result.RankScore = result.TotalScore - _allyDeathPenalty * deadCount;
             foreach (var ally in state.AllyStates)
             {
                 result.CharacterResults.Add(new SiegeCharacterResult

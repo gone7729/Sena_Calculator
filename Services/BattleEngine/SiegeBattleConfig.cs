@@ -49,6 +49,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   0 = 반격 OFF — 빔서치는 반격 RNG·시간경과에 의존하지 않는 로테를 산출(0회 발동에도 실행가능한 빌드).
         //   금요일(제이브) 외 보스는 Counterattack=null이라 이 값과 무관(월화수목토 무영향).
         public double? CounterattackChanceOverride { get; set; }
+
+        // 아군 사망 1명당 랭킹 점수 페널티. 0이면 없음(기존 동작). >0이면 빔/옵티마이저가 생존(버프해제)을 우선해
+        //   전멸 빌드를 피한다. 보고 점수(TotalScore=실제 누적딜)는 불변 — RankScore에만 반영. 사망 없는 날은 무영향.
+        public double AllyDeathPenalty { get; set; }
     }
 
     /// <summary>로테이션 플랜 1스텝: 특정 아군이 특정 스킬 시전, 또는 홀드(아무도 안 씀).</summary>

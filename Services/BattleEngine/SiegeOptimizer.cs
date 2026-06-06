@@ -60,7 +60,8 @@ namespace GameDamageCalculator.Services.BattleEngine
     {
         public List<BattleCharacter> BestParty { get; set; } = new();
         public string BestFormation { get; set; }
-        public double BestScore { get; set; }
+        public double BestScore { get; set; }              // 보고용 실제 딜(TotalScore)
+        public double BestRankScore { get; set; }          // 선택용 랭킹 점수(생존 페널티 반영). 비교는 이 값으로.
         public SiegeBattleResult BestResult { get; set; }
         public List<string> BestBackRow { get; set; } = new();   // 최적 후열 배치 영웅 이름
         internal int BestMask { get; set; }                       // 최적 후열 배치 비트마스크 (재적용용)
@@ -177,13 +178,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                         });
                         group.Add((mask, result, backRow));
 
-                        if (best == null || result.TotalScore > best.BestScore)
+                        if (best == null || result.RankScore > best.BestRankScore)
                         {
                             best = new SiegeOptimizerResult
                             {
                                 BestParty = team,
                                 BestFormation = formation,
                                 BestScore = result.TotalScore,
+                                BestRankScore = result.RankScore,
                                 BestResult = result,
                                 BestBackRow = backRow,
                                 BestMask = mask,
@@ -194,10 +196,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                         var topDealer = result.CharacterResults.Count > 0
                             ? result.CharacterResults.OrderByDescending(c => c.TotalDamage).First() : null;
                         if (topDealer != null && backRow.Contains(topDealer.CharacterName)
-                            && (bestDealerBack == null || result.TotalScore > bestDealerBack.BestScore))
+                            && (bestDealerBack == null || result.RankScore > bestDealerBack.BestRankScore))
                             bestDealerBack = new SiegeOptimizerResult
                             {
                                 BestParty = team, BestFormation = formation, BestScore = result.TotalScore,
+                                BestRankScore = result.RankScore,
                                 BestResult = result, BestBackRow = backRow, BestMask = mask,
                             };
                     }
@@ -218,10 +221,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                             .Select(kv => kv.Key).ToHashSet();
                         foreach (var (m, r, br) in group)
                             if (br.Count == carries.Count && br.All(carries.Contains)
-                                && (!bestDealerBackFull.TryGetValue(formation, out var cf) || r.TotalScore > cf.BestScore))
+                                && (!bestDealerBackFull.TryGetValue(formation, out var cf) || r.RankScore > cf.BestRankScore))
                                 bestDealerBackFull[formation] = new SiegeOptimizerResult
                                 {
                                     BestParty = team, BestFormation = formation, BestScore = r.TotalScore,
+                                    BestRankScore = r.RankScore,
                                     BestResult = r, BestBackRow = br, BestMask = m,
                                 };
                     }
@@ -261,11 +265,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                             BuildSimConfig(config, cand.BestParty, cand.BestFormation),
                             config.RotationBeamWidth, config.RotationMaxDepth);
                         // 빔은 반격 OFF(0%)로 로테를 골랐다 → 채택·비교 점수는 반격 ON(실전·단일시드)으로 재평가.
-                        //   금요일(제이브)만 OFF≠ON; 그 외 보스는 반격 없어 동일(회귀 없음).
+                        //   금요일(제이브)만 OFF≠ON; 그 외 보스는 반격 없어 동일(회귀 없음). 비교는 RankScore(생존 페널티).
                         var beamOn = ScoreOnPlan(config, cand.BestParty, cand.BestFormation, beam.Plan);
-                        if (beamOn.TotalScore > cand.BestScore)
+                        if (beamOn.RankScore > cand.BestRankScore)
                         {
                             cand.BestScore = beamOn.TotalScore;
+                            cand.BestRankScore = beamOn.RankScore;
                             cand.BestResult = beamOn;
                             cand.BestRotationPlan = beam.Plan;
                         }
@@ -288,16 +293,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                             var sc = BuildSimConfig(config, cand.BestParty, cand.BestFormation);
                             sc.RotationPlan = plan;
                             var r = new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
-                            if (r.TotalScore > cand.BestScore)
+                            if (r.RankScore > cand.BestRankScore)
                             {
                                 cand.BestScore = r.TotalScore;
+                                cand.BestRankScore = r.RankScore;
                                 cand.BestResult = r;
                                 cand.BestRotationPlan = plan;
                             }
                         }
                     }
-                    // 빔 점수가 가장 높은 후보 채택.
-                    best = beamCands.OrderByDescending(c => c.BestScore).First();
+                    // 랭킹 점수(생존 페널티 반영)가 가장 높은 후보 채택.
+                    best = beamCands.OrderByDescending(c => c.BestRankScore).First();
                 }
 
                 best.EvaluatedCount = evaluated;
@@ -459,7 +465,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var dyers = cur.CharacterResults.Where(c => c.Died).Select(c => c.CharacterName).ToHashSet();
                 if (dyers.Count == 0) break;
 
-                BattleCharacter pick = null; Accessory pickAcc = null; double pickScore = cur.TotalScore;
+                // 채택 기준은 RankScore(생존 페널티 반영) — 반지가 살린 만큼 사망 페널티가 줄어 우선됨. 표시는 실제 딜.
+                BattleCharacter pick = null; Accessory pickAcc = null;
+                double pickRank = cur.RankScore; double pickTotal = cur.TotalScore;
                 foreach (var bc in best.BestParty)
                 {
                     if (bc.Character == null || bc.Equipment?.Accessory == null) continue;
@@ -468,8 +476,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                     foreach (var ring in SurvivalRingCandidates(orig))
                     {
                         bc.Equipment.Accessory = ring;
-                        double s = SimBest().TotalScore;
-                        if (s > pickScore) { pickScore = s; pick = bc; pickAcc = ring; }
+                        var rr = SimBest();
+                        if (rr.RankScore > pickRank) { pickRank = rr.RankScore; pickTotal = rr.TotalScore; pick = bc; pickAcc = ring; }
                     }
                     bc.Equipment.Accessory = orig;   // 원복 (채택은 1회 1개만)
                 }
@@ -478,13 +486,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 double before = cur.TotalScore;
                 pick.Equipment.Accessory = pickAcc;
                 ringed.Add(pick);
-                best.GearLog.Add($"[{pick.Character.Name}] 생존반지 채택: {pickAcc.RingName} (사망→생존, 팀점수 {before:N0}→{pickScore:N0})");
+                best.GearLog.Add($"[{pick.Character.Name}] 생존반지 채택: {pickAcc.RingName} (사망→생존, 팀점수 {before:N0}→{pickTotal:N0})");
             }
 
             if (ringed.Count > 0)
             {
                 var final = SimBest();
                 best.BestScore = final.TotalScore;
+                best.BestRankScore = final.RankScore;
                 best.BestResult = final;
             }
             return ringed.Count > 0;
@@ -519,9 +528,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var sc = BuildSimConfig(config, best.BestParty, best.BestFormation);
                 sc.RotationPlan = plan;
                 var r = new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
-                if (r.TotalScore > best.BestScore)
+                if (r.RankScore > best.BestRankScore)
                 {
                     best.BestScore = r.TotalScore;
+                    best.BestRankScore = r.RankScore;
                     best.BestResult = r;
                     best.BestRotationPlan = plan;
                 }
@@ -609,7 +619,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             PetOptionDefRate = config.PetOptionDefRate,
             PetOptionHpRate = config.PetOptionHpRate,
             MaxTurns = config.MaxTurns,
+            AllyDeathPenalty = AllyDeathPenalty,   // 생존 우선(전멸 빌드 회피) — 보고 점수 불변, RankScore에만 반영
         };
+
+        // 아군 사망 1명당 랭킹 페널티(딜). 빔/옵티마이저가 생존(버프해제)을 우선하도록. 보고 점수(TotalScore)는 불변.
+        //   전멸 빌드(토요일 챈슬러 미해제)가 banked 초반딜로 우위가 되는 걸 막는다. 사망 없는 날은 무영향.
+        private const double AllyDeathPenalty = 2_000_000;
 
         /// <summary>장착된 장비의 세트·메인옵 값·부옵 값을 사람이 읽기 쉬운 문자열로.</summary>
         private static string FormatGear(BattleCharacter bc)

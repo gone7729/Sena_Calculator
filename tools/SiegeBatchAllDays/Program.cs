@@ -25,12 +25,11 @@ var DAYS = new (string Day, int[] Ids)[]
     ("토요일", new[] { 2,   1,   301, 201, 51  }),   // 라이언·타카·레이첼·비스킷·풍연
 };
 
-// 프로필: 인자에 "12초월잠재3" 포함 시 12초월·잠재3/3/3, 아니면 기본 6초월·잠재0.
-//   (펫 윈디 잠재 모공%72=18×4·전용무기X·스킬강화o는 두 프로필 공통.)
-bool hiProfile = args.Contains("12초월잠재3");
-int TRANS = hiProfile ? 12 : 6;
-int POT = hiProfile ? 3 : 0;
-string SUFFIX = hiProfile ? "12초월잠재3" : "6초월잠재0";
+// 고정 프로필: 12초월·잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
+//   (6초월 프로필 폐지 — 12초월 단일. 파일 접미사는 12초월잠재3 유지.)
+int TRANS = 12;
+int POT = 3;
+string SUFFIX = "12초월잠재3";
 
 // 인자로 요일 지정 시 해당 요일만 탐색 (예: dotnet run -- 수요일). 미지정이면 전 요일. (프로필 토큰은 요일 아님 → 무시)
 var dayArgs = args.Where(a => DAYS.Any(d => d.Day == a)).ToArray();
@@ -40,7 +39,7 @@ if (dayArgs.Length > 0)
 BattleCharacter Hero(int id)
 {
     var c = CharacterDb.Characters.First(x => x.Id == id);
-    c.ExclusiveWeapon = null;   // 전용무기 없음
+    c.ExclusiveWeapon = null;   // null로 시작 → SearchExclusiveWeapon이 전설 4슬롯 조율을 탐색해 장착
     return new BattleCharacter
     {
         Character = c, IsSkillEnhanced = true, TranscendLevel = TRANS,
@@ -66,10 +65,10 @@ foreach (var (day, ids) in DAYS)
         PartySize = 5,
         SiegeStage = stage,
         AllyPet = PetDb.GetByName("윈디"),
-        PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
+        PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76,
         MaxTurns = 70,
         AutoEquip = true,
-        SearchExclusiveWeapon = false,
+        SearchExclusiveWeapon = true,   // 전용장비 전설 4슬롯 조율 탐색
         OptimizeRotation = true,
         RotationBeamWidth = 10,
         RotationMaxDepth = 28,
@@ -172,6 +171,18 @@ foreach (var (day, ids) in DAYS)
         Console.WriteLine("══════════════════════════════════\n");
     }
 
+    // ── [전투로그] 턴별 전체 액션(아군+적) 덤프 — xlsx 실게임 빌드와 대조·챈슬러 재시전/사망 추적용 (인자 "전투로그") ──
+    if (args.Contains("전투로그"))
+    {
+        var blsb = new StringBuilder();
+        blsb.AppendLine($"=== {day} {SUFFIX} 전투로그 (반격 0% 재생, {feasRes.TurnLogs.Count} entries) ===");
+        foreach (var l in feasRes.TurnLogs)
+            blsb.AppendLine($"T{l.Turn,2} [{(l.IsAlly ? "아" : "적")}] {l.ActorName,-6} {l.SkillName,-10} {(l.DamageDealt > 0 ? $"{l.DamageDealt,12:N0}" : "".PadLeft(12))}  {l.Description}");
+        string blPath = System.IO.Path.Combine(repoRoot, $"battlelog_{day}_{SUFFIX}.txt");
+        System.IO.File.WriteAllText(blPath, blsb.ToString(), Encoding.UTF8);
+        Console.WriteLine($"  [전투로그] {blPath}");
+    }
+
     // 반격 기여 = 25% 평균 − 0회 보장. 금요일만 ≠0. 양수=반격이 점수↑(3초 시간경과로 아군 쿨 동반감소),
     //   음수=반격이 점수↓(아군 사망 손실 우세). 0회 보장(ceiling0)은 반격 0회 발동 시의 견고한 바닥.
     double counterDelta = score25 - ceiling0;
@@ -224,7 +235,13 @@ foreach (var (day, ids) in DAYS)
                 slackSec = f.ExecutedAsPlanned && !f.Hold && f.CooldownGated ? Math.Round(f.Slack, 1) : (double?)null,
                 reason = f.ExecutedAsPlanned ? null : f.FallbackReason,
                 cooldownRemainingSec = !f.ExecutedAsPlanned && f.CooldownRemaining > 0 ? Math.Round(f.CooldownRemaining, 1) : (double?)null,
-                buffTargets = f.BuffTargets,   // 아군 버프 수령자(예: 비스킷 장비강화 → [타카,라이언]). 버프 없으면 null
+                buffTargets = f.BuffTargets,       // 아군 버프 수령자(예: 비스킷 장비강화 → [타카,라이언])
+                debuffTargets = f.DebuffTargets,   // 적 디버프 대상(예: 레이첼 불새 → [스파이크,룩,챈슬러])
+                dispelTargets = f.DispelTargets,   // 버프해제된 적(예: 비스킷 리프어택 → [스파이크])
+            }),
+            deaths = feasRes.Deaths.Select(d => new
+            {
+                turn = d.Turn, elapsedSec = Math.Round(d.Elapsed, 0), ally = d.AllyName, cause = d.Cause,
             }),
         },
     };
@@ -233,7 +250,7 @@ foreach (var (day, ids) in DAYS)
 
     // ── TXT ──
     var sb = new StringBuilder();
-    sb.AppendLine($"════════ {day} 공성전 — {TRANS}초월·잠재{POT}·전용없음 / 진형·기어·스킬순서 탐색 ════════");
+    sb.AppendLine($"════════ {day} 공성전 — {TRANS}초월·잠재{POT}·전용전설·펫76 / 진형·기어·전용조율·스킬순서 탐색 ════════");
     sb.AppendLine($"보스: {stage.Name}");
     sb.AppendLine($"팀: {string.Join(", ", nm)}");
     sb.AppendLine($"총점: {res.BestScore:N0}   [자동로테 {res.AutoRotationScore:N0} → 빔 {res.BestScore:N0}]");
@@ -255,10 +272,21 @@ foreach (var (day, ids) in DAYS)
             : f.ExecutedAsPlanned ? (f.CooldownGated ? $"✓ 여유 {f.Slack,5:F1}s" : "✓ 첫시전")
             : $"✗ 폴백({f.FallbackReason})";
         string when = (f.Reached && !f.Hold) ? $"T{f.Turn,2} {f.Elapsed,4:F0}s  " : "            ";
-        // 아군 버프 부여 시 수령자 표기 (예: 비스킷 → 장비 강화 [타카, 라이언])
-        string buffTo = (f.BuffTargets != null && f.BuffTargets.Count > 0) ? $" [{string.Join(", ", f.BuffTargets)}]" : "";
-        string act = f.Hold ? "(홀드)" : $"{f.HeroName} → {f.SkillName}{buffTo}";
-        sb.AppendLine($"  {f.StepIndex + 1,2}. {when}{act,-40} [{status}]");
+        // 적용 대상 표기 (비스킷 버프 로그처럼): 버프[수령아군]·디버프[대상적]·해제[버프해제된적]
+        var anno = new List<string>();
+        if (f.BuffTargets != null && f.BuffTargets.Count > 0) anno.Add($"버프[{string.Join(",", f.BuffTargets)}]");
+        if (f.DebuffTargets != null && f.DebuffTargets.Count > 0) anno.Add($"디버프[{string.Join(",", f.DebuffTargets)}]");
+        if (f.DispelTargets != null && f.DispelTargets.Count > 0) anno.Add($"해제[{string.Join(",", f.DispelTargets)}]");
+        string annoStr = anno.Count > 0 ? " " + string.Join(" ", anno) : "";
+        string act = f.Hold ? "(홀드)" : $"{f.HeroName} → {f.SkillName}{annoStr}";
+        sb.AppendLine($"  {f.StepIndex + 1,2}. {when}{act,-52} [{status}]");
+    }
+    // ── 아군 사망 로그 (실행가능성 0% 기준 재생) ──
+    if (feasRes.Deaths != null && feasRes.Deaths.Count > 0)
+    {
+        sb.AppendLine("\n──── 아군 사망 로그 ────");
+        foreach (var d in feasRes.Deaths)
+            sb.AppendLine($"  T{d.Turn,2} {d.Elapsed,4:F0}s  {d.AllyName} 사망 ← {d.Cause}");
     }
     string txtPath = System.IO.Path.Combine(repoRoot, $"siege_{day}_{SUFFIX}.txt");
     System.IO.File.WriteAllText(txtPath, sb.ToString(), Encoding.UTF8);

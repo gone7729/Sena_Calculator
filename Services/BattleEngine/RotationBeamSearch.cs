@@ -119,7 +119,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             return new Beam
             {
                 Plan = plan,
-                Score = battle.TotalScore,
+                Score = battle.RankScore,   // 랭킹은 RankScore(생존 페널티 반영). 보고 점수는 Battle.TotalScore.
                 Dps = battle.DecisionPoints,
                 Battle = battle,
             };
