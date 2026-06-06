@@ -53,6 +53,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 캐릭터별 강제 메인옵션(실측 비교용). Key=Character.Id, Value=(무기메인, 방어구메인).
         // 지정 시 EquipCandidates는 해당 메인옵만 후보로 사용.
         public Dictionary<int, (string WeaponMain, string ArmorMain)> ForcedMainByCharId { get; set; } = new();
+
+        // 아군 사망 1명당 랭킹 페널티(딜). 보고 점수(TotalScore)는 불변, RankScore에만 반영. 0이면 페널티 없음.
+        //   작게(20만): 막판 희생 같은 최적 공격빌드는 허용(>1등), 다수 조기사망 파괴적 전멸만 차단(안전망).
+        //   큰 값(예 2M)은 0사망을 강요해 최고스펙 점수를 1등 미만으로 깎으므로 지양.
+        public double AllyDeathPenalty { get; set; } = 200_000;
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -619,12 +624,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             PetOptionDefRate = config.PetOptionDefRate,
             PetOptionHpRate = config.PetOptionHpRate,
             MaxTurns = config.MaxTurns,
-            AllyDeathPenalty = AllyDeathPenalty,   // 생존 우선(전멸 빌드 회피) — 보고 점수 불변, RankScore에만 반영
+            AllyDeathPenalty = config.AllyDeathPenalty,   // 생존 우선(전멸 빌드 회피) — 보고 점수 불변, RankScore에만 반영
         };
-
-        // 아군 사망 1명당 랭킹 페널티(딜). 빔/옵티마이저가 생존(버프해제)을 우선하도록. 보고 점수(TotalScore)는 불변.
-        //   전멸 빌드(토요일 챈슬러 미해제)가 banked 초반딜로 우위가 되는 걸 막는다. 사망 없는 날은 무영향.
-        private const double AllyDeathPenalty = 2_000_000;
 
         /// <summary>장착된 장비의 세트·메인옵 값·부옵 값을 사람이 읽기 쉬운 문자열로.</summary>
         private static string FormatGear(BattleCharacter bc)

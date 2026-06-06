@@ -36,6 +36,11 @@ var dayArgs = args.Where(a => DAYS.Any(d => d.Day == a)).ToArray();
 if (dayArgs.Length > 0)
     DAYS = DAYS.Where(d => dayArgs.Contains(d.Day)).ToArray();
 
+// 사망 페널티 오버라이드(튜닝/검증): 인자 "페널티N" (예: 페널티0). 미지정이면 기본 20만(최적 공격빌드 허용·전멸만 차단).
+double deathPenalty = 200_000;
+var penArg = args.FirstOrDefault(a => a.StartsWith("페널티"));
+if (penArg != null && double.TryParse(penArg.Substring("페널티".Length), out var pv)) deathPenalty = pv;
+
 BattleCharacter Hero(int id)
 {
     var c = CharacterDb.Characters.First(x => x.Id == id);
@@ -69,6 +74,7 @@ foreach (var (day, ids) in DAYS)
         MaxTurns = 70,
         AutoEquip = true,
         SearchExclusiveWeapon = true,   // 전용장비 전설 4슬롯 조율 탐색
+        AllyDeathPenalty = deathPenalty,
         OptimizeRotation = true,
         RotationBeamWidth = 10,
         RotationMaxDepth = 28,

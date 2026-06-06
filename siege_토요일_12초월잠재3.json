@@ -1,7 +1,7 @@
 ﻿{
   "day": "토요일",
   "boss": "토요일 공성전 (혹한의 성)",
-  "score": 13662249,
+  "score": 14208557,
   "autoRotationScore": 7847208,
   "formation": "밸런스 진형",
   "backRow": [
@@ -13,7 +13,7 @@
   "roundScore": {
     "1": 25170,
     "2": 31450,
-    "3": 13605629
+    "3": 14151937
   },
   "team": [
     {
@@ -22,8 +22,8 @@
       "role": "공격형",
       "transcend": 12,
       "isBackRow": true,
-      "totalDamage": 5930518,
-      "damageShare": 43.4
+      "totalDamage": 5664993,
+      "damageShare": 39.9
     },
     {
       "id": 1,
@@ -31,8 +31,8 @@
       "role": "공격형",
       "transcend": 12,
       "isBackRow": true,
-      "totalDamage": 5938519,
-      "damageShare": 43.5
+      "totalDamage": 6231623,
+      "damageShare": 43.9
     },
     {
       "id": 301,
@@ -40,8 +40,8 @@
       "role": "만능형",
       "transcend": 12,
       "isBackRow": false,
-      "totalDamage": 758308,
-      "damageShare": 5.6
+      "totalDamage": 1347524,
+      "damageShare": 9.5
     },
     {
       "id": 201,
@@ -49,8 +49,8 @@
       "role": "지원형",
       "transcend": 12,
       "isBackRow": false,
-      "totalDamage": 27084,
-      "damageShare": 0.2
+      "totalDamage": 17161,
+      "damageShare": 0.1
     },
     {
       "id": 51,
@@ -58,8 +58,8 @@
       "role": "공격형",
       "transcend": 12,
       "isBackRow": false,
-      "totalDamage": 1007820,
-      "damageShare": 7.4
+      "totalDamage": 947256,
+      "damageShare": 6.7
     }
   ],
   "gear": [
@@ -77,73 +77,74 @@
     "[타카] 전용조율: 모든공격력×4",
     "[레이첼] 전용조율: 모든공격력×4",
     "[비스킷] 전용조율: 모든공격력×2+피해증폭×2",
-    "[풍연] 전용조율: 탄성×4"
+    "[풍연] 전용조율: 탄성×4",
+    "[풍연] 생존반지 채택: 권능의 반지 (사망→생존, 팀점수 14,088,841→14,208,557)"
   ],
   "skillOrder": [
     {
       "step": 1,
-      "hero": "라이언",
-      "skill": "강자 사냥"
-    },
-    {
-      "step": 2,
-      "hero": "라이언",
-      "skill": "광풍참"
-    },
-    {
-      "step": 3,
-      "hero": "레이첼",
-      "skill": "염화"
-    },
-    {
-      "step": 4,
-      "hero": "타카",
-      "skill": "죽음의 무도"
-    },
-    {
-      "step": 5,
-      "hero": "비스킷",
-      "skill": "장비 강화"
-    },
-    {
-      "step": 6,
       "hero": "풍연",
       "skill": "구음검격"
     },
     {
-      "step": 7,
-      "hero": "라이언",
-      "skill": "강자 사냥"
+      "step": 2,
+      "hero": "레이첼",
+      "skill": "염화"
     },
     {
-      "step": 8,
-      "hero": "라이언",
-      "skill": "광풍참"
-    },
-    {
-      "step": 9,
+      "step": 3,
       "hero": "레이첼",
       "skill": "불새"
     },
     {
-      "step": 10,
+      "step": 4,
       "hero": "비스킷",
       "skill": "리프 어택"
     },
     {
-      "step": 11,
+      "step": 5,
       "hero": "타카",
       "skill": "죽음의 무도"
     },
     {
-      "step": 12,
+      "step": 6,
       "hero": "타카",
       "skill": "바람의 칼날"
     },
     {
-      "step": 13,
+      "step": 7,
+      "hero": "라이언",
+      "skill": "광풍참"
+    },
+    {
+      "step": 8,
       "hero": "비스킷",
       "skill": "장비 강화"
+    },
+    {
+      "step": 9,
+      "hero": "타카",
+      "skill": "죽음의 무도"
+    },
+    {
+      "step": 10,
+      "hero": "라이언",
+      "skill": "강자 사냥"
+    },
+    {
+      "step": 11,
+      "hero": "타카",
+      "skill": "바람의 칼날"
+    },
+    {
+      "step": 12,
+      "hero": "레이첼",
+      "skill": "염화"
+    },
+    {
+      "step": 13,
+      "hero": "풍연",
+      "skill": "이기어검"
     },
     {
       "step": 14,
@@ -167,8 +168,8 @@
     },
     {
       "step": 18,
-      "hero": "풍연",
-      "skill": "이기어검"
+      "hero": "레이첼",
+      "skill": "염화"
     },
     {
       "step": 19,
@@ -185,48 +186,54 @@
     "ok": true,
     "fallbacks": 0,
     "unreached": 0,
-    "minSlackSec": 0,
+    "minSlackSec": 4,
     "scoreReproduced": true,
-    "score25": 13662249,
-    "floor0": 13662249,
+    "score25": 14208557,
+    "floor0": 14208557,
     "counterattackDelta": 0,
     "steps": [
       {
         "step": 1,
         "turn": 0,
         "elapsedSec": 0,
-        "hero": "라이언",
-        "skill": "강자 사냥",
+        "hero": "풍연",
+        "skill": "구음검격",
         "status": "ok",
         "firstUse": true,
         "slackSec": null,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
-        "debuffTargets": null,
+        "debuffTargets": [
+          "챈슬러",
+          "룩"
+        ],
         "dispelTargets": null
       },
       {
         "step": 2,
         "turn": 0,
         "elapsedSec": 4,
-        "hero": "라이언",
-        "skill": "광풍참",
+        "hero": "레이첼",
+        "skill": "염화",
         "status": "ok",
         "firstUse": true,
         "slackSec": null,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
-        "debuffTargets": null,
+        "debuffTargets": [
+          "챈슬러",
+          "룩"
+        ],
         "dispelTargets": null
       },
       {
         "step": 3,
         "turn": 0,
-        "elapsedSec": 9,
+        "elapsedSec": 8,
         "hero": "레이첼",
-        "skill": "염화",
+        "skill": "불새",
         "status": "ok",
         "firstUse": true,
         "slackSec": null,
@@ -244,107 +251,6 @@
         "step": 4,
         "turn": 4,
         "elapsedSec": 25,
-        "hero": "타카",
-        "skill": "죽음의 무도",
-        "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 5,
-        "turn": 8,
-        "elapsedSec": 43,
-        "hero": "비스킷",
-        "skill": "장비 강화",
-        "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": [
-          "타카",
-          "라이언"
-        ],
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 6,
-        "turn": 12,
-        "elapsedSec": 59,
-        "hero": "풍연",
-        "skill": "구음검격",
-        "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": [
-          "룩",
-          "챈슬러",
-          "스파이크"
-        ],
-        "dispelTargets": null
-      },
-      {
-        "step": 7,
-        "turn": 16,
-        "elapsedSec": 75,
-        "hero": "라이언",
-        "skill": "강자 사냥",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 5,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 8,
-        "turn": 20,
-        "elapsedSec": 87,
-        "hero": "라이언",
-        "skill": "광풍참",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 0,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 9,
-        "turn": 24,
-        "elapsedSec": 104,
-        "hero": "레이첼",
-        "skill": "불새",
-        "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": [
-          "룩",
-          "스파이크",
-          "챈슬러"
-        ],
-        "dispelTargets": null
-      },
-      {
-        "step": 10,
-        "turn": 28,
-        "elapsedSec": 121,
         "hero": "비스킷",
         "skill": "리프 어택",
         "status": "ok",
@@ -359,14 +265,14 @@
         ]
       },
       {
-        "step": 11,
-        "turn": 32,
-        "elapsedSec": 139,
+        "step": 5,
+        "turn": 8,
+        "elapsedSec": 43,
         "hero": "타카",
         "skill": "죽음의 무도",
         "status": "ok",
-        "firstUse": false,
-        "slackSec": 57,
+        "firstUse": true,
+        "slackSec": null,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -374,9 +280,9 @@
         "dispelTargets": null
       },
       {
-        "step": 12,
-        "turn": 36,
-        "elapsedSec": 156,
+        "step": 6,
+        "turn": 12,
+        "elapsedSec": 60,
         "hero": "타카",
         "skill": "바람의 칼날",
         "status": "ok",
@@ -389,20 +295,114 @@
         "dispelTargets": null
       },
       {
-        "step": 13,
-        "turn": 40,
-        "elapsedSec": 172,
+        "step": 7,
+        "turn": 16,
+        "elapsedSec": 76,
+        "hero": "라이언",
+        "skill": "광풍참",
+        "status": "ok",
+        "firstUse": true,
+        "slackSec": null,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 8,
+        "turn": 20,
+        "elapsedSec": 89,
         "hero": "비스킷",
         "skill": "장비 강화",
         "status": "ok",
-        "firstUse": false,
-        "slackSec": 5,
+        "firstUse": true,
+        "slackSec": null,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": [
           "타카",
           "라이언"
         ],
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 9,
+        "turn": 24,
+        "elapsedSec": 105,
+        "hero": "타카",
+        "skill": "죽음의 무도",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 5,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 10,
+        "turn": 28,
+        "elapsedSec": 122,
+        "hero": "라이언",
+        "skill": "강자 사냥",
+        "status": "ok",
+        "firstUse": true,
+        "slackSec": null,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 11,
+        "turn": 32,
+        "elapsedSec": 139,
+        "hero": "타카",
+        "skill": "바람의 칼날",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 9,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 12,
+        "turn": 36,
+        "elapsedSec": 155,
+        "hero": "레이첼",
+        "skill": "염화",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 63,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": [
+          "룩",
+          "스파이크",
+          "챈슬러"
+        ],
+        "dispelTargets": null
+      },
+      {
+        "step": 13,
+        "turn": 40,
+        "elapsedSec": 171,
+        "hero": "풍연",
+        "skill": "이기어검",
+        "status": "ok",
+        "firstUse": true,
+        "slackSec": null,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
         "debuffTargets": null,
         "dispelTargets": null
       },
@@ -414,7 +414,7 @@
         "skill": "광풍참",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 5,
+        "slackSec": 25,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -429,7 +429,7 @@
         "skill": "죽음의 무도",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 5,
+        "slackSec": 39,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -444,7 +444,7 @@
         "skill": "강자 사냥",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 73,
+        "slackSec": 26,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -459,7 +459,7 @@
         "skill": "바람의 칼날",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 9,
+        "slackSec": 26,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -470,26 +470,30 @@
         "step": 18,
         "turn": 60,
         "elapsedSec": 251,
-        "hero": "풍연",
-        "skill": "이기어검",
+        "hero": "레이첼",
+        "skill": "염화",
         "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
+        "firstUse": false,
+        "slackSec": 8,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
-        "debuffTargets": null,
+        "debuffTargets": [
+          "룩",
+          "스파이크",
+          "챈슬러"
+        ],
         "dispelTargets": null
       },
       {
         "step": 19,
         "turn": 64,
-        "elapsedSec": 268,
+        "elapsedSec": 267,
         "hero": "타카",
         "skill": "죽음의 무도",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 10,
+        "slackSec": 9,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -499,12 +503,12 @@
       {
         "step": 20,
         "turn": 68,
-        "elapsedSec": 281,
+        "elapsedSec": 280,
         "hero": "라이언",
         "skill": "광풍참",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 5,
+        "slackSec": 4,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -512,6 +516,13 @@
         "dispelTargets": null
       }
     ],
-    "deaths": []
+    "deaths": [
+      {
+        "turn": 30,
+        "elapsedSec": 130,
+        "ally": "비스킷",
+        "cause": "스파이크 혹한의 지진"
+      }
+    ]
   }
 }
