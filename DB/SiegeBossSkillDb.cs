@@ -495,6 +495,10 @@ namespace GameDamageCalculator.Database
                             new() { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment,
                                     StatusType = StatusEffectType.Freeze, Chance = 100, Duration = 3 },
                         },
+                        // R3: 공격력 최고 아군(=스파이크)에게 혹한의 기운(치확100%) + 혹한의 숨결(치피+500%)[5턴].
+                        //   미해제 시 스파이크가 치명타 학살기 → 아군 전멸. 비스킷 리프어택 버프해제가 필수.
+                        GrantHighestAtkAllyBuff = r3Frost ? new BuffSet { Cri = 100, Cri_Dmg = 500 } : null,
+                        GrantHighestAtkAllyBuffTurns = r3Frost ? 5 : 0,
                         Effect = r3Frost
                             ? "공격력 가장 높은 아군에게 혹한의 기운[5턴](스파이크 액티브 치명타 확률 100%) + 혹한의 숨결[5턴](스파이크 액티브 치명타 피해 +500%)"
                             : null,

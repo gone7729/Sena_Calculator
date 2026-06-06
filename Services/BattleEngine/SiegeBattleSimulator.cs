@@ -42,6 +42,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         private bool _recordFeasibility;
         private readonly Dictionary<(int Idx, SkillType Skill), double> _readySince = new();
         private readonly List<BuildStepFeasibility> _feasLog = new();
+        // 직전 아군 스킬 1회 시전이 부여한 아군 버프 수령자 이름(스킬 순서 로그의 [대상] 표기용). ExecuteAllySkill마다 초기화.
+        private readonly List<string> _curCastAllyBuffTargets = new();
 
         // [반격 오버라이드] config.CounterattackChanceOverride. null=보스 정의값(25%), 0=OFF.
         //   빔서치는 0(반격 RNG·시간경과 무의존)으로 로테 산출, 최종 점수·기어·생존반지는 null(ON)로 평가.
@@ -303,6 +305,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                                 RecordFeasStep(state, stIdx, dec, a, sk, true, null, 0, slack, gated);
                             }
                             ExecuteAllySkill(state, dec.HeroIndex, sk);
+                            // 방금 시전이 부여한 아군 버프 수령자를 이 스텝에 기록(스킬 순서 [대상] 표기).
+                            if (_recordFeasibility && _feasLog.Count > 0 && _curCastAllyBuffTargets.Count > 0)
+                                _feasLog[^1].BuffTargets = _curCastAllyBuffTargets.Distinct().ToList();
                             return;
                         }
                         if (_recordFeasibility)
@@ -374,6 +379,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                         state.EnemyImmunityTurns = Math.Max(state.EnemyImmunityTurns, imm);
                         Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
                             $"적 진영 피해 면역[{imm}턴]");
+                    }
+
+                    // 적→아군(같은 진영) 버프: 공격력 최고 적에게 부여 (토요일 챈슬러 분쇄 → 스파이크 치확100·치피+500[5턴]).
+                    //   미해제 시 그 적이 치명타 학살기 → 아군 전멸. 비스킷 리프어택 버프해제로 제거해야 함(필수 기믹).
+                    var allyBuff = skill.GetLevelData(false)?.GrantHighestAtkAllyBuff;
+                    if (allyBuff != null)
+                    {
+                        // 공격력 최고 적 = 스파이크(3181) > 챈슬러(1754) > 룩(1502). 시즈 적은 HP 음수여도 행동(스펀지)이라 HP 필터 X.
+                        var tgt = state.Enemies.OrderByDescending(e => e.FinalAtk).FirstOrDefault() ?? enemy;
+                        tgt.EnemyBuff = allyBuff.Clone();
+                        tgt.EnemyBuffTurns = Math.Max(tgt.EnemyBuffTurns, skill.GetLevelData(false)?.GrantHighestAtkAllyBuffTurns ?? 0);
+                        Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
+                            $"{tgt.Source.Name}에게 버프 [{tgt.EnemyBuffTurns}턴]: {SummarizeBuff(tgt.EnemyBuff)} (버프해제 시 제거)");
                     }
 
                     // 보스 자기 보호막 생성 (예: 루디 방어 준비 = 방어력 100배). 아군 피해를 흡수(점수 미집계)·버프해제로 제거.
@@ -714,8 +732,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             //  - allyDebuffs.Def_Reduction: 적이 ally에 부여한 방깎(불새 방깎36) → ally 방어 감소
             var enemyDebuffs = enemy.Effects.GetTotalDebuffs();
             double effEnemyAtk = enemy.FinalAtk * System.Math.Max(0, 1 - enemyDebuffs.Atk_Reduction / 100.0);
-            bool enemyCrit = forceCrit || e.Stats.Cri >= 100;        // 적 치확(보통 0; 반격은 강제)
-            double critDmg = critDmgOverride >= 0 ? critDmgOverride : e.Stats.Cri_Dmg;
+            // 적 진영 버프(챈슬러 분쇄 → 스파이크 치확100·치피+500). 미해제 시 치명타 학살.
+            double buffCri = enemy.HasEnemyBuff ? enemy.EnemyBuff.Cri : 0;
+            double buffCriDmg = enemy.HasEnemyBuff ? enemy.EnemyBuff.Cri_Dmg : 0;
+            bool enemyCrit = forceCrit || (e.Stats.Cri + buffCri) >= 100;   // 적 치확(보통 0; 반격·버프는 강제)
+            double critDmg = critDmgOverride >= 0 ? critDmgOverride : (e.Stats.Cri_Dmg + buffCriDmg);
             // 탄성(전용무기): 치명타 공격 피격 시 받는 피해 % 감소. 받피감과 동일 채널로 합산.
             double tanseong = enemyCrit ? (ally.DisplayStats?.CritDmg_Taken_Reduction ?? 0) : 0;
             double effDmgRdc = allyDmgRdc + enemyDebuffs.Dmg_Reduction + tanseong;
@@ -1163,7 +1184,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (e.Type != PersistentEffectType.Debuff || e.Debuff == null) continue;
                         if (e.Target != EffectTarget.Enemy && e.Target != EffectTarget.AllEnemies) continue;
                         if (e.ApplyMode == ApplyMode.Triggered) continue;   // 공격 시 발동형(예: 타카 취약 스택)은 상시 아님 → 제외
-                        AddEnemyDebuff(enemy, e.Debuff, 99, $"siege_pasdebuff:{ally.PartyIndex}:{enemy.Position}");
+                        AddEnemyDebuff(enemy, e.Debuff, 99, $"siege_pasdebuff:{ally.PartyIndex}:{enemy.Position}",
+                            EffectCategory.PassiveDebuff);   // 상시 패시브(비스킷 방깎 등) — 턴제와 다른 카테고리(Add)
                     }
                 }
                 // 펫 디버프 (예: 윈디 보스취약)
@@ -1171,7 +1193,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     var pd = config.AllyPet.GetSkillDebuff(config.PetStar, config.PetEnhance);
                     if (pd != null && !string.IsNullOrEmpty(SummarizeDebuff(pd)))
-                        AddEnemyDebuff(enemy, pd, 99, $"siege_petdebuff:{enemy.Position}");
+                        AddEnemyDebuff(enemy, pd, 99, $"siege_petdebuff:{enemy.Position}",
+                            EffectCategory.PetDebuff);   // 펫 디버프 — 별개 카테고리(항상 Add)
                 }
             }
             // 로그 (라운드당 1회): 적1 기준 디버프 요약
@@ -1253,6 +1276,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             enemy.Effects.TickTurn();
             // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
             if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
+            // 적 진영 버프(챈슬러 분쇄 → 스파이크 치확/치피) 지속턴 경과. 챈슬러가 재시전하면 갱신됨.
+            if (enemy.EnemyBuffTurns > 0 && --enemy.EnemyBuffTurns <= 0) enemy.EnemyBuff = null;
 
             // DoT 데미지 + 잔여 턴 감소 (적 진영 피해 면역 / 보스 무효화 중엔 무효).
             //   델론즈 무효화는 DoT도 막지만 횟수는 차감하지 않음(직격만 차감) → 여기선 무효 처리만.
@@ -1395,6 +1420,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void ExecuteAllySkill(SiegeBattleState state, int allyIdx, Skill skill)
         {
             var ally = state.AllyStates[allyIdx];
+            _curCastAllyBuffTargets.Clear();   // 이 시전이 부여한 아군 버프 수령자 누적(스킬 순서 [대상] 표기용)
             int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
             var targets = PickTargets(state, tc);
             if (targets.Count == 0) return;
@@ -1507,6 +1533,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var s = SummarizeBuff(b);
                 if (string.IsNullOrEmpty(s)) return;
                 var targets = ResolveAllyBuffTargets(state, ally, target, selector, tgtCount);
+                _curCastAllyBuffTargets.AddRange(targets.Select(t => t.Source.Character.Name));   // 스킬 순서 [대상] 표기용
                 int d = dur > 0 ? dur : 99;
                 foreach (var t in targets)
                 {
@@ -1560,7 +1587,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                     $"적 피해면역 {before}→{state.EnemyImmunityTurns}턴 (턴감소 {turns})");
             }
 
-            // 적 보호막(루디 등) 버프해제로 제거 → 이후 피해가 점수로 집계.
+            // 적 버프해제: ①보호막(루디 등) 제거 → 이후 피해 점수 집계, ②적 진영 버프(챈슬러→스파이크 치확/치피) 제거.
+            //   보호막은 피격 적(hitEnemies)에서, 적 진영 버프는 버프 보유 적 전체에서 제거(MostBuffsEnemy 근사 — 보통 1명=스파이크).
+            //   토요일 필수 기믹: 챈슬러 버프를 매번 해제해야 스파이크 치명타 학살을 막아 아군 생존·점수 유지.
             void DispelEnemyShield()
             {
                 foreach (var en in hitEnemies.Where(x => x.Shield > 0))
@@ -1568,6 +1597,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
                         $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
                     en.Shield = 0; en.ShieldTurns = 0;
+                }
+                foreach (var en in state.Enemies.Where(x => x.HasEnemyBuff))
+                {
+                    Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                        $"{en.Source.Name} 적 버프 해제 ({SummarizeBuff(en.EnemyBuff)})");
+                    en.EnemyBuff = null; en.EnemyBuffTurns = 0;
                 }
             }
 
@@ -1753,7 +1788,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ally.CurrentStacks[skey] = newStacks;
 
                     var scaled = ScaleDebuff(perStack, newStacks);
-                    AddEnemyDebuff(en, scaled, 99, skey);   // 같은 key 갱신(스택 증가분 반영)
+                    // 타카 EagleClaw 등 스택형 취약은 스택 시 상시 적용 → PassiveDebuff(턴제 레이첼 취약과 다른 카테고리=Add).
+                    AddEnemyDebuff(en, scaled, 99, skey, EffectCategory.PassiveDebuff);   // 같은 key 갱신(스택 증가분 반영)
                     Log(state, ally.Source.Character.Name, true, ActionType.DebuffApplied,
                         StatusEffectDb.Get(effect.StatusType)?.Name ?? effect.StatusType.ToString(), 0,
                         $"{en.Source.Name} {effect.StatusType} {newStacks}스택: {SummarizeDebuff(scaled)}");
@@ -1769,15 +1805,19 @@ namespace GameDamageCalculator.Services.BattleEngine
             return r;
         }
 
-        /// <summary>적 1명에 디버프 누적(중복 방지: 같은 Id 갱신).</summary>
-        private void AddEnemyDebuff(SiegeEnemyState enemy, DebuffSet d, int dur, string id)
+        /// <summary>적 1명에 디버프 누적(중복 방지: 같은 Id 갱신).
+        /// category로 상시(PassiveDebuff)/턴제(ActiveDebuff)/펫(PetDebuff)을 구분 — GetTotalDebuffs가 카테고리 내 MaxMerge,
+        /// 카테고리 간 Add. 같은 종류·같은 타입은 최댓값만(풍연 방깎24[턴제]+레이첼 방깎36[턴제]=36), 타입 다르면 합산
+        /// (비스킷 방깎24[상시]+레이첼 방깎36[턴제]=60, 타카 취약[상시]+레이첼 취약[턴제]=합산).</summary>
+        private void AddEnemyDebuff(SiegeEnemyState enemy, DebuffSet d, int dur, string id,
+            EffectCategory category = EffectCategory.ActiveDebuff)
         {
             enemy.Effects.RemoveBySource(id);
             enemy.Effects.AddEffect(new BattleEffect
             {
                 Id = id,
                 SourceName = id,
-                Category = EffectCategory.ActiveDebuff,
+                Category = category,
                 Target = EffectTarget.Enemy,
                 MergeStrategy = MergeStrategy.MaxMerge,
                 IsPermanent = dur >= 99,

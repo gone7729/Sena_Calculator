@@ -141,6 +141,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   기본공격 1회당 1 차감(per-action 모델 — 적 기본공격만 실명을 소모·영향받음).
         public int BlindTurnsRemaining { get; set; }
 
+        // 적 진영 버프 (예: 토요일 챈슬러 분쇄 → 스파이크 혹한의 기운/숨결: 치확100·치피+500[5턴]).
+        //   이 적이 아군을 공격할 때 치확/치피 등에 가산. EnemyBuffTurns>0 동안 유효. 비스킷 리프어택 등 버프해제로 즉시 제거.
+        //   미해제 시 치명타 학살 → 아군 전멸 유도(필수 버프해제 기믹). 이 적이 행동(기본공격)할 때마다 1턴 차감.
+        public BuffSet EnemyBuff { get; set; }
+        public int EnemyBuffTurns { get; set; }
+        public bool HasEnemyBuff => EnemyBuff != null && EnemyBuffTurns > 0;
+
         // 스탯 (공성전 적은 장비/버프 없이 Enemy.Stats 그대로)
         public double FinalAtk { get; set; }
         public double FinalDef { get; set; }

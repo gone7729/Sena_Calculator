@@ -151,9 +151,12 @@ namespace GameDamageCalculator.Services
         }
 
         /// <summary>
-        /// 지정한 카테고리들의 디버프를 합산. **디버프는 버프와 달리 서로 다른 출처가 합산된다**
-        /// (예: 비스킷 방깎20 + 레이첼 불새 방깎36 = 56). DmgCheck로 검증된 실측 동작.
-        /// 같은 출처 재적용은 AddEnemyDebuff의 RemoveBySource로 1회만 유지되므로 중복 합산 없음.
+        /// 지정한 카테고리들의 디버프를 한 묶음으로 보고 통합 MaxMerge(버프와 동일 규칙).
+        /// 게임 룰: 같은 종류·같은 타입(상시/턴제)의 디버프는 **가장 높은 값만 적용**.
+        ///   예) 풍연 방깎24[턴제] + 레이첼 방깎36[턴제] = 36 (합산 60 아님).
+        /// 카테고리 간(상시 vs 턴제)은 GetTotalDebuffs에서 Add — 비스킷 방깎20[상시] + 레이첼 방깎36[턴제] = 56은 그대로.
+        ///   (타카 EagleClaw 취약은 PassiveDebuff=상시라 레이첼 턴제와 다른 카테고리 → Add 유지.)
+        /// 같은 출처 재적용은 AddEnemyDebuff의 RemoveBySource로 1회만 유지.
         /// </summary>
         private DebuffSet AggregateDebuffsByCategories(params EffectCategory[] categories)
         {
@@ -163,7 +166,7 @@ namespace GameDamageCalculator.Services
                 foreach (var effect in _effects.Where(e =>
                     e.Category == category && e.IsStatDebuff && !e.IsExpired))
                 {
-                    total.Add(effect.DebuffValues);
+                    total.MaxMerge(effect.DebuffValues);
                 }
             }
             return total;

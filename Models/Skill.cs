@@ -416,6 +416,12 @@ namespace GameDamageCalculator.Models
         public double SelfShieldDefRatio { get; set; }
         public int SelfShieldTurns { get; set; }
 
+        // 공성전: 적 시전 시 "공격력 최고 아군(=같은 적 진영 최고공격 적, 보통 보스)"에게 부여하는 버프.
+        //   예) 토요일 챈슬러 분쇄 → 스파이크 혹한의 기운/숨결(치확100·치피+500)[5턴]. 비스킷 리프어택 등 버프해제로 제거.
+        //   미해제 시 그 적이 치명타 학살기가 됨(아군 전멸 유도) → 필수 버프해제 기믹. null이면 없음.
+        public BuffSet GrantHighestAtkAllyBuff { get; set; }
+        public int GrantHighestAtkAllyBuffTurns { get; set; }
+
         // 처치 시 같은 스킬 1회 재시전 (모든 효과 재적용, 연쇄 없음)
         public OnKillRecast OnKillRecast { get; set; }
     }

@@ -1,19 +1,20 @@
 ﻿{
   "day": "금요일",
   "boss": "금요일 공성전 (고대용의 성)",
-  "score": 13404466,
-  "autoRotationScore": 7169565,
-  "formation": "밸런스 진형",
+  "score": 13343700,
+  "autoRotationScore": 9854811,
+  "formation": "기본 진형",
   "backRow": [
-    "라이언",
-    "타카"
+    "타카",
+    "레이첼",
+    "지크"
   ],
   "roundsCleared": 2,
   "totalTurns": 70,
   "roundScore": {
     "1": 25170,
     "2": 31450,
-    "3": 13347846
+    "3": 13287080
   },
   "team": [
     {
@@ -21,9 +22,9 @@
       "name": "라이언",
       "role": "공격형",
       "transcend": 12,
-      "isBackRow": true,
-      "totalDamage": 5716013,
-      "damageShare": 42.6
+      "isBackRow": false,
+      "totalDamage": 5710873,
+      "damageShare": 42.8
     },
     {
       "id": 1,
@@ -31,17 +32,17 @@
       "role": "공격형",
       "transcend": 12,
       "isBackRow": true,
-      "totalDamage": 6076458,
-      "damageShare": 45.3
+      "totalDamage": 5978254,
+      "damageShare": 44.8
     },
     {
       "id": 301,
       "name": "레이첼",
       "role": "만능형",
       "transcend": 12,
-      "isBackRow": false,
-      "totalDamage": 1367556,
-      "damageShare": 10.2
+      "isBackRow": true,
+      "totalDamage": 1411119,
+      "damageShare": 10.6
     },
     {
       "id": 201,
@@ -49,7 +50,7 @@
       "role": "지원형",
       "transcend": 12,
       "isBackRow": false,
-      "totalDamage": 24168,
+      "totalDamage": 26199,
       "damageShare": 0.2
     },
     {
@@ -57,22 +58,22 @@
       "name": "지크",
       "role": "만능형",
       "transcend": 12,
-      "isBackRow": false,
-      "totalDamage": 220272,
+      "isBackRow": true,
+      "totalDamage": 217255,
       "damageShare": 1.6
     }
   ],
   "gear": [
-    "[라이언] 세트 선택(풀시뮬): 복수자  ← 복수자=9,836,106 / 암살자=9,472,561 / 추적자=9,023,263 / 선봉장=9,266,390",
-    "[라이언] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 방어력% / 부 생명력%",
-    "[타카] 세트 선택(풀시뮬): 복수자  ← 복수자=10,085,473 / 암살자=9,755,000 / 추적자=9,593,776 / 선봉장=9,582,264",
-    "[타카] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 24, 치명타피해% 6, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 4, 치명타피해% 36, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
-    "[레이첼] 세트 선택(풀시뮬): 복수자  ← 복수자=10,085,473 / 암살자=9,865,956 / 추적자=9,922,188 / 선봉장=9,649,623",
-    "[레이첼] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 24, 치명타피해% 6, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
-    "[비스킷] 세트 선택(풀시뮬): 복수자  ← 복수자=10,085,473 / 수문장=10,071,903",
-    "[비스킷] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 24, 치명타피해% 6, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  장신구: 5성 메인 보피증%",
-    "[지크] 세트 선택(풀시뮬): 복수자  ← 복수자=10,339,942 / 암살자=10,207,541 / 추적자=10,173,047 / 선봉장=10,156,412",
-    "[지크] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%"
+    "[라이언] 세트 선택(풀시뮬): 복수자  ← 복수자=9,089,622 / 암살자=8,754,793 / 추적자=8,094,777 / 선봉장=8,560,006",
+    "[라이언] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 방어력% / 부 보피증%",
+    "[타카] 세트 선택(풀시뮬): 복수자  ← 복수자=9,567,397 / 암살자=9,168,203 / 추적자=8,895,816 / 선봉장=8,901,988",
+    "[타카] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 24, 치명타피해% 6, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 36, 치명타확률% 4, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
+    "[레이첼] 세트 선택(풀시뮬): 복수자  ← 복수자=9,567,397 / 암살자=9,357,596 / 추적자=9,355,992 / 선봉장=9,067,239",
+    "[레이첼] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50, 약점공격확률% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50, 약점공격확률% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 24, 치명타피해% 6, 공격력 50, 약점공격확률% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 공격력 50, 약점공격확률% 5\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
+    "[비스킷] 세트 선택(풀시뮬): 복수자  ← 복수자=9,567,397 / 수문장=9,553,827",
+    "[비스킷] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 24, 치명타피해% 6, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
+    "[지크] 세트 선택(풀시뮬): 복수자  ← 복수자=9,567,397 / 암살자=9,434,995 / 추적자=9,400,502 / 선봉장=9,383,866",
+    "[지크] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 20, 치명타피해% 12, 약점공격확률% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력 50\n  장신구: 6성 메인 방어력% / 부 보피증%"
   ],
   "skillOrder": [
     {
@@ -182,9 +183,9 @@
     "unreached": 0,
     "minSlackSec": 0,
     "scoreReproduced": true,
-    "score25": 13404466,
-    "floor0": 18024950,
-    "counterattackDelta": -4620484,
+    "score25": 13343700,
+    "floor0": 17917570,
+    "counterattackDelta": -4573871,
     "steps": [
       {
         "step": 1,
@@ -196,7 +197,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 2,
@@ -208,7 +210,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 3,
@@ -220,7 +223,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 4,
@@ -232,7 +236,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 5,
@@ -244,7 +249,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 6,
@@ -256,7 +262,11 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": [
+          "라이언",
+          "타카"
+        ]
       },
       {
         "step": 7,
@@ -268,7 +278,8 @@
         "firstUse": false,
         "slackSec": 5,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 8,
@@ -280,7 +291,8 @@
         "firstUse": false,
         "slackSec": 9,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 9,
@@ -292,7 +304,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 10,
@@ -304,7 +317,8 @@
         "firstUse": false,
         "slackSec": 9,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 11,
@@ -316,7 +330,8 @@
         "firstUse": false,
         "slackSec": 41,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 12,
@@ -328,7 +343,8 @@
         "firstUse": false,
         "slackSec": 7,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 13,
@@ -340,7 +356,8 @@
         "firstUse": true,
         "slackSec": null,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 14,
@@ -352,7 +369,8 @@
         "firstUse": false,
         "slackSec": 45,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 15,
@@ -364,7 +382,8 @@
         "firstUse": false,
         "slackSec": 10,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 16,
@@ -376,7 +395,11 @@
         "firstUse": false,
         "slackSec": 36,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": [
+          "라이언",
+          "타카"
+        ]
       },
       {
         "step": 17,
@@ -388,7 +411,8 @@
         "firstUse": false,
         "slackSec": 23,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 18,
@@ -400,7 +424,8 @@
         "firstUse": false,
         "slackSec": 60,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 19,
@@ -412,7 +437,8 @@
         "firstUse": false,
         "slackSec": 9,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       },
       {
         "step": 20,
@@ -424,7 +450,8 @@
         "firstUse": false,
         "slackSec": 0,
         "reason": null,
-        "cooldownRemainingSec": null
+        "cooldownRemainingSec": null,
+        "buffTargets": null
       }
     ]
   }

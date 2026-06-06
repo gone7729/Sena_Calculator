@@ -224,6 +224,7 @@ foreach (var (day, ids) in DAYS)
                 slackSec = f.ExecutedAsPlanned && !f.Hold && f.CooldownGated ? Math.Round(f.Slack, 1) : (double?)null,
                 reason = f.ExecutedAsPlanned ? null : f.FallbackReason,
                 cooldownRemainingSec = !f.ExecutedAsPlanned && f.CooldownRemaining > 0 ? Math.Round(f.CooldownRemaining, 1) : (double?)null,
+                buffTargets = f.BuffTargets,   // 아군 버프 수령자(예: 비스킷 장비강화 → [타카,라이언]). 버프 없으면 null
             }),
         },
     };
@@ -254,8 +255,10 @@ foreach (var (day, ids) in DAYS)
             : f.ExecutedAsPlanned ? (f.CooldownGated ? $"✓ 여유 {f.Slack,5:F1}s" : "✓ 첫시전")
             : $"✗ 폴백({f.FallbackReason})";
         string when = (f.Reached && !f.Hold) ? $"T{f.Turn,2} {f.Elapsed,4:F0}s  " : "            ";
-        string act = f.Hold ? "(홀드)" : $"{f.HeroName} → {f.SkillName}";
-        sb.AppendLine($"  {f.StepIndex + 1,2}. {when}{act,-28} [{status}]");
+        // 아군 버프 부여 시 수령자 표기 (예: 비스킷 → 장비 강화 [타카, 라이언])
+        string buffTo = (f.BuffTargets != null && f.BuffTargets.Count > 0) ? $" [{string.Join(", ", f.BuffTargets)}]" : "";
+        string act = f.Hold ? "(홀드)" : $"{f.HeroName} → {f.SkillName}{buffTo}";
+        sb.AppendLine($"  {f.StepIndex + 1,2}. {when}{act,-40} [{status}]");
     }
     string txtPath = System.IO.Path.Combine(repoRoot, $"siege_{day}_{SUFFIX}.txt");
     System.IO.File.WriteAllText(txtPath, sb.ToString(), Encoding.UTF8);

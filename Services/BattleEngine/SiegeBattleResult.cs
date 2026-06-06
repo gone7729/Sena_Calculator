@@ -50,6 +50,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double CooldownRemaining { get; set; }// 폴백이 쿨 때문이면 잔여 쿨(초) = 위반 크기
         public double Slack { get; set; }           // 시전 시 쿨 여유(초) = 시전시각 − 준비완료시각 (재시전만 의미; 클수록 견고)
         public bool CooldownGated { get; set; }     // true=재시전(쿨 제약 받음, Slack 유효). false=첫 시전(쿨 무관 — 견고성 지표 제외)
+        public List<string> BuffTargets { get; set; }   // 이 시전이 부여한 아군 버프 수령자(예: 비스킷 장비강화 → [타카,라이언]). 버프 없으면 null
     }
 
     /// <summary>공성전 캐릭터별 데미지 기여.</summary>
