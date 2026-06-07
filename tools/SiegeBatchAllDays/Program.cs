@@ -140,21 +140,24 @@ foreach (var (day, ids) in DAYS)
         //   / 비스킷: S1=장비강화(버프) / 미호: S1·S2(R1·R2) / 샤오: S1·S2(쿨벌이 필러). 9번 이후 유지 사이클.
         var alignedByName = new (string Name, SkillType Skill)[]
         {
-            ("미호", SkillType.Skill1), ("미호", SkillType.Skill2),       // 1-2 (R1·R2)
+            ("미호", SkillType.Skill2), ("미호", SkillType.Skill1),       // 1-2 (R1·R2)
             ("비스킷", SkillType.Skill1),                                  // 3 장비강화 버프
-            ("소교", SkillType.Skill2),                                    // 4 호접지몽 셋업(공증·치피3턴·마취5턴)
-            ("샤오", SkillType.Skill1),                                    // 5
+            ("샤오", SkillType.Skill1),                                    // 4 정기흡공(보호막)
+            ("소교", SkillType.Skill2),                                    // 5 호접지몽 셋업(공증·치피3턴·마취5턴)
             ("파스칼", SkillType.Skill2),                                  // 6 파괴의거인 #1
             ("파스칼", SkillType.Skill1),                                  // 7 어둠의문(쿨초기화)
             ("파스칼", SkillType.Skill2),                                  // 8 파괴의거인 #2
             ("소교", SkillType.Skill1),                                    // 9 우후죽순
-            ("파스칼", SkillType.Skill1),                                  // 10 어둠의문 (안돌면 폴백)
-            // ── 유지 사이클: 소교 호접지몽 재셋업 + 파스칼 어둠의문→파괴의거인 + 샤오 S2/소교 S1 필러 ──
-            ("파스칼", SkillType.Skill2), ("소교", SkillType.Skill1), ("샤오", SkillType.Skill2),
-            ("소교", SkillType.Skill2), ("비스킷", SkillType.Skill1),
-            ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2), ("소교", SkillType.Skill1),
-            ("샤오", SkillType.Skill2), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
-            ("소교", SkillType.Skill2), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
+            ("파스칼", SkillType.Skill1),                                  // 10 어둠의문
+            ("파스칼", SkillType.Skill2),                                  // 11 파괴의거인 #3
+            ("비스킷", SkillType.Skill1),                                  // 12 장비강화 재셋업
+            ("샤오", SkillType.Skill1),                                    // 13 정기흡공(보호막)
+            ("소교", SkillType.Skill2),                                    // 14 호접지몽 재셋업
+            ("파스칼", SkillType.Skill2),                                  // 15 파괴의거인
+            ("파스칼", SkillType.Skill1),                                  // 16 어둠의문
+            ("파스칼", SkillType.Skill2),                                  // 17 파괴의거인
+            ("소교", SkillType.Skill1),                                    // 18 우후죽순
+            ("샤오", SkillType.Skill1),                                    // 19 샤오/미호 중 택 (보호막 우선)
         };
         var alignedPlan = alignedByName
             .Select(s => new RotationDecision { HeroIndex = nm.FindIndex(n => n == s.Name), Skill = s.Skill })

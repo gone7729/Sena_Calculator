@@ -477,7 +477,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (normal != null)
                     {
                         int tc = System.Math.Max(1, normal.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
-                        var targets = PickTargets(state, tc);
+                        var targets = PickTargets(state, tc, ally);
                         foreach (var target in targets)
                         {
                             double dmg = CalcDamageToEnemy(ally, target, normal, state);
@@ -624,9 +624,22 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 타겟 선정: 약점공격(시뮬은 결정론적으로 항상 발동) = 생명력 최저 적, 동률이면 앞열(Position 낮은 순).
         /// 라운드3에서는 약점공격 대상이 항상 보스(3보스 중 최저 HP).
         /// </summary>
-        /// <summary>스킬 타겟 수만큼 적 선정 (최저 HP 우선·동률 앞열). 광역기는 여러 적을 친다. R3는 보스만.</summary>
-        private List<SiegeEnemyState> PickTargets(SiegeBattleState state, int count)
+        /// <summary>스킬 타겟 수만큼 적 선정 (최저 HP 우선·동률 앞열). 광역기는 여러 적을 친다. R3는 보스만.
+        /// R3 약점공격 집중(일요일 핵심 기믹): 공격자 약점확률 100%↑이면 단일 타격을 전열 보스(자리2=크리스)로 집중 →
+        /// 룩/챈슬러(쿨감 패시브 보유 친위대)를 안 때려 보스 쿨타임 감소를 차단. 100% 미만이면 기존 최저HP(룩/챈슬러로 분산).</summary>
+        private List<SiegeEnemyState> PickTargets(SiegeBattleState state, int count, CharacterBattleState attacker = null)
         {
+            if (state.CurrentRound >= 3 && attacker != null && count <= 1)
+            {
+                double effWek = (attacker.DisplayStats?.Wek ?? 0) + attacker.Effects.GetTotalBuffs().Wek;
+                if (effWek >= 100)
+                {
+                    // 전열 보스 = 요일 보스(룩/챈슬러 아님), 없으면 자리 2번.
+                    var boss = state.Enemies.FirstOrDefault(e => e.IsBoss && e.Source.Name != "룩" && e.Source.Name != "챈슬러")
+                            ?? state.Enemies.FirstOrDefault(e => e.Position == 2);
+                    if (boss != null) return new List<SiegeEnemyState> { boss };
+                }
+            }
             IEnumerable<SiegeEnemyState> candidates = state.CurrentRound >= 3
                 ? state.Enemies.Where(e => e.IsBoss)
                 : state.Enemies;
@@ -1589,7 +1602,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             _curCastDebuffTargets.Clear();     // 디버프 대상(적) 누적
             _curCastDispelTargets.Clear();     // 버프해제 대상(적) 누적
             int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
-            var targets = PickTargets(state, tc);
+            var targets = PickTargets(state, tc, ally);
             if (targets.Count == 0) return;
             // 툴팁 순서: 적 대상 효과(디버프·턴감소·버프해제)를 피해 前에 적용 → 같은 스킬 피해가 증폭/면역관통/보호막관통.
             ApplySkillEffects(state, ally, skill, targets, preDamage: true);
