@@ -3532,6 +3532,7 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 0,
                                 AtkCount = 1,
                                 Cooldown = 60,
+                                ResetsCooldownOf = SkillType.Skill2,   // 파괴의 거인 쿨타임 초기화
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 1, Type = DamageNullType.All } }
@@ -3542,6 +3543,7 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 0,
                                 AtkCount = 1,
                                 Cooldown = 60,
+                                ResetsCooldownOf = SkillType.Skill2,   // 파괴의 거인 쿨타임 초기화
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 2, Type = DamageNullType.All } }
@@ -12813,7 +12815,9 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.InstantDeath }, Duration = 2 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.InstantDeath }, Duration = 2 } },
+                                // 자신 생명력 50% 이하 시 시전자 물리 공격력 40% 생명력 회복 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, TriggeredHealAtkRatio = 40 }
                             },
                             Effect = "[상시] 모든 아군 즉사 면역[2턴], 자신 기본 공격 1회 시 즉사 면역[2턴]. 자신 생명력 50% 이하 시 시전자 물리 공격력 40% 생명력 회복(전투당 1회)"
                         }},
@@ -12821,6 +12825,8 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.InstantDeath }, Duration = 2 } },
+                                // 강화: 자신 생명력 50% 이하 시 시전자 물리 공격력 45% 생명력 회복 (전투당 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, TriggeredHealAtkRatio = 45 },
                                 // 6초월: 모든 아군 1인 공격기 피해량 증가 23% [상시]
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 23 } }
                             },

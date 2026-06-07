@@ -8,7 +8,7 @@ using GameDamageCalculator.Models;
 using GameDamageCalculator.Services.BattleEngine;
 
 // ============================================================================
-// 월~토(일 제외) 요일별 팀 고정 + 진형·기어·스킬순서 탐색 → JSON + TXT 저장.
+// 월~일 요일별 팀 고정 + 진형·기어·스킬순서 탐색 → JSON + TXT 저장.
 //   기본 6초월·잠재0/0/0, 인자 "12초월잠재3" 지정 시 12초월·잠재3/3/3. 스킬강화 / 펫 윈디 6성 강화+3·
 //   펫잠재 모공%72(18×4) / 전용무기 없음은 공통. 출력 파일은 프로필 접미사로 분리(siege_{요일}_{프로필}).
 //   탐색: 진형 3종(기본/밸런스/보호)×자리 + AutoEquip(세트/메인/부옵/장신구) + 빔 로테이션.
@@ -23,6 +23,7 @@ var DAYS = new (string Day, int[] Ids)[]
     ("목요일", new[] { 2,   1,   301, 201, 15  }),   // 라이언·타카·레이첼·비스킷·돼오
     ("금요일", new[] { 2,   1,   301, 201, 303 }),   // 라이언·타카·레이첼·비스킷·지크
     ("토요일", new[] { 2,   1,   301, 201, 51  }),   // 라이언·타카·레이첼·비스킷·풍연
+    ("일요일", new[] { 101, 117, 201, 57,  103 }),   // 파스칼·소교·비스킷·샤오(즉사면역)·미호
 };
 
 // 고정 프로필: 12초월·잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
@@ -130,6 +131,60 @@ foreach (var (day, ids) in DAYS)
     });
     bool feasScoreMatch = Math.Abs(onReplay.TotalScore - res.BestScore) < 1.0;
     bool feasOk = feasFallbacks == 0 && feasUnreached == 0;
+
+    // ── [정렬로테] 유저 지정 전문가 로테(이름·스킬)를 같은 기어/진형으로 평가 → 빔과 비교 (인자 "정렬로테") ──
+    //   목적: 빔이 정렬을 못 짠 건지(고정 로테>빔) 빔이 이미 최적인지(≤빔) 가르기. 일요일 파스칼 버스트 정렬 검증.
+    if (args.Contains("정렬로테"))
+    {
+        // 유저 로테(이름, 스킬). 파스칼: S1=어둠의문(쿨초기화), S2=파괴의거인(핵) / 소교: S2=호접지몽(셋업), S1=우후죽순
+        //   / 비스킷: S1=장비강화(버프) / 미호: S1·S2(R1·R2) / 샤오: S1·S2(쿨벌이 필러). 9번 이후 유지 사이클.
+        var alignedByName = new (string Name, SkillType Skill)[]
+        {
+            ("미호", SkillType.Skill1), ("미호", SkillType.Skill2),       // 1-2 (R1·R2)
+            ("비스킷", SkillType.Skill1),                                  // 3 장비강화 버프
+            ("소교", SkillType.Skill2),                                    // 4 호접지몽 셋업(공증·치피3턴·마취5턴)
+            ("샤오", SkillType.Skill1),                                    // 5
+            ("파스칼", SkillType.Skill2),                                  // 6 파괴의거인 #1
+            ("파스칼", SkillType.Skill1),                                  // 7 어둠의문(쿨초기화)
+            ("파스칼", SkillType.Skill2),                                  // 8 파괴의거인 #2
+            ("소교", SkillType.Skill1),                                    // 9 우후죽순
+            ("파스칼", SkillType.Skill1),                                  // 10 어둠의문 (안돌면 폴백)
+            // ── 유지 사이클: 소교 호접지몽 재셋업 + 파스칼 어둠의문→파괴의거인 + 샤오 S2/소교 S1 필러 ──
+            ("파스칼", SkillType.Skill2), ("소교", SkillType.Skill1), ("샤오", SkillType.Skill2),
+            ("소교", SkillType.Skill2), ("비스킷", SkillType.Skill1),
+            ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2), ("소교", SkillType.Skill1),
+            ("샤오", SkillType.Skill2), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
+            ("소교", SkillType.Skill2), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
+        };
+        var alignedPlan = alignedByName
+            .Select(s => new RotationDecision { HeroIndex = nm.FindIndex(n => n == s.Name), Skill = s.Skill })
+            .Where(d => d.HeroIndex >= 0).ToList();
+        var aRes = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
+        {
+            AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
+            AllyPet = cfg.AllyPet, PetStar = cfg.PetStar, PetEnhance = cfg.PetEnhance,
+            PetOptionAtkRate = cfg.PetOptionAtkRate, PetOptionDefRate = cfg.PetOptionDefRate,
+            PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
+            RotationPlan = alignedPlan, RecordFeasibility = true, AllyDeathPenalty = deathPenalty,
+        });
+        var af = aRes.Feasibility;
+        int aFallback = af.Count(f => !f.ExecutedAsPlanned && !f.Hold && f.Reached);
+        Console.WriteLine($"\n══════ [정렬로테] {day} ══════");
+        Console.WriteLine($"  빔 점수        : {res.BestScore,14:N0}");
+        Console.WriteLine($"  정렬로테 점수  : {aRes.TotalScore,14:N0}  ({aRes.TotalScore/res.BestScore*100:F1}% of 빔)  폴백 {aFallback}개");
+        Console.WriteLine($"  라운드별: {string.Join(", ", aRes.RoundScore.OrderBy(k=>k.Key).Select(k=>$"R{k.Key}={k.Value:N0}"))}");
+        foreach (var c in aRes.CharacterResults.OrderByDescending(c => c.TotalDamage))
+            Console.WriteLine($"    {c.CharacterName,-6}: {c.TotalDamage,12:N0}");
+        Console.WriteLine("  ── 실행 로그(폴백 표기) ──");
+        for (int i = 0; i < af.Count; i++)
+        {
+            var f = af[i];
+            string who = f.Hold ? "(홀드)" : $"{f.HeroName} {f.SkillName}";
+            string st = !f.Reached ? "미도달" : f.ExecutedAsPlanned ? "✓" : $"폴백({f.FallbackReason})";
+            Console.WriteLine($"    {i+1,2}. {who,-22} {st}");
+        }
+        Console.WriteLine("══════════════════════════════════\n");
+    }
 
     // ── [딜 진단] 라이언/타카 raw atk·DamageWeight·버프 수령자·딜기 가동 (콘솔 전용, 파일 불변) ──
     //   인게임 라이언쿨감·비스킷은 "공격력 최고 아군"(raw atk)에게, 시뮬은 DamageWeight 최고에게 → 둘이 어긋나는지 실측.

@@ -56,6 +56,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         private double? _counterChanceOverride;
         // [사망 페널티] config.AllyDeathPenalty. RankScore(랭킹용)=TotalScore − 페널티×사망수. 보고 점수는 불변.
         private double _allyDeathPenalty;
+        // [광폭화] 전 보스 공통: 누적 턴(게임 70턴 시즈 카운터=state.CurrentTurn)에 따라 적이 주는 피해 증폭.
+        //   30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500% (SiegeBossSkillDb 원문).
+        //   CalcDamageToAlly(적→아군)에만 곱연산. 아군→적(점수)엔 무관. _activeState로 현재 턴 참조.
+        private SiegeBattleState _activeState;
+        private int _lastEnrageTier = -1;   // 광폭화 단계 변화 로그용
         private bool IsDiagSkill(string name)
             => (DiagSkillName != null && name == DiagSkillName)
             || (DiagSkillNames != null && DiagSkillNames.Contains(name));
@@ -69,6 +74,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             _counterChanceOverride = config.CounterattackChanceOverride;   // 반격 확률 오버라이드(빔=0, 최종=null)
             _allyDeathPenalty = config.AllyDeathPenalty;   // 사망 페널티(RankScore용)
             var state = Initialize(config);
+            _activeState = state;   // 광폭화 턴 참조용
             if (computeWeights)
             {
                 // 2-패스 버프 타게팅: 스카우팅 sim(raw-atk 타게팅)으로 실제 캐릭별 누적딜을 얻어,
@@ -155,6 +161,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 t++;
                 roundTurn++;
                 state.CurrentTurn = t;
+                LogEnrageTransition(state);   // 광폭화 단계 진입 시 1회 로그
 
                 // 비트리거 상시 면역(예: 풍연 빙결 면역) 매 턴 갱신 — 시전자 생존 동안 유지
                 ApplyStandingImmunities(state);
@@ -799,7 +806,35 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsTargetBoss = false,                   // 아군은 보스 아님
                 SelfMaxHp = enemy.MaxHp,
             };
-            return _damageCalc.Calculate(input).FinalDamage;
+            return _damageCalc.Calculate(input).FinalDamage * EnrageMultiplier();
+        }
+
+        /// <summary>
+        /// 광폭화 배수 (전 보스 공통): 누적 턴(state.CurrentTurn = 게임 70턴 시즈 카운터)에 따라
+        /// 적이 주는 피해 증폭. 30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500%.
+        /// 아군→적(점수)엔 적용하지 않고 적→아군 피해에만 곱연산 — 후반 생존 현실성 반영.
+        /// </summary>
+        private double EnrageMultiplier()
+        {
+            int t = _activeState?.CurrentTurn ?? 0;
+            return t >= 60 ? 6.0
+                 : t >= 55 ? 3.0
+                 : t >= 50 ? 2.5
+                 : t >= 40 ? 2.0
+                 : t >= 30 ? 1.5
+                 : 1.0;
+        }
+
+        /// <summary>광폭화 단계가 올라가는 턴에 1회 로그(적 피해 증폭 진입 표기).</summary>
+        private void LogEnrageTransition(SiegeBattleState state)
+        {
+            double m = EnrageMultiplier();
+            int tier = m >= 6 ? 5 : m >= 3 ? 4 : m >= 2.5 ? 3 : m >= 2 ? 2 : m >= 1.5 ? 1 : 0;
+            if (tier <= _lastEnrageTier) return;
+            _lastEnrageTier = tier;
+            if (tier == 0) return;
+            Log(state, "시스템", false, ActionType.BuffApplied, "광폭화", 0,
+                $"광폭화 진입 (T{state.CurrentTurn}) — 적이 주는 피해 ×{m:F2} (+{(m - 1) * 100:F0}%)");
         }
 
         /// <summary>
@@ -929,6 +964,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     }
 
             CheckHpThresholdNullify(state, ally);   // 생명력 임계 피해무효(나타 50% 등) 트리거
+            CheckHpThresholdHeal(state, ally);      // 생명력 임계 자힐(샤오 50%↓ 등) 트리거
         }
 
         /// <summary>살아있는 아군 중 랜덤 1명 (없으면 null). 도발 중인 아군이 있으면 그 중에서 우선 선택.</summary>
@@ -1006,6 +1042,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
                 if (baseEffect == null) continue;
                 int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
+                int stacks = Math.Max(1, se.Stacks);
                 ally.Effects.AddEffect(new BattleEffect
                 {
                     Id = $"siege_cc:{ally.PartyIndex}:{se.Type}",
@@ -1013,11 +1050,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                     StatusType = se.Type,
                     StatusData = StatusEffectData.FromDbEffect(baseEffect),
                     RemainingTurns = dur,
+                    Stacks = stacks,
                     IsPermanent = false,
                     MergeStrategy = MergeStrategy.Stack,
                 });
                 Log(state, "적", false, ActionType.DebuffApplied, stName, 0,
-                    $"{ally.Source.Character.Name} {stName} 부여 [{dur}턴]");
+                    $"{ally.Source.Character.Name} {stName} 부여 [{dur}턴]{(stacks > 1 ? $" ×{stacks}중첩" : "")}");
+
+                // 즉사 2중첩 시 즉시 사망 (크리스 어둠의 일격 Stacks=2 또는 누적 2회). 면역은 위에서 이미 차단됨.
+                if (se.Type == StatusEffectType.InstantDeath && !ally.IsDead
+                    && ally.Effects.GetTotalStacks(StatusEffectType.InstantDeath) >= 2)
+                    KillAllyByInstantDeath(state, ally, "즉사 2중첩");
             }
 
             // 적 스킬의 스탯 디버프(공격력/방어력 감소 등)를 아군에 적용 (보스 관점 Target=Enemy = 아군).
@@ -1055,6 +1098,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void TickAllyAfterAction(SiegeBattleState state, CharacterBattleState ally)
         {
             if (ally.IsDead) return;
+            ProcessInstantDeathOnAlly(state, ally);   // 즉사 DoT(현재HP%) + 마지막 턴 사망 (일요일 크리스)
+            if (ally.IsDead) return;
             ally.Effects.TickTurn();
             foreach (var k in ally.StatusImmunityTurns.Keys.ToList())
                 ally.StatusImmunityTurns[k] = Math.Max(0, ally.StatusImmunityTurns[k] - 1);
@@ -1076,6 +1121,62 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             // 보호막 잔여 턴 (만료 시 소멸)
             if (ally.ShieldTurns > 0 && --ally.ShieldTurns <= 0) ally.Shield = 0;
+        }
+
+        /// <summary>
+        /// 즉사(일요일 크리스) — 행동한 아군이 즉사 보유 시: 매 행동 현재 생명력 N%(기본 20%) 피해,
+        /// 그 즉사 효과의 마지막 턴(이번 tick에 만료)이면 즉시 사망. 면역 보유 시엔 애초에 부여되지 않음.
+        /// 여러 즉사 인스턴스가 겹쳐도 DoT는 1회(최대 비율)만 — "매 턴 현재 HP N%"는 상태당이 아닌 대상당.
+        /// </summary>
+        private void ProcessInstantDeathOnAlly(SiegeBattleState state, CharacterBattleState ally)
+        {
+            var deaths = ally.Effects.GetStatusEffectsOfType(StatusEffectType.InstantDeath);
+            if (deaths.Count == 0) return;
+
+            // DoT: 현재 HP의 최대 비율% (보통 20%) — 보호막/무효화 무시(HP 직접 차감 DoT).
+            double ratio = deaths.Max(e => e.StatusData?.TargetCurrentHpRatio ?? 0) / 100.0;
+            if (ratio > 0 && ally.CurrentHp > 0)
+            {
+                double dmg = ally.CurrentHp * ratio;
+                ally.CurrentHp -= dmg;
+                Log(state, "적", false, ActionType.SkillAttack, "즉사", dmg,
+                    $"{ally.Source.Character.Name} 즉사 피해 {dmg:N0} (HP {Math.Max(0, ally.CurrentHp):N0}/{ally.MaxHp:N0})");
+                if (ally.CurrentHp <= 0)
+                {
+                    var r = SurvivalResolver.ResolveLethal(ally);
+                    if (ally.IsDead) { ally.CurrentHp = 0; RecordInstantDeath(state, ally, "즉사 피해"); return; }
+                    Log(state, "적", false, ActionType.BuffApplied, "즉사", 0,
+                        $"{ally.Source.Character.Name} 즉사 피해 치명 — {r.Label}로 생존");
+                }
+            }
+
+            // 마지막 턴(이번 tick에 RemainingTurns가 0이 됨) 즉시 사망.
+            if (deaths.Any(e => e.RemainingTurns <= 1))
+                KillAllyByInstantDeath(state, ally, "즉사 만료");
+        }
+
+        /// <summary>즉사 즉시 사망 처리 (2중첩·마지막 턴). 생존 패시브(불사/권능/부활)도 즉사엔 무력 — 무조건 사망.</summary>
+        private void KillAllyByInstantDeath(SiegeBattleState state, CharacterBattleState ally, string cause)
+        {
+            if (ally.IsDead) return;
+            ally.CurrentHp = 0;
+            ally.IsDead = true;
+            Log(state, "적", false, ActionType.SkillAttack, "즉사", 0,
+                $"{ally.Source.Character.Name} {cause}로 즉시 사망");
+            RecordInstantDeath(state, ally, cause);
+        }
+
+        /// <summary>즉사 사망 이벤트 기록 + 「죽음의 경계」 등 사망 트리거(델론즈 외 일요일엔 무관).</summary>
+        private void RecordInstantDeath(SiegeBattleState state, CharacterBattleState ally, string cause)
+        {
+            _deaths.Add(new SiegeDeathEvent
+            {
+                Turn = state.CurrentTurn, Elapsed = state.ElapsedSeconds,
+                AllyName = ally.Source.Character.Name, Cause = cause,
+            });
+            foreach (var en in state.Enemies)
+                if (en.Source.OnAllyDeathNullifyHits > 0)
+                    en.NullifyHitsRemaining = en.Source.OnAllyDeathNullifyHits;
         }
 
         /// <summary>아군 회복 (MaxHp 상한). 점수와 무관 — 로그만 남긴다.</summary>
@@ -1195,6 +1296,28 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ally.NullifyHitsRemaining = Math.Max(ally.NullifyHitsRemaining, e.DamageNullification.HitCount);
                 Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "피해 면역", 0,
                     $"{ally.Source.Character.Name} 생명력 {hpPct:0}%↓ → 모든 피해 면역 [{e.DamageNullification.Duration}턴]");
+                break;
+            }
+        }
+
+        /// <summary>생명력 임계 자힐 (예: 샤오 HP50%↓ → 시전자 물공 40~45% 회복, 전투당 1회). 피격/DoT 직후 호출.</summary>
+        private void CheckHpThresholdHeal(SiegeBattleState state, CharacterBattleState ally)
+        {
+            if (ally.IsDead || ally.HpThresholdHealUsed || ally.MaxHp <= 0) return;
+            double hpPct = ally.CurrentHp / ally.MaxHp * 100.0;
+            var passive = ally.Source.Character.Passive;
+            if (passive == null) return;
+            foreach (var e in GetPassiveEffects(passive, ally))
+            {
+                if (e.Type != PersistentEffectType.TriggeredHeal) continue;
+                if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnHpBelow) continue;
+                if (hpPct > e.TriggerHpThreshold) continue;
+
+                ally.HpThresholdHealUsed = true;
+                double amount = ally.FinalAtk * e.TriggeredHealAtkRatio / 100.0
+                              + ally.FinalDef * e.TriggeredHealDefRatio / 100.0
+                              + ally.MaxHp * e.TriggeredHealHpRatio / 100.0;
+                HealAlly(state, ally, amount, ally.Source.Character.Name, $"임계 회복(HP{e.TriggerHpThreshold:0}%↓)");
                 break;
             }
         }
@@ -1491,6 +1614,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
             // [실행가능성] 방금 시전 → 이 스킬은 쿨 중(준비 전). 다시 0 도달 시점까지 pending(∞) 마킹.
             if (_recordFeasibility && cd > 0) _readySince[(allyIdx, skill.SkillType)] = double.PositiveInfinity;
+
+            // 지정 스킬 쿨타임 초기화 (파스칼 어둠의 문 → 파괴의 거인). 자기 쿨 set 後 적용 → 다음 스킬턴 즉시 준비.
+            var resetTarget = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.ResetsCooldownOf;
+            if (resetTarget.HasValue)
+            {
+                ally.SkillCooldowns[resetTarget.Value] = 0;
+                if (_recordFeasibility) _readySince[(allyIdx, resetTarget.Value)] = state.ElapsedSeconds;
+                Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "쿨초기화", 0,
+                    $"{skill.Name} → {resetTarget.Value} 쿨타임 초기화 (즉시 준비)");
+            }
             // [쿨추적] 시전 시점 경과초 + 이 스킬 쿨 설정값 (게임 실측과 쿨회복 속도 대조용)
             Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "쿨", 0,
                 $"{skill.Name} 시전 — 쿨 {cd:F0}초 설정 (경과 {state.ElapsedSeconds:F0}초)");
@@ -1596,6 +1729,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (b.Shield_HpRatio > 0)
                     {
                         double shield = t.MaxHp * b.Shield_HpRatio / 100.0;
+                        if (shield > t.Shield) { t.Shield = shield; t.ShieldTurns = Math.Max(t.ShieldTurns, d); }
+                    }
+                    // 보호막(Shield_AtkRatio) → 시전자 공격력 비례 (예: 샤오 정기흡공 모든 아군 물공 160%[2턴]). 더 큰 값으로만 갱신.
+                    if (b.Shield_AtkRatio > 0)
+                    {
+                        double shield = ally.FinalAtk * b.Shield_AtkRatio / 100.0;
                         if (shield > t.Shield) { t.Shield = shield; t.ShieldTurns = Math.Max(t.ShieldTurns, d); }
                     }
                 }

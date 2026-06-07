@@ -377,6 +377,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (cooldown > 0)
                     charState.SkillCooldowns[nextSkillType] = cooldown;
 
+                // 지정 스킬 쿨타임 초기화 (파스칼 어둠의 문 → 파괴의 거인)
+                var resetTarget = skill.GetLevelData(charState.Source.IsSkillEnhanced)?.ResetsCooldownOf;
+                if (resetTarget.HasValue)
+                    charState.SkillCooldowns[resetTarget.Value] = 0;
+
                 // 스킬 소요시간만큼 경과 및 쿨다운 감소
                 double skillDuration = skill.GetActionDuration();
                 state.ElapsedSeconds += skillDuration;

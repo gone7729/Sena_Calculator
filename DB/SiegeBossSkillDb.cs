@@ -13,11 +13,15 @@ namespace GameDamageCalculator.Database
     /// 보스가 "적군(=플레이어 파티)"에게 거는 상태이상/디버프는 SkillEffect.Target = Enemy로 표기한다
     /// (보스 시점의 상대편). 런타임 소비(보스 행동)는 후속 작업.
     ///
-    /// === 모델 미반영 고유 지속효과 (보스 행동 구현 시 Enemy 확장 예정) ===
-    /// - 공성전 감쇄: EnemyDB의 PhysicalReduction/MagicReduction + Dmg_Rdc_Single/Multi에 이미 반영됨.
-    /// - 광폭화(전 보스 공통): 30턴 후 주는 피해 +50%, 이후 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500%.
-    /// - 반격(제이브 25%), 적군 사망 시 모든 피해 무효화[피격 4회](델론즈), 자기 보호막(루디).
-    /// 위 항목들은 모델 필드가 없어 이번 범위에서 제외. 각 보스 주석에 원문 보존.
+    /// === 고유 지속효과 구현 현황 ===
+    /// - 공성전 감쇄: EnemyDB의 PhysicalReduction/MagicReduction + Dmg_Rdc_Single/Multi에 반영됨. [구현]
+    /// - 광폭화(전 보스 공통): 30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500%.
+    ///     SiegeBattleSimulator.EnrageMultiplier()가 state.CurrentTurn(게임 70턴 카운터) 기준으로
+    ///     적→아군 피해에 곱연산. [구현]
+    /// - 반격(제이브 25%): SiegeCounterattack + MaybeEnemyCounter. [구현]
+    /// - 적군 사망 시 모든 피해 무효화[피격 4회](델론즈): OnAllyDeathNullifyHits + NullifyHitsRemaining. [구현]
+    /// - 자기 보호막(루디 방어 준비, 방어력 10000%): SelfShieldDefRatio → enemy.Shield. [구현]
+    /// - 미구현: 적→아군 DoT(용염 화상 등)는 직격만 반영(틱뎀 0). 즉사(크리스)는 구현됨.
     /// </summary>
     public static class SiegeBossSkillDb
     {

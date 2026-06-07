@@ -50,6 +50,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double LifestealRatio { get; set; }          // 흡혈 회복 비율% (피해량 대비)
         public int SkillCastCount { get; set; }             // 자신 스킬 발동 누적 횟수 (N회마다 트리거용)
         public bool HpThresholdNullifyUsed { get; set; }    // 생명력 임계 피해무효(나타 50% 등) 전투당 1회 소비
+        public bool HpThresholdHealUsed { get; set; }       // 생명력 임계 자힐(샤오 HP50%↓ 물공45% 등) 전투당 1회 소비
 
         // ===== 생존 메카닉 런타임 상태 =====
         public bool IsDead { get; set; }                    // 사망 시 이후 자기 턴 스킵
