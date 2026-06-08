@@ -1641,7 +1641,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "쿨", 0,
                 $"{skill.Name} 시전 — 쿨 {cd:F0}초 설정 (경과 {state.ElapsedSeconds:F0}초)");
 
-            // [실험] 스킬턴은 효과 tick하지 않음 — 함수 설계(815-817줄: "n턴 지속=기본공격 n회").
+            // [실험] 스킬턴은 효과 tick하지 않음 — 함수 설계(TickAllyAfterAction XML doc: "n턴 지속=기본공격 n회").
             //   스킬턴 tick 시 메인딜러 셋업 버프(따뜻한울림/청소)가 버스트 전 조기만료됨.
             // TickAllyAfterAction(state, ally);
         }

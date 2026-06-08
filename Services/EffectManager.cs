@@ -43,7 +43,6 @@ namespace GameDamageCalculator.Services
             _effects.RemoveAll(e => e.SourceName == sourceName);
         }
 
-        /// <summary>만료된 효과 제거</summary>
         /// <summary>디버프(스탯 감소 또는 CC 상태이상)를 최대 count개 제거(아군 디버프 해제용). 제거 수 반환.</summary>
         public int RemoveDebuffs(int count)
         {
@@ -58,6 +57,7 @@ namespace GameDamageCalculator.Services
             return removed;
         }
 
+        /// <summary>만료된 효과 제거</summary>
         public void RemoveExpired()
         {
             _effects.RemoveAll(e => e.IsExpired);

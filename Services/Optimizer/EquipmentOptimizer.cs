@@ -488,10 +488,6 @@ namespace GameDamageCalculator.Services.Optimizer
         #region 데미지 평가
 
         /// <summary>
-        /// 주어진 장비 구성으로 기대 데미지 평가
-        /// 대표 스킬 1회 사용 기준
-        /// </summary>
-        /// <summary>
         /// 영웅의 StatCalculationResult + 파티 디버프 합산을 계산 (EvaluateDamage 및 캡체크 공용).
         /// 파티 패시브 + 펫 + 진형 + 장비 전부 포함. (턴제 스킬버프는 미포함 — 프록시는 패시브 기반)
         /// </summary>

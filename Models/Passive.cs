@@ -77,7 +77,7 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 본인 전용 상시 버프 (새 Effects + 레거시 필드 모두 확인)
+        /// 상시 버프 (Self + Party 모두 포함, 새 Effects + 레거시 필드 모두 확인)
         /// </summary>
         public PermanentBuff GetTotalSelfBuff(bool isEnhanced, int transcendLevel)
         {
@@ -110,7 +110,7 @@ namespace GameDamageCalculator.Models
         }
 
         /// <summary>
-        /// 본인 전용 턴제 버프 (조건부)
+        /// 턴제 버프 (조건부, Self + Party 모두 포함)
         /// </summary>
         public TimedBuff GetConditionalSelfBuff(bool isEnhanced, int transcendLevel)
         {

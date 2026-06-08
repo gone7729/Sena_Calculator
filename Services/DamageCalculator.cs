@@ -569,7 +569,8 @@ namespace GameDamageCalculator.Services
             if (totalAtkRatio > 0)
                 damage += atkOverDef * (totalAtkRatio / 100.0);
 
-            // 스택소모 HP비례 피해: 피증/치명/약점 적용, 취약·잃은HP 미적용
+            // 스택소모 HP비례 피해: 피증/치명/약점 적용, 잃은HP 미적용.
+            //   취약은 이 단계에선 빠지지만 최종조립(FinalDamage = (… + ConsumeExtraDmg) × 취약)에서 일괄 적용됨.
             double damageMulNoLostHp = result.DamageMultiplier / result.LostHpMultiplier;
             double fullMultiplier = damageMulNoLostHp * result.CritMultiplier * result.WeakpointMultiplier;
             result.ConsumeExtraDmg = damage * fullMultiplier;
