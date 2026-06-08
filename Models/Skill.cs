@@ -42,7 +42,8 @@ namespace GameDamageCalculator.Models
             return SkillType switch
             {
                 SkillType.Normal or SkillType.Normal2 => 2.0,
-                SkillType.Skill1 or SkillType.Skill2 => 4.0,
+                SkillType.Skill1 => 3.0,                 // 1스킬 3초 (실측 2026-06-08)
+                SkillType.Skill2 => 4.0,                 // 2스킬(컷신) 4초
                 SkillType.Skill3 or SkillType.Skill4 => 4.0,
                 SkillType.Ultimate => 4.0,
                 _ => 2.0

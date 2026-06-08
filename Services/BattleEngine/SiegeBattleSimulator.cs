@@ -217,8 +217,10 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                 if (state.CurrentRound < 3 && AllEnemiesDown(state))
                 {
+                    // 적 사망 모션: 라운드 클리어 시 1초 경과(쿨 −1초), 그 후 전환 동안 쿨 동결(추가 시간 없음). (실측 2026-06-08)
+                    AdvanceTime(state, 1.0);
                     Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
-                        $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 진입 (선공 스킬턴)");
+                        $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 진입 (사망모션 1초 경과·선공 스킬턴)");
                     state.CurrentRound++;
                     state.InitializeRound(state.CurrentRound);
                     ApplyStandingEnemyDebuffs(state, config);
@@ -444,7 +446,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
                             $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴] (버프해제/소진 시 제거)");
                     }
-                    // 상대(보스) 스킬 사용 → 그 스킬 소요시간(2스킬 5초·1스킬 4초)만큼 시간 경과 → 전체(아군+적) 쿨 감소.
+                    // 상대(보스) 스킬 사용 → 그 스킬 소요시간(1스킬 3초·2스킬 4초)만큼 시간 경과 → 전체(아군+적) 쿨 감소.
                     //   [정정] 이전엔 별도 ReduceCooldowns(5)까지 더해 이중 감소 → 교만 등 쿨이 실시간보다 빨리 회복됐음.
                     //   시간경과(AdvanceTime)만으로 충분(쿨=실시간). 별도 -5초 메커니즘 제거.
                     double enemyCd = GetActionDuration(skill);
@@ -1494,15 +1496,15 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         #region 시간 / 쿨다운
 
-        /// <summary>행동 소요시간(초): 평타 2 / 1스킬 4 / 2스킬(컷신) 5 (battle-time-model).</summary>
+        /// <summary>행동 소요시간(초): 평타 2 / 1스킬 3 / 2스킬 4 (실측 프레임 추적 2026-06-08: 1스킬 −3초·2스킬 −4초·평타 −2초·라운드 사망모션 −1초).</summary>
         private double GetActionDuration(Skill skill)
         {
             if (skill == null) return 2.0;                       // 기본공격
             return skill.SkillType switch
             {
                 SkillType.Normal or SkillType.Normal2 => 2.0,
-                SkillType.Skill2 => 5.0,                          // 컷신 2스킬
-                _ => 4.0,                                         // 그 외 스킬
+                SkillType.Skill1 => 3.0,                          // 1스킬
+                _ => 4.0,                                         // 2스킬(컷신) 등
             };
         }
 
