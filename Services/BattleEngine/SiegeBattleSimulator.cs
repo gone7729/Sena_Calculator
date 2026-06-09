@@ -56,6 +56,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         private double? _counterChanceOverride;
         // [사망 페널티] config.AllyDeathPenalty. RankScore(랭킹용)=TotalScore − 페널티×사망수. 보고 점수는 불변.
         private double _allyDeathPenalty;
+        // [풀버프 정렬] config.BuffFirstAuto. 자동 로테가 파티버프 셋업 스킬을 딜러 핵보다 먼저 시전.
+        private bool _buffFirstAuto;
         // [광폭화] 전 보스 공통: 누적 턴(게임 70턴 시즈 카운터=state.CurrentTurn)에 따라 적이 주는 피해 증폭.
         //   30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500% (SiegeBossSkillDb 원문).
         //   CalcDamageToAlly(적→아군)에만 곱연산. 아군→적(점수)엔 무관. _activeState로 현재 턴 참조.
@@ -73,6 +75,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             _recordFeasibility = config.RecordFeasibility && computeWeights;
             _counterChanceOverride = config.CounterattackChanceOverride;   // 반격 확률 오버라이드(빔=0, 최종=null)
             _allyDeathPenalty = config.AllyDeathPenalty;   // 사망 페널티(RankScore용)
+            _buffFirstAuto = config.BuffFirstAuto;         // 풀버프 정렬(셋업 버프 우선)
             var state = Initialize(config);
             _activeState = state;   // 광폭화 턴 참조용
             if (computeWeights)
@@ -348,6 +351,28 @@ namespace GameDamageCalculator.Services.BattleEngine
                     else if (_recordFeasibility)
                         RecordFeasStep(state, stIdx, dec, null, null, false, "잘못된 영웅 인덱스", 0, 0);
                     // 무효 → 자동 폴백
+                }
+
+                // [풀버프 정렬] 셋업(파티버프) 스킬이 준비됐으면 딜러 핵보다 먼저 시전 — "버프 깔고 버스트".
+                //   쿨 긴 핵심 버프 우선. 파티버프 스킬은 쿨이 길어 매 턴 나오지 않으니 자연히 간격이 벌어짐.
+                if (_buffFirstAuto)
+                {
+                    int bn = state.AllyStates.Count;
+                    (int idx, Skill sk, double cd) bestSetup = (-1, null, -1);
+                    for (int k = 0; k < bn; k++)
+                    {
+                        int idx = (state.AllyRotationCursor + k) % bn;
+                        var a = state.AllyStates[idx];
+                        if (a.IsDead || a.Effects.HasActionBlockingCC()) continue;
+                        foreach (var s in a.Source.Character.Skills ?? Enumerable.Empty<Skill>())
+                        {
+                            if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
+                            if (!a.IsSkillReady(s.SkillType) || !IsPartyBuffSetup(s, a.Source.IsSkillEnhanced)) continue;
+                            double cd = s.GetCooldown(a.Source.IsSkillEnhanced, a.Source.TranscendLevel);
+                            if (cd > bestSetup.cd) bestSetup = (idx, s, cd);
+                        }
+                    }
+                    if (bestSetup.sk != null) { ExecuteAllySkill(state, bestSetup.idx, bestSetup.sk); return; }
                 }
 
                 // 자동: 라운드로빈(AllyRotationCursor)으로 순회 → 첫 시전 가능한 아군이 PickAllySkill 시전.
@@ -1572,6 +1597,17 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>R1/R2 적이 모두 HP0 이하인지 (라운드 클리어 판정).</summary>
         private bool AllEnemiesDown(SiegeBattleState state)
             => state.Enemies.Count > 0 && state.Enemies.All(e => e.CurrentHp <= 0);
+
+        /// <summary>순수 파티버프 셋업 스킬인지 (데미지 0 + 파티/자기 Buff 효과). 청소시간·장비강화·따뜻한울림 등.
+        /// 풀버프 정렬에서 딜러 핵보다 먼저 시전할 대상. 데미지 스킬(핵)은 Ratio>0이라 제외.</summary>
+        private static bool IsPartyBuffSetup(Skill skill, bool enh)
+        {
+            var lvl = skill.GetLevelData(enh);
+            if (lvl == null || lvl.Ratio > 0 || lvl.Effects == null) return false;
+            return lvl.Effects.Any(e => e.Type == SkillEffectType.Buff
+                && (e.Target == EffectTarget.Party || e.Target == EffectTarget.Self
+                    || e.Target == EffectTarget.SelfAndHighestAtkAlly));
+        }
 
         private Skill PickAllySkill(CharacterBattleState ally, SiegeBattleState state)
         {

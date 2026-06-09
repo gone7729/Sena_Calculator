@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
+using GameDamageCalculator.Services;
 using GameDamageCalculator.Services.BattleEngine;
 
 // ============================================================================
@@ -24,6 +25,24 @@ var DAYS = new (string Day, int[] Ids)[]
     ("금요일", new[] { 2,   1,   301, 201, 303 }),   // 라이언·타카·레이첼·비스킷·지크
     ("토요일", new[] { 2,   1,   301, 201, 51  }),   // 라이언·타카·레이첼·비스킷·풍연
     ("일요일", new[] { 101, 117, 201, 57,  103 }),   // 파스칼·소교·비스킷·샤오(즉사면역)·미호
+};
+
+// 요일별 전문가(공개 고점) 로테 시드 — 빔과 함께 평가해 더 높은 쪽(max) 정식 채택.
+//   비스킷S1=장비강화·S2=리프어택 / 나타S1=화첨·S2=혼천 / 클로에S1=고양이·S2=청소 / 리나S2=따뜻한울림 / 미호S1=살육·S2=교만.
+var expertByDay = new Dictionary<string, (string Name, SkillType Skill)[]>
+{
+    // 화요일 공개 고점 빌드(유저 제공, 전용 전 10.18M / 시뮬 전용 포함 11.2M, 빔 10.68M 상회).
+    ["화요일"] = new (string, SkillType)[]
+    {
+        ("비스킷", SkillType.Skill1), ("나타", SkillType.Skill1),                       // R1
+        ("클로에", SkillType.Skill2), ("비스킷", SkillType.Skill2),                     // R2
+        ("리나", SkillType.Skill2), ("미호", SkillType.Skill1), ("나타", SkillType.Skill2),
+        ("미호", SkillType.Skill2), ("나타", SkillType.Skill1), ("미호", SkillType.Skill1),
+        ("클로에", SkillType.Skill2), ("비스킷", SkillType.Skill1), ("나타", SkillType.Skill2),
+        ("나타", SkillType.Skill1), ("미호", SkillType.Skill2), ("리나", SkillType.Skill2),
+        ("클로에", SkillType.Skill2), ("미호", SkillType.Skill1), ("나타", SkillType.Skill2),
+        ("나타", SkillType.Skill1),
+    },
 };
 
 // 고정 프로필: 12초월·잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
@@ -86,7 +105,64 @@ foreach (var (day, ids) in DAYS)
     var res = new SiegeOptimizer().Optimize(cfg);
     sw.Stop();
 
+    // [기어 스탯 출력] 각 영웅 기어 블록 끝에 버프 전(기본+템) 치확/약확/치피 삽입.
+    //   StatCalculator를 파티버프 없이 호출 → 기본스탯+장비+세트+초월+잠재+전용만 반영(패시브/파티버프 제외).
+    {
+        var statCalc = new StatCalculator();
+        string GearStat(BattleCharacter bc)
+        {
+            var lo = bc.Equipment;
+            var big = lo?.GetActiveSets().OrderByDescending(s => s.PieceCount).FirstOrDefault();
+            var ds = statCalc.Calculate(new StatCalculationInput
+            {
+                Character = bc.Character, TranscendLevel = bc.TranscendLevel, IsSkillEnhanced = bc.IsSkillEnhanced,
+                Equipments = lo?.GetEquipments(), Accessory = lo?.Accessory,
+                EquipSetName = big?.SetName ?? "", EquipSetCount = big?.PieceCount ?? 0,
+                PotentialAtkLevel = bc.PotentialAtkLevel, PotentialDefLevel = bc.PotentialDefLevel, PotentialHpLevel = bc.PotentialHpLevel,
+                ExclusiveWeapon = bc.Character?.ExclusiveWeapon,
+                Formation = new Formation { Name = res.BestFormation, IsBackPosition = bc.IsBackPosition },
+                Pet = cfg.AllyPet, PetStar = cfg.PetStar, PetOptionAtkRate = cfg.PetOptionAtkRate,
+            }).DisplayStats ?? new BaseStatSet();
+            return $"[{bc.Character.Name}] 기어스탯(버프전): 치확 {ds.Cri:F0}% · 약확 {ds.Wek:F0}% · 치피 {ds.Cri_Dmg:F0}%";
+        }
+        // 각 영웅의 마지막 "[이름]" 기어 로그 줄 뒤에 스탯 줄 삽입.
+        var augmented = new List<string>(res.GearLog);
+        foreach (var bc in res.BestParty)
+        {
+            string tag = $"[{bc.Character.Name}]";
+            int lastIdx = augmented.FindLastIndex(l => l.StartsWith(tag));
+            if (lastIdx >= 0) augmented.Insert(lastIdx + 1, GearStat(bc));
+            else augmented.Add(GearStat(bc));
+        }
+        res.GearLog = augmented;
+    }
+
     var nm = res.BestParty.Select(b => b.Character.Name).ToList();
+
+    // [전문가 로테 시드] 등록된 요일이면 공개 로테를 같은 기어/진형으로 평가해 빔보다 높으면 정식 채택(무회귀).
+    if (expertByDay.TryGetValue(day, out var expert))
+    {
+        var expertPlan = expert
+            .Select(s => new RotationDecision { HeroIndex = nm.FindIndex(n => n == s.Name), Skill = s.Skill })
+            .Where(d => d.HeroIndex >= 0).ToList();
+        var eRes = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
+        {
+            AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
+            AllyPet = cfg.AllyPet, PetStar = cfg.PetStar, PetEnhance = cfg.PetEnhance,
+            PetOptionAtkRate = cfg.PetOptionAtkRate, PetOptionDefRate = cfg.PetOptionDefRate,
+            PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
+            RotationPlan = expertPlan, AllyDeathPenalty = deathPenalty,
+        });
+        int eDeaths = eRes.Deaths?.Count ?? 0;
+        Console.WriteLine($"  [전문가시드] {day}: 빔 Total {res.BestScore:N0}/Rank {res.BestRankScore:N0}  vs  전문가 Total {eRes.TotalScore:N0}/Rank {eRes.RankScore:N0} (사망 {eDeaths})");
+        if (eRes.RankScore > res.BestRankScore)
+        {
+            Console.WriteLine($"  [전문가시드 채택] {day}: 빔 {res.BestScore:N0} → 전문가 {eRes.TotalScore:N0}");
+            res.BestScore = eRes.TotalScore; res.BestRankScore = eRes.RankScore;
+            res.BestResult = eRes; res.BestRotationPlan = expertPlan;
+        }
+    }
+
     string SkNm(int hi, SkillType st) =>
         res.BestParty[hi].Character.Skills?.FirstOrDefault(s => s.SkillType == st)?.Name ?? st.ToString();
 
@@ -136,32 +212,84 @@ foreach (var (day, ids) in DAYS)
     //   목적: 빔이 정렬을 못 짠 건지(고정 로테>빔) 빔이 이미 최적인지(≤빔) 가르기. 일요일 파스칼 버스트 정렬 검증.
     if (args.Contains("정렬로테"))
     {
-        // 유저 로테(이름, 스킬). 파스칼: S1=어둠의문(쿨초기화), S2=파괴의거인(핵) / 소교: S2=호접지몽(셋업), S1=우후죽순
-        //   / 비스킷: S1=장비강화(버프) / 미호: S1·S2(R1·R2) / 샤오: S1·S2(쿨벌이 필러). 9번 이후 유지 사이클.
-        var alignedByName = new (string Name, SkillType Skill)[]
+        // 요일별 전문가 정렬 로테(셋업 버프 → 버스트). 핵심: 큰 핵(2스킬)을 버프 윈도우 안에서 시전.
+        var sundayAligned = new (string Name, SkillType Skill)[]
         {
-            ("미호", SkillType.Skill2), ("미호", SkillType.Skill1),       // 1-2 (R1·R2)
-            ("비스킷", SkillType.Skill1),                                  // 3 장비강화 버프
-            ("샤오", SkillType.Skill1),                                    // 4 정기흡공(보호막)
-            ("소교", SkillType.Skill2),                                    // 5 호접지몽 셋업(공증·치피3턴·마취5턴)
-            ("파스칼", SkillType.Skill2),                                  // 6 파괴의거인 #1
-            ("파스칼", SkillType.Skill1),                                  // 7 어둠의문(쿨초기화)
-            ("파스칼", SkillType.Skill2),                                  // 8 파괴의거인 #2
-            ("소교", SkillType.Skill1),                                    // 9 우후죽순
-            ("파스칼", SkillType.Skill1),                                  // 10 어둠의문
-            ("파스칼", SkillType.Skill2),                                  // 11 파괴의거인 #3
-            ("비스킷", SkillType.Skill1),                                  // 12 장비강화 재셋업
-            ("샤오", SkillType.Skill1),                                    // 13 정기흡공(보호막)
-            ("소교", SkillType.Skill2),                                    // 14 호접지몽 재셋업
-            ("파스칼", SkillType.Skill2),                                  // 15 파괴의거인
-            ("파스칼", SkillType.Skill1),                                  // 16 어둠의문
-            ("파스칼", SkillType.Skill2),                                  // 17 파괴의거인
-            ("소교", SkillType.Skill1),                                    // 18 우후죽순
-            ("샤오", SkillType.Skill1),                                    // 19 샤오/미호 중 택 (보호막 우선)
+            ("미호", SkillType.Skill2), ("미호", SkillType.Skill1),
+            ("비스킷", SkillType.Skill1), ("샤오", SkillType.Skill1),
+            ("소교", SkillType.Skill2),                                    // 호접지몽 셋업
+            ("파스칼", SkillType.Skill2), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
+            ("소교", SkillType.Skill1), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
+            ("비스킷", SkillType.Skill1), ("샤오", SkillType.Skill1), ("소교", SkillType.Skill2),
+            ("파스칼", SkillType.Skill2), ("파스칼", SkillType.Skill1), ("파스칼", SkillType.Skill2),
+            ("소교", SkillType.Skill1), ("샤오", SkillType.Skill1),
         };
+        // 화요일: R1/R2는 살육(S1)·화첨(S1)으로 클리어 → 큰 핵(교만 S2·혼천 S2)은 R3 버프 윈도우로 미룸.
+        //   리나따뜻한울림(S2)+클로에청소시간(S2,+20%공+27%치확)+비스킷장비강화(S1) 깔고 → 교만·혼천 버스트.
+        var tuesdayAligned = new (string Name, SkillType Skill)[]
+        {
+            ("미호", SkillType.Skill1),                                    // 1 살육의춤 — R1 클리어
+            ("나타", SkillType.Skill1),                                    // 2 화첨창술 — R2 클리어
+            ("리나", SkillType.Skill2),                                    // 3 따뜻한울림(버프+디버프)
+            ("클로에", SkillType.Skill2),                                  // 4 청소시간(+20%공·+27%치확)
+            ("비스킷", SkillType.Skill1),                                  // 5 장비강화(보스피증·약확)
+            ("미호", SkillType.Skill2),                                    // 6 교만의일격 — 버프된 핵
+            ("나타", SkillType.Skill2),                                    // 7 혼천릉파 — 버프된 핵
+            ("비스킷", SkillType.Skill2),                                  // 8 리프어택(버프해제)
+            ("클로에", SkillType.Skill1),                                  // 9 고양이은혜(필러·회복불가)
+            ("나타", SkillType.Skill1),                                    // 10 화첨창술
+            ("클로에", SkillType.Skill2),                                  // 11 청소시간 재셋업
+            ("리나", SkillType.Skill2),                                    // 12 따뜻한울림 재셋업
+            ("미호", SkillType.Skill2),                                    // 13 교만 — 버프된 핵
+            ("나타", SkillType.Skill2),                                    // 14 혼천 — 버프된 핵
+            ("미호", SkillType.Skill1),                                    // 15 살육
+            ("나타", SkillType.Skill1),                                    // 16 화첨
+            ("비스킷", SkillType.Skill1),                                  // 17 장비강화
+            ("클로에", SkillType.Skill2),                                  // 18 청소시간
+            ("미호", SkillType.Skill2), ("나타", SkillType.Skill2),       // 19-20 핵
+        };
+        // 화요일 공개 고점 빌드(유저 제공, 전용 전 10,176,300점). 적 행동 제외한 아군 스킬턴 20개.
+        //   비스킷S1=장비강화·S2=리프어택 / 나타S1=화첨·S2=혼천 / 클로에S1=고양이·S2=청소 / 리나S2=따뜻한울림 / 미호S1=살육·S2=교만.
+        var tuesdayPublic = new (string Name, SkillType Skill)[]
+        {
+            ("비스킷", SkillType.Skill1),                                  // R1
+            ("나타", SkillType.Skill1),                                    // R1
+            ("클로에", SkillType.Skill2),                                  // R2 청소시간
+            ("비스킷", SkillType.Skill2),                                  // R2 리프어택
+            ("리나", SkillType.Skill2),                                    // R3 따뜻한울림
+            ("미호", SkillType.Skill1),                                    // 살육
+            ("나타", SkillType.Skill2),                                    // 혼천
+            ("미호", SkillType.Skill2),                                    // 교만(면역버프턴감)
+            ("나타", SkillType.Skill1),                                    // 화첨
+            ("미호", SkillType.Skill1),                                    // 살육
+            ("클로에", SkillType.Skill2),                                  // 청소시간
+            ("비스킷", SkillType.Skill1),                                  // 장비강화
+            ("나타", SkillType.Skill2),                                    // 혼천
+            ("나타", SkillType.Skill1),                                    // 화첨
+            ("미호", SkillType.Skill2),                                    // 교만(면역버프턴감)
+            ("리나", SkillType.Skill2),                                    // 따뜻한울림
+            ("클로에", SkillType.Skill2),                                  // 청소시간
+            ("미호", SkillType.Skill1),                                    // 살육
+            ("나타", SkillType.Skill2),                                    // 혼천
+            ("나타", SkillType.Skill1),                                    // 화첨
+        };
+        var alignedByName = (day == "화요일" && args.Contains("공개빌드")) ? tuesdayPublic
+                          : day == "화요일" ? tuesdayAligned : sundayAligned;
         var alignedPlan = alignedByName
             .Select(s => new RotationDecision { HeroIndex = nm.FindIndex(n => n == s.Name), Skill = s.Skill })
             .Where(d => d.HeroIndex >= 0).ToList();
+
+        // [결합검증] "치피기어": 딜러(나타·미호) 치확 부옵 → 치피로 재배분(청소시간 치확버프 전제). 정렬로테와 함께 평가.
+        if (args.Contains("치피기어"))
+        {
+            int swapped = 0;
+            foreach (var bc in res.BestParty.Where(b => b.Character.Name == "나타" || b.Character.Name == "미호"))
+                foreach (var eq in bc.Equipment?.GetEquipments() ?? Enumerable.Empty<Equipment>())
+                    foreach (var sub in eq.SubSlots)
+                        if (sub.StatName != null && sub.StatName.Contains("치명타확률"))
+                        { sub.StatName = "치명타피해%"; swapped++; }
+            Console.WriteLine($"  [치피기어] 나타·미호 치확 부옵 {swapped}개 → 치피로 재배분");
+        }
         var aRes = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
         {
             AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
@@ -186,6 +314,36 @@ foreach (var (day, ids) in DAYS)
             string st = !f.Reached ? "미도달" : f.ExecutedAsPlanned ? "✓" : $"폴백({f.FallbackReason})";
             Console.WriteLine($"    {i+1,2}. {who,-22} {st}");
         }
+        // 전투로그 인자 시: 이 정렬/공개 로테의 적 스킬 시전 순서 덤프 (유저 로그와 대조용).
+        //   적 스킬 시전은 쿨감 로그("적 X(스킬) 시전 → 시간경과…")로 남으므로 그 라인에서 순서 추출.
+        if (args.Contains("전투로그"))
+        {
+            Console.WriteLine("  ── 적 스킬 시전 순서 (공개 로테) ──");
+            int ei = 0;
+            foreach (var l in aRes.TurnLogs.Where(l => l.Description != null && l.Description.Contains("시전 →")))
+                Console.WriteLine($"    {++ei,2}. T{l.Turn,2} {l.Description.Split('→')[0].Replace("적 ", "").Trim()}");
+        }
+        Console.WriteLine("══════════════════════════════════\n");
+    }
+
+    // ── [버프우선] 풀버프 정렬 자동로테(BuffFirstAuto) 평가 → 빔과 비교 (인자 "버프우선") ──
+    //   파티버프 셋업 스킬을 딜러 핵보다 먼저 시전하는 전략. 같은 기어/진형으로 평가해 max 채택 여부 확인.
+    if (args.Contains("버프우선"))
+    {
+        var bfRes = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
+        {
+            AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
+            AllyPet = cfg.AllyPet, PetStar = cfg.PetStar, PetEnhance = cfg.PetEnhance,
+            PetOptionAtkRate = cfg.PetOptionAtkRate, PetOptionDefRate = cfg.PetOptionDefRate,
+            PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
+            BuffFirstAuto = true, AllyDeathPenalty = deathPenalty,
+        });
+        Console.WriteLine($"\n══════ [버프우선] {day} ══════");
+        Console.WriteLine($"  빔 점수        : {res.BestScore,14:N0}");
+        Console.WriteLine($"  버프우선 점수  : {bfRes.TotalScore,14:N0}  ({bfRes.TotalScore/res.BestScore*100:F1}% of 빔)");
+        Console.WriteLine($"  채택(max)      : {Math.Max(res.BestScore, bfRes.TotalScore),14:N0}  ({(bfRes.TotalScore>res.BestScore?"버프우선 우세":"빔 우세")})");
+        foreach (var c in bfRes.CharacterResults.OrderByDescending(c => c.TotalDamage))
+            Console.WriteLine($"    {c.CharacterName,-6}: {c.TotalDamage,12:N0}");
         Console.WriteLine("══════════════════════════════════\n");
     }
 
