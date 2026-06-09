@@ -18,8 +18,10 @@ namespace GameDamageCalculator.Models
         Sleep,          // 수면
         Confusion,      // 혼란
         Concussion,     // 진탕
+        Fear,           // 공포 (행동불가 + 효저 0% 고정)
         Blind,          // 실명 (공격 빗나감 유발)
         Taunt,          // 도발 (시전자만 공격 대상이 됨)
+        Annihilation,   // 영멸 (보유 상태로 사망 시 부활/불사/불굴/권능 미발동)
 
         // === DoT (지속 피해) ===
         Burn,           // 화상

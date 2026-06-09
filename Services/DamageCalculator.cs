@@ -516,23 +516,34 @@ namespace GameDamageCalculator.Services
                 result.DebugLog.AppendLine($"    시전자HP비례: {selfHpExtraDmg:N0}");
             }
 
+            // 조건부 추가피해(약점/치명 발동 시)는 발동 확률만큼만 기여.
+            //   기댓값 모드(시뮬): 약점추가 = 약점확률 × 약점full, 치명추가 = 치명확률 × 치명full.
+            //   비-기댓값(계산기 max-damage, IsWeakpoint/IsCritical=true): 기존대로 full 계수 그대로(무변경).
+            double critFull = (input.CritDamage + skillBonus.Cri_Dmg) / 100.0;
+            double weakFull = (input.WeakpointDmg + input.WeakpointDmgBuff) / 100.0;
+            double pc = System.Math.Min(1.0, System.Math.Max(0, input.CritChance) / 100.0);
+            double pw = System.Math.Min(1.0, System.Math.Max(0, input.WeakChance) / 100.0);
+
             result.WekBonusDmg = 0;
-            result.DebugLog.AppendLine($"    [약점추가 조건] IsWeakpoint:{input.IsWeakpoint}, WekBonusDmg:{skillBonus.WekBonusDmg}%");
-            if (input.IsWeakpoint && skillBonus.WekBonusDmg > 0)
+            result.DebugLog.AppendLine($"    [약점추가 조건] IsWeakpoint:{input.IsWeakpoint}, 기댓값:{input.ExpectedCritWeak}, WekBonusDmg:{skillBonus.WekBonusDmg}%");
+            if (skillBonus.WekBonusDmg > 0 && (input.IsWeakpoint || input.ExpectedCritWeak))
             {
-                double wekBonus = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.SkillDmgMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                // 약점추가는 약점 발동 시에만 → 기댓값 모드면 (약점확률 × 약점full), 치명은 독립(기댓값 계수).
+                double weakFactor = input.ExpectedCritWeak ? pw * weakFull : result.WeakpointMultiplier;
+                double wekBonus = atkOverDef * (skillBonus.WekBonusDmg / 100.0) * result.SkillDmgMultiplier * result.CritMultiplier * weakFactor;
                 if (skillBonus.WekBonusDmgPerHit) wekBonus *= result.AtkCount;
                 result.WekBonusDmg = wekBonus;
-                result.DebugLog.AppendLine($"    약점추가: {result.WekBonusDmg:N0}");
+                result.DebugLog.AppendLine($"    약점추가: {result.WekBonusDmg:N0} (약점계수 {weakFactor:F3})");
             }
 
             result.CriBonusDmg = 0;
-            if (input.IsCritical && skillBonus.CriBonusDmg > 0)
+            if (skillBonus.CriBonusDmg > 0 && (input.IsCritical || input.ExpectedCritWeak))
             {
-                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) * result.SkillDmgMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                double critFactor = input.ExpectedCritWeak ? pc * critFull : result.CritMultiplier;
+                double criBonus = atkOverDef * (skillBonus.CriBonusDmg / 100.0) * result.SkillDmgMultiplier * critFactor * result.WeakpointMultiplier;
                 if (skillBonus.CriBonusDmgPerHit) criBonus *= result.AtkCount;
                 result.CriBonusDmg = criBonus;
-                result.DebugLog.AppendLine($"    치명추가: {result.CriBonusDmg:N0}");
+                result.DebugLog.AppendLine($"    치명추가: {result.CriBonusDmg:N0} (치명계수 {critFactor:F3})");
             }
         }
 

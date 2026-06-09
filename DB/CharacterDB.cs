@@ -412,9 +412,9 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { 
-                                OnKillRecast = new OnKillRecast { 
-                                    RatioPercent = 100 } 
+                            { 2, new SkillTranscend {
+                                OnKillRecast = new OnKillRecast {
+                                    RatioPercent = 100 }
                                 } }
                         }
                     }
@@ -817,6 +817,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 0,
                                 Ratio = 57,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Chance = 45, Duration = 2 } },
                                 Effect = "석화(45%)[2턴]",
                                 } },
                             { 1, new SkillLevelData {
@@ -824,6 +825,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 0,
                                 Ratio = 57,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Petrify, Chance = 55, Duration = 2 } },
                                 Effect = "석화(55%)[2턴]"
                                 } }
                         },
@@ -3808,7 +3810,7 @@ namespace GameDamageCalculator.Database
                                 Effect = "2초월: 아군 후열 디버프 해제 2개",
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.DebuffCleanse, DispelDebuffCount = 2 }
+                                    new SkillEffect { Target = EffectTarget.Party, TargetSelector = TargetSelector.BackRowAlly, Type = SkillEffectType.DebuffCleanse, DispelDebuffCount = 2 }
                                 }
                             }},
                             // 6초월: 약점 공격 피해 발생 시 마법 공격력의 75% 추가 피해
@@ -4107,14 +4109,16 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 2,
                                 Cooldown = 96,
                                 Ratio = 70,
-                                Effect = "영멸 [60% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동 (모델 없음)"
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.AllEnemies, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Annihilation, Chance = 60, Duration = 2 } },
+                                Effect = "영멸 [60% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 2,
                                 Cooldown = 96,
                                 Ratio = 80,
-                                Effect = "영멸 [70% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동 (모델 없음)"
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.AllEnemies, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Annihilation, Chance = 70, Duration = 2 } },
+                                Effect = "영멸 [70% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동"
                                 } }
                         }
                     }
@@ -8109,12 +8113,14 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 2,
                                 AtkCount = 1,
                                 Cooldown = 112,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Revive, TargetCount = 2, ReviveHpPercent = 35 } },
                                 Effect = "[아군 2명] 사망한 대상을 생명력 35%로 부활"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
                                 Cooldown = 112,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Revive, TargetCount = 2, ReviveHpPercent = 45 } },
                                 Effect = "[아군 2명] 사망한 대상을 생명력 45%로 부활"
                                 } }
                         }
@@ -10979,7 +10985,8 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Ratio = 120,
-                                Effect = "공포[40%,1턴] (공포 = 행동불가+효저0% 고정, 모델 미지원)"
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Fear, Chance = 40, Duration = 1 } },
+                                Effect = "공포[40%,1턴] (행동불가+효저0% 고정)"
                                 } }
                         }
                     },
@@ -11808,6 +11815,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 50,
                                 DefRatio = 60,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.Buff, Buff = new BuffSet { Cooldown_Reduction = 9 } } },
                                 Effect = "평타 시 9초쿨감"
                                 } }
                         }
@@ -15144,12 +15152,14 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Cooldown = 90,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Revive, TargetCount = 1, ReviveHpPercent = 50 } },
                                 Effect = "[단일 아군] 사망한 대상을 생명력 50%로 부활"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
                                 AtkCount = 1,
                                 Cooldown = 90,
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Revive, TargetCount = 1, ReviveHpPercent = 70 } },
                                 Effect = "강화: [단일 아군] 사망한 대상을 생명력 70%로 부활"
                                 } }
                         },
@@ -16074,7 +16084,8 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 80,
                                 Ratio = 50,
                                 DefRatio = 55,
-                                Effect = "모든 적군 물리공 50% + 방어력 55% 피해, [아군] 디버프 해제 1개 (아군 디버프 해제는 SkillEffect 모델 미지원)"
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.DebuffCleanse, DispelDebuffCount = 1 } },
+                                Effect = "모든 적군 물리공 50% + 방어력 55% 피해, [아군] 디버프 해제 1개"
                                 }},
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
@@ -16082,7 +16093,8 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 80,
                                 Ratio = 50,
                                 DefRatio = 55,
-                                Effect = "강화: 모든 적군 물리공 50% + 방어력 55% 피해, [아군] 디버프 해제 2개 (아군 디버프 해제는 SkillEffect 모델 미지원)"
+                                Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.DebuffCleanse, DispelDebuffCount = 2 } },
+                                Effect = "강화: 모든 적군 물리공 50% + 방어력 55% 피해, [아군] 디버프 해제 2개"
                                 }}
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>

@@ -75,6 +75,9 @@ namespace GameDamageCalculator.Models.Effects
 
         // === 상태이상 면역 (Type = Immunity일 때) ===
         public StatusImmunity StatusImmunity { get; set; }
+
+        // === 부활 (Type = Revive일 때) — 사망 아군 TargetCount명을 생명력 ReviveHpPercent%로 부활 ===
+        public double ReviveHpPercent { get; set; }
     }
 
     /// <summary>
@@ -91,5 +94,6 @@ namespace GameDamageCalculator.Models.Effects
         BuffTurnReduction,      // 대상의 활성 턴제 버프 잔여 턴 감소 (TurnReduction)
         BuffDispel,             // 대상(적)의 버프 N개 해제 (DispelBuffCount, 적용순·면역/무효화/권능 제외)
         DebuffCleanse,          // 대상(아군)의 디버프 N개 해제 (DispelDebuffCount)
+        Revive,                 // 사망 아군 부활 (TargetCount명, 생명력 ReviveHpPercent%)
     }
 }

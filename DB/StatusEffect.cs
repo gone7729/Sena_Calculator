@@ -68,6 +68,21 @@ namespace GameDamageCalculator.Database
                 BlocksAction = true
             }},
 
+            { StatusEffectType.Fear, new StatusEffect
+            {
+                Type = StatusEffectType.Fear,
+                Name = "공포",
+                Description = "지속시간 동안 행동할 수 없다 (효과 저항 0% 고정)",
+                BlocksAction = true
+            }},
+
+            { StatusEffectType.Annihilation, new StatusEffect
+            {
+                Type = StatusEffectType.Annihilation,
+                Name = "영멸",
+                Description = "보유 상태로 사망 시 부활/불사/불굴/권능 효과 미발동"
+            }},
+
             { StatusEffectType.Silence, new StatusEffect
             {
                 Type = StatusEffectType.Silence,
@@ -251,7 +266,7 @@ namespace GameDamageCalculator.Database
             { StatusEffectType.ChainDamage, new StatusEffect
             {
                 Type = StatusEffectType.ChainDamage,
-                Name = "카일꺼",
+                Name = "사슬 피해",
                 Description = "공격 2회 시 대상 최대 생명력의 23% 1회 방어무시(40%) 공격력 100%제한",
                 TargetMaxHpRatio = 23,
                 AtkCap = 100,

@@ -63,6 +63,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         public static SurvivalResult ResolveLethal(CharacterBattleState target)
         {
+            // 0. 영멸: 보유 시 모든 생존기(불굴/불사/권능/부활) 미발동 — 즉시 사망.
+            if (target.Effects != null && target.Effects.GetStatusEffectsOfType(StatusEffectType.Annihilation).Count > 0)
+                return new SurvivalResult { Survived = false, Label = "사망", Description = "영멸 (생존기 미발동)" };
+
             // 1. 부활 후 무적 (불굴 피격횟수 / 불사 턴) — 사망 무효
             if (target.ImmortalHitsRemaining > 0 || target.ImmortalTurnsRemaining > 0)
             {

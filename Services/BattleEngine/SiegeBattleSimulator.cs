@@ -483,7 +483,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                         foreach (var target in targets)
                         {
                             double dmg = CalcDamageToEnemy(ally, target, normal, state);
-                            ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false);
+                            bool pen = normal.GetLevelData(ally.Source.IsSkillEnhanced)?.IgnoresTurnDamageImmunity ?? false;
+                            ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false, penetrate: pen);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
                             MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
                         }
@@ -542,12 +543,12 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
         private void ApplyDamage(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target,
-            double dmg, string label, bool isSkill)
+            double dmg, string label, bool isSkill, bool penetrate = false)
         {
             if (dmg <= 0) return;
 
-            // 적 진영 피해 면역 (화 R3 룩 스킬 등) — 피해 0
-            if (state.EnemyImmunityTurns > 0)
+            // 적 진영 피해 면역 (화 R3 룩 스킬 등) — 피해 0. 단 관통(IgnoresTurnDamageImmunity)이면 면역 무시.
+            if (state.EnemyImmunityTurns > 0 && !penetrate)
             {
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
@@ -1611,7 +1612,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var target in targets)
             {
                 double dmg = CalcDamageToEnemy(ally, target, skill, state);
-                ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true);
+                bool pen = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.IgnoresTurnDamageImmunity ?? false;
+                ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true, penetrate: pen);
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
                 MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
             }
@@ -1853,8 +1855,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                             break;
                         }
                         case SkillEffectType.DebuffCleanse when e.DispelDebuffCount > 0:
-                            // 아군 후열 디버프 해제 (예: 미호 초월2). 보스의 공감 등 디버프를 제거 → 딜 회복.
-                            foreach (var a in state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition))
+                            // 아군 디버프 해제: 후열셀렉터면 후열만(미호 초월2), 아니면 Party=전체 아군(헬레니아 등).
+                            //   보스의 공감 등 디버프 제거 → 딜 회복.
+                            var cleanseTargets = e.TargetSelector == TargetSelector.BackRowAlly
+                                ? state.AllyStates.Where(x => !x.IsDead && x.Source.IsBackPosition)
+                                : state.AllyStates.Where(x => !x.IsDead);
+                            foreach (var a in cleanseTargets)
                             {
                                 int removed = a.Effects.RemoveDebuffs(e.DispelDebuffCount);
                                 if (removed > 0)
@@ -1862,6 +1868,23 @@ namespace GameDamageCalculator.Services.BattleEngine
                                         $"{a.Source.Character.Name} 디버프 {removed}개 해제");
                             }
                             break;
+                        case SkillEffectType.Revive when e.ReviveHpPercent > 0:
+                        {
+                            // 사망 아군 TargetCount명을 생명력 ReviveHpPercent%로 부활 (먼저 죽은 순).
+                            int reviveCount = e.TargetCount > 0 ? e.TargetCount : 1;
+                            // 영멸 보유 아군은 부활 불가.
+                            var dead = state.AllyStates
+                                .Where(x => x.IsDead && x.Effects.GetStatusEffectsOfType(StatusEffectType.Annihilation).Count == 0)
+                                .Take(reviveCount).ToList();
+                            foreach (var a in dead)
+                            {
+                                a.IsDead = false;
+                                a.CurrentHp = System.Math.Max(1, a.MaxHp * e.ReviveHpPercent / 100.0);
+                                Log(state, actor, true, ActionType.BuffApplied, skill.Name, 0,
+                                    $"{a.Source.Character.Name} 부활 (생명력 {e.ReviveHpPercent:0.##}%)");
+                            }
+                            break;
+                        }
                         case SkillEffectType.DamageNullification when e.DamageNullification != null:
                         {
                             // 시전자 피해 무효(강자사냥 물리면역[2턴] 등) — 적 공격 타입과 일치하면 ApplyDamageToAlly에서 0뎀.
