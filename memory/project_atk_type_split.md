@@ -21,4 +21,4 @@ metadata:
 - 새 캐릭터 추가 시: 해당 region에 넣고 `AttackType = AttackType.Magic`(마법) 명시. 물리는 기본값이라 생략 가능
 - 마법형 캐릭터 패시브/스킬에 "공격력 증가" 버프가 있으면 반드시 `MagicAtk_Rate`로 정의(`Atk_Rate`로 하면 EffAtkRate가 0을 읽어 무효화됨)
 - 향후 옵티마이저 확장 시 Phase 6 재검토 가능 + [[project-regression-test-plan]] 회귀 테스트 통합
-- 다음 작업 후보: docs/PHASE5_MAGIC_ATTACK_MIGRATION.md 참조
+- (docs/PHASE5_MAGIC_ATTACK_MIGRATION.md는 완료 후 삭제됨 — 규칙은 SYSTEM.md 2.2절)

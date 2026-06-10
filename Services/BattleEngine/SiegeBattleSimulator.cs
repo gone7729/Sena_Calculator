@@ -194,8 +194,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (state.EnemyImmunityTurns > 0) state.EnemyImmunityTurns--;
 
                 // 라운드 전환: 적 전멸 시 다음 라운드 진입 → 선공 스킬턴(0턴, 연쇄)
+                //   이 시점의 전멸은 위 라운드 내 스킬턴(또는 평타)이 깬 것 → 먼저 다음 라운드로 전환한 뒤
+                //   새 라운드의 신선한 적에게 진입 스킬을 시전한다(EnterRound). 죽은 라운드에 스킬을
+                //   공짜로 한 번 더 시전하던 버그 정정 — 데미지 없는 버프/디버프가 라운드를 못 넘기게.
                 if (state.CurrentRound < 3 && AllEnemiesDown(state))
                 {
+                    TransitionToNextRound(config, state);
                     EnterRound(config, state);
                     order = BuildActionOrder(state);   // 적 교체 → 행동순 재구성
                     cursor = 0; roundTurn = 0; inRoundSkill = 0;
@@ -218,19 +222,27 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ProcessSkillTurn(config, state, byAlly: state.AllyFirst);   // 선공 스킬턴
                 state.IsSkillTurn = false;
 
+                // 이 진입 스킬이 (신선한) 적을 전멸시킨 경우에만 다음 라운드로 연쇄.
+                //   데미지 없는 버프/디버프 진입 스킬은 적을 못 죽이므로 여기서 끊기고 평타로 진행한다.
                 if (state.CurrentRound < 3 && AllEnemiesDown(state))
                 {
-                    // 적 사망 모션: 라운드 클리어 시 1초 경과(쿨 −1초), 그 후 전환 동안 쿨 동결(추가 시간 없음). (실측 2026-06-08)
-                    AdvanceTime(state, 1.0);
-                    Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
-                        $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 진입 (사망모션 1초 경과·선공 스킬턴)");
-                    state.CurrentRound++;
-                    state.InitializeRound(state.CurrentRound);
-                    ApplyStandingEnemyDebuffs(state, config);
-                    continue;   // 다음 라운드도 0턴 선공 스킬턴
+                    TransitionToNextRound(config, state);
+                    continue;   // 다음 라운드의 신선한 적에게 0턴 선공 스킬턴
                 }
                 break;
             }
+        }
+
+        /// <summary>현재 라운드(전멸 상태)를 닫고 다음 라운드의 신선한 적을 세팅. 사망모션 1초 경과(쿨 −1초).</summary>
+        private void TransitionToNextRound(SiegeBattleConfig config, SiegeBattleState state)
+        {
+            // 적 사망 모션: 라운드 클리어 시 1초 경과(쿨 −1초), 그 후 전환 동안 쿨 동결(추가 시간 없음). (실측 2026-06-08)
+            AdvanceTime(state, 1.0);
+            Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
+                $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 진입 (사망모션 1초 경과·선공 스킬턴)");
+            state.CurrentRound++;
+            state.InitializeRound(state.CurrentRound);
+            ApplyStandingEnemyDebuffs(state, config);
         }
 
         /// <summary>선공(속공 빠른 쪽) 결정 — 현재 라운드 적 총 속공 기준. 동률 랜덤.</summary>
@@ -314,7 +326,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                         var a = state.AllyStates[dec.HeroIndex];
                         var sk = a.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == dec.Skill);
                         bool ready = sk != null && a.IsSkillReady(dec.Skill);
-                        if (!a.IsDead && !a.Effects.HasActionBlockingCC() && ready)
+                        // 전원 풀피 시 회복 스킬은 발동 불가 → 플랜 무시하고 자동(다음 스킬)으로 폴백(예약 다음 순번 발동).
+                        //   (빔은 풀피 회복을 후보에서 제외하므로 보통 비발동; 시드/HP변동 대비 방어 게이트.)
+                        bool healGated = sk != null && IsHealSkill(sk, a.Source.IsSkillEnhanced) && AllAlliesFullHp(state);
+                        if (!healGated && !a.IsDead && !a.Effects.HasActionBlockingCC() && ready)
                         {
                             if (_recordFeasibility)
                             {
@@ -337,7 +352,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                             }
                             return;
                         }
-                        if (_recordFeasibility)
+                        // healGated면 폴백 사유 미기록 — 자동 섹션이 다음 스킬을 시전.
+                        if (!healGated && _recordFeasibility)
                         {
                             // 폴백 사유 판정 (우선순위: 사망 → CC → 스킬없음 → 쿨 미충족).
                             double cdRem = sk != null ? a.SkillCooldowns.GetValueOrDefault(dec.Skill) : 0;
@@ -1600,6 +1616,21 @@ namespace GameDamageCalculator.Services.BattleEngine
         private bool AllEnemiesDown(SiegeBattleState state)
             => state.Enemies.Count > 0 && state.Enemies.All(e => e.CurrentHp <= 0);
 
+        /// <summary>살아있는 아군이 전부 생명력 100%인지. 회복 스킬 게이팅 판정용.</summary>
+        private static bool AllAlliesFullHp(SiegeBattleState state)
+            => state.AllyStates.Where(a => !a.IsDead && a.MaxHp > 0).All(a => a.CurrentHp >= a.MaxHp);
+
+        /// <summary>순수 회복 스킬인지 (회복 출력 있고 직접 피해 없음 — 리나 행진가 등).
+        /// 전원 풀피 시 게임에선 발동되지 않고 다음 예약 스킬이 나간다.</summary>
+        private static bool IsHealSkill(Skill skill, bool enh)
+        {
+            var ld = skill.GetLevelData(enh);
+            if (ld == null) return false;
+            bool heals = ld.HealHpRatio > 0 || ld.HealAtkRatio > 0 || ld.HealDefRatio > 0;
+            bool damages = ld.Ratio > 0 || ld.DefRatio > 0 || ld.HpRatio > 0 || ld.TargetMaxHpRatio > 0;
+            return heals && !damages;
+        }
+
         /// <summary>순수 파티버프 셋업 스킬인지 (데미지 0 + 파티/자기 Buff 효과). 청소시간·장비강화·따뜻한울림 등.
         /// 풀버프 정렬에서 딜러 핵보다 먼저 시전할 대상. 데미지 스킬(핵)은 Ratio>0이라 제외.</summary>
         private static bool IsPartyBuffSetup(Skill skill, bool enh)
@@ -1623,6 +1654,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 .Where(s => ally.IsSkillReady(s.SkillType))
                 .ToList();
             if (ready == null || ready.Count == 0) return null;
+            // 전원 풀피면 회복 스킬은 발동되지 않고 다음 예약(여기선 다음 우선) 스킬이 나간다(게임 규칙).
+            if (AllAlliesFullHp(state))
+            {
+                ready = ready.Where(s => !IsHealSkill(s, enh)).ToList();
+                if (ready.Count == 0) return null;
+            }
             bool teamNeedsHeal = state.AllyStates.Any(a => !a.IsDead && a.MaxHp > 0 && a.CurrentHp < a.MaxHp * 0.6);
             if (teamNeedsHeal)
             {
@@ -1692,6 +1729,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private List<RotationDecision> CollectAllyChoices(SiegeBattleState state)
         {
             var choices = new List<RotationDecision>();
+            bool allFull = AllAlliesFullHp(state);   // 전원 풀피면 회복 스킬은 후보에서 제외(게임 규칙)
             for (int ai = 0; ai < state.AllyStates.Count; ai++)
             {
                 var a = state.AllyStates[ai];
@@ -1700,6 +1738,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
                     if (!a.IsSkillReady(s.SkillType)) continue;
+                    if (allFull && IsHealSkill(s, a.Source.IsSkillEnhanced)) continue;   // 풀피 → 회복 스킬 미발동
                     choices.Add(new RotationDecision { HeroIndex = ai, Skill = s.SkillType });
                 }
             }

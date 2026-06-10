@@ -2,6 +2,9 @@
 
 세븐나이츠 리버스 게임의 데미지 계산기 + 배틀 시뮬레이터 WPF 애플리케이션
 
+> **시스템 단일 기준 문서: [SYSTEM.md](SYSTEM.md)** — 데미지 계산식·스탯/버프·공성전 규칙·옵티마이저 등
+> 게임 시스템 서술은 SYSTEM.md가 최신 기준이다. 아래 요약과 충돌하면 SYSTEM.md(와 코드)를 따른다.
+
 ## 개발 환경
 
 - .NET 8.0 (Windows), WPF, C# 12
@@ -12,64 +15,7 @@
 ## 프로젝트 구조
 
 ```
-Sena_Calculator/
-├── DB/                          # 게임 데이터베이스
-│   ├── CharacterDB.cs           # 캐릭터/스킬/패시브 정의
-│   ├── EnemyDB.cs               # 적 (보스/일반몹) 정보
-│   ├── BasicStatDB.cs           # 기본 스탯, 초월 보너스, 진형
-│   ├── PetDB.cs                 # 펫 정보
-│   ├── EquipmentDB.cs           # 장비 세트 효과, 메인옵션, 서브옵션
-│   └── StatusEffect.cs          # 상태이상 DB (CC/DoT/특수)
-│
-├── Models/                      # 데이터 모델
-│   ├── Character.cs             # 캐릭터 모델
-│   ├── Skill.cs                 # 스킬 (레거시 + 새 Effects 공존)
-│   ├── Passive.cs               # 패시브 (레거시 + 새 Effects 공존)
-│   ├── Enemy.cs                 # 적 모델 (IsBoss 플래그)
-│   ├── Stage.cs                 # 스테이지 (웨이브/적 배치)
-│   ├── BuffSet.cs               # 버프 스탯 컨테이너 (25개 속성)
-│   ├── DebuffSet.cs             # 디버프 스탯 컨테이너 (13개 속성)
-│   ├── BaseStatSet.cs           # 기본 스탯 컨테이너
-│   ├── Equipment.cs             # 장비 모델
-│   ├── EquipmentLoadout.cs      # 장비 한벌 (무기2+방어구2+장신구1)
-│   ├── Accessory.cs             # 장신구 모델
-│   ├── Formation.cs             # 진형 모델
-│   ├── BattleCharacter.cs       # 배틀 시뮬용 캐릭터
-│   ├── BuffConfig.cs            # UI 버프 설정
-│   ├── Pet.cs                   # 펫 모델
-│   ├── Preset.cs                # 프리셋 저장
-│   ├── Enums.cs                 # BattleMode 등
-│   ├── StatusEffectType.cs      # 상태이상 타입 enum
-│   └── Effects/                 # 통합 효과 시스템 (신규)
-│       ├── BattleEffect.cs      # 통합 효과 래퍼
-│       ├── SkillEffect.cs       # 스킬 턴제 효과 정의
-│       ├── PersistentEffect.cs  # 패시브 지속 효과 정의
-│       ├── EffectEnums.cs       # EffectTarget, Category, MergeStrategy
-│       └── StatusEffectData.cs  # 상태이상 수치 스냅샷
-│
-├── Services/                    # 계산 로직
-│   ├── DamageCalculator.cs      # 데미지 계산 핵심 (19단계)
-│   ├── StatCalculator.cs        # 최종 스탯 계산
-│   ├── EffectManager.cs         # 통합 효과 집계/관리
-│   ├── EffectConverter.cs       # Skill/Passive → BattleEffect 변환
-│   ├── PerDebuffBonusExtractor.cs # 디버프 수당 보너스 추출
-│   ├── PresetManager.cs         # 프리셋 저장/로드
-│   ├── BattleEngine/            # 배틀 시뮬레이터
-│   │   ├── BattleSimulator.cs   # 메인 배틀 루프
-│   │   ├── TurnManager.cs       # 턴/행동 순서 관리
-│   │   ├── BattleState.cs       # 배틀 상태 (EffectManager 통합)
-│   │   ├── BattleConfig.cs      # 배틀 설정
-│   │   └── BattleResult.cs      # 시뮬레이션 결과
-│   └── Optimizer/               # 장비 옵티마이저
-│       ├── EquipmentOptimizer.cs # 세트→메인옵→서브옵 그리디 탐색
-│       ├── SetCombination.cs     # 세트 조합 열거
-│       └── OptimizerResult.cs    # 최적화 결과
-│
-└── UI/                          # WPF UI
-    ├── MainWindow.xaml(.cs)     # 메인 데미지 계산기
-    ├── SimulatorWindow.xaml(.cs) # 배틀 시뮬레이터
-    └── Converters.cs            # XAML 변환기
-```
+
 
 ---
 
@@ -243,30 +189,11 @@ Effects = new List<PersistentEffect>
 
 ## Enemy (적) 시스템
 
-- `Enemy`: 보스/일반몹 통합 (`IsBoss` 플래그)
-- `InnateBuff`: 물리/마법 받피감 등 고유 버프
-- `InnateDebuff`: 받피증, 취약 등 고유 취약성
-- `ConditionalBuff`: 조건부 방증 등
-- `IsStackableDefenseIncrease`: 스택형 방어력 증가
-- 보스피증은 `IsTargetBoss = true`일 때만 적용
 
 ---
 
 ## 상태이상 시스템 (StatusEffect.cs)
 
-| 분류 | 종류 |
-|------|------|
-| CC | 기절, 침묵, 빙결, 석화, 빙극, 마비, 감전, 수면, 혼란, 진탕 |
-| DoT | 화상(공80%), 출혈(공60%), 중독(최대HP6%), 즉사(현재HP20%), 마력역류(최대HP12%) |
-| 특수 | 폭탄(공120%+방무40%), 출혈폭발, 수정결정(고정2435), 카일체인(최대HP23%), HP전환, 재생 |
+
 
 ---
-
-## 테스트 결과
-
-| 캐릭터 | 오차 | 상태 |
-|--------|------|------|
-| 에스파다 | 0.003% | ✅ |
-| 루리 (약점) | 0.9% | ✅ |
-| 타카 | 1.6% | ✅ |
-| 라이언 광풍참 | ~0% | ✅ |

@@ -94,10 +94,11 @@ foreach (var (day, ids) in DAYS)
         MaxTurns = 70,
         AutoEquip = true,
         SearchExclusiveWeapon = true,   // 전용장비 전설 4슬롯 조율 탐색
+        FloorFirstGear = true,          // 파티버프(비스킷 약확54 등) 반영해 치확/약확 100% 캡 — 과배분 방지
         AllyDeathPenalty = deathPenalty,
         OptimizeRotation = true,
         RotationBeamWidth = 10,
-        RotationMaxDepth = 28,
+        RotationMaxDepth = 36,          // 70턴 전 스킬턴(~18~20) 커버 + 후반 버스트까지 플랜에 포함
         // 진형·자리 전체 탐색 (Forced* 미지정)
     };
 

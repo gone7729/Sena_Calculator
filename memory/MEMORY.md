@@ -4,3 +4,4 @@
 - [공격력 타입 분리](project_atk_type_split.md) — 물리 Atk/마법 MagicAtk 분리 Phase 1-5 완료, Phase 6(옵티마이저 필터) 미진행
 - [웹 공략 사이트 (Next.js)](project_web_nextjs.md) — web/ Next.js 16, Turbopack 한글경로 버그로 webpack 고정, 영웅 데이터는 C# export 도구로 생성
 - [버프 해제 규칙](reference_buff_dispel_rules.md) — 적용 순서대로 해제, 피해면역·피해무효화·권능은 해제 불가
+- 시스템 단일 기준 문서 — 루트 [SYSTEM.md](../SYSTEM.md). 데미지 공식·게임 시스템 서술은 여기로 통합(2026-06-10), 변경 시 동시 갱신
