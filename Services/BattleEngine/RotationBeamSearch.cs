@@ -119,7 +119,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             return new Beam
             {
                 Plan = plan,
-                Score = battle.RankScore,   // 랭킹은 RankScore(생존 페널티 반영). 보고 점수는 Battle.TotalScore.
+                Score = battle.TotalScore,  // raw(기대값 딜)로 로테 탐색·채택 — 사망 페널티가 고점 버스트 로테를
+                                            // 회피하지 않게(산발 사망 허용 철학, 전멸은 raw 자체가 낮아 자연 회피).
+                                            // 생존 페널티(RankScore)는 옵티마이저의 config 간 동률 tie-break에만 사용.
                 Dps = battle.DecisionPoints,
                 Battle = battle,
             };

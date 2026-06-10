@@ -155,7 +155,10 @@ foreach (var (day, ids) in DAYS)
         });
         int eDeaths = eRes.Deaths?.Count ?? 0;
         Console.WriteLine($"  [전문가시드] {day}: 빔 Total {res.BestScore:N0}/Rank {res.BestRankScore:N0}  vs  전문가 Total {eRes.TotalScore:N0}/Rank {eRes.RankScore:N0} (사망 {eDeaths})");
-        if (eRes.RankScore > res.BestRankScore)
+        // raw(기대값) 우선 채택, 사실상 동률(±1)일 때만 생존(RankScore)로 tie-break — 옵티마이저 IsBetterPick과 동일 철학.
+        bool expertBetter = eRes.TotalScore > res.BestScore + 1.0
+            || (System.Math.Abs(eRes.TotalScore - res.BestScore) <= 1.0 && eRes.RankScore > res.BestRankScore);
+        if (expertBetter)
         {
             Console.WriteLine($"  [전문가시드 채택] {day}: 빔 {res.BestScore:N0} → 전문가 {eRes.TotalScore:N0}");
             res.BestScore = eRes.TotalScore; res.BestRankScore = eRes.RankScore;
