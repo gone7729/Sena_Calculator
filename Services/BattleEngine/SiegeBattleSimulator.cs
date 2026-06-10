@@ -58,7 +58,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private double _allyDeathPenalty;
         // [풀버프 정렬] config.BuffFirstAuto. 자동 로테가 파티버프 셋업 스킬을 딜러 핵보다 먼저 시전.
         private bool _buffFirstAuto;
-        // [광폭화] 전 보스 공통: 누적 턴(게임 70턴 시즈 카운터=state.CurrentTurn)에 따라 적이 주는 피해 증폭.
+        // [광폭화] 광폭화 패시브 보유 적(요일 보스)만, 룩·챈슬러 친위대 제외(e.HasEnrage). 누적 턴(게임 70턴 시즈 카운터=state.CurrentTurn)에 따라 적이 주는 피해 증폭.
         //   30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500% (SiegeBossSkillDb 원문).
         //   CalcDamageToAlly(적→아군)에만 곱연산. 아군→적(점수)엔 무관. _activeState로 현재 턴 참조.
         private SiegeBattleState _activeState;
@@ -847,11 +847,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsTargetBoss = false,                   // 아군은 보스 아님
                 SelfMaxHp = enemy.MaxHp,
             };
-            return _damageCalc.Calculate(input).FinalDamage * EnrageMultiplier();
+            // 광폭화는 패시브 보유 적(요일 보스)만. 룩·챈슬러 친위대는 보스취급이나 광폭화 없음 → ×1.0.
+            return _damageCalc.Calculate(input).FinalDamage * (e.HasEnrage ? EnrageMultiplier() : 1.0);
         }
 
         /// <summary>
-        /// 광폭화 배수 (전 보스 공통): 누적 턴(state.CurrentTurn = 게임 70턴 시즈 카운터)에 따라
+        /// 광폭화 배수 (광폭화 패시브 보유 적=요일 보스만; 룩·챈슬러 친위대 제외 — e.HasEnrage로 게이팅):
+        /// 누적 턴(state.CurrentTurn = 게임 70턴 시즈 카운터)에 따라
         /// 적이 주는 피해 증폭. 30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500%.
         /// 아군→적(점수)엔 적용하지 않고 적→아군 피해에만 곱연산 — 후반 생존 현실성 반영.
         /// </summary>

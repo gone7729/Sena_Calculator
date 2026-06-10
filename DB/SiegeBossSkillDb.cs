@@ -15,7 +15,7 @@ namespace GameDamageCalculator.Database
     ///
     /// === 고유 지속효과 구현 현황 ===
     /// - 공성전 감쇄: EnemyDB의 PhysicalReduction/MagicReduction + Dmg_Rdc_Single/Multi에 반영됨. [구현]
-    /// - 광폭화(전 보스 공통): 30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500%.
+    /// - 광폭화(요일 보스만; 룩·챈슬러 친위대 제외 — Enemy.HasEnrage): 30턴 +50% / 40턴 +100% / 50턴 +150% / 55턴 +200% / 60턴 +500%.
     ///     SiegeBattleSimulator.EnrageMultiplier()가 state.CurrentTurn(게임 70턴 카운터) 기준으로
     ///     적→아군 피해에 곱연산. [구현]
     /// - 반격(제이브 25%): SiegeCounterattack + MaybeEnemyCounter. [구현]

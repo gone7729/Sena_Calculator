@@ -48,6 +48,10 @@ namespace GameDamageCalculator.Models
         // 공성전: 이 적이 아군 공격에 피격될 때마다 공격력 최고 적의 스킬 쿨타임 N초 감소 (일요일 몹 패시브). 0이면 없음.
         public double SiegeHitCdReduce { get; set; }
 
+        // 공성전 광폭화 패시브 보유 여부 (요일 보스만 보유 / 룩·챈슬러 친위대는 보스취급이나 광폭화 없음).
+        //   true일 때만 EnrageMultiplier가 적→아군 피해에 곱연산. 기본 true(기존 보스 동작 유지).
+        public bool HasEnrage { get; set; } = true;
+
         // 공성전: 아군 사망 시 이 보스가 얻는 모든 피해 무효화 횟수 (델론즈 「죽음의 경계」: 피격 4회). 0이면 없음.
         //   직격 1회당 1 차감(점수 미집계), DoT는 무효지만 차감 안 함.
         public int OnAllyDeathNullifyHits { get; set; }

@@ -191,6 +191,7 @@ namespace GameDamageCalculator.Database
                         Name = name,
                         EnemyType = EnemyType.Siege,
                         IsBoss = false,
+                        HasEnrage = false,   // 룩·챈슬러 친위대: 보스취급이나 광폭화 패시브 없음
                         Stats = (stats ?? new BaseStatSet()).Clone(),
                         Skills = skills ?? new List<Skill>(),
                     };
