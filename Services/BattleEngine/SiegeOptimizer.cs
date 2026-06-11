@@ -54,6 +54,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 지정 시 EquipCandidates는 해당 메인옵만 후보로 사용.
         public Dictionary<int, (string WeaponMain, string ArmorMain)> ForcedMainByCharId { get; set; } = new();
 
+        // 기어 선정(세트·메인·부옵·전용) 평가에 쓸 정렬 로테이션. null이면 자동 로테(기존). 등록 시 기어가
+        //   "정렬된 버스트" 기준으로 선정돼 버프-캡 스탯(약확/치확)이 치피/공%로 자동 재배분됨(메인옵 포함).
+        //   HeroIndex = FixedMembers+Candidates 순서 기준.
+        public List<RotationDecision> GearEvalRotation { get; set; }
+
+        // 기어 선정 평가 진형 (null이면 "기본 진형"). 최종이 밸런스면 밸런스로 평가해야 메인옵 등 정합.
+        public string GearEvalFormation { get; set; }
+        // 기어 선정 평가 시 후열로 둘 영웅 이름(밸런스 등 진형 보너스 정합용). null이면 전부 전열.
+        public List<string> GearEvalBackRow { get; set; }
+
         // 아군 사망 1명당 랭킹 페널티(딜). 보고 점수(TotalScore)는 불변, RankScore에만 반영. 0이면 페널티 없음.
         //   작게(20만): 막판 희생 같은 최적 공격빌드는 허용(>1등), 다수 조기사망 파괴적 전멸만 차단(안전망).
         //   큰 값(예 2M)은 0사망을 강요해 최고스펙 점수를 1등 미만으로 깎으므로 지양.
@@ -404,8 +414,18 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
 
             // 2) 좌표상승: 영웅별로 각 세트 후보를 풀시뮬 팀 점수(고정 시드·기본 진형)로 비교해 최적 세트 선택
-            double FullScore() => new SiegeBattleSimulator(GearCompareSeed)
-                .Simulate(BuildSimConfig(config, team, "기본 진형")).TotalScore;
+            //   GearEvalRotation 등록 시 그 정렬 로테로 평가 → 버프-캡 스탯이 치피/공%로 자동 재배분(메인옵 포함).
+            double FullScore()
+            {
+                // 기어평가 진형·후열(최종 정합용). 기본은 "기본 진형"·전부 전열(기존 동작).
+                if (config.GearEvalBackRow != null)
+                    foreach (var t in team)
+                        t.IsBackPosition = t.Character != null && config.GearEvalBackRow.Contains(t.Character.Name);
+                var sc = BuildSimConfig(config, team, config.GearEvalFormation ?? "기본 진형");
+                if (config.GearEvalRotation != null && config.GearEvalRotation.Count > 0)
+                    sc.RotationPlan = config.GearEvalRotation;
+                return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc).TotalScore;
+            }
 
             foreach (var bc in targets)
             {

@@ -43,6 +43,16 @@ var expertByDay = new Dictionary<string, (string Name, SkillType Skill)[]>
         ("클로에", SkillType.Skill2), ("미호", SkillType.Skill1), ("나타", SkillType.Skill2),
         ("나타", SkillType.Skill1),
     },
+    // 목요일 공개 고점 빌드(유저 제공, 전용 전 12.47M, 라이언 53%·타카 38%).
+    //   라이언 강자사냥=S1·광풍참=S2 / 타카 바람의칼날=S1·죽음의무도=S2 / 레이첼 염화=S1·불새=S2 / 비스킷 장비강화=S1 / 돼오 룰렛맨=S1.
+    ["목요일"] = new (string, SkillType)[]
+    {
+        ("레이첼", SkillType.Skill1), ("라이언", SkillType.Skill1), ("비스킷", SkillType.Skill1), ("돼오", SkillType.Skill1),
+        ("타카", SkillType.Skill2), ("라이언", SkillType.Skill2), ("타카", SkillType.Skill1), ("라이언", SkillType.Skill1),
+        ("레이첼", SkillType.Skill1), ("레이첼", SkillType.Skill2), ("비스킷", SkillType.Skill1),
+        ("타카", SkillType.Skill2), ("라이언", SkillType.Skill2), ("타카", SkillType.Skill1), ("라이언", SkillType.Skill1),
+        ("돼오", SkillType.Skill1), ("레이첼", SkillType.Skill2), ("타카", SkillType.Skill2), ("라이언", SkillType.Skill2),
+    },
 };
 
 // 고정 프로필: 12초월·잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
@@ -101,6 +111,24 @@ foreach (var (day, ids) in DAYS)
         RotationMaxDepth = 36,          // 70턴 전 스킬턴(~18~20) 커버 + 후반 버스트까지 플랜에 포함
         // 진형·자리 전체 탐색 (Forced* 미지정)
     };
+    // 라이언(1등 물리딜러) 무기 메인 = 치피 고정. 비스킷54+레이첼27로 약확 캡 → 약확 메인은 과옵션.
+    //   옵티마이저 메인옵 선정이 "고정 로테" 평가라 빔 천장(치피 메인일 때 더 높음)을 못 봐 약확을 골랐음.
+    //   검증: 목 14.87→15.71M(+5.7%)·금 13.92→17.09M(+22.7%). 토는 −0.8%(풍연팀, 약확 캡 미달)라 제외.
+    //   인자 "라이언약확"이면 비활성(기존 자동선정과 비교용).
+    if (!args.Contains("라이언약확") && (day == "목요일" || day == "금요일"))
+        cfg.ForcedMainByCharId[2] = ("치명타피해%", "공격력%");
+
+    // [기어=정렬 기준 선정] (실험·opt-in "기어정렬") expert 로테로 기어 선정. ★검증결과 역효과(목요일 14.87→13.92M):
+    //   기본진형 단발 평가가 최종 빔과 불일치해 전체 기어가 나빠짐 → 기본 비활성. 라이언 치피 메인은 ForcedMain으로 별도 처리 권장.
+    if (args.Contains("기어정렬") && expertByDay.TryGetValue(day, out var gearRot))
+    {
+        var teamNames = team.Select(t => t.Character.Name).ToList();
+        cfg.GearEvalRotation = gearRot
+            .Select(s => new RotationDecision { HeroIndex = teamNames.FindIndex(n => n == s.Name), Skill = s.Skill })
+            .Where(d => d.HeroIndex >= 0).ToList();
+        cfg.GearEvalFormation = "밸런스 진형";                                   // 최종 진형 정합
+        cfg.GearEvalBackRow = day == "목요일" ? new List<string> { "라이언", "타카" } : null;  // 최종 후열 정합
+    }
 
     var sw = System.Diagnostics.Stopwatch.StartNew();
     var res = new SiegeOptimizer().Optimize(cfg);
