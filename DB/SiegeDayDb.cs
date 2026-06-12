@@ -190,8 +190,8 @@ namespace GameDamageCalculator.Database
                         Id = MobId(name, round),
                         Name = name,
                         EnemyType = EnemyType.Siege,
-                        IsBoss = false,
-                        HasEnrage = false,   // 룩·챈슬러 친위대: 보스취급이나 광폭화 패시브 없음
+                        IsBoss = false,        // (런타임 보스취급은 StageEnemy.IsBoss가 결정 — R3 배치에서 true. 여기 Enemy.IsBoss는 미사용)
+                        HasEnrage = false,     // 룩·챈슬러 친위대: 보스취급이나 광폭화 패시브만은 없음(요일 보스만 보유)
                         Stats = (stats ?? new BaseStatSet()).Clone(),
                         Skills = skills ?? new List<Skill>(),
                     };
