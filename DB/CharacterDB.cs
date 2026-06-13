@@ -8419,7 +8419,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 160,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, PreDamage = true, Debuff = new DebuffSet { Def_Reduction = 36, Phys_Dmg_Taken_Increase = 28 } }   // 툴팁: 방깎/취약 먼저 → 그 피해 증폭
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 4, PreDamage = true, Debuff = new DebuffSet { Def_Reduction = 36, Phys_Dmg_Taken_Increase = 28 } }   // 2초월 턴상승 반영(3→4턴, 시뮬 항상 2초월+). 툴팁: 방깎/취약 먼저 → 그 피해 증폭
                                 },
                                 Effect = ""
                                 } }
@@ -8720,9 +8720,10 @@ namespace GameDamageCalculator.Database
                                     Target = EffectTarget.Party,
                                     Type = PersistentEffectType.Immunity,
                                     StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Stun }, Duration = 2 } },
-                                // 후열 아군 - 모든 공격 2회 발동 시 물리 공격력 증가 [2턴] (후열 한정은 모델 미지원)
+                                // 후열 아군 - 모든 공격 2회 발동 시 물리 공격력 증가 [2턴] (2초월 3턴은 전열 가정 시드라 base는 2 유지)
                                 new PersistentEffect {
                                     Target = EffectTarget.Party,
+                                    TargetSelector = TargetSelector.BackRowAlly,   // 후열 아군 한정 (ProcessAttackBuffs가 처리)
                                     Type = PersistentEffectType.Buff,
                                     IsConditional = true,
                                     ApplyMode = ApplyMode.Triggered,
@@ -8742,12 +8743,13 @@ namespace GameDamageCalculator.Database
                                     StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Stun }, Duration = 2 } },
                                 new PersistentEffect {
                                     Target = EffectTarget.Party,
+                                    TargetSelector = TargetSelector.BackRowAlly,   // 후열 아군 한정 (ProcessAttackBuffs가 처리)
                                     Type = PersistentEffectType.Buff,
                                     IsConditional = true,
                                     ApplyMode = ApplyMode.Triggered,
                                     TriggerCondition = TriggerCondition.AllAttack,
                                     TriggerCount = 2,
-                                    Duration = 2,
+                                    Duration = 3,   // 시뮬은 항상 2초월+ → 턴 상승(2→3) 반영
                                     Buff = new BuffSet { Atk_Rate = 27 } }
                             }
                         }}

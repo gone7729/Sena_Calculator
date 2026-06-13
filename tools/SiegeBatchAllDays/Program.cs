@@ -55,19 +55,21 @@ var expertByDay = new Dictionary<string, (string Name, SkillType Skill)[]>
     },
 };
 
-// 고정 프로필: 12초월·잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
-//   (6초월 프로필 폐지 — 12초월 단일. 파일 접미사는 12초월잠재3 유지.)
-int TRANS = 12;
+// 프로필: 잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
+//   초월은 인자로 선택: "6초월" 주면 6초월(사용자 실측 스펙 대조용), 미지정이면 12초월(고스펙 천장).
+int TRANS = args.Contains("6초월") ? 6 : 12;
 int POT = 3;
-string SUFFIX = "12초월잠재3";
+string SUFFIX = $"{TRANS}초월잠재3";
 
 // 인자로 요일 지정 시 해당 요일만 탐색 (예: dotnet run -- 수요일). 미지정이면 전 요일. (프로필 토큰은 요일 아님 → 무시)
 var dayArgs = args.Where(a => DAYS.Any(d => d.Day == a)).ToArray();
 if (dayArgs.Length > 0)
     DAYS = DAYS.Where(d => dayArgs.Contains(d.Day)).ToArray();
 
-// 사망 페널티 오버라이드(튜닝/검증): 인자 "페널티N" (예: 페널티0). 미지정이면 기본 20만(최적 공격빌드 허용·전멸만 차단).
-double deathPenalty = 200_000;
+// 사망 페널티 오버라이드(튜닝/검증): 인자 "페널티N" (예: 페널티0). 미지정이면 기본 100만.
+//   딜러 공격조율(탄성 제외) 후 생존을 빔이 주기적 버프해제 로테로 확보하도록 유도하는 값(토요일 4→1사망, 해제 3회).
+//   20만(구값)은 사망 빌드가 너무 쉽게 채택돼 후반 줄사망 허용 → 100만으로 상향.
+double deathPenalty = 1_000_000;
 var penArg = args.FirstOrDefault(a => a.StartsWith("페널티"));
 if (penArg != null && double.TryParse(penArg.Substring("페널티".Length), out var pv)) deathPenalty = pv;
 
@@ -84,6 +86,9 @@ BattleCharacter Hero(int id)
 }
 
 string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+// 출력은 results/siege/ 아래로 모은다 (json/txt/battlelog). 웹 반영은 web/scripts/sync-siege.mjs.
+string outDir = System.IO.Path.Combine(repoRoot, "results", "siege");
+System.IO.Directory.CreateDirectory(outDir);
 var jsonOpts = new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
 foreach (var (day, ids) in DAYS)
@@ -128,6 +133,23 @@ foreach (var (day, ids) in DAYS)
             .Where(d => d.HeroIndex >= 0).ToList();
         cfg.GearEvalFormation = "밸런스 진형";                                   // 최종 진형 정합
         cfg.GearEvalBackRow = day == "목요일" ? new List<string> { "라이언", "타카" } : null;  // 최종 후열 정합
+    }
+
+    // [검증] 인자 "강제딜러후열": 밸런스 진형에 딜러 2명(요일별)을 후열 강제 — 자동 자리탐색과 점수 비교용.
+    //   사용자 가설: 딜러 후열(물공증·딜보존) + 비딜러 전열(반격 탱킹)이 빔 자동(딜러 전열)보다 높다.
+    if (args.Contains("강제딜러후열"))
+    {
+        var dealerBack = new Dictionary<string, List<string>>
+        {
+            ["금요일"] = new() { "라이언", "타카" },
+            ["목요일"] = new() { "라이언", "타카" },
+            ["토요일"] = new() { "라이언", "타카" },
+        };
+        if (dealerBack.TryGetValue(day, out var db))
+        {
+            cfg.ForcedFormation = "밸런스 진형";
+            cfg.ForcedBackRow = db;
+        }
     }
 
     var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -184,9 +206,9 @@ foreach (var (day, ids) in DAYS)
         });
         int eDeaths = eRes.Deaths?.Count ?? 0;
         Console.WriteLine($"  [전문가시드] {day}: 빔 Total {res.BestScore:N0}/Rank {res.BestRankScore:N0}  vs  전문가 Total {eRes.TotalScore:N0}/Rank {eRes.RankScore:N0} (사망 {eDeaths})");
-        // raw(기대값) 우선 채택, 사실상 동률(±1)일 때만 생존(RankScore)로 tie-break — 옵티마이저 IsBetterPick과 동일 철학.
-        bool expertBetter = eRes.TotalScore > res.BestScore + 1.0
-            || (System.Math.Abs(eRes.TotalScore - res.BestScore) <= 1.0 && eRes.RankScore > res.BestRankScore);
+        // 생존(RankScore) 우선 채택, 사실상 동률(±1)일 때만 raw로 tie-break — 옵티마이저 IsBetterPick과 동일 철학.
+        bool expertBetter = eRes.RankScore > res.BestRankScore + 1.0
+            || (System.Math.Abs(eRes.RankScore - res.BestRankScore) <= 1.0 && eRes.TotalScore > res.BestScore);
         if (expertBetter)
         {
             Console.WriteLine($"  [전문가시드 채택] {day}: 빔 {res.BestScore:N0} → 전문가 {eRes.TotalScore:N0}");
@@ -195,16 +217,7 @@ foreach (var (day, ids) in DAYS)
         }
     }
 
-    string SkNm(int hi, SkillType st) =>
-        res.BestParty[hi].Character.Skills?.FirstOrDefault(s => s.SkillType == st)?.Name ?? st.ToString();
-
     var party = (res.BestResult?.CharacterResults ?? new()).OrderByDescending(c => c.TotalDamage).ToList();
-    var skillOrder = (res.BestRotationPlan ?? new()).Select((d, i) => new
-    {
-        step = i + 1,
-        hero = d.Hold ? "(홀드)" : nm[d.HeroIndex],
-        skill = d.Hold ? "" : SkNm(d.HeroIndex, d.Skill),
-    }).ToList();
 
     // ── 빌드 실행가능성 검증 ──
     //   폴백/쿨여유는 반격 OFF(0%)로 검사 — 빔이 가정한 무반격 베이스라인에서 로테가 실제 실행가능한지.
@@ -220,6 +233,14 @@ foreach (var (day, ids) in DAYS)
         CounterattackChanceOverride = 0,   // 0% 기준 폴백검사
     });
     var feas = feasRes.Feasibility;
+    // 스킬 빌드 = 실제 시전 순서(빔 플랜 + 플랜 범위 밖 자동 시전 포함, 70턴 전체). isAuto로 빔 명시 최적화 여부 구분.
+    var skillOrder = feas.Where(f => f.Reached && !f.Hold).Select(f => new
+    {
+        step = f.StepIndex + 1,
+        hero = f.HeroName,
+        skill = f.SkillName,
+        isAuto = f.IsAuto,
+    }).ToList();
     int feasFallbacks = feas.Count(f => !f.ExecutedAsPlanned && !f.Hold && f.Reached);
     int feasUnreached = feas.Count(f => !f.Reached);
     // 최소 쿨여유 = 재시전(쿨 제약 받은 캐스트)만 — 첫 시전(쿨 무관)은 견고성 지표에서 제외.
@@ -432,7 +453,7 @@ foreach (var (day, ids) in DAYS)
         blsb.AppendLine($"=== {day} {SUFFIX} 전투로그 (반격 0% 재생, {feasRes.TurnLogs.Count} entries) ===");
         foreach (var l in feasRes.TurnLogs)
             blsb.AppendLine($"T{l.Turn,2} [{(l.IsAlly ? "아" : "적")}] {l.ActorName,-6} {l.SkillName,-10} {(l.DamageDealt > 0 ? $"{l.DamageDealt,12:N0}" : "".PadLeft(12))}  {l.Description}");
-        string blPath = System.IO.Path.Combine(repoRoot, $"battlelog_{day}_{SUFFIX}.txt");
+        string blPath = System.IO.Path.Combine(outDir, $"battlelog_{day}_{SUFFIX}.txt");
         System.IO.File.WriteAllText(blPath, blsb.ToString(), Encoding.UTF8);
         Console.WriteLine($"  [전투로그] {blPath}");
     }
@@ -499,7 +520,7 @@ foreach (var (day, ids) in DAYS)
             }),
         },
     };
-    string jsonPath = System.IO.Path.Combine(repoRoot, $"siege_{day}_{SUFFIX}.json");
+    string jsonPath = System.IO.Path.Combine(outDir, $"siege_{day}_{SUFFIX}.json");
     System.IO.File.WriteAllText(jsonPath, JsonSerializer.Serialize(jsonObj, jsonOpts), Encoding.UTF8);
 
     // ── TXT ──
@@ -523,6 +544,7 @@ foreach (var (day, ids) in DAYS)
     {
         string status = f.Hold ? "홀드"
             : !f.Reached ? "✗ 미도달"
+            : f.IsAuto ? "○ 자동"
             : f.ExecutedAsPlanned ? (f.CooldownGated ? $"✓ 여유 {f.Slack,5:F1}s" : "✓ 첫시전")
             : $"✗ 폴백({f.FallbackReason})";
         string when = (f.Reached && !f.Hold) ? $"T{f.Turn,2} {f.Elapsed,4:F0}s  " : "            ";
@@ -542,7 +564,7 @@ foreach (var (day, ids) in DAYS)
         foreach (var d in feasRes.Deaths)
             sb.AppendLine($"  T{d.Turn,2} {d.Elapsed,4:F0}s  {d.AllyName} 사망 ← {d.Cause}");
     }
-    string txtPath = System.IO.Path.Combine(repoRoot, $"siege_{day}_{SUFFIX}.txt");
+    string txtPath = System.IO.Path.Combine(outDir, $"siege_{day}_{SUFFIX}.txt");
     System.IO.File.WriteAllText(txtPath, sb.ToString(), Encoding.UTF8);
 
     Console.WriteLine($"[{day}] 총점 {res.BestScore:N0} · {res.BestFormation} · 실행가능 {(feasOk ? "✓" : $"✗(폴백{feasFallbacks}/미도달{feasUnreached})")} 최소여유 {feasMinSlackStr} · {sw.ElapsedMilliseconds / 1000.0:F0}s → JSON+TXT 저장");

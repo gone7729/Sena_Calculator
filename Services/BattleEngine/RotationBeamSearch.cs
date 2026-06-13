@@ -20,13 +20,19 @@ namespace GameDamageCalculator.Services.BattleEngine
             public SiegeBattleResult Battle { get; set; }
             public int Evaluated { get; set; }
             public List<double> ScoreByDepth { get; set; } = new();   // 깊이별 최고점 추이
+            // 생존 트랙: RankScore(사망 페널티 반영) 최고 플랜. raw 최고와 다를 수 있다(예: 토요일
+            //   해제 로테로 사망을 피한 플랜). 호출부가 둘 다 재평가해 RankScore 우선으로 채택한다.
+            public List<RotationDecision> RankPlan { get; set; }
+            public double RankScore { get; set; }
         }
 
         private class Beam
         {
             public List<RotationDecision> Plan;
             public double Score;          // 이 플랜의 풀시뮬 점수(디폴트 꼬리 포함)
+            public double Rank;           // RankScore(=Score − 사망페널티) — 생존 트랙 랭킹용
             public double LookScore;      // 1-스텝 lookahead 점수(자식 중 최고) — 가지치기 랭킹용
+            public double LookRank;       // 1-스텝 lookahead RankScore — 생존 트랙 가지치기용
             public List<RotationDecisionPoint> Dps;
             public SiegeBattleResult Battle;
         }
@@ -52,6 +58,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Score = init.Score,
                 Battle = init.Battle,
                 ScoreByDepth = { init.Score },
+                RankPlan = new List<RotationDecision>(),
+                RankScore = init.Rank,
             };
             var beams = new List<Beam> { init };
 
@@ -85,14 +93,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                 foreach (var c in ranked)
                 {
                     c.LookScore = c.Score;
+                    c.LookRank = c.Rank;
                     if (d + 1 < c.Dps.Count)
                         foreach (var choice2 in c.Dps[d + 1].Choices)
                         {
-                            double s = Run(baseConfig, new List<RotationDecision>(c.Plan) { choice2 }).Score;
-                            if (s > c.LookScore) c.LookScore = s;
+                            var child = Run(baseConfig, new List<RotationDecision>(c.Plan) { choice2 });
+                            if (child.Score > c.LookScore) c.LookScore = child.Score;
+                            if (child.Rank > c.LookRank) c.LookRank = child.Rank;
                         }
                 }
-                beams = ranked.OrderByDescending(c => c.LookScore).Take(beamWidth).ToList();
+                // 가지치기: raw 상위 K ∪ 생존(RankScore) 상위 K — 고점 버스트 라인과 생존 라인을 모두 유지.
+                //   사망이 없는 구간에서는 두 랭킹이 동일해 풀 크기가 K 그대로(추가 비용 0).
+                beams = ranked.OrderByDescending(c => c.LookScore).Take(beamWidth)
+                    .Union(ranked.OrderByDescending(c => c.LookRank).Take(beamWidth))
+                    .ToList();
 
                 var top = candidates.OrderByDescending(c => c.Score).First();   // best는 실제 점수 기준
                 if (top.Score > best.Score)
@@ -100,6 +114,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                     best.Plan = top.Plan;
                     best.Score = top.Score;
                     best.Battle = top.Battle;
+                }
+                var topRank = candidates.OrderByDescending(c => c.Rank).First();
+                if (topRank.Rank > best.RankScore)
+                {
+                    best.RankPlan = topRank.Plan;
+                    best.RankScore = topRank.Rank;
                 }
                 best.ScoreByDepth.Add(best.Score);
 
@@ -119,9 +139,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             return new Beam
             {
                 Plan = plan,
-                Score = battle.TotalScore,  // raw(기대값 딜)로 로테 탐색·채택 — 사망 페널티가 고점 버스트 로테를
-                                            // 회피하지 않게(산발 사망 허용 철학, 전멸은 raw 자체가 낮아 자연 회피).
-                                            // 생존 페널티(RankScore)는 옵티마이저의 config 간 동률 tie-break에만 사용.
+                Score = battle.TotalScore,  // raw(기대값 딜) 트랙 — 고점 버스트 라인 탐색용
+                Rank = battle.RankScore,    // 생존 트랙 — 사망 페널티 반영, 최종 채택은 이 기준(옵티마이저)
                 Dps = battle.DecisionPoints,
                 Battle = battle,
             };

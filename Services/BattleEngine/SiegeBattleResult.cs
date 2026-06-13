@@ -52,6 +52,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public string SkillName { get; set; }       // 계획 스킬 (홀드면 "")
         public bool Hold { get; set; }              // 의도된 홀드 스텝
         public bool ExecutedAsPlanned { get; set; } // 계획대로 시전됨? (홀드는 true 취급)
+        public bool IsAuto { get; set; }            // 빔 플랜 범위 밖(plan.Count 초과) 자동 로테가 시전한 스텝 — 빔이 명시 최적화한 게 아님
         public bool Reached { get; set; } = true;   // 전투 중 이 스텝에 도달했는지(false=전투 조기종료/스킬턴 부족)
         public string FallbackReason { get; set; }  // 폴백 사유 (시전자 사망/행동불가 CC/쿨 N초 남음/스킬 없음)
         public double CooldownRemaining { get; set; }// 폴백이 쿨 때문이면 잔여 쿨(초) = 위반 크기

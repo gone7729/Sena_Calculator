@@ -1068,19 +1068,21 @@ html, body {
 /* ===== 공성전 시뮬 뷰어 — 요일 카드 ===== */
 .siege-day-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
-  margin: 14px 0 18px;
+  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  gap: 10px;
+  margin: 14px 0 20px;
 }
 .siege-day-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 14px 12px;
+  gap: 3px;
+  min-width: 0;
+  padding: 12px 12px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
   cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
   text-align: left;
   font-family: inherit;
   color: var(--text);
@@ -1092,14 +1094,37 @@ html, body {
   box-shadow: 0 0 0 1px var(--brand);
   background: var(--brand-soft);
 }
-.siege-day-card-day { font-size: 20px; font-weight: 700; color: var(--brand); }
-.siege-day-card-boss { font-size: 13px; color: var(--text-muted); }
-.siege-day-card-score { font-size: 16px; font-weight: 700; color: var(--accent); margin-top: 2px; }
+.siege-day-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.siege-day-card-day { font-size: 19px; font-weight: 700; color: var(--brand); line-height: 1; }
+.siege-day-card-today {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 2px 7px;
+  line-height: 1.2;
+}
+.siege-day-card-boss {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.siege-day-card-score { font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 3px; font-variant-numeric: tabular-nums; }
 .siege-day-card-team {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-faint);
   line-height: 1.4;
-  margin-top: 4px;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 펫 세팅 모드 행 (커스텀 뷰어) */
@@ -1134,4 +1159,191 @@ html, body {
   border: none;
   border-radius: 0;
   background: var(--surface);
+  font-size: 11.5px;
+  line-height: 1.7;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* ===== 영웅 아이콘 (public/heroes/{id|이름}.png) ===== */
+.hero-icon {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  object-fit: cover;
+  display: block;
+}
+.hero-icon-empty {
+  border: 1px dashed var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 10px;
+  background: #fbfaf6;
+}
+.hero-icon-sm {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+.hero-icon-empty.hero-icon-sm { font-size: 0; }
+
+/* ===== 진형 배치 카드 (시뮬 뷰어) ===== */
+.siege-formation-wrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin: 8px 0 18px;
+}
+@media (max-width: 980px) {
+  .siege-formation-wrap { grid-template-columns: 1fr; }
+}
+.siege-formation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.siege-formation-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.siege-formation-label {
+  width: 34px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.siege-formation-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.siege-formation-empty {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+.siege-formation-card {
+  width: 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s, border-color 0.12s;
+}
+.siege-formation-card:hover { background: var(--hover); }
+.siege-formation-card.active {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand);
+  background: var(--brand-soft);
+}
+.siege-formation-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.siege-formation-meta {
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+.siege-formation-share {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* 선택 영웅 장비 세팅 패널 (시뮬 뷰어) */
+.siege-hero-gear {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px 16px;
+  background: var(--surface);
+  min-width: 0;
+}
+.siege-hero-gear-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.siege-hero-gear-meta {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.siege-hero-gear-stats {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.siege-hero-gear-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.siege-hero-gear-cols .equip-group { min-width: 0; }
+
+/* ===== 스킬 순서 칩 (시뮬 뷰어) ===== */
+.siege-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 18px;
+}
+.siege-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 4px 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.siege-skill-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.siege-skill-hero { color: var(--brand); font-weight: 700; }
+.siege-skill-name { color: var(--text-muted); }
+.siege-skill-chip.auto {
+  border-style: dashed;
+  opacity: 0.85;
+}
+.siege-skill-auto {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-faint);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 1px 5px;
 }

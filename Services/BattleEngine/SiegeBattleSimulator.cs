@@ -388,7 +388,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             if (cd > bestSetup.cd) bestSetup = (idx, s, cd);
                         }
                     }
-                    if (bestSetup.sk != null) { ExecuteAllySkill(state, bestSetup.idx, bestSetup.sk); return; }
+                    if (bestSetup.sk != null) { ExecuteAllySkill(state, bestSetup.idx, bestSetup.sk); RecordAutoFeasStep(state, stIdx, bestSetup.idx, bestSetup.sk); return; }
                 }
 
                 // 자동: 라운드로빈(AllyRotationCursor)으로 순회 → 첫 시전 가능한 아군이 PickAllySkill 시전.
@@ -401,6 +401,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     var skill = PickAllySkill(ally, state);
                     if (skill == null) continue;
                     ExecuteAllySkill(state, idx, skill);
+                    RecordAutoFeasStep(state, stIdx, idx, skill);
                     return;
                 }
             }
@@ -532,6 +533,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (targets.Count > 0)
                         {
                             ProcessAttackStacks(state, ally, isSkill: false);   // 공격 발동형 스택 — 평타 2회마다 1회
+                            ProcessAttackBuffs(state, ally, isSkill: false);    // 공격 발동형 아군 버프(지크 물공증) — 평타 2회마다
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                             ApplyBasicAttackCdReduction(state, ally, normal);   // 평타 쿨감(예: 라이언 자신+최고공격력 아군 9초)
                             ApplySkillHeal(state, ally, normal);   // 평타 회복(예: 리나 강화평타 최저HP 아군 7%)
@@ -819,6 +821,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 아군 받피감(자버프) + 아군에게 걸린 받피증/취약(적 디버프)
             var (perm, timed, pet) = ally.Effects.GetSeparatedBuffs();
             double allyDmgRdc = perm.Dmg_Rdc + timed.Dmg_Rdc + pet.Dmg_Rdc;
+            // 물리/마법 받피감(타입별) — 적 공격 속성에 맞는 것만 적용. (그간 누락돼 탱킹/유틸 패시브의
+            //   물리감소·마법감소가 무시됨 → 전열 탱킹 가치 저평가로 자리 배치 왜곡됐음.)
+            bool enemyMagic = e.AttackType == AttackType.Magic;
+            allyDmgRdc += enemyMagic
+                ? perm.Mag_Dmg_Rdc + timed.Mag_Dmg_Rdc + pet.Mag_Dmg_Rdc
+                : perm.Phys_Dmg_Rdc + timed.Phys_Dmg_Rdc + pet.Phys_Dmg_Rdc;
             // 5인기 받피감(Dmg_Rdc_Multi, 예: 비스킷 패시브 20%)은 적의 광역(4~5인) 공격에만 적용.
             int enemyTgtCount = enemySkill?.GetTargetCount(false, 0) ?? 1;
             if (enemyTgtCount >= 4)
@@ -1693,6 +1701,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
+            ProcessAttackBuffs(state, ally, isSkill: true);    // 공격 발동형 아군 버프(지크 물공증) — 스킬 발동 시 1회
             ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
             ApplySkillHeal(state, ally, skill);   // 스킬 직접 회복(HealHpRatio, 예: 리나 행진가 전체회복 24%)
             ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
@@ -2032,6 +2041,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 공%로 atk만 뻥튀기한 캐릭(예: 레이첼)이 버프를 가로채는 문제 방지. 비딜러(=0)는 후순위.
                 return alive.OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk)
                     .Take(System.Math.Max(1, tgtCount)).ToList();
+            if (selector == TargetSelector.BackRowAlly)   // 후열 아군 한정 (지크 물공증, 미호 디버프해제와 동일 패턴)
+                return alive.Where(a => a.Source.IsBackPosition).ToList();
+            if (selector == TargetSelector.FrontRowAlly)  // 전열 아군 한정
+                return alive.Where(a => !a.Source.IsBackPosition).ToList();
             return alive;   // Party 전체
         }
 
@@ -2098,6 +2111,62 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
+        /// <summary>아군 공격 발동형 버프 처리 (예: 지크 "나만 믿어" — 모든 공격 2회마다 후열 아군 물공증[2초월 3턴]).
+        /// 트리거: 평타 TriggerCount회마다 1회 OR 스킬 발동 시 즉시 1회. 대상은 effect.TargetSelector(BackRowAlly 등).
+        /// ProcessAttackStacks(적 디버프)의 아군 버프 버전 — 적 디버프는 거기서, 아군 버프는 여기서 처리.</summary>
+        private void ProcessAttackBuffs(SiegeBattleState state, CharacterBattleState ally, bool isSkill)
+        {
+            var passive = ally.Source.Character.Passive;
+            var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced);
+            if (lvl?.Effects == null) return;
+
+            for (int ei = 0; ei < lvl.Effects.Count; ei++)
+            {
+                var effect = lvl.Effects[ei];
+                if (effect.ApplyMode != ApplyMode.Triggered) continue;
+                if (effect.Type != PersistentEffectType.Buff || effect.Buff == null) continue;
+                if (effect.Target != EffectTarget.Party && effect.Target != EffectTarget.Self) continue;
+                bool matches = effect.TriggerCondition switch
+                {
+                    TriggerCondition.AllAttack => true,
+                    TriggerCondition.SkillOnly => isSkill,
+                    TriggerCondition.NormalOnly => !isSkill,
+                    _ => false,
+                };
+                if (!matches) continue;
+
+                // 트리거 판정: 스킬 즉시 1회, 평타는 TriggerCount회마다 1회. 카운터는 평타에만, 라운드별 리셋.
+                if (!isSkill)
+                {
+                    string ckey = $"siege_buffcnt:{ally.PartyIndex}:{ei}:R{state.CurrentRound}";
+                    ally.StackTriggerCounters.TryGetValue(ckey, out int cnt);
+                    cnt++;
+                    if (cnt < System.Math.Max(1, effect.TriggerCount)) { ally.StackTriggerCounters[ckey] = cnt; continue; }
+                    ally.StackTriggerCounters[ckey] = 0;
+                }
+
+                int dur = effect.Duration > 0 ? effect.Duration : 99;
+                var targets = ResolveAllyBuffTargets(state, ally, effect.Target, effect.TargetSelector, state.AllyStates.Count);
+                foreach (var t in targets)
+                {
+                    string id = $"siege_atkbuff:{ally.PartyIndex}:{ei}:{t.PartyIndex}";
+                    t.Effects.AddEffect(new BattleEffect
+                    {
+                        Id = id, SourceName = id,
+                        Category = EffectCategory.ActiveSelfBuff,
+                        Target = EffectTarget.Self,
+                        MergeStrategy = MergeStrategy.MaxMerge,
+                        IsPermanent = false,
+                        RemainingTurns = dur,
+                        BuffValues = effect.Buff.Clone(),
+                    });
+                }
+                if (targets.Count > 0)
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, passive.Name, 0,
+                        $"{string.Join(",", targets.Select(t => t.Source.Character.Name))} {SummarizeBuff(effect.Buff)} [{dur}턴]");
+            }
+        }
+
         /// <summary>디버프를 스택 수만큼 합산 (스택당 효과).</summary>
         private static DebuffSet ScaleDebuff(DebuffSet b, int stacks)
         {
@@ -2133,7 +2202,8 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>[실행가능성] 빌드 1스텝 결과 기록 (계획대로 시전/폴백/홀드).</summary>
         private void RecordFeasStep(SiegeBattleState state, int stepIdx, RotationDecision dec,
-            CharacterBattleState ally, Skill sk, bool executed, string reason, double cdRem, double slack, bool gated = false)
+            CharacterBattleState ally, Skill sk, bool executed, string reason, double cdRem, double slack,
+            bool gated = false, bool isAuto = false)
         {
             _feasLog.Add(new BuildStepFeasibility
             {
@@ -2144,11 +2214,27 @@ namespace GameDamageCalculator.Services.BattleEngine
                 HeroName = dec.Hold ? "(홀드)" : (ally?.Source.Character.Name ?? ResolveHeroName(state, dec.HeroIndex)),
                 SkillName = dec.Hold ? "" : (sk?.Name ?? dec.Skill.ToString()),
                 ExecutedAsPlanned = executed,
+                IsAuto = isAuto,
                 FallbackReason = reason,
                 CooldownRemaining = cdRem,
                 Slack = slack,
                 CooldownGated = gated,
             });
+        }
+
+        /// <summary>자동 폴백(플랜 범위 밖) 시전을 실행가능성 로그에 기록 + 시전 대상(버프/디버프/해제) 표기.</summary>
+        private void RecordAutoFeasStep(SiegeBattleState state, int stepIdx, int heroIdx, Skill sk)
+        {
+            if (!_recordFeasibility) return;
+            var a = state.AllyStates[heroIdx];
+            RecordFeasStep(state, stepIdx, new RotationDecision { HeroIndex = heroIdx, Skill = sk.SkillType },
+                a, sk, executed: true, reason: null, cdRem: 0, slack: 0, gated: false, isAuto: true);
+            if (_feasLog.Count > 0)
+            {
+                if (_curCastAllyBuffTargets.Count > 0) _feasLog[^1].BuffTargets = _curCastAllyBuffTargets.Distinct().ToList();
+                if (_curCastDebuffTargets.Count > 0) _feasLog[^1].DebuffTargets = _curCastDebuffTargets.Distinct().ToList();
+                if (_curCastDispelTargets.Count > 0) _feasLog[^1].DispelTargets = _curCastDispelTargets.Distinct().ToList();
+            }
         }
 
         private static string ResolveHeroName(SiegeBattleState state, int idx)

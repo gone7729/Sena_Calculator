@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync-siege": "node scripts/sync-siege.mjs"
   },
   "dependencies": {
     "next": "16.2.6",

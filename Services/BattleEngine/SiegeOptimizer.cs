@@ -80,6 +80,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public SiegeBattleResult BestResult { get; set; }
         public List<string> BestBackRow { get; set; } = new();   // 최적 후열 배치 영웅 이름
         internal int BestMask { get; set; }                       // 최적 후열 배치 비트마스크 (재적용용)
+        internal List<Accessory> RingedAcc { get; set; }          // 생존반지 적용 후 장신구 구성(후보별 격리 평가용, team 공유라 원복 후 재적용)
         public List<RotationDecision> BestRotationPlan { get; set; } = new();   // 빔서치 최적 스킬 로테이션
         public double AutoRotationScore { get; set; }             // 자동 로테이션 점수 (빔서치 전, 비교용)
         public int EvaluatedCount { get; set; }     // 평가한 (조합 × 진형 × 자리) 수
@@ -180,7 +181,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                             PetOptionHpRate = config.PetOptionHpRate,
                             MaxTurns = config.MaxTurns,
                         };
-                        var result = _sim.Simulate(simConfig);
+                        // 매 마스크 새 시뮬 인스턴스 — 공유 인스턴스는 시뮬 간 상태(쿨/카운터 등) 누적 오염 위험
+                        //   (같은 config가 자리탐색 경로에 따라 다른 자동로테 점수를 내던 문제 방지).
+                        var result = new SiegeBattleSimulator(GearCompareSeed).Simulate(simConfig);
                         evaluated++;
                         var backRow = team.Where(c => c.IsBackPosition).Select(c => c.Character.Name).ToList();
                         evalLog.Add(new SiegeEvalEntry
@@ -232,7 +235,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                             foreach (var cr in g.Result.CharacterResults)
                                 heroMax[cr.CharacterName] = System.Math.Max(
                                     heroMax.TryGetValue(cr.CharacterName, out var v) ? v : 0, cr.TotalDamage);
-                        var carries = heroMax.OrderByDescending(kv => kv.Value).Take(requiredBack)
+                        // 딜러 식별 = 역할(공격형/마법형) 우선, 그 안에서 데미지. 데미지(heroMax)만 쓰면
+                        //   전열 배치에서 후열한정 버프(지크 물공증) 못 받아 딜 낮은 딜러(금요일 라이언)가
+                        //   상위에서 빠져 후열 후보에서 누락됨 → 라이언 후열(17.5M)을 못 찾던 버그.
+                        bool IsDealerRole(string nm)
+                        {
+                            var ty = team.FirstOrDefault(x => x.Character?.Name == nm)?.Character?.Type;
+                            return ty == "공격형" || ty == "마법형";
+                        }
+                        // 역할이 딜러여도 그 요일 딜이 미미하면(그룹 1위의 5% 미만) 유틸로 취급해 후열 강제 후보에서 제외.
+                        //   (수요일 라이언: 공격형이지만 마법덱에선 쿨감·면역 유틸이라 딜 0.3% → 후열 자리 낭비.)
+                        double maxDmgG = heroMax.Values.DefaultIfEmpty(0).Max();
+                        bool IsActiveDealer(string nm) => IsDealerRole(nm) && heroMax.GetValueOrDefault(nm) >= maxDmgG * 0.05;
+                        var carries = heroMax.OrderByDescending(kv => IsActiveDealer(kv.Key) ? 1 : 0)
+                            .ThenByDescending(kv => kv.Value).Take(requiredBack)
                             .Select(kv => kv.Key).ToHashSet();
                         foreach (var (m, r, br) in group)
                             if (br.Count == carries.Count && br.All(carries.Contains)
@@ -281,13 +297,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                             config.RotationBeamWidth, config.RotationMaxDepth);
                         // 빔은 반격 OFF(0%)로 로테를 골랐다 → 채택·비교 점수는 반격 ON(실전·단일시드)으로 재평가.
                         //   금요일(제이브)만 OFF≠ON; 그 외 보스는 반격 없어 동일(회귀 없음). 비교는 RankScore(생존 페널티).
-                        var beamOn = ScoreOnPlan(config, cand.BestParty, cand.BestFormation, beam.Plan);
-                        if (IsBetterPick(beamOn.TotalScore, beamOn.RankScore, cand.BestScore, cand.BestRankScore))
+                        //   raw 트랙(Plan)·생존 트랙(RankPlan) 둘 다 평가해 IsBetterPick(생존 우선)으로 채택.
+                        var beamPlans = new List<List<RotationDecision>> { beam.Plan };
+                        if (beam.RankPlan != null && !ReferenceEquals(beam.RankPlan, beam.Plan))
+                            beamPlans.Add(beam.RankPlan);
+                        foreach (var bp in beamPlans)
                         {
-                            cand.BestScore = beamOn.TotalScore;
-                            cand.BestRankScore = beamOn.RankScore;
-                            cand.BestResult = beamOn;
-                            cand.BestRotationPlan = beam.Plan;
+                            var beamOn = ScoreOnPlan(config, cand.BestParty, cand.BestFormation, bp);
+                            if (IsBetterPick(beamOn.TotalScore, beamOn.RankScore, cand.BestScore, cand.BestRankScore))
+                            {
+                                cand.BestScore = beamOn.TotalScore;
+                                cand.BestRankScore = beamOn.RankScore;
+                                cand.BestResult = beamOn;
+                                cand.BestRotationPlan = bp;
+                            }
                         }
                     }
 
@@ -317,28 +340,41 @@ namespace GameDamageCalculator.Services.BattleEngine
                             }
                         }
                     }
-                    // raw(기대값 딜) 최고 후보 채택, 동률이면 생존(RankScore) 우선.
-                    best = beamCands.OrderByDescending(c => c.BestScore).ThenByDescending(c => c.BestRankScore).First();
+                    // 각 빔 후보에 생존반지+로테재최적화를 적용한 뒤 best 선정 — 딜러 후열 빌드가
+                    //   "생존반지 전 점수"로 탈락하던 버그 수정. (라이언/타카 후열은 생존반지로 살리면 딜이
+                    //   두 배인데, 1차빔은 사망 페널티로 RankScore가 낮아 기본진형에 밀려 후처리를 못 받았음.)
+                    //   team 공유 객체라 cand마다 장신구를 백업→적용→평가→원복하고, best의 반지 구성은 RingedAcc에 저장.
+                    if (config.AutoEquip)
+                    {
+                        foreach (var cand in beamCands)
+                        {
+                            for (int i = 0; i < cand.BestParty.Count; i++)
+                                cand.BestParty[i].IsBackPosition = (cand.BestMask & (1 << i)) != 0;
+                            var accBak = cand.BestParty.Select(p => p.Equipment?.Accessory).ToList();
+                            if (ApplySurvivalRings(config, cand) && config.OptimizeRotation)
+                                ReoptimizeRotationAfterRings(config, cand, crossPlans);
+                            cand.RingedAcc = cand.BestParty.Select(p => p.Equipment?.Accessory).ToList();
+                            for (int i = 0; i < accBak.Count; i++)
+                                if (cand.BestParty[i].Equipment != null) cand.BestParty[i].Equipment.Accessory = accBak[i];
+                        }
+                    }
+                    // 생존(RankScore) 최고 후보 채택, 동률이면 raw(보고 점수) 높은 쪽 — IsBetterPick과 동일 기준.
+                    best = beamCands.OrderByDescending(c => c.BestRankScore).ThenByDescending(c => c.BestScore).First();
                 }
 
                 best.EvaluatedCount = evaluated;
                 best.GearLog = gearLog;
                 best.EvalLog = evalLog;
-                // team은 공유·변형 객체이므로 최종 채택 config의 자리 배치를 마지막에 확정 재적용.
+                // team은 공유·변형 객체이므로 최종 채택 config의 자리 배치 + 생존반지 구성을 마지막에 확정 재적용.
                 for (int i = 0; i < best.BestParty.Count; i++)
                     best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+                if (best.RingedAcc != null)
+                    for (int i = 0; i < best.RingedAcc.Count && i < best.BestParty.Count; i++)
+                        if (best.BestParty[i].Equipment != null) best.BestParty[i].Equipment.Accessory = best.RingedAcc[i];
 
-                // 생존반지 후처리 — 최종 config(진형·자리·로테이션 확정)에서 죽는 캐릭에 생존반지 부여.
-                //   여기서 사망 감지를 하므로 전열 가정 과탐지 없이 "실제로 죽는" 캐릭만 대상.
-                if (config.AutoEquip)
-                {
-                    bool ringsApplied = ApplySurvivalRings(config, best);
-                    // 반지 채택 → 저딜 서포터가 생존하며 버프를 유지 → 더 높은 로테 천장이 열린다.
-                    //   기존 BestRotationPlan은 반지 前 고정값이라 그 천장을 모름(목요일 후열 ~0.58M 손실).
-                    //   반지-장착 config에서 빔 재탐색 + crossPlans 재평가로 천장을 회수(무회귀, 더 높을 때만).
-                    if (ringsApplied && config.OptimizeRotation)
-                        ReoptimizeRotationAfterRings(config, best, crossPlans);
-                }
+                // OptimizeRotation=false(빔 미사용)면 빔 후보 경로를 안 타므로 여기서 생존반지 후처리(기존 동작).
+                if (config.AutoEquip && !config.OptimizeRotation)
+                    ApplySurvivalRings(config, best);
             }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
         }
@@ -346,16 +382,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 장비 후보(세트) 비교용 풀시뮬 고정 시드 — 후보 간 동일 RNG로 공정 비교.
         private const int GearCompareSeed = 777;
 
-        /// <summary>선택 비교: raw(기대값 딜=TotalScore) 우선, 사실상 동률(±eps)일 때만 RankScore(생존 페널티)로 tie-break.
-        ///   산발 사망은 raw가 흡수(죽으면 딜 0)하고 전멸은 raw 자체가 낮으므로, 사망 페널티가 raw 고점 빌드를
-        ///   후보·채택 단계에서 가리지 않게 한다(예: 화요일 후열 미호,리나 11.99M이 비스킷 1회 사망 페널티로
-        ///   빔 후보에서 탈락하던 문제). 페널티는 오직 raw 동률 시 생존 많은 쪽을 고르는 용도로만 남는다.</summary>
+        /// <summary>선택 비교: 생존(RankScore=raw−사망페널티) 우선, 사실상 동률(±eps)일 때만 raw로 tie-break.
+        ///   사망 빌드가 최종 채택되려면 사망당 20만 이상의 raw 우위가 필요 → 산발 사망 고점은 허용하되
+        ///   "후반 줄사망" 빌드(예: 토요일 4사망 12.10M가 생존 빌드를 밀어내던 문제)는 걸러진다.
+        ///   고점 라인 탐색 자체는 빔이 raw 트랙(Plan)과 생존 트랙(RankPlan)을 모두 유지하므로 가려지지 않는다.</summary>
         private static bool IsBetterPick(double total, double rank, double bestTotal, double bestRank)
         {
             const double eps = 1.0;   // 동률 간주 한계(딜)
-            if (total > bestTotal + eps) return true;
-            if (total < bestTotal - eps) return false;
-            return rank > bestRank;   // raw 동률 → 생존(RankScore 높은) 쪽
+            if (rank > bestRank + eps) return true;
+            if (rank < bestRank - eps) return false;
+            return total > bestTotal;   // rank 동률 → raw(보고 점수) 높은 쪽
         }
 
         /// <summary>
@@ -463,8 +499,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     if (bc.Character == null) continue;
                     bool magic = bc.Character.AttackType == AttackType.Magic;
+                    // 딜러(공격/마법/만능형) = 공격조율만. 지원/방어형만 생존조율 후보 포함.
+                    bool isDealer = bc.Character.Type is "공격형" or "마법형" or "만능형";
                     ExclusiveWeapon bestW = bc.Character.ExclusiveWeapon; double bestS = -1;
-                    foreach (var w in ExclusiveTuningCandidates(magic, bc.Character.Id))
+                    foreach (var w in ExclusiveTuningCandidates(magic, bc.Character.Id, isDealer))
                     {
                         bc.Character.ExclusiveWeapon = w;
                         double s = FullScore();
@@ -502,8 +540,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var dyers = cur.CharacterResults.Where(c => c.Died).Select(c => c.CharacterName).ToHashSet();
                 if (dyers.Count == 0) break;
 
-                // 채택 기준 raw 우선(동률 시 생존) — 반지가 raw를 올릴(살린 캐릭이 버프·딜 유지) 때만 채택.
-                //   raw를 낮추면서 사망만 막는 반지는 기대값 철학상 채택 안 함(산발 사망 허용). 표시는 실제 딜.
+                // 채택 기준 생존(RankScore) 우선(동률 시 raw) — 사망을 막으면 rank +20만이라 raw를 약간
+                //   낮추는 반지도 채택될 수 있다(생존 우선 철학). 표시는 실제 딜(TotalScore).
                 BattleCharacter pick = null; Accessory pickAcc = null;
                 double pickRank = cur.RankScore; double pickTotal = cur.TotalScore;
                 foreach (var bc in best.BestParty)
@@ -557,6 +595,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // (2) 후보 플랜 = 새 빔 + 기존 crossPlans + 현 채택 플랜. 반지-장착 config로 동일 시드 재평가.
             var candPlans = new List<List<RotationDecision>>();
             if (beam.Plan != null && beam.Plan.Count > 0) candPlans.Add(beam.Plan);
+            if (beam.RankPlan != null && beam.RankPlan.Count > 0) candPlans.Add(beam.RankPlan);
             candPlans.AddRange(crossPlans);
             if (best.BestRotationPlan != null && best.BestRotationPlan.Count > 0) candPlans.Add(best.BestRotationPlan);
 
@@ -590,8 +629,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             };
         }
 
-        /// <summary>전용무기 조율 후보(전설 4슬롯) — 딜러/탱커 공통 소수 조합만(8^4 전수 대신).</summary>
-        private static List<ExclusiveWeapon> ExclusiveTuningCandidates(bool magic, int charId)
+        /// <summary>전용무기 조율 후보(전설 4슬롯) — 딜러/탱커 공통 소수 조합만(8^4 전수 대신).
+        /// 전용장비는 실게임에서 영웅당 1개뿐 → 요일별로 못 바꾼다. 따라서 딜러는 방어조율(탄성·생명력·방어력)을
+        /// 후보에서 제외하고 공격조율(모든공격력·피해증폭)만 둔다. 탄성은 적 치확100 구간(토요일 챈슬러 버프)에서만
+        /// 작동하는데 그건 비스킷 버프해제로 처리할 기믹이라, 딜러가 탄성을 끼면 상시 딜 손실이 된다(사용자 지적).
+        /// 지원/방어형만 생존조율 후보를 갖는다.</summary>
+        private static List<ExclusiveWeapon> ExclusiveTuningCandidates(bool magic, int charId, bool isDealer)
         {
             ExclusiveWeapon W(params TuningOption[] opts) => new()
             {
@@ -600,17 +643,20 @@ namespace GameDamageCalculator.Services.BattleEngine
             };
             var A = TuningOption.모든공격력; var D = TuningOption.피해증폭;
             var T = TuningOption.탄성; var H = TuningOption.생명력; var Df = TuningOption.방어력;
-            return new List<ExclusiveWeapon>
+            var cands = new List<ExclusiveWeapon>
             {
-                W(A, A, A, A),   // 딜러: 모든공격력 몰빵
+                W(A, A, A, A),   // 모든공격력 몰빵
                 W(A, A, A, D),
                 W(A, A, D, D),
                 W(A, D, D, D),
                 W(D, D, D, D),   // 피해증폭 몰빵
-                W(A, A, T, T),   // 공격 + 생존(탄성)
-                W(T, T, T, T),   // 생존
-                W(H, H, Df, Df), // 탱커
             };
+            if (isDealer) return cands;   // 딜러: 공격조율만 (방어조율은 전용장비 1개 제약상 상시 딜손실)
+            // 지원/방어형: 생존조율도 후보
+            cands.Add(W(A, A, T, T));   // 공격 + 생존(탄성)
+            cands.Add(W(T, T, T, T));   // 생존
+            cands.Add(W(H, H, Df, Df)); // 탱커
+            return cands;
         }
 
         /// <summary>조율 구성 요약 문자열.</summary>

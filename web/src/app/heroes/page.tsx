@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import charactersData from "@/data/characters.json";
+import HeroIcon from "@/components/HeroIcon";
 
 interface SkillTier {
   cooldown: number;
@@ -354,7 +355,7 @@ export default function HeroesPage() {
                   className={`hero-card${selectedId === h.id ? " selected" : ""}`}
                   onClick={() => setSelectedId(h.id)}
                 >
-                  <div className="hero-card-img">이미지</div>
+                  <HeroIcon id={h.id} name={h.name} />
                   <div className="hero-card-name">{h.name}</div>
                 </button>
               ))

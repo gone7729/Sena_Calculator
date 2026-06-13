@@ -9,7 +9,7 @@ export default function SiegePage() {
   const [view, setView] = useState<"sim" | "custom">("sim");
 
   return (
-    <>
+    <main className="main">
       {/* ===== 제목 + 뷰 탭(우상단) ===== */}
       <div className="siege-header">
         <h1 className="page-title">공성전</h1>
@@ -34,6 +34,6 @@ export default function SiegePage() {
       </div>
 
       {view === "sim" ? <SimViewer /> : <CustomViewer />}
-    </>
+    </main>
   );
 }
