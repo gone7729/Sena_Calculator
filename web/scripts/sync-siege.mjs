@@ -1,11 +1,11 @@
-// results/siege/siege_{요일}_{프로필}.json 7개를 web/src/data/siegeBuilds.json 으로 집계한다.
-//   사용: node scripts/sync-siege.mjs [프로필]   (기본 프로필: 12초월잠재3)
-//   재탐색(SiegeBatchAllDays) 후 한 번 실행하면 웹에 반영된다.
+// results/siege/siege_{요일}_{초월}초월_{펫}.json (4루트 × 7요일)을
+//   web/src/data/siegeBuilds.json 으로 집계한다.
+//   사용: node scripts/sync-siege.mjs
+//   재탐색(SiegeBatchAllDays: 6초월 델로 / 6초월 리첼 / 6초월 윈디 / 12초월[윈디]) 후 한 번 실행.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const profile = process.argv[2] ?? "6초월잠재3";
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const srcDir = join(repoRoot, "results", "siege");
 const outPath = join(repoRoot, "web", "src", "data", "siegeBuilds.json");
@@ -20,24 +20,71 @@ const DAYS = [
   ["일", "일요일"],
 ];
 
-const out = {};
+// 4개 탐색 루트. profile.key = 출력파일 접미사의 "{TRANS}초월" 부분.
+const PROFILES = [
+  {
+    key: "6초월",
+    label: "6초월",
+    potential: 0,
+    exclusive: false,
+    rings: false,
+    pets: ["델로", "리첼", "윈디"],
+  },
+  {
+    key: "12초월",
+    label: "12초월",
+    potential: 3,
+    exclusive: true,
+    rings: true,
+    pets: ["윈디"],
+  },
+];
+
+const DEFAULT = { profile: "6초월", pet: "윈디" };
+
+const builds = {};
 const missing = [];
-for (const [key, day] of DAYS) {
-  const p = join(srcDir, `siege_${day}_${profile}.json`);
-  if (!existsSync(p)) {
-    missing.push(day);
-    continue;
+let found = 0;
+
+for (const p of PROFILES) {
+  builds[p.key] = {};
+  for (const pet of p.pets) {
+    const byDay = {};
+    for (const [key, day] of DAYS) {
+      const file = join(srcDir, `siege_${day}_${p.key}_${pet}.json`);
+      if (!existsSync(file)) {
+        missing.push(`${p.key}/${pet}/${day}`);
+        continue;
+      }
+      byDay[key] = JSON.parse(readFileSync(file, "utf8").replace(/^﻿/, ""));
+      found++;
+    }
+    builds[p.key][pet] = byDay;
   }
-  out[key] = JSON.parse(readFileSync(p, "utf8").replace(/^﻿/, ""));
 }
 
-if (Object.keys(out).length === 0) {
-  console.error(`결과 파일이 없습니다: ${srcDir}\\siege_*_${profile}.json`);
+if (found === 0) {
+  console.error(
+    `결과 파일이 없습니다: ${srcDir}\\siege_{요일}_{초월}초월_{펫}.json\n` +
+      `먼저 SiegeBatchAllDays를 4개 루트로 실행하세요 (6초월 델로 / 6초월 리첼 / 6초월 윈디 / 12초월).`
+  );
   process.exit(1);
 }
 
+const out = {
+  default: DEFAULT,
+  profiles: PROFILES.map(({ key, label, potential, exclusive, pets }) => ({
+    key,
+    label,
+    potential,
+    exclusive,
+    pets,
+  })),
+  builds,
+};
+
 writeFileSync(outPath, JSON.stringify(out, null, 2) + "\n", "utf8");
 console.log(
-  `siegeBuilds.json 갱신 완료 (${Object.keys(out).join(",")})` +
-    (missing.length ? ` · 누락: ${missing.join(",")}` : "")
+  `siegeBuilds.json 갱신 완료 (${found}개 빌드)` +
+    (missing.length ? ` · 누락 ${missing.length}: ${missing.join(", ")}` : "")
 );

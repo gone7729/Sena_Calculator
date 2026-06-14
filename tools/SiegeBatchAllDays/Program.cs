@@ -55,11 +55,20 @@ var expertByDay = new Dictionary<string, (string Name, SkillType Skill)[]>
     },
 };
 
-// 프로필: 잠재3(풀)·스킬강화 풀·전용장비 전설 조율 탐색·펫 윈디 6성 강화3 모공%76.
-//   초월은 인자로 선택: "6초월" 주면 6초월(사용자 실측 스펙 대조용), 미지정이면 12초월(고스펙 천장).
-int TRANS = args.Contains("6초월") ? 6 : 12;
-int POT = 3;
-string SUFFIX = $"{TRANS}초월잠재3";
+// 프로필 = 4개 탐색 루트. 인자로 (초월 프로필) × (펫) 선택. 펫 6성·강화3·모공%76 공통.
+//   ▸ "6초월"  → 6초월·잠재0·전용장비X·권능반지X  (사용자 실측 계정 가정).
+//   ▸ 미지정    → 12초월·잠재3·전용장비O·권능반지O  (고스펙 천장).
+//   펫: "델로"(치확·치피) / "리첼"(약확·약공증) / 미지정="윈디"(공%·보스취약).
+//   4루트 = {6초월×델로, 6초월×리첼, 6초월×윈디, 12초월×윈디}. 출력 접미사 = "{초월}초월_{펫}".
+bool isLowSpec = args.Contains("6초월");
+int TRANS = isLowSpec ? 6 : 12;
+int POT = isLowSpec ? 0 : 3;
+bool searchExclusive = !isLowSpec;       // 6초월=전용장비 미장착, 12초월=전설 4슬롯 조율 탐색
+bool enableRings = !isLowSpec;           // 6초월=권능반지 제외, 12초월=생존(권능)반지 후처리 포함
+string petName = args.Contains("델로") ? "델로"
+               : args.Contains("리첼") ? "리첼"
+               : "윈디";
+string SUFFIX = $"{TRANS}초월_{petName}";
 
 // 인자로 요일 지정 시 해당 요일만 탐색 (예: dotnet run -- 수요일). 미지정이면 전 요일. (프로필 토큰은 요일 아님 → 무시)
 var dayArgs = args.Where(a => DAYS.Any(d => d.Day == a)).ToArray();
@@ -104,11 +113,12 @@ foreach (var (day, ids) in DAYS)
         Candidates = new List<BattleCharacter>(),
         PartySize = 5,
         SiegeStage = stage,
-        AllyPet = PetDb.GetByName("윈디"),
+        AllyPet = PetDb.GetByName(petName),
         PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76,
         MaxTurns = 70,
         AutoEquip = true,
-        SearchExclusiveWeapon = true,   // 전용장비 전설 4슬롯 조율 탐색
+        SearchExclusiveWeapon = searchExclusive,   // 12초월=전설 4슬롯 조율, 6초월=미장착
+        EnableSurvivalRings = enableRings,          // 12초월=권능반지 포함, 6초월=제외
         FloorFirstGear = true,          // 파티버프(비스킷 약확54 등) 반영해 치확/약확 100% 캡 — 과배분 방지
         AllyDeathPenalty = deathPenalty,
         OptimizeRotation = true,
@@ -525,7 +535,10 @@ foreach (var (day, ids) in DAYS)
 
     // ── TXT ──
     var sb = new StringBuilder();
-    sb.AppendLine($"════════ {day} 공성전 — {TRANS}초월·잠재{POT}·전용전설·펫76 / 진형·기어·전용조율·스킬순서 탐색 ════════");
+    string specDesc = isLowSpec
+        ? $"{TRANS}초월·잠재0·전용X·권능반지X·펫{petName}76"
+        : $"{TRANS}초월·잠재{POT}·전용전설·권능반지O·펫{petName}76";
+    sb.AppendLine($"════════ {day} 공성전 — {specDesc} / 진형·기어·전용조율·스킬순서 탐색 ════════");
     sb.AppendLine($"보스: {stage.Name}");
     sb.AppendLine($"팀: {string.Join(", ", nm)}");
     sb.AppendLine($"총점: {res.BestScore:N0}   [자동로테 {res.AutoRotationScore:N0} → 빔 {res.BestScore:N0}]");

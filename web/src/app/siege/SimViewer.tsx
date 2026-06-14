@@ -35,10 +35,32 @@ interface SiegeBuild {
   skillOrder: SkillStep[];
 }
 
+interface ProfileMeta {
+  key: string;
+  label: string;
+  potential: number;
+  exclusive: boolean;
+  pets: string[];
+}
+
+interface BuildsData {
+  default: { profile: string; pet: string };
+  profiles: ProfileMeta[];
+  // profile.key → pet → dayKey(월/화/...) → build
+  builds: Record<string, Record<string, Record<string, SiegeBuild>>>;
+}
+
 // 요일 표시 순서 + 라벨 (번들 키 = 월/화/.../일)
 const DAY_ORDER = ["월", "화", "수", "목", "금", "토", "일"];
 
-const builds = buildsData as unknown as Record<string, SiegeBuild>;
+// 펫 버튼 라벨 (펫 키 → 표시). 델로 = 치확/치피("크리"), 리첼 = 약확/약공증, 윈디 = 공%.
+const PET_LABEL: Record<string, string> = {
+  델로: "델로 · 치확/치피",
+  리첼: "리첼 · 약확/약공증",
+  윈디: "윈디 · 공%",
+};
+
+const data = buildsData as unknown as BuildsData;
 
 // "토요일 공성전 (혹한의 성)" → "혹한의 성"
 function castleName(boss: string): string {
@@ -125,7 +147,20 @@ function setLabel(s?: string): string {
 }
 
 export default function SimViewer() {
-  const available = DAY_ORDER.filter((k) => builds[k]);
+  const profiles = data.profiles;
+  const profileByKey = (k: string) => profiles.find((p) => p.key === k) ?? profiles[0];
+
+  // 프로필·펫 선택 (디폴트 = 6초월 / 윈디)
+  const [profileKey, setProfileKey] = useState<string>(data.default.profile);
+  const [pet, setPet] = useState<string>(data.default.pet);
+
+  const profile = profileByKey(profileKey);
+  // 펫이 현 프로필에서 없으면 첫 펫으로 폴백 (12초월=윈디만)
+  const activePet = profile.pets.includes(pet) ? pet : profile.pets[0];
+
+  const dayBuilds: Record<string, SiegeBuild> = data.builds[profile.key]?.[activePet] ?? {};
+  const available = DAY_ORDER.filter((k) => dayBuilds[k]);
+
   // 기본 선택 = 오늘 요일 (없으면 첫 요일)
   const today = DAY_ORDER[(new Date().getDay() + 6) % 7];
   const [selected, setSelected] = useState<string | null>(
@@ -134,29 +169,68 @@ export default function SimViewer() {
   // 진형 배치에서 선택한 영웅 (요일 전환 시 팀에 없으면 첫 영웅으로 폴백)
   const [heroId, setHeroId] = useState<number | null>(null);
 
-  const build = selected ? builds[selected] : null;
+  // 프로필 전환 — 새 프로필에 현 펫이 없으면 윈디(또는 첫 펫)로 보정.
+  function changeProfile(key: string) {
+    setProfileKey(key);
+    const next = profileByKey(key);
+    if (!next.pets.includes(pet)) setPet(next.pets.includes("윈디") ? "윈디" : next.pets[0]);
+  }
+
+  const selKey = selected && dayBuilds[selected] ? selected : available[0] ?? null;
+  const build = selKey ? dayBuilds[selKey] : null;
   const gearByHero = build ? groupGearByHero(build.gear) : {};
   const selHero = build
     ? build.team.find((t) => t.id === heroId) ?? build.team[0] ?? null
     : null;
   const selGear = selHero ? parseHeroGear(gearByHero[selHero.name] ?? []) : null;
+  const specNote = `${profile.label}·잠재${profile.potential}${profile.exclusive ? "·전용장비" : ""}`;
 
   return (
     <>
       <p className="siege-mode-note" style={{ marginTop: 0 }}>
-        요일을 선택하면 <b>6초월·잠재3 정식 추천 빌드</b>(사용 영웅·세팅·스킬 순서·예상 점수)를 보여줍니다.
+        요일을 선택하면 <b>{specNote} 정식 추천 빌드</b>(사용 영웅·세팅·스킬 순서·예상 점수)를 보여줍니다.
         세팅을 직접 조절하려면 우측 상단 <b>커스텀 뷰어</b>로 전환하세요.
       </p>
+
+      {/* ===== 프로필 · 펫 선택 ===== */}
+      <div className="siege-spec-bar">
+        <div className="siege-spec-group">
+          <span className="siege-spec-label">스펙</span>
+          {profiles.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              className={`siege-spec-btn${profile.key === p.key ? " active" : ""}`}
+              onClick={() => changeProfile(p.key)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <div className="siege-spec-group">
+          <span className="siege-spec-label">펫</span>
+          {profile.pets.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`siege-spec-btn${activePet === p ? " active" : ""}`}
+              onClick={() => setPet(p)}
+            >
+              {PET_LABEL[p] ?? p}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* ===== 요일 카드 ===== */}
       <div className="siege-day-cards">
         {available.map((k) => {
-          const b = builds[k];
+          const b = dayBuilds[k];
           return (
             <button
               key={k}
               type="button"
-              className={`siege-day-card${selected === k ? " active" : ""}`}
+              className={`siege-day-card${selKey === k ? " active" : ""}`}
               onClick={() => {
                 setSelected(k);
                 setHeroId(null);
@@ -179,7 +253,9 @@ export default function SimViewer() {
       {/* ===== 선택 요일 정식 빌드 ===== */}
       {!build ? (
         <div className="hero-list-empty" style={{ marginTop: 8 }}>
-          위에서 요일을 선택하면 추천 빌드가 표시됩니다.
+          {available.length === 0
+            ? "이 프로필·펫의 빌드 데이터가 아직 없습니다."
+            : "위에서 요일을 선택하면 추천 빌드가 표시됩니다."}
         </div>
       ) : (
         <section className="panel siege-result">
@@ -187,7 +263,7 @@ export default function SimViewer() {
             {build.boss.replace(/\s*\(.*\)$/, "")} · {castleName(build.boss)}
           </h2>
           <p className="panel-subtitle">
-            6초월·잠재3 정식 빌드 · {build.formation} · 후열 {build.backRow.join(",") || "없음"} ·{" "}
+            {specNote} · 펫 {activePet} · {build.formation} · 후열 {build.backRow.join(",") || "없음"} ·{" "}
             {build.roundsCleared}R · {build.totalTurns}턴
           </p>
 
@@ -326,17 +402,20 @@ export default function SimViewer() {
                         </div>
                       </div>
 
-                      <div className="equip-group">
-                        <h3 className="equip-group-title">전용장비</h3>
-                        <div className="set-card">
-                          <div className="set-name">조율</div>
-                          <div className="opt-list">
-                            {selGear.exclusive
-                              ? selGear.exclusive.split("+").map((s, i) => <div key={i}>{s.trim()}</div>)
-                              : "-"}
+                      {/* 전용장비는 12초월(전용장비 포함) 프로필에서만 표시 */}
+                      {profile.exclusive && (
+                        <div className="equip-group">
+                          <h3 className="equip-group-title">전용장비</h3>
+                          <div className="set-card">
+                            <div className="set-name">조율</div>
+                            <div className="opt-list">
+                              {selGear.exclusive
+                                ? selGear.exclusive.split("+").map((s, i) => <div key={i}>{s.trim()}</div>)
+                                : "-"}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </>
                 )}

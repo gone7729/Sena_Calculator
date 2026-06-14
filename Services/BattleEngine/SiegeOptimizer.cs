@@ -68,6 +68,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   작게(20만): 막판 희생 같은 최적 공격빌드는 허용(>1등), 다수 조기사망 파괴적 전멸만 차단(안전망).
         //   큰 값(예 2M)은 0사망을 강요해 최고스펙 점수를 1등 미만으로 깎으므로 지양.
         public double AllyDeathPenalty { get; set; } = 200_000;
+
+        // 생존(권능) 반지 후처리 사용 여부. 기본 ON(기존 동작). OFF면 ApplySurvivalRings 미실행 —
+        //   6초월 실측 프로필처럼 권능반지를 끼지 않는 계정 가정 탐색에 사용.
+        public bool EnableSurvivalRings { get; set; } = true;
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -344,7 +348,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     //   "생존반지 전 점수"로 탈락하던 버그 수정. (라이언/타카 후열은 생존반지로 살리면 딜이
                     //   두 배인데, 1차빔은 사망 페널티로 RankScore가 낮아 기본진형에 밀려 후처리를 못 받았음.)
                     //   team 공유 객체라 cand마다 장신구를 백업→적용→평가→원복하고, best의 반지 구성은 RingedAcc에 저장.
-                    if (config.AutoEquip)
+                    if (config.AutoEquip && config.EnableSurvivalRings)
                     {
                         foreach (var cand in beamCands)
                         {
@@ -373,7 +377,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (best.BestParty[i].Equipment != null) best.BestParty[i].Equipment.Accessory = best.RingedAcc[i];
 
                 // OptimizeRotation=false(빔 미사용)면 빔 후보 경로를 안 타므로 여기서 생존반지 후처리(기존 동작).
-                if (config.AutoEquip && !config.OptimizeRotation)
+                if (config.AutoEquip && config.EnableSurvivalRings && !config.OptimizeRotation)
                     ApplySurvivalRings(config, best);
             }
             return best ?? new SiegeOptimizerResult { EvaluatedCount = 0, GearLog = gearLog, EvalLog = evalLog };
