@@ -331,7 +331,7 @@ namespace GameDamageCalculator.Services.Optimizer
 
         /// <summary>
         /// 서브옵션 최적 배분 — 게임 규칙 반영.
-        /// 장비마다 부옵 4개(서로 다른 스탯, 메인옵 제외)가 전부 1티어로 시작하고,
+        /// 장비마다 부옵 4개(서로 다른 스탯, 단 메인옵과 같은 스탯은 부옵으로 허용 — 합산)가 전부 1티어로 시작하고,
         /// 15강까지 강화로 랜덤 티어업이 총 5번 발생 → 한 장비의 부옵 티어 합 = 4(기본) + 5(강화) = 9, 슬롯당 최대 6티어.
         /// 옵티마이저는 "어떤 부옵 4개 + 5번 상승을 어디에"를 데미지 기준 그리디로 결정 (장비별 독립).
         /// 값 = 기본 부옵 스탯 × 티어 (Equipment.SubStatSlot.GetStats).
@@ -368,8 +368,9 @@ namespace GameDamageCalculator.Services.Optimizer
                 int nSlots = System.Math.Min(SubSlotsPerEquip, equip.SubSlots.Count);
                 for (int s = 0; s < equip.SubSlots.Count; s++) { equip.SubSlots[s].StatName = ""; equip.SubSlots[s].Tier = 0; }
 
-                // 후보 부옵: 허용 목록 ∩ (메인옵 제외)
-                var cands = subStatNames.Where(n => n != equip.MainStatName).Distinct().ToList();
+                // 후보 부옵: 허용 목록 전체. 게임 규칙상 부옵은 메인옵과 같은 스탯도 붙을 수 있다(합산).
+                //   (부옵끼리만 서로 다름 — 아래 used 해시셋이 보장. 메인=부옵은 허용.)
+                var cands = subStatNames.Distinct().ToList();
 
                 // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 점수 최대 / 치확·약확은 캡 초과 시 거절)
                 var used = new HashSet<string>();
@@ -454,7 +455,7 @@ namespace GameDamageCalculator.Services.Optimizer
                         // 6성: 메인 + 서브
                         foreach (var subOpt in AccessoryDb.SubOptions[6].Keys)
                         {
-                            if (subOpt == mainOpt) continue; // 메인과 서브 중복 불가 (가정)
+                            if (subOpt == mainOpt) continue; // 장신구는 메인=서브 중복 불가 (유저 확정). ※장비 부옵은 메인과 같은 스탯 허용 — OptimizeSubOptions 참조(규칙 다름)
                             var accessory = new Accessory { Grade = grade, MainOption = mainOpt, SubOption = subOpt };
                             loadout.Accessory = accessory;
                             double damage = Score(loadout);
