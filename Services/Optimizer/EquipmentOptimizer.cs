@@ -378,15 +378,19 @@ namespace GameDamageCalculator.Services.Optimizer
                 {
                     var slot = equip.SubSlots[i];
                     string bestStat = null; double bestDmg = -1;
+                    string fallbackStat = null;   // 캡 초과라 데미지 0이지만, 빈 슬롯 방지용 폴백(실제 장비는 부옵 4개)
                     foreach (var stat in cands)
                     {
                         if (used.Contains(stat)) continue;
                         slot.StatName = stat; slot.Tier = 1;
-                        if (ExceedsCritWeakCap(stat)) { slot.StatName = ""; slot.Tier = 0; continue; }   // 캡 초과 → 거절
+                        if (ExceedsCritWeakCap(stat)) { slot.StatName = ""; slot.Tier = 0; fallbackStat ??= stat; continue; }   // 캡 초과 → 데미지 평가 제외, 폴백 후보로만
                         double d = Score(loadout);
                         if (d > bestDmg) { bestDmg = d; bestStat = stat; }
                         slot.StatName = ""; slot.Tier = 0;
                     }
+                    // 데미지 양수 후보가 없으면(남은 게 전부 캡 초과 치확/약확) 캡 후보로라도 채움 — 빈 슬롯 방지.
+                    //   점수 불변(캡 초과=한계효용 0), 표시·티어수(4기본) 정합. 처리순서상 뒷 장비가 빈슬롯 남기던 문제 해결.
+                    bestStat ??= fallbackStat;
                     if (bestStat == null) break;
                     slot.StatName = bestStat; slot.Tier = 1; used.Add(bestStat);
                 }
