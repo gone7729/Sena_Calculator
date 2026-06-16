@@ -192,35 +192,41 @@ export default function SimViewer() {
         세팅을 직접 조절하려면 우측 상단 <b>커스텀 뷰어</b>로 전환하세요.
       </p>
 
-      {/* ===== 프로필 · 펫 선택 ===== */}
-      <div className="siege-spec-bar">
-        <div className="siege-spec-group">
-          <span className="siege-spec-label">스펙</span>
-          {profiles.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              className={`siege-spec-btn${profile.key === p.key ? " active" : ""}`}
-              onClick={() => changeProfile(p.key)}
-            >
-              {p.label}
-            </button>
-          ))}
+      {/* ===== 프로필 · 펫 선택 ===== (단일 루트면 숨김) */}
+      {(profiles.length > 1 || profile.pets.length > 1) && (
+        <div className="siege-spec-bar">
+          {profiles.length > 1 && (
+            <div className="siege-spec-group">
+              <span className="siege-spec-label">스펙</span>
+              {profiles.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  className={`siege-spec-btn${profile.key === p.key ? " active" : ""}`}
+                  onClick={() => changeProfile(p.key)}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {profile.pets.length > 1 && (
+            <div className="siege-spec-group">
+              <span className="siege-spec-label">펫</span>
+              {profile.pets.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`siege-spec-btn${activePet === p ? " active" : ""}`}
+                  onClick={() => setPet(p)}
+                >
+                  {PET_LABEL[p] ?? p}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="siege-spec-group">
-          <span className="siege-spec-label">펫</span>
-          {profile.pets.map((p) => (
-            <button
-              key={p}
-              type="button"
-              className={`siege-spec-btn${activePet === p ? " active" : ""}`}
-              onClick={() => setPet(p)}
-            >
-              {PET_LABEL[p] ?? p}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* ===== 요일 카드 ===== */}
       <div className="siege-day-cards">

@@ -190,8 +190,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 효과 잔여턴/DoT는 각 캐릭터의 행동 직후에 처리(per-character-action 모델).
                 //   글로벌 sim-turn tick이 아니라, 행동자(actor)만 tick — n턴 지속 = "부여받은 캐릭의 n번 행동".
                 //   이렇게 해야 따뜻한울림 3턴(보스 3번 행동≈24 sim-turn) 같은 셋업이 후속 nuke까지 닿는다.
-                // 전역 효과(EnemyImmunityTurns: 적 진영 피해 면역)만 매 sim-turn 글로벌 감소.
-                if (state.EnemyImmunityTurns > 0) state.EnemyImmunityTurns--;
+                //   적 피해 면역(ImmunityTurns)도 이 모델을 따른다 → TickEnemyAfterAction에서 적별 차감.
+                //   (구버그: 글로벌 sim-turn마다 감소해 「피해면역[2턴]」이 ~2 sim-turn 만에 만료 → 거의 무효 → 시뮬 과대산출.)
 
                 // 라운드 전환: 적 전멸 시 다음 라운드 진입 → 선공 스킬턴(0턴, 연쇄)
                 //   이 시점의 전멸은 위 라운드 내 스킬턴(또는 평타)이 깬 것 → 먼저 다음 라운드로 전환한 뒤
@@ -457,13 +457,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                         }
                     }
 
-                    // 적 진영 전체 피해 면역 부여 (화 R3 룩 등)
+                    // 적 진영 전체 피해 면역 부여 (화 R3 룩: 「모든 아군(보스측) 피해 면역[2턴]」) — 적 전체에 부여.
+                    //   적별 ImmunityTurns로 저장 → 각 적이 행동할 때마다 1턴 차감(EnemyBuffTurns와 동일 모델).
                     int imm = skill.GetLevelData(false)?.GrantEnemyImmunityTurns ?? 0;
                     if (imm > 0)
                     {
-                        state.EnemyImmunityTurns = Math.Max(state.EnemyImmunityTurns, imm);
+                        foreach (var en in state.Enemies)
+                            en.ImmunityTurns = Math.Max(en.ImmunityTurns, imm);
                         Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
-                            $"적 진영 피해 면역[{imm}턴]");
+                            $"적 진영 전체 피해 면역[{imm}턴] (룩·챈슬러·보스 모두 — 버프해제 불가, 턴제버프감소로만 해제)");
                     }
 
                     // 적→아군(같은 진영) 버프: 공격력 최고 적에게 부여 (토요일 챈슬러 분쇄 → 스파이크 치확100·치피+500[5턴]).
@@ -590,8 +592,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (dmg <= 0) return;
 
-            // 적 진영 피해 면역 (화 R3 룩 스킬 등) — 피해 0. 단 관통(IgnoresTurnDamageImmunity)이면 면역 무시.
-            if (state.EnemyImmunityTurns > 0 && !penetrate)
+            // 피해 면역 (화 R3 룩 스킬: 적 전체 [2턴]) — 이 대상이 면역 중이면 피해 0. 단 관통(IgnoresTurnDamageImmunity)이면 면역 무시.
+            if (target.ImmunityTurns > 0 && !penetrate)
             {
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
@@ -686,11 +688,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (boss != null) return new List<SiegeEnemyState> { boss };
                 }
             }
+            // R1/R2: 살아있는 적(HP>0)만 타겟 — 죽은 적은 HP 음수로 영원히 "최저HP"라 단일 평타가
+            //   시체만 도그파일하고 옆 적이 안 죽어 라운드가 안 깨지던 버그 수정(R2 16턴 → 즉시).
+            //   R3 보스는 무사망(HP≤0 허용)이라 IsBoss 필터만(HP 무관) — 보스를 계속 때려 점수 누적.
             IEnumerable<SiegeEnemyState> candidates = state.CurrentRound >= 3
                 ? state.Enemies.Where(e => e.IsBoss)
-                : state.Enemies;
+                : state.Enemies.Where(e => e.CurrentHp > 0);
             var list = candidates.ToList();
-            if (list.Count == 0) list = state.Enemies;
+            if (list.Count == 0) list = state.Enemies;   // 전멸 직전 폴백(이 행동 후 라운드 전환)
             return list.OrderBy(e => e.CurrentHp).ThenBy(e => e.Position).Take(System.Math.Max(1, count)).ToList();
         }
 
@@ -1510,10 +1515,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
             // 적 진영 버프(챈슬러 분쇄 → 스파이크 치확/치피) 지속턴 경과. 챈슬러가 재시전하면 갱신됨.
             if (enemy.EnemyBuffTurns > 0 && --enemy.EnemyBuffTurns <= 0) enemy.EnemyBuff = null;
+            // 피해 면역(화 R3 룩) 지속턴 경과 — 이 적의 행동마다 1턴 차감(per-action). 룩이 재시전하면 갱신됨.
+            if (enemy.ImmunityTurns > 0) enemy.ImmunityTurns--;
 
-            // DoT 데미지 + 잔여 턴 감소 (적 진영 피해 면역 / 보스 무효화 중엔 무효).
+            // DoT 데미지 + 잔여 턴 감소 (피해 면역 / 보스 무효화 중엔 무효).
             //   델론즈 무효화는 DoT도 막지만 횟수는 차감하지 않음(직격만 차감) → 여기선 무효 처리만.
-            bool immune = state.EnemyImmunityTurns > 0 || enemy.NullifyHitsRemaining > 0;
+            bool immune = enemy.ImmunityTurns > 0 || enemy.NullifyHitsRemaining > 0;
             foreach (var dot in enemy.ActiveDots)
             {
                 if (dot.TickDamage > 0 && !immune)
@@ -1864,14 +1871,31 @@ namespace GameDamageCalculator.Services.BattleEngine
             var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
             int? buffTgtOverride = tr?.TargetCountOverride;   // HighestAtkAlly 버프 대상 수 오버라이드
 
-            // 적 피해면역(EnemyImmunityTurns)을 턴감소만큼 깎기 (미호 2스킬 등). 피해 전 적용 시 피해가 막히지 않음.
-            void ReduceEnemyImmunity(int turns)
+            // 턴제 버프 감소(미호 교만 등): 적의 턴제 버프 지속턴을 깎는다.
+            //   ★피해 면역(ImmunityTurns)도 「[2턴]」 턴제 버프이므로 감소 대상 → 미호 교만으로 해제 가능.
+            //     (비스킷 리프어택은 "버프 해제"라 피해 면역 불가 — 그쪽만 DispelEnemyShield에서 면역 제외.)
+            //   교만은 피해 前(PreDamage) 적용 → 면역을 깎은 뒤 자기 피해가 들어간다.
+            void ReduceEnemyTimedBuffs(int turns)
             {
-                if (turns <= 0 || state.EnemyImmunityTurns <= 0) return;
-                int before = state.EnemyImmunityTurns;
-                state.EnemyImmunityTurns = System.Math.Max(0, state.EnemyImmunityTurns - turns);
-                Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
-                    $"적 피해면역 {before}→{state.EnemyImmunityTurns}턴 (턴감소 {turns})");
+                if (turns <= 0) return;
+                foreach (var en in state.Enemies)
+                {
+                    if (en.ImmunityTurns > 0)
+                    {
+                        int b = en.ImmunityTurns;
+                        en.ImmunityTurns = System.Math.Max(0, en.ImmunityTurns - turns);
+                        Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                            $"{en.Source.Name} 피해 면역 {b}→{en.ImmunityTurns}턴 (턴감소 {turns})");
+                    }
+                    if (en.EnemyBuffTurns > 0)
+                    {
+                        int b = en.EnemyBuffTurns;
+                        en.EnemyBuffTurns = System.Math.Max(0, en.EnemyBuffTurns - turns);
+                        if (en.EnemyBuffTurns <= 0) en.EnemyBuff = null;
+                        Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                            $"{en.Source.Name} 버프 {b}→{en.EnemyBuffTurns}턴 (턴감소 {turns})");
+                    }
+                }
             }
 
             // 적 버프해제: ①보호막(루디 등) 제거 → 이후 피해 점수 집계, ②적 진영 버프(챈슬러→스파이크 치확/치피) 제거.
@@ -1917,7 +1941,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             break;
                         case SkillEffectType.BuffTurnReduction
                             when e.TurnReduction > 0 && (e.Target == EffectTarget.Enemy || e.Target == EffectTarget.AllEnemies):
-                            ReduceEnemyImmunity(e.TurnReduction);
+                            ReduceEnemyTimedBuffs(e.TurnReduction);   // 면역 포함 턴제 버프 감소 (미호 교만은 면역 해제 가능)
                             break;
                         case SkillEffectType.BuffDispel when e.DispelBuffCount > 0:
                             DispelEnemyShield();

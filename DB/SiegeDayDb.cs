@@ -49,7 +49,7 @@ namespace GameDamageCalculator.Database
             public List<PriItem> Pri1 = new(), Pri2 = new(), Pri3 = new();
         }
 
-        // ===== 요일 정의 (현재 토요일만; 나머지는 데이터 확보 시 추가) =====
+        
         public static readonly List<DayDef> Days = new()
         {
             new DayDef
@@ -86,7 +86,8 @@ namespace GameDamageCalculator.Database
                 status: StatusEffectType.Stun, hpConv: new[] { 90.0, 80.0, 70.0 }, r3Def: 1030,
                 pri3: new() { B("루디", SkillType.Skill2), B("루디", SkillType.Skill1), Chan1, Look1 }),
 
-            // ===== 화요일 — 아일린. 1스킬: 감전[3턴]. R3 룩 추가: 모든 아군(보스측) 피해면역[2턴](모델 미반영). 물리90. 쿨 룩80/챈70 =====
+            // ===== 화요일 — 아일린. 1스킬: 감전[3턴]. R3 룩 추가: 모든 아군(보스측) 피해면역[2턴](r3LookImmunity=2로 모델 반영,
+            //   EnemyImmunityTurns). 버프해제(비스킷 리프어택)로는 제거 불가 — 피해 면역이라. 물리90. 쿨 룩80/챈70 =====
             // 우선순위: 아일린1 → 아일린2 → 룩1 → 챈1
             Day(2, "화요일", "화요일 공성전 (포디나의 성)", "아일린",
                 new Reduction { Phys = 90, Single = 70, Multi = 90 },

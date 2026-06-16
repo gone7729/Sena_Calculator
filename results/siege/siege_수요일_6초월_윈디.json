@@ -1,20 +1,19 @@
 ﻿{
   "day": "수요일",
   "boss": "수요일 공성전 (불멸의 성)",
-  "score": 8702432,
-  "autoRotationScore": 3369556,
-  "formation": "기본 진형",
+  "score": 8586438,
+  "autoRotationScore": 3498634,
+  "formation": "밸런스 진형",
   "backRow": [
     "나타",
-    "미호",
-    "비스킷"
+    "미호"
   ],
   "roundsCleared": 2,
   "totalTurns": 70,
   "roundScore": {
     "1": 25170,
     "2": 31450,
-    "3": 8645812
+    "3": 8529818
   },
   "team": [
     {
@@ -23,8 +22,8 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": true,
-      "totalDamage": 6959066,
-      "damageShare": 80
+      "totalDamage": 6141637,
+      "damageShare": 71.5
     },
     {
       "id": 103,
@@ -32,8 +31,8 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": true,
-      "totalDamage": 1476215,
-      "damageShare": 17
+      "totalDamage": 2197191,
+      "damageShare": 25.6
     },
     {
       "id": 202,
@@ -49,9 +48,9 @@
       "name": "비스킷",
       "role": "지원형",
       "transcend": 6,
-      "isBackRow": true,
-      "totalDamage": 108913,
-      "damageShare": 1.3
+      "isBackRow": false,
+      "totalDamage": 96934,
+      "damageShare": 1.1
     },
     {
       "id": 2,
@@ -59,24 +58,24 @@
       "role": "공격형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 21721,
+      "totalDamage": 14159,
       "damageShare": 0.2
     }
   ],
   "gear": [
-    "[나타] 세트 선택(풀시뮬): 추적자  ← 복수자=3,148,568 / 암살자=3,109,788 / 추적자=3,209,868 / 선봉장=2,929,804",
-    "[나타] 세트 추적자4\n  무기1: 메인 치명타피해% 36% | 부옵 치명타확률% 24, 약점공격확률% 5, 치명타피해% 6, 공격력% 5\n  무기2: 메인 치명타피해% 36% | 부옵 치명타확률% 16, 약점공격확률% 5, 치명타피해% 18, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
-    "[나타] 기어스탯(버프전): 치확 96% · 약확 45% · 치피 318%",
-    "[미호] 세트 선택(풀시뮬): 추적자  ← 복수자=3,209,868 / 암살자=3,168,853 / 추적자=3,214,760 / 선봉장=3,009,650",
-    "[미호] 세트 추적자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 24, 치명타확률% 12, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
-    "[미호] 기어스탯(버프전): 치확 97% · 약확 55% · 치피 246%",
-    "[리나] 세트 선택(풀시뮬): 복수자  ← 복수자=3,245,523 / 수문장=3,219,545",
+    "[나타] 세트 선택(풀시뮬): 추적자  ← 복수자=3,148,568 / 암살자=3,109,788 / 추적자=3,259,258 / 선봉장=2,929,804",
+    "[나타] 세트 추적자4\n  무기1: 메인 치명타피해% 36% | 부옵 치명타확률% 24, 약점공격확률% 5, 치명타피해% 6, 공격력% 5\n  무기2: 메인 치명타피해% 36% | 부옵 치명타확률% 16, 약점공격확률% 5, 치명타피해% 18, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50, 치명타확률% 4\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50, 치명타확률% 4\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
+    "[나타] 기어스탯(버프전): 치확 71% · 약확 45% · 치피 318%",
+    "[미호] 세트 선택(풀시뮬): 추적자  ← 복수자=3,259,258 / 암살자=3,218,213 / 추적자=3,264,179 / 선봉장=3,058,812",
+    "[미호] 세트 추적자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 24, 치명타확률% 12, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50, 치명타확률% 4\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
+    "[미호] 기어스탯(버프전): 치확 101% · 약확 55% · 치피 246%",
+    "[리나] 세트 선택(풀시뮬): 복수자  ← 복수자=3,318,446 / 수문장=3,292,468",
     "[리나] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 약점공격확률% 25, 치명타확률% 8, 치명타피해% 6, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 24, 치명타확률% 12, 약점공격확률% 5, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 약점공격확률% 5, 공격력% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력% 5\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
-    "[리나] 기어스탯(버프전): 치확 97% · 약확 52% · 치피 262%",
-    "[비스킷] 세트 선택(풀시뮬): 복수자  ← 복수자=3,254,348 / 수문장=3,175,504",
+    "[리나] 기어스탯(버프전): 치확 97% · 약확 52% · 치피 228%",
+    "[비스킷] 세트 선택(풀시뮬): 복수자  ← 복수자=3,327,272 / 수문장=3,248,428",
     "[비스킷] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 약점공격확률% 25, 치명타확률% 8, 치명타피해% 6, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 24, 치명타확률% 12, 약점공격확률% 5, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 약점공격확률% 5, 공격력% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력% 5\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
     "[비스킷] 기어스탯(버프전): 치확 97% · 약확 52% · 치피 228%",
-    "[라이언] 세트 선택(풀시뮬): 복수자  ← 수문장=3,257,920 / 복수자=3,267,348",
+    "[라이언] 세트 선택(풀시뮬): 복수자  ← 수문장=3,330,844 / 복수자=3,340,329",
     "[라이언] 세트 복수자4\n  무기1: 메인 생명력% 28% | 부옵 생명력% 30, 방어력% 5, 생명력 180, 방어력 30\n  무기2: 메인 생명력% 28% | 부옵 생명력% 30, 방어력% 5, 생명력 180, 방어력 30\n  방어구1: 메인 생명력% 28% | 부옵 생명력% 30, 방어력% 5, 생명력 180, 방어력 30\n  방어구2: 메인 생명력% 28% | 부옵 생명력% 30, 방어력% 5, 생명력 180, 방어력 30\n  장신구: 6성 메인 치명타확률% / 부 약점공격확률%",
     "[라이언] 기어스탯(버프전): 치확 33% · 약확 12% · 치피 150%"
   ],
@@ -155,8 +154,8 @@
     },
     {
       "step": 13,
-      "hero": "라이언",
-      "skill": "광풍참",
+      "hero": "비스킷",
+      "skill": "장비 강화",
       "isAuto": false
     },
     {
@@ -167,26 +166,26 @@
     },
     {
       "step": 15,
-      "hero": "비스킷",
-      "skill": "장비 강화",
+      "hero": "미호",
+      "skill": "교만의 일격",
       "isAuto": false
     },
     {
       "step": 16,
+      "hero": "라이언",
+      "skill": "강자 사냥",
+      "isAuto": false
+    },
+    {
+      "step": 17,
       "hero": "나타",
       "skill": "혼천릉파",
       "isAuto": false
     },
     {
-      "step": 17,
+      "step": 18,
       "hero": "미호",
       "skill": "살육의 춤",
-      "isAuto": false
-    },
-    {
-      "step": 18,
-      "hero": "라이언",
-      "skill": "강자 사냥",
       "isAuto": false
     },
     {
@@ -197,9 +196,9 @@
     },
     {
       "step": 20,
-      "hero": "나타",
-      "skill": "혼천릉파",
-      "isAuto": false
+      "hero": "미호",
+      "skill": "교만의 일격",
+      "isAuto": true
     }
   ],
   "feasibility": {
@@ -208,8 +207,8 @@
     "unreached": 0,
     "minSlackSec": 1,
     "scoreReproduced": true,
-    "score25": 8702432,
-    "floor0": 8702432,
+    "score25": 8586438,
+    "floor0": 8586438,
     "counterattackDelta": 0,
     "steps": [
       {
@@ -417,21 +416,24 @@
         "step": 13,
         "turn": 40,
         "elapsedSec": 152,
-        "hero": "라이언",
-        "skill": "광풍참",
+        "hero": "비스킷",
+        "skill": "장비 강화",
         "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
+        "firstUse": false,
+        "slackSec": 5,
         "reason": null,
         "cooldownRemainingSec": null,
-        "buffTargets": null,
+        "buffTargets": [
+          "나타",
+          "미호"
+        ],
         "debuffTargets": null,
         "dispelTargets": null
       },
       {
         "step": 14,
         "turn": 44,
-        "elapsedSec": 167,
+        "elapsedSec": 166,
         "hero": "리나",
         "skill": "행진가",
         "status": "ok",
@@ -446,18 +448,15 @@
       {
         "step": 15,
         "turn": 48,
-        "elapsedSec": 178,
-        "hero": "비스킷",
-        "skill": "장비 강화",
+        "elapsedSec": 177,
+        "hero": "미호",
+        "skill": "교만의 일격",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 31,
+        "slackSec": 37,
         "reason": null,
         "cooldownRemainingSec": null,
-        "buffTargets": [
-          "나타",
-          "미호"
-        ],
+        "buffTargets": null,
         "debuffTargets": null,
         "dispelTargets": null
       },
@@ -465,8 +464,8 @@
         "step": 16,
         "turn": 52,
         "elapsedSec": 192,
-        "hero": "나타",
-        "skill": "혼천릉파",
+        "hero": "라이언",
+        "skill": "강자 사냥",
         "status": "ok",
         "firstUse": false,
         "slackSec": 29,
@@ -479,12 +478,27 @@
       {
         "step": 17,
         "turn": 56,
-        "elapsedSec": 208,
+        "elapsedSec": 203,
+        "hero": "나타",
+        "skill": "혼천릉파",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 41,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 18,
+        "turn": 60,
+        "elapsedSec": 219,
         "hero": "미호",
         "skill": "살육의 춤",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 27,
+        "slackSec": 38,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -496,29 +510,14 @@
         "dispelTargets": null
       },
       {
-        "step": 18,
-        "turn": 60,
-        "elapsedSec": 222,
-        "hero": "라이언",
-        "skill": "강자 사냥",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 59,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
         "step": 19,
         "turn": 64,
-        "elapsedSec": 236,
+        "elapsedSec": 233,
         "hero": "나타",
         "skill": "화첨창술",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 45,
+        "slackSec": 42,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -528,12 +527,12 @@
       {
         "step": 20,
         "turn": 68,
-        "elapsedSec": 250,
-        "hero": "나타",
-        "skill": "혼천릉파",
+        "elapsedSec": 251,
+        "hero": "미호",
+        "skill": "교만의 일격",
         "status": "ok",
-        "firstUse": false,
-        "slackSec": 4,
+        "firstUse": true,
+        "slackSec": null,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,

@@ -34,8 +34,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 현재 진행 중인 행동이 스킬턴(0턴, 턴 미소모)인지
         public bool IsSkillTurn { get; set; }
 
-        // 적 진영 전체 피해 면역 잔여 턴 (화 R3 룩 스킬 등). >0이면 아군이 적에게 주는 피해 0.
-        public int EnemyImmunityTurns { get; set; }
+        // (구) 전역 적 피해 면역 잔여 턴 — 적별 SiegeEnemyState.ImmunityTurns로 이전(per-action 차감). 필드 제거.
 
         // 선공 여부 (아군이 선공인지)
         public bool AllyFirst { get; set; }
@@ -147,6 +146,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         public BuffSet EnemyBuff { get; set; }
         public int EnemyBuffTurns { get; set; }
         public bool HasEnemyBuff => EnemyBuff != null && EnemyBuffTurns > 0;
+
+        // 피해 면역 잔여 턴 (화 R3 룩 스킬: 「모든 아군(보스측) 피해 면역[2턴]」 → 적 전체에 부여). >0이면 이 적이 받는 피해 0.
+        //   「[2턴]」 턴제 버프 → 미호 교만(턴제 버프 감소)으로는 해제 가능. 단 비스킷 리프어택(버프 해제)으로는 불가(피해 면역).
+        //   EnemyBuffTurns와 동일하게 이 적이 행동(기본공격)할 때마다 1턴 차감(per-action 모델) — 글로벌 sim-turn 감소가 아님.
+        public int ImmunityTurns { get; set; }
 
         // 스탯 (공성전 적은 장비/버프 없이 Enemy.Stats 그대로)
         public double FinalAtk { get; set; }

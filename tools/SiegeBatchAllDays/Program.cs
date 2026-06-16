@@ -166,8 +166,9 @@ foreach (var (day, ids) in DAYS)
     var res = new SiegeOptimizer().Optimize(cfg);
     sw.Stop();
 
-    // [기어 스탯 출력] 각 영웅 기어 블록 끝에 버프 전(기본+템) 치확/약확/치피 삽입.
-    //   StatCalculator를 파티버프 없이 호출 → 기본스탯+장비+세트+초월+잠재+전용만 반영(패시브/파티버프 제외).
+    // [기어 스탯 출력] 각 영웅 기어 블록 끝에 "기어만"(기본+장비+세트+초월+잠재+전용) 치확/약확/치피 삽입.
+    //   StatCalculator는 본인 상시 패시브 자버프(예: 나타 치확33)를 DisplayStats에 항상 더하므로,
+    //   "기어만" 표시를 위해 GetTotalSelfBuff의 치확/약확/치피를 빼준다. (파티버프는 애초에 미전달이라 제외됨)
     {
         var statCalc = new StatCalculator();
         string GearStat(BattleCharacter bc)
@@ -184,7 +185,12 @@ foreach (var (day, ids) in DAYS)
                 Formation = new Formation { Name = res.BestFormation, IsBackPosition = bc.IsBackPosition },
                 Pet = cfg.AllyPet, PetStar = cfg.PetStar, PetOptionAtkRate = cfg.PetOptionAtkRate,
             }).DisplayStats ?? new BaseStatSet();
-            return $"[{bc.Character.Name}] 기어스탯(버프전): 치확 {ds.Cri:F0}% · 약확 {ds.Wek:F0}% · 치피 {ds.Cri_Dmg:F0}%";
+            // 본인 상시 패시브 자버프 제외(기어만 표시). GetTotalSelfBuff = 본인 Self+Party 상시 버프.
+            var pas = new BuffSet();
+            var selfPas = bc.Character?.Passive?.GetTotalSelfBuff(bc.IsSkillEnhanced, bc.TranscendLevel);
+            if (selfPas != null) pas.Add(selfPas);
+            double cri = ds.Cri - pas.Cri, wek = ds.Wek - pas.Wek, criDmg = ds.Cri_Dmg - pas.Cri_Dmg;
+            return $"[{bc.Character.Name}] 기어스탯(버프전): 치확 {cri:F0}% · 약확 {wek:F0}% · 치피 {criDmg:F0}%";
         }
         // 각 영웅의 마지막 "[이름]" 기어 로그 줄 뒤에 스탯 줄 삽입.
         var augmented = new List<string>(res.GearLog);
