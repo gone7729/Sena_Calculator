@@ -386,12 +386,21 @@ namespace GameDamageCalculator.Services.Optimizer
                 {
                     var slot = equip.SubSlots[i];
                     string bestStat = null; double bestDmg = -1;
-                    string fallbackStat = null;   // 캡 초과라 데미지 0이지만, 빈 슬롯 방지용 폴백(실제 장비는 부옵 4개)
+                    string fallbackStat = null; double fallbackPrio = double.NegativeInfinity;   // 캡 초과라 데미지 0이지만, 빈 슬롯 방지용 폴백(실제 장비는 부옵 4개)
                     foreach (var stat in cands)
                     {
                         if (used.Contains(stat)) continue;
                         slot.StatName = stat; slot.Tier = 1;
-                        if (ExceedsCritWeakCap(stat)) { slot.StatName = ""; slot.Tier = 0; fallbackStat ??= stat; continue; }   // 캡 초과 → 데미지 평가 제외, 폴백 후보로만
+                        if (ExceedsCritWeakCap(stat))
+                        {
+                            slot.StatName = ""; slot.Tier = 0;
+                            // 캡 초과(데미지 0) → 폴백 후보로만. 단, 스킬 내장(확정치명 등 capBonus, 항상 가동)으로 캡된 스탯은
+                            //   진짜 죽은 옵션이고, 파티 버프 floor로만 캡된 스탯(예: 약확)은 버프 비가동 구간·타라운드에서 잔존 가치 →
+                            //   capBonus 기여가 작은(=floor로만 캡된) 쪽을 우선해 더 의미있는 필러를 채운다.
+                            double prio = -(stat == "치명타확률%" ? capBonus.Cri : capBonus.Wek);
+                            if (prio > fallbackPrio) { fallbackPrio = prio; fallbackStat = stat; }
+                            continue;
+                        }
                         double d = Score(loadout);
                         if (d > bestDmg) { bestDmg = d; bestStat = stat; }
                         slot.StatName = ""; slot.Tier = 0;
