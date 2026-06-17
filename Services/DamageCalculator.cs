@@ -202,15 +202,19 @@ namespace GameDamageCalculator.Services
             double inputCritDmg = input.CritDamage;
             double skillCritDmg = skillBonus.Cri_Dmg;
             double critFull = (inputCritDmg + skillCritDmg) / 100.0;
+            // 스킬 자체 내장 치확/약확(예: 파스칼 파괴의거인 6초월 확정치명 Cri=100)도 발동 확률에 합산.
+            //   안 그러면 기댓값 모드가 이미 확정인 치확/약확을 과소평가 → 옵티마이저가 치확/약확 기어를 낭비 배분.
+            double effCritChance = input.CritChance + skillBonus.Cri;
+            double effWeakChance = input.WeakChance + skillBonus.Wek;
             if (!input.IsCritical)
                 result.CritMultiplier = 1.0;
             else if (input.ExpectedCritWeak)
             {
-                double pc = System.Math.Min(1.0, System.Math.Max(0, input.CritChance) / 100.0);
+                double pc = System.Math.Min(1.0, System.Math.Max(0, effCritChance) / 100.0);
                 result.CritMultiplier = 1.0 + pc * (critFull - 1.0);
             }
             else result.CritMultiplier = critFull;
-            result.DebugLog.AppendLine($"[6] 치명계수: {(input.ExpectedCritWeak ? $"기댓값(확률{input.CritChance}%)" : input.IsCritical ? "발동" : "미발동")} → {result.CritMultiplier:F4}x");
+            result.DebugLog.AppendLine($"[6] 치명계수: {(input.ExpectedCritWeak ? $"기댓값(확률{effCritChance}%)" : input.IsCritical ? "발동" : "미발동")} → {result.CritMultiplier:F4}x");
 
             // 6. 약점 계수 (기댓값 모드면 확률로 가중). 약피% / 100 곱연산.
             double weakFull = (input.WeakpointDmg + input.WeakpointDmgBuff) / 100.0;
@@ -218,11 +222,11 @@ namespace GameDamageCalculator.Services
                 result.WeakpointMultiplier = 1.0;
             else if (input.ExpectedCritWeak)
             {
-                double pw = System.Math.Min(1.0, System.Math.Max(0, input.WeakChance) / 100.0);
+                double pw = System.Math.Min(1.0, System.Math.Max(0, effWeakChance) / 100.0);
                 result.WeakpointMultiplier = 1.0 + pw * (weakFull - 1.0);
             }
             else result.WeakpointMultiplier = weakFull;
-            result.DebugLog.AppendLine($"[7] 약점계수: {(input.ExpectedCritWeak ? $"기댓값(확률{input.WeakChance}%)" : input.IsWeakpoint ? "발동" : "미발동")} → {result.WeakpointMultiplier:F4}x");
+            result.DebugLog.AppendLine($"[7] 약점계수: {(input.ExpectedCritWeak ? $"기댓값(확률{effWeakChance}%)" : input.IsWeakpoint ? "발동" : "미발동")} → {result.WeakpointMultiplier:F4}x");
 
             // 7. 피해 증가 계수
             result.DamageMultiplier = CalcDamageMultiplier(input, levelData, result);
@@ -521,8 +525,9 @@ namespace GameDamageCalculator.Services
             //   비-기댓값(계산기 max-damage, IsWeakpoint/IsCritical=true): 기존대로 full 계수 그대로(무변경).
             double critFull = (input.CritDamage + skillBonus.Cri_Dmg) / 100.0;
             double weakFull = (input.WeakpointDmg + input.WeakpointDmgBuff) / 100.0;
-            double pc = System.Math.Min(1.0, System.Math.Max(0, input.CritChance) / 100.0);
-            double pw = System.Math.Min(1.0, System.Math.Max(0, input.WeakChance) / 100.0);
+            // 스킬 내장 치확/약확(확정치명 등) 합산 — 위 치명/약점 계수와 동일 기준.
+            double pc = System.Math.Min(1.0, System.Math.Max(0, input.CritChance + skillBonus.Cri) / 100.0);
+            double pw = System.Math.Min(1.0, System.Math.Max(0, input.WeakChance + skillBonus.Wek) / 100.0);
 
             result.WekBonusDmg = 0;
             result.DebugLog.AppendLine($"    [약점추가 조건] IsWeakpoint:{input.IsWeakpoint}, 기댓값:{input.ExpectedCritWeak}, WekBonusDmg:{skillBonus.WekBonusDmg}%");

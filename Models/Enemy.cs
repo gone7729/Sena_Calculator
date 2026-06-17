@@ -48,6 +48,11 @@ namespace GameDamageCalculator.Models
         // 공성전: 이 적이 아군 공격에 피격될 때마다 공격력 최고 적의 스킬 쿨타임 N초 감소 (일요일 몹 패시브). 0이면 없음.
         public double SiegeHitCdReduce { get; set; }
 
+        // 공성전 R3 시스템 기믹(패시브 아님, 시스템 설정): 이 적은 피해를 받을 때 1만 받는다(사실상 무적).
+        //   일요일 R3 룩·챈슬러 — 보스(크리스)에게만 유효타가 들어가게 강제(약점공격/집중으로 크리스 단일 타격).
+        //   버프해제·턴제버프감소로 풀 수 없는 고정 속성이라 ImmunityTurns(턴제 면역)와 별개로 선언한다.
+        public bool SiegeDamageCapToOne { get; set; }
+
         // 공성전 광폭화 패시브 보유 여부 (요일 보스만 보유 / 룩·챈슬러 친위대는 보스취급이나 광폭화 없음).
         //   true일 때만 EnrageMultiplier가 적→아군 피해에 곱연산. 기본 true(기존 보스 동작 유지).
         public bool HasEnrage { get; set; } = true;

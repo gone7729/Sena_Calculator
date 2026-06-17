@@ -592,6 +592,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (dmg <= 0) return;
 
+            // R3 시스템 기믹(일요일 룩·챈슬러): 피해 1 고정 — 보스(크리스)에게만 유효타가 들어가도록 시스템이 강제.
+            //   패시브/버프 아닌 고정 속성(SiegeDamageCapToOne)이라 버프해제·턴제버프감소로 풀 수 없음.
+            //   약점공격(약확 100%↑) 집중 또는 광역기 외엔 크리스를 직접 못 때려 점수가 안 오른다(PickTargets 참조).
+            if (target.Source?.SiegeDamageCapToOne == true && dmg > 1) dmg = 1;
+
             // 피해 면역 (화 R3 룩 스킬: 적 전체 [2턴]) — 이 대상이 면역 중이면 피해 0. 단 관통(IgnoresTurnDamageImmunity)이면 면역 무시.
             if (target.ImmunityTurns > 0 && !penetrate)
             {

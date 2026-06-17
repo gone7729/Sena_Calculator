@@ -351,6 +351,14 @@ namespace GameDamageCalculator.Services.Optimizer
             subStatNames ??= GetDpsSubStatNames();
             double Score(EquipmentLoadout lo) => scorer != null ? scorer(lo) : EvaluateDamage(battleChar, config, charIndex, lo, partyCritWeakFloor);
 
+            // 대표(최고 배율) 스킬의 내장 치확/약확(예: 파스칼 파괴의거인 확정치명 Cri=100). 캡 판정에 합산해
+            //   이미 확정인 치확/약확 부옵을 낭비 배분하지 않게 한다. (데미지 평가는 DamageCalculator가 직접 반영)
+            var capSkill = battleChar.Character?.Skills?
+                .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
+                .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced)?.Ratio ?? 0)
+                .FirstOrDefault();
+            var capBonus = capSkill?.GetTotalBonus(battleChar.IsSkillEnhanced, battleChar.TranscendLevel) ?? new BuffSet();
+
             // 저점-우선 캡: 치확/약확이 100% 도달하면 그 이상은 순수 낭비 → 후보 거절(자연스럽게 치피/공%로 우회).
             // 기준 = 프록시 DisplayStats(base·초월·펫·진형·장비) + 풀파티 버스트 버프 floor(비스킷 약확54·레이첼 약확27 등).
             bool ExceedsCritWeakCap(string statName)
@@ -358,8 +366,8 @@ namespace GameDamageCalculator.Services.Optimizer
                 if (statName != "치명타확률%" && statName != "약점공격확률%") return false;
                 var (sr, _) = ComputeStatResult(loadout, battleChar, config, charIndex);
                 if (sr.DisplayStats == null) return false;
-                if (statName == "치명타확률%" && sr.DisplayStats.Cri + partyCritWeakFloor.Cri >= 100) return true;
-                if (statName == "약점공격확률%" && sr.DisplayStats.Wek + partyCritWeakFloor.Wek >= 100) return true;
+                if (statName == "치명타확률%" && sr.DisplayStats.Cri + partyCritWeakFloor.Cri + capBonus.Cri >= 100) return true;
+                if (statName == "약점공격확률%" && sr.DisplayStats.Wek + partyCritWeakFloor.Wek + capBonus.Wek >= 100) return true;
                 return false;
             }
 

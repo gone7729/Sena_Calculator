@@ -45,6 +45,9 @@ namespace GameDamageCalculator.Database
             // 몹 피격 시 쿨감 패시브(일요일): 이 요일 몹이 피격될 때마다 공격력 최고 적 쿨 N초 감소. 0이면 없음.
             public double MobHitCdReduce;
 
+            // R3 룩·챈슬러 피해 1 고정 기믹(시스템 설정, 일요일). true면 R3 친위대는 유효타 1만 받음 → 보스(크리스)만 실딜.
+            public bool R3MobDamageCapToOne;
+
             // 스킬 우선순위 (라운드별)
             public List<PriItem> Pri1 = new(), Pri2 = new(), Pri3 = new();
         }
@@ -121,7 +124,7 @@ namespace GameDamageCalculator.Database
             // 우선순위: 크리스2 → 크리스1 → 룩1 → 챈1
             Day(7, "일요일", "일요일 공성전 (지옥의 성)", "크리스",
                 new Reduction { Multi = 90 },
-                status: StatusEffectType.InstantDeath, r3Def: 2725, mobHitCdReduce: 15,
+                status: StatusEffectType.InstantDeath, r3Def: 2725, mobHitCdReduce: 15, r3MobDamageCapToOne: true,
                 pri3: new() { B("크리스", SkillType.Skill2), B("크리스", SkillType.Skill1), Look1, Chan1 }),
         };
 
@@ -138,7 +141,7 @@ namespace GameDamageCalculator.Database
             StatusEffectType status, List<PriItem> pri3, double lookCd = 70, double chanCd = 70,
             double[] hpConv = null, string r3LookExtra = null,
             StatusEffectType? chanStatus = null, string chanSkillName = "1스킬", double? chanStatusAtkRatio = null,
-            double r3Def = 0, int r3LookImmunity = 0, double mobHitCdReduce = 0)
+            double r3Def = 0, int r3LookImmunity = 0, double mobHitCdReduce = 0, bool r3MobDamageCapToOne = false)
         {
             // R3 친위대 표준 스탯: Atk 룩1502/챈1754, Hp 40000, Spd 룩19/챈25, 효적100, 치피150. 방어력만 요일별.
             BaseStatSet R3Std(double atk, double spd) => new() { Atk = atk, Def = r3Def, Hp = 40000, Spd = spd, Cri_Dmg = 150, Eff_Hit = 100 };
@@ -161,6 +164,7 @@ namespace GameDamageCalculator.Database
                 R2Look = Look(2, 90, 305), R2Chan = Chan(2, 90, 305),
                 R3Look = Look(3, 100, 340, r3LookExtra, r3LookImmunity), R3Chan = Chan(3, 100, 340),
                 MobHitCdReduce = mobHitCdReduce,
+                R3MobDamageCapToOne = r3MobDamageCapToOne,
                 R3LookStats = r3Def > 0 ? R3Std(1502, 19) : R3LookPlaceholder(),
                 R3ChanStats = r3Def > 0 ? R3Std(1754, 25) : R3ChanPlaceholder(),
                 Pri1 = mobPri, Pri2 = mobPri, Pri3 = pri3,
@@ -211,6 +215,9 @@ namespace GameDamageCalculator.Database
                 var r2Chan = MakeMob("챈슬러", 2, MobStats[("챈슬러", 2)], d.R2Chan);
                 var r3Look = MakeMob("룩", 3, d.R3LookStats, d.R3Look);
                 var r3Chan = MakeMob("챈슬러", 3, d.R3ChanStats, d.R3Chan);
+                // R3 룩·챈슬러 피해 1 고정 기믹(일요일): 보스(크리스)에게만 유효타가 들어가도록.
+                r3Look.SiegeDamageCapToOne = d.R3MobDamageCapToOne;
+                r3Chan.SiegeDamageCapToOne = d.R3MobDamageCapToOne;
                 mobs.AddRange(new[] { r1Look, r1Chan, r2Look, r2Chan, r3Look, r3Chan });
 
                 var boss = bossList.FirstOrDefault(b => b.Name == d.BossName);
