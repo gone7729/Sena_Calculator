@@ -580,9 +580,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             // }
 
             // 행동자(actor)만 효과 tick (per-character-action 모델)
+            //   ★R3 적은 스펀지(HP≤0여도 행동 지속)다. 옛 `CurrentHp > 0` 가드는 음수HP가 된 R3 적의
+            //     디버프 잔여턴을 영영 안 깎아(불새 [4턴]이 70턴 내내 유지) 디버프 갱신을 무의미하게 만들고
+            //     시뮬을 과대산출시켰다. 행동한 적은 HP 무관하게 tick한다(R1/R2 사망 적은 행동 자체를 안 함).
             if (actor.IsAlly && actor.Ally != null)
                 TickAllyAfterAction(state, actor.Ally);
-            else if (!actor.IsAlly && actor.Enemy != null && actor.Enemy.CurrentHp > 0)
+            else if (!actor.IsAlly && actor.Enemy != null)
                 TickEnemyAfterAction(state, actor.Enemy);
         }
 
@@ -2112,14 +2115,20 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                 var perStack = effect.Debuff;
 
-                // 트리거 판정: 스킬 발동 시 즉시 1회. 평타는 TriggerCount회(=2)마다 1회. 카운터는 평타에만, 라운드별 리셋.
+                // 트리거 판정: 스킬 발동 시 즉시 1회. 평타는 TriggerCount회(=2)마다 1회. 카운터는 라운드별.
+                //   ★스킬이 트리거하면 평타 누적 카운터도 리셋한다(게임 규칙). 즉 평타→스킬(부여)→평타→평타(부여)이지,
+                //     평타→스킬(부여)→평타(부여)가 아니다. (구버그: 스킬이 카운터를 안 건드려 스킬 직후 평타1회로 재부여 → 과다부여.)
+                string ckey = $"siege_stackcnt:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}";
                 if (!isSkill)
                 {
-                    string ckey = $"siege_stackcnt:{ally.PartyIndex}:{effect.StatusType}:R{state.CurrentRound}";
                     ally.StackTriggerCounters.TryGetValue(ckey, out int cnt);
                     cnt++;
                     if (cnt < System.Math.Max(1, effect.TriggerCount)) { ally.StackTriggerCounters[ckey] = cnt; continue; }
                     ally.StackTriggerCounters[ckey] = 0;
+                }
+                else
+                {
+                    ally.StackTriggerCounters[ckey] = 0;   // 스킬 트리거 → 평타 누적 리셋
                 }
 
                 // 발동 시 적군 3명에게 스택 부여 (보스 포함). 적별로 누적.
