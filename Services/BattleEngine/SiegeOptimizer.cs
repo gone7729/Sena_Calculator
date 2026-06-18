@@ -72,6 +72,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 생존(권능) 반지 후처리 사용 여부. 기본 ON(기존 동작). OFF면 ApplySurvivalRings 미실행 —
         //   6초월 실측 프로필처럼 권능반지를 끼지 않는 계정 가정 탐색에 사용.
         public bool EnableSurvivalRings { get; set; } = true;
+
+        // 좌표상승(기어↔로테/진형) 2패스 탐색. 기본 OFF(기존 1패스 동작·무회귀).
+        //   ON이면 1패스(기어=프록시 레짐)로 진형·자리·빔로테를 찾은 뒤, 그 최종 레짐을 GearEval*에 피드백해
+        //   기어를 재최적화하고 다시 탐색 → 기어 선정 레짐 = 최종 평가 레짐 정합(2단계 근사 함정 교정).
+        //   딜러 메인옵을 사람이 ForcedMain으로 박지 않아도 시뮬이 스스로 찾게 하는 게 목적.
+        //   조합탐색(Candidates) 시엔 GearEvalRotation HeroIndex 정합이 깨질 수 있어 고정팀(Candidates 없음)에서만 적용.
+        public bool CoordinateAscentGear { get; set; }
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -114,7 +121,48 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 공성전 아군 순회 진형 (공격 진형 제외 — 기획)
         private static readonly string[] Formations = { "기본 진형", "밸런스 진형", "보호 진형" };
 
+        /// <summary>
+        /// 공성 탐색 진입점. 좌표상승 OFF면 1패스(OptimizeOnce) 그대로. ON이면 2패스:
+        ///   1패스 결과(최종 진형·자리·빔로테)를 GearEval*에 피드백해 기어를 최종 레짐에서 재최적화하고 재탐색,
+        ///   무회귀(IsBetterPick)로 더 나은 패스 채택. 공유 BattleCharacter 객체라 1패스 기어를 스냅샷해 복원한다.
+        /// </summary>
         public SiegeOptimizerResult Optimize(SiegeOptimizerConfig config)
+        {
+            // 좌표상승 적용 대상 = 시작 시점 장비 미지정(자동장착) 영웅. 조합탐색 시엔 로테 HeroIndex 정합이 깨져 제외.
+            bool canAscend = config.CoordinateAscentGear && config.AutoEquip
+                             && (config.Candidates == null || config.Candidates.Count == 0);
+            var autoTargets = canAscend
+                ? config.FixedMembers.Concat(config.Candidates ?? new List<BattleCharacter>())
+                    .Where(bc => bc != null && bc.Equipment == null).ToList()
+                : new List<BattleCharacter>();
+
+            var r1 = OptimizeOnce(config);
+            if (!canAscend || r1?.BestParty == null || autoTargets.Count == 0) return r1;
+
+            // 1패스 기어 스냅샷(공유객체 보존) + 최종 레짐을 기어평가에 피드백.
+            var p1Gear = autoTargets.Select(t => t.Equipment).ToList();
+            config.GearEvalFormation = r1.BestFormation;
+            config.GearEvalBackRow = r1.BestBackRow != null ? new List<string>(r1.BestBackRow) : null;
+            config.GearEvalRotation = (r1.BestRotationPlan != null && r1.BestRotationPlan.Count > 0)
+                ? new List<RotationDecision>(r1.BestRotationPlan) : null;
+
+            // 재장착 유도 후 2패스.
+            foreach (var t in autoTargets) t.Equipment = null;
+            var r2 = OptimizeOnce(config);
+
+            // 무회귀: 2패스가 더 나으면 채택, 아니면 1패스 기어·자리를 공유객체에 복원해 반환.
+            if (r2?.BestParty != null && IsBetterPick(r2.BestScore, r2.BestRankScore, r1.BestScore, r1.BestRankScore))
+                return r2;
+            for (int i = 0; i < autoTargets.Count; i++) autoTargets[i].Equipment = p1Gear[i];
+            for (int i = 0; i < r1.BestParty.Count; i++)
+                r1.BestParty[i].IsBackPosition = (r1.BestMask & (1 << i)) != 0;
+            if (r1.RingedAcc != null)
+                for (int i = 0; i < r1.RingedAcc.Count && i < r1.BestParty.Count; i++)
+                    if (r1.BestParty[i].Equipment != null) r1.BestParty[i].Equipment.Accessory = r1.RingedAcc[i];
+            return r1;
+        }
+
+        private SiegeOptimizerResult OptimizeOnce(SiegeOptimizerConfig config)
         {
             int remaining = config.PartySize - config.FixedMembers.Count;
             if (remaining < 0) remaining = 0;

@@ -154,16 +154,18 @@ namespace GameDamageCalculator.Services.Optimizer
             foreach (var setName in sets)
             {
                 var setConfig = new EquipSetConfig { WeaponSetName = setName, ArmorSetName = setName, Is4Set = true, Description = $"{setName} 4세트" };
+                // 메인옵 × 부옵 조인트 (OptimizeForSetFull과 동일 원칙, 프록시 데미지 기준): 메인 후보마다 부옵까지
+                //   최적화 후 비교 → 포화 치확/약확을 굵은 메인에 낭비하지 않고 부옵으로 캡 맞추는 빌드를 본다.
                 EquipmentLoadout best = null; double bestD = -1;
                 foreach (var wm in weaponMains)
                     foreach (var am in armorMains)
                     {
                         var lo = BuildLoadout(setConfig, wm, wm, am, am);
+                        OptimizeSubOptions(lo, battleChar, config, charIndex, gc?.SubOptions, null, partyCritWeakFloor);
                         double d = EvaluateDamage(battleChar, config, charIndex, lo, partyCritWeakFloor);
                         if (d > bestD) { bestD = d; best = lo; }
                     }
                 if (best == null) continue;
-                OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions, null, partyCritWeakFloor);
                 OptimizeAccessory(best, battleChar, config, charIndex);
                 result.Add((setName, best));
             }
@@ -187,19 +189,22 @@ namespace GameDamageCalculator.Services.Optimizer
 
             var setConfig = new EquipSetConfig { WeaponSetName = setName, ArmorSetName = setName, Is4Set = true, Description = $"{setName} 4세트" };
 
-            // 1) 메인옵: (무기메인 × 방어구메인) 조합을 스코어러로 비교
+            // 1) 메인옵 × 부옵 조인트: 각 (무기메인×방어구메인) 후보마다 부옵까지 최적화한 뒤 전체 점수로 비교.
+            //    메인 치확(24) = 부옵 치확 최대(24)로 동치라, 메인을 부옵과 분리해 고르면 포화 스탯(치확/약확)을
+            //    굵은 메인 슬롯에 낭비하는 오선택이 난다(라이언: 치확 포화인데 치확 메인 채택→치피 메인 대비 −4%).
+            //    부옵까지 포함해 평가해야 "치피를 굵은 메인에 + 치확을 잘게 부옵으로 캡 맞춤"을 옵티마이저가 스스로 본다.
             EquipmentLoadout best = null; double bestScore = -1;
             foreach (var wm in weaponMains)
                 foreach (var am in armorMains)
                 {
                     var lo = BuildLoadout(setConfig, wm, wm, am, am);
+                    OptimizeSubOptions(lo, battleChar, config, charIndex, gc?.SubOptions, scorer, partyCritWeakFloor);
                     double s = scorer(lo);
                     if (s > bestScore) { bestScore = s; best = lo; }
                 }
             if (best == null) return null;
 
-            // 2) 부옵·장신구: 스코어러 기준 그리디 (치확/약확은 floor+장비가 100% 넘으면 캡)
-            OptimizeSubOptions(best, battleChar, config, charIndex, gc?.SubOptions, scorer, partyCritWeakFloor);
+            // 2) 장신구: 스코어러 기준 (부옵은 위 조인트 루프에서 메인별로 이미 최적화됨)
             OptimizeAccessory(best, battleChar, config, charIndex, scorer);
             return best;
         }
