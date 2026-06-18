@@ -456,7 +456,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var boss = ResolveBoss(config.SiegeStage);
             if (boss == null) return log;
 
-            var optimizer = new EquipmentOptimizer();
+            var optimizer = new EquipmentOptimizer { JointAccessory = config.CoordinateAscentGear };
             var targets = config.FixedMembers.Concat(config.Candidates).Where(bc => bc != null && bc.Equipment == null).ToList();
             var team = config.FixedMembers.Concat(config.Candidates).ToList();   // 풀시뮬 평가 팀
 

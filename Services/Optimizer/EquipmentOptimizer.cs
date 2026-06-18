@@ -205,7 +205,11 @@ namespace GameDamageCalculator.Services.Optimizer
             if (best == null) return null;
 
             // 2) 장신구: 스코어러 기준 (부옵은 위 조인트 루프에서 메인별로 이미 최적화됨)
-            OptimizeAccessory(best, battleChar, config, charIndex, scorer);
+            //    JointAccessory ON이면 장신구↔부옵 조인트(치확/약확 장신구가 캡 공급 시 부옵 치피 전환) 비교.
+            if (JointAccessory)
+                OptimizeAccessoryJoint(best, battleChar, config, charIndex, gc?.SubOptions, scorer, partyCritWeakFloor);
+            else
+                OptimizeAccessory(best, battleChar, config, charIndex, scorer);
             return best;
         }
 
@@ -452,6 +456,52 @@ namespace GameDamageCalculator.Services.Optimizer
         #endregion
 
         #region 장신구 최적화
+
+        // 좌표상승(SiegeOptimizer)에서 켜는 장신구↔부옵 조인트 플래그. 기본 OFF(기존 동작).
+        public bool JointAccessory { get; set; }
+
+        /// <summary>부옵 슬롯 상태(스탯명·티어) 스냅샷/복원 — 장신구 조인트에서 승자 부옵 보존용.</summary>
+        private static List<List<(string Stat, int Tier)>> SnapshotSubs(EquipmentLoadout lo) =>
+            lo.GetEquipments().Select(e => e.SubSlots.Select(s => (s.StatName, s.Tier)).ToList()).ToList();
+        private static void RestoreSubs(EquipmentLoadout lo, List<List<(string Stat, int Tier)>> snap)
+        {
+            var eqs = lo.GetEquipments().ToList();
+            for (int i = 0; i < eqs.Count && i < snap.Count; i++)
+                for (int j = 0; j < eqs[i].SubSlots.Count && j < snap[i].Count; j++)
+                { eqs[i].SubSlots[j].StatName = snap[i][j].Stat; eqs[i].SubSlots[j].Tier = snap[i][j].Tier; }
+        }
+
+        /// <summary>
+        /// 장신구 ↔ 부옵 조인트 최적화. 기존 OptimizeAccessory(고정 부옵)에 더해, 치확/약확 장신구 메인이
+        /// 캡을 공급하는 경우(→ 기어 부옵 치확/약확을 치피·공%로 돌릴 수 있음)를 부옵 재최적화와 함께 비교한다.
+        /// 메인↔부옵 조인트(OptimizeForSetFull)와 같은 원리를 장신구로 확장 — "장신구 치확 = 부옵 치확" 동치 반영.
+        /// </summary>
+        private void OptimizeAccessoryJoint(
+            EquipmentLoadout loadout, BattleCharacter battleChar, BattleConfig config, int charIndex,
+            string[] subStatNames, Func<EquipmentLoadout, double> scorer, (double Cri, double Wek) partyCritWeakFloor)
+        {
+            double Score(EquipmentLoadout lo) => scorer != null ? scorer(lo) : EvaluateDamage(battleChar, config, charIndex, lo);
+
+            // 1) 기준선: 고정 부옵 기준 최적 장신구(피증/보피증 등 비-치확/약확이 보통 여기서 선택).
+            OptimizeAccessory(loadout, battleChar, config, charIndex, scorer);
+            double best = Score(loadout);
+            var bestAcc = loadout.Accessory;
+            var bestSubs = SnapshotSubs(loadout);
+
+            // 2) 조인트 후보: 치확/약확 장신구 메인(캡 공급) — 부옵 재최적화 후 비교. 6성·부옵=보피증 페어(보스 가정).
+            if (AccessoryDb.MainOptions.TryGetValue(6, out var mains6))
+                foreach (var accMain in new[] { "치명타확률%", "약점공격확률%" })
+                {
+                    if (!mains6.ContainsKey(accMain)) continue;
+                    loadout.Accessory = new Accessory { Grade = 6, MainOption = accMain, SubOption = "보피증%" };
+                    OptimizeSubOptions(loadout, battleChar, config, charIndex, subStatNames, scorer, partyCritWeakFloor);
+                    double s = Score(loadout);
+                    if (s > best) { best = s; bestAcc = loadout.Accessory; bestSubs = SnapshotSubs(loadout); }
+                }
+
+            loadout.Accessory = bestAcc;
+            RestoreSubs(loadout, bestSubs);
+        }
 
         /// <summary>
         /// 최적 장신구 찾기
