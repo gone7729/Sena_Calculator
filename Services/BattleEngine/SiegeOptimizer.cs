@@ -79,6 +79,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   딜러 메인옵을 사람이 ForcedMain으로 박지 않아도 시뮬이 스스로 찾게 하는 게 목적.
         //   조합탐색(Candidates) 시엔 GearEvalRotation HeroIndex 정합이 깨질 수 있어 고정팀(Candidates 없음)에서만 적용.
         public bool CoordinateAscentGear { get; set; }
+
+        // 외부 시드 로테이션 — 빔 교차수분(crossPlans)에 추가로 투입할 (HeroIndex,Skill) 플랜들. 예: 다른 초월
+        //   프로필(6↔12초월)의 빔 결과. 빔이 이 config에서 못 찾은 더 높은 로테를 교차평가로 회수(무회귀).
+        //   HeroIndex는 동일 팀 순서 기준 — 고정팀에서만 의미.
+        public List<List<RotationDecision>> SeedRotations { get; set; }
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -373,6 +378,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                     crossPlans = beamCands
                         .Where(c => c.BestRotationPlan != null && c.BestRotationPlan.Count > 0)
                         .Select(c => c.BestRotationPlan).ToList();
+                    // 외부 시드 로테 주입(프로필 간 교차수분 등) — 빔이 못 찾은 더 높은 로테를 교차평가로 회수.
+                    if (config.SeedRotations != null)
+                        crossPlans.AddRange(config.SeedRotations.Where(p => p != null && p.Count > 0));
                     foreach (var cand in beamCands)
                     {
                         for (int i = 0; i < cand.BestParty.Count; i++)

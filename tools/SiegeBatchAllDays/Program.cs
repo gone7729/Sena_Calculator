@@ -94,6 +94,29 @@ BattleCharacter Hero(int id)
     };
 }
 
+// 커밋된 결과 JSON의 skillOrder(hero·skill 이름)를 RotationDecision으로 매핑 — 빔 교차수분 시드용. 없으면 null.
+List<RotationDecision> LoadRot(string path, List<BattleCharacter> team)
+{
+    if (!System.IO.File.Exists(path)) return null;
+    try
+    {
+        using var doc = JsonDocument.Parse(System.IO.File.ReadAllText(path));
+        if (!doc.RootElement.TryGetProperty("skillOrder", out var so)) return null;
+        var plan = new List<RotationDecision>();
+        foreach (var s in so.EnumerateArray())
+        {
+            if (s.TryGetProperty("isAuto", out var au) && au.GetBoolean()) continue;   // 빔 결정만(자동 꼬리 제외)
+            string hn = s.GetProperty("hero").GetString();
+            string sn = s.GetProperty("skill").GetString();
+            int hi = team.FindIndex(t => t.Character?.Name == hn);
+            var sk = hi >= 0 ? team[hi].Character.Skills.FirstOrDefault(k => k.Name == sn) : null;
+            if (hi >= 0 && sk != null) plan.Add(new RotationDecision { HeroIndex = hi, Skill = sk.SkillType });
+        }
+        return plan;
+    }
+    catch { return null; }
+}
+
 string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 // 출력은 results/siege/ 아래로 모은다 (json/txt/battlelog). 웹 반영은 web/scripts/sync-siege.mjs.
 string outDir = System.IO.Path.Combine(repoRoot, "results", "siege");
@@ -158,6 +181,17 @@ foreach (var (day, ids) in DAYS)
             cfg.ForcedFormation = "밸런스 진형";
             cfg.ForcedBackRow = db;
         }
+    }
+
+    // [교차시드] 같은 요일의 기존 커밋된 로테(6초월·12초월 양쪽)를 빔 교차수분 시드로 투입 — 빔이 이 프로필에서
+    //   못 찾은 더 높은 로테를 회수(목요일 검증: 6초월 로테가 12초월 빌드에서 +10%). 무회귀(더 높을 때만 채택).
+    //   "노교차시드"로 비활성. (시드는 검증된 유효 로테라 stale이어도 후보로만 쓰여 안전.)
+    if (!args.Contains("노교차시드"))
+    {
+        var seeds = new[] { "6초월", "12초월" }
+            .Select(sp => LoadRot(System.IO.Path.Combine(outDir, $"siege_{day}_{sp}_윈디.json"), team))
+            .Where(r => r != null && r.Count > 0).ToList();
+        if (seeds.Count > 0) cfg.SeedRotations = seeds;
     }
 
     var sw = System.Diagnostics.Stopwatch.StartNew();
