@@ -2,7 +2,7 @@
   "day": "일요일",
   "boss": "일요일 공성전 (지옥의 성)",
   "score": 7397070,
-  "autoRotationScore": 3582499,
+  "autoRotationScore": 3596113,
   "formation": "밸런스 진형",
   "backRow": [
     "파스칼",
@@ -171,14 +171,14 @@
     },
     {
       "step": 15,
-      "hero": "샤오",
-      "skill": "정기흡공",
+      "hero": "파스칼",
+      "skill": "파괴의 거인",
       "isAuto": false
     },
     {
       "step": 16,
-      "hero": "파스칼",
-      "skill": "파괴의 거인",
+      "hero": "샤오",
+      "skill": "정기흡공",
       "isAuto": false
     },
     {
@@ -445,32 +445,32 @@
         "step": 15,
         "turn": 51,
         "elapsedSec": 196,
+        "hero": "파스칼",
+        "skill": "파괴의 거인",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 26,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 16,
+        "turn": 55,
+        "elapsedSec": 211,
         "hero": "샤오",
         "skill": "정기흡공",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 37,
+        "slackSec": 52,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
         "debuffTargets": [
           "크리스"
         ],
-        "dispelTargets": null
-      },
-      {
-        "step": 16,
-        "turn": 55,
-        "elapsedSec": 210,
-        "hero": "파스칼",
-        "skill": "파괴의 거인",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 40,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
         "dispelTargets": null
       },
       {
