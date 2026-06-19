@@ -154,6 +154,13 @@ foreach (var (day, ids) in DAYS)
     //   옛 라이언 ForcedMain(목/금) 제거. 비교·디버그용으론 "노좌표상승" 인자로 옛 1패스 동작 복원.
     if (!args.Contains("노좌표상승")) cfg.CoordinateAscentGear = true;
 
+    // [반격 평균 탐색] 금요일(제이브 반격)만: 빔/채택 평가를 반격 ON N시드 평균으로 → 평균점 최고 로테 선택
+    //   (반격 RNG 과적합 방지). 기본 10시드. 인자 "반격시드N"으로 조절. 다른 요일은 1(기존 OFF 탐색).
+    int caSeeds = day == "금요일" ? 10 : 1;
+    var caArg = args.FirstOrDefault(a => a.StartsWith("반격시드"));
+    if (caArg != null && int.TryParse(caArg.Substring("반격시드".Length), out var cav) && cav > 0) caSeeds = cav;
+    cfg.CounterattackSearchSeeds = caSeeds;
+
     // [기어=정렬 기준 선정] (실험·opt-in "기어정렬") expert 로테로 기어 선정. ★검증결과 역효과(목요일 14.87→13.92M):
     //   기본진형 단발 평가가 최종 빔과 불일치해 전체 기어가 나빠짐 → 기본 비활성. 라이언 치피 메인은 ForcedMain으로 별도 처리 권장.
     if (args.Contains("기어정렬") && expertByDay.TryGetValue(day, out var gearRot))
@@ -296,17 +303,26 @@ foreach (var (day, ids) in DAYS)
         .Select(f => f.Slack).DefaultIfEmpty(double.NaN).Min();
     string feasMinSlackStr = double.IsNaN(feasMinSlack) ? "n/a(재시전 없음)" : $"{feasMinSlack:F1}s";
     double ceiling0 = feasRes.TotalScore;   // 0% 천장(반격 0회 발동 시 점수)
-    double score25 = res.BestScore;         // 25% 실전 점수(최종, 단일 시드)
+    double score25 = res.BestScore;         // 25% 실전 점수(금요일=N시드 평균, 그 외=단일 시드)
     // 점수 재현: 최종 플랜을 반격 ON으로 재생해 res.BestScore와 일치하는지(플랜→점수 정합성).
-    var onReplay = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
+    //   금요일(평균 탐색)이면 동일 N시드 평균으로 재현(res.BestScore도 평균이므로).
+    SiegeBattleConfig OnReplayCfg() => new()
     {
         AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
         AllyPet = cfg.AllyPet, PetStar = cfg.PetStar, PetEnhance = cfg.PetEnhance,
         PetOptionAtkRate = cfg.PetOptionAtkRate, PetOptionDefRate = cfg.PetOptionDefRate,
         PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
         RotationPlan = res.BestRotationPlan,   // 반격 ON(기본)
-    });
-    bool feasScoreMatch = Math.Abs(onReplay.TotalScore - res.BestScore) < 1.0;
+    };
+    SiegeBattleResult onReplay; double onReplayScore;
+    if (caSeeds <= 1) { onReplay = new SiegeBattleSimulator(777).Simulate(OnReplayCfg()); onReplayScore = onReplay.TotalScore; }
+    else
+    {
+        double sumOn = 0; onReplay = null;
+        for (int s = 0; s < caSeeds; s++) { var r = new SiegeBattleSimulator(777 + s).Simulate(OnReplayCfg()); sumOn += r.TotalScore; onReplay ??= r; }
+        onReplayScore = sumOn / caSeeds;
+    }
+    bool feasScoreMatch = Math.Abs(onReplayScore - res.BestScore) < Math.Max(1.0, caSeeds > 1 ? res.BestScore * 0.005 : 1.0);
     bool feasOk = feasFallbacks == 0 && feasUnreached == 0;
 
     // ── [정렬로테] 유저 지정 전문가 로테(이름·스킬)를 같은 기어/진형으로 평가 → 빔과 비교 (인자 "정렬로테") ──
@@ -588,7 +604,7 @@ foreach (var (day, ids) in DAYS)
     sb.AppendLine("\n──── 자동 장착 기어 ────");
     foreach (var g in res.GearLog) sb.AppendLine("  " + g);
     sb.AppendLine("\n──── 최적 스킬 순서 + 실행가능성 ────");
-    sb.AppendLine($"  실행가능성(반격 0% 기준): {(feasOk ? "가능 ✓" : "불가 ✗")}  (폴백 {feasFallbacks} · 미도달 {feasUnreached} · 최소 쿨여유 {feasMinSlackStr} · 점수재현 {(feasScoreMatch ? "일치" : $"불일치!{onReplay.TotalScore:N0}")})");
+    sb.AppendLine($"  실행가능성(반격 0% 기준): {(feasOk ? "가능 ✓" : "불가 ✗")}  (폴백 {feasFallbacks} · 미도달 {feasUnreached} · 최소 쿨여유 {feasMinSlackStr} · 점수재현 {(feasScoreMatch ? "일치" : $"불일치!{onReplayScore:N0}")})");
     if (Math.Abs(counterDelta) > 1.0)
         sb.AppendLine($"  반격 모델: 25% 평균 {score25:N0}  ·  0회 보장 {ceiling0:N0}  ·  반격 기여 {counterDelta:+#,0;-#,0}");
     foreach (var f in feas)

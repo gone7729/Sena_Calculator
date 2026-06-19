@@ -40,6 +40,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   (이전 18은 막판 ~2 스킬턴을 자동 폴백=버프우선에 넘겨 끝물 공격스킬 채택을 놓쳤음)
         public int RotationMaxDepth { get; set; } = 28;
 
+        // [반격 평균 탐색] >1이면 빔/채택 평가를 반격 ON(보스 정의 25%) N시드 평균으로 — 로테 선택이 반격 RNG에
+        //   과적합되지 않게 평균점으로 고른다. 금요일(제이브)만 의미. 1이면 기존(빔=반격 OFF, 채택=ON 단일시드).
+        //   플랜 구조(Dps)는 OFF로 결정론 유지하고 점수만 ON N시드 평균(RotationBeamSearch).
+        public int CounterattackSearchSeeds { get; set; } = 1;
+
         // 진형 단일 강제 (실측 비교용). null이면 전 진형 탐색.
         public string ForcedFormation { get; set; }
 
@@ -351,7 +356,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         cand.AutoRotationScore = cand.BestScore;
                         var beam = new RotationBeamSearch(GearCompareSeed).Search(
                             BuildSimConfig(config, cand.BestParty, cand.BestFormation),
-                            config.RotationBeamWidth, config.RotationMaxDepth);
+                            config.RotationBeamWidth, config.RotationMaxDepth, config.CounterattackSearchSeeds);
                         // 빔은 반격 OFF(0%)로 로테를 골랐다 → 채택·비교 점수는 반격 ON(실전·단일시드)으로 재평가.
                         //   금요일(제이브)만 OFF≠ON; 그 외 보스는 반격 없어 동일(회귀 없음). 비교는 RankScore(생존 페널티).
                         //   raw 트랙(Plan)·생존 트랙(RankPlan) 둘 다 평가해 IsBetterPick(생존 우선)으로 채택.
@@ -388,9 +393,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         foreach (var plan in crossPlans)
                         {
                             if (ReferenceEquals(plan, cand.BestRotationPlan)) continue;   // 자기 플랜은 이미 반영됨
-                            var sc = BuildSimConfig(config, cand.BestParty, cand.BestFormation);
-                            sc.RotationPlan = plan;
-                            var r = new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+                            var r = ScoreOnPlan(config, cand.BestParty, cand.BestFormation, plan);
                             if (IsBetterPick(r.TotalScore, r.RankScore, cand.BestScore, cand.BestRankScore))
                             {
                                 cand.BestScore = r.TotalScore;
@@ -650,7 +653,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // (1) 반지-장착 config에서 빔 재탐색 — 생존이 열어준 새 로테 공간 탐색.
             var beam = new RotationBeamSearch(GearCompareSeed).Search(
                 BuildSimConfig(config, best.BestParty, best.BestFormation),
-                config.RotationBeamWidth, config.RotationMaxDepth);
+                config.RotationBeamWidth, config.RotationMaxDepth, config.CounterattackSearchSeeds);
 
             // (2) 후보 플랜 = 새 빔 + 기존 crossPlans + 현 채택 플랜. 반지-장착 config로 동일 시드 재평가.
             var candPlans = new List<List<RotationDecision>>();
@@ -662,9 +665,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             double before = best.BestScore;
             foreach (var plan in candPlans)
             {
-                var sc = BuildSimConfig(config, best.BestParty, best.BestFormation);
-                sc.RotationPlan = plan;
-                var r = new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+                var r = ScoreOnPlan(config, best.BestParty, best.BestFormation, plan);
                 if (IsBetterPick(r.TotalScore, r.RankScore, best.BestScore, best.BestRankScore))
                 {
                     best.BestScore = r.TotalScore;
@@ -741,13 +742,27 @@ namespace GameDamageCalculator.Services.BattleEngine
             PetOptionHpRate = config.PetOptionHpRate,
         };
 
-        /// <summary>빔이 OFF로 고른 로테를 반격 ON(실전·기본 25%)으로 재평가 — 채택 점수 일관성.</summary>
+        /// <summary>빔이 고른 로테를 반격 ON(실전·기본 25%)으로 재평가 — 채택 점수 일관성.
+        ///   CounterattackSearchSeeds>1(금요일)이면 N시드 평균(TotalScore·RankScore)으로 — 반격 RNG 과적합 방지.
+        ///   반환 result는 첫 시드 것(라운드/기여/로테 표시용)에 헤드라인 점수만 평균으로 덮어씀.</summary>
         private static SiegeBattleResult ScoreOnPlan(SiegeOptimizerConfig config, List<BattleCharacter> team,
             string formation, List<RotationDecision> plan)
         {
             var sc = BuildSimConfig(config, team, formation);   // override null = 반격 ON
             sc.RotationPlan = plan;
-            return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+            int n = System.Math.Max(1, config.CounterattackSearchSeeds);
+            if (n <= 1) return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+            double sumT = 0, sumR = 0;
+            SiegeBattleResult first = null;
+            for (int s = 0; s < n; s++)
+            {
+                var r = new SiegeBattleSimulator(GearCompareSeed + s).Simulate(sc);
+                sumT += r.TotalScore; sumR += r.RankScore;
+                first ??= r;
+            }
+            first.TotalScore = sumT / n;
+            first.RankScore = sumR / n;
+            return first;
         }
 
         /// <summary>공성전 풀시뮬 SiegeBattleConfig 구성.</summary>

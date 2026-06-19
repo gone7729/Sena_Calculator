@@ -289,7 +289,28 @@ export default function SimViewer() {
             ))}
           </div>
 
-          {/* 진형 배치 (전열/후열) + 선택 영웅 세팅 */}
+          {/* 최적 스킬 순서 (스킬빌드를 템세팅 위로) */}
+          {build.skillOrder.length > 0 && (
+            <>
+              <h3 className="siege-result-sub">스킬 빌드 — 최적 순서 ({build.skillOrder.length}턴)</h3>
+              <div className="siege-skill-list">
+                {build.skillOrder.map((s) => (
+                  <span
+                    key={s.step}
+                    className={`siege-skill-chip${s.isAuto ? " auto" : ""}`}
+                    title={s.isAuto ? "빔 최적화 범위 밖 — 자동 로테 시전" : undefined}
+                  >
+                    <span className="siege-skill-step">{s.step}</span>
+                    <b className="siege-skill-hero">{s.hero}</b>
+                    <span className="siege-skill-name">{s.skill || "홀드"}</span>
+                    {s.isAuto && <span className="siege-skill-auto">자동</span>}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* 진형 배치 (전열/후열) + 선택 영웅 세팅 — 템세팅을 아래로 */}
           <h3 className="siege-result-sub">진형 배치 ({build.formation}) · 영웅별 세팅</h3>
           <div className="siege-formation-wrap">
             <div className="siege-formation-grid">
@@ -438,27 +459,6 @@ export default function SimViewer() {
               </div>
             )}
           </div>
-
-          {/* 최적 스킬 순서 */}
-          {build.skillOrder.length > 0 && (
-            <>
-              <h3 className="siege-result-sub">스킬 빌드 — 최적 순서 ({build.skillOrder.length}턴)</h3>
-              <div className="siege-skill-list">
-                {build.skillOrder.map((s) => (
-                  <span
-                    key={s.step}
-                    className={`siege-skill-chip${s.isAuto ? " auto" : ""}`}
-                    title={s.isAuto ? "빔 최적화 범위 밖 — 자동 로테 시전" : undefined}
-                  >
-                    <span className="siege-skill-step">{s.step}</span>
-                    <b className="siege-skill-hero">{s.hero}</b>
-                    <span className="siege-skill-name">{s.skill || "홀드"}</span>
-                    {s.isAuto && <span className="siege-skill-auto">자동</span>}
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
 
         </section>
       )}
