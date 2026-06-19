@@ -816,20 +816,24 @@ html, body {
 .siege-score-round {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 14px;
+  gap: 4px;
+  padding: 12px 18px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 12px;
   background: var(--surface);
 }
 
 .siege-score-total {
-  border-color: var(--accent);
-  background: var(--brand-soft);
+  border: none;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  box-shadow: 0 6px 18px rgba(31, 42, 68, 0.22);
+  padding-right: 28px;
 }
 
 .siege-score-label {
   font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--text-muted);
 }
 
@@ -837,18 +841,40 @@ html, body {
   font-size: 16px;
   font-weight: 700;
   color: var(--brand);
+  font-variant-numeric: tabular-nums;
 }
 
+.siege-score-total .siege-score-label { color: rgba(255, 255, 255, 0.72); }
+.siege-score-total .siege-score-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.siege-score-round { justify-content: center; }
 .siege-score-round .siege-score-value {
   color: var(--text);
-  font-size: 14px;
+  font-size: 15px;
 }
+.siege-score-round:last-child .siege-score-value { color: var(--accent); }
 
 .siege-result-sub {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin: 18px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--brand);
+  margin: 22px 0 10px;
+}
+.siege-result-sub::before {
+  content: "";
+  width: 4px;
+  height: 15px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--brand), var(--accent));
 }
 
 .siege-party {
@@ -1120,23 +1146,36 @@ html, body {
   flex-direction: column;
   gap: 3px;
   min-width: 0;
-  padding: 12px 12px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
+  padding: 13px 13px 11px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   background: var(--surface);
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
   text-align: left;
   font-family: inherit;
   color: var(--text);
-  transition: border-color 0.12s, box-shadow 0.12s, background 0.12s;
+  box-shadow: 0 1px 2px rgba(31, 42, 68, 0.04);
+  transition: transform 0.14s ease, border-color 0.14s, box-shadow 0.14s, background 0.14s;
 }
-.siege-day-card:hover { background: var(--hover); }
+.siege-day-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 18px rgba(31, 42, 68, 0.10);
+}
 .siege-day-card.active {
   border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand);
-  background: var(--brand-soft);
+  box-shadow: 0 6px 18px rgba(31, 42, 68, 0.16);
+  background: linear-gradient(165deg, var(--brand-soft) 0%, var(--surface) 70%);
 }
+.siege-day-card.active::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg, var(--brand), var(--accent));
+}
+.siege-day-card { position: relative; overflow: hidden; }
 .siege-day-card-head {
   display: flex;
   align-items: center;
@@ -1159,7 +1198,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.siege-day-card-score { font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.siege-day-card-score { font-size: 18px; font-weight: 800; color: var(--accent); margin-top: 4px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .siege-day-card-team {
   font-size: 10.5px;
   color: var(--text-faint);
@@ -1272,28 +1311,33 @@ html, body {
   font-size: 13px;
 }
 .siege-formation-card {
-  width: 86px;
+  width: 92px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 6px;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   background: var(--surface);
   text-align: center;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.12s, border-color 0.12s;
+  box-shadow: 0 1px 2px rgba(31, 42, 68, 0.04);
+  transition: transform 0.14s ease, background 0.14s, border-color 0.14s, box-shadow 0.14s;
 }
-.siege-formation-card:hover { background: var(--hover); }
+.siege-formation-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 16px rgba(31, 42, 68, 0.10);
+}
 .siege-formation-card.active {
   border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand);
-  background: var(--brand-soft);
+  box-shadow: 0 0 0 1px var(--brand), 0 6px 16px rgba(31, 42, 68, 0.14);
+  background: linear-gradient(165deg, var(--brand-soft) 0%, var(--surface) 75%);
 }
 .siege-formation-name {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -1304,9 +1348,29 @@ html, body {
   color: var(--text-faint);
 }
 .siege-formation-share {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   color: var(--accent);
+  letter-spacing: -0.01em;
+}
+/* 딜 기여도 바 */
+.siege-formation-barwrap {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--active);
+  overflow: hidden;
+  margin-top: 1px;
+}
+.siege-formation-barfill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #cda983);
+  transition: width 0.3s ease;
+}
+/* 최고 딜러 강조 */
+.siege-formation-card.top .siege-formation-share { color: var(--brand); }
+.siege-formation-card.top .siege-formation-barfill {
+  background: linear-gradient(90deg, var(--brand), var(--accent));
 }
 
 /* 선택 영웅 장비 세팅 패널 (시뮬 뷰어) */
@@ -1357,12 +1421,19 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 11px 4px 6px;
+  padding: 5px 12px 5px 6px;
   border-radius: 999px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   font-size: 12.5px;
   line-height: 1.5;
+  box-shadow: 0 1px 2px rgba(31, 42, 68, 0.05);
+  transition: transform 0.12s ease, box-shadow 0.12s, border-color 0.12s;
+}
+.siege-skill-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 4px 10px rgba(31, 42, 68, 0.10);
 }
 .siege-skill-step {
   display: inline-flex;

@@ -183,6 +183,8 @@ export default function SimViewer() {
     ? build.team.find((t) => t.id === heroId) ?? build.team[0] ?? null
     : null;
   const selGear = selHero ? parseHeroGear(gearByHero[selHero.name] ?? []) : null;
+  // 최고 딜 기여 영웅(메인 딜러) 강조용
+  const topShare = build ? Math.max(0, ...build.team.map((t) => t.damageShare)) : 0;
   const specNote = `${profile.label}·잠재${profile.potential}${profile.exclusive ? "·전용장비" : ""}`;
 
   return (
@@ -305,7 +307,9 @@ export default function SimViewer() {
                         <button
                           key={p.id}
                           type="button"
-                          className={`siege-formation-card${selHero?.id === p.id ? " active" : ""}`}
+                          className={`siege-formation-card${selHero?.id === p.id ? " active" : ""}${
+                            topShare > 0 && p.damageShare === topShare ? " top" : ""
+                          }`}
                           onClick={() => setHeroId(p.id)}
                         >
                           <HeroIcon id={p.id} name={p.name} />
@@ -314,6 +318,12 @@ export default function SimViewer() {
                             {p.role} · {p.transcend}초월
                           </div>
                           <div className="siege-formation-share">{p.damageShare.toFixed(0)}%</div>
+                          <div className="siege-formation-barwrap">
+                            <div
+                              className="siege-formation-barfill"
+                              style={{ width: `${Math.min(100, p.damageShare)}%` }}
+                            />
+                          </div>
                         </button>
                       ))
                     )}
