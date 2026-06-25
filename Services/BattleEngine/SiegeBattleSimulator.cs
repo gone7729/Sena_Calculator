@@ -487,8 +487,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         enemy.Shield = enemy.Source.Stats.Def * sld.SelfShieldDefRatio / 100.0;
                         enemy.ShieldTurns = sld.SelfShieldTurns > 0 ? sld.SelfShieldTurns : 99;
+                        enemy.ShieldDmgRdc = sld.SelfShieldDmgReduction;   // 보호막 지속 동안 받는 피해 감소 %
                         Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
-                            $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴] (버프해제/소진 시 제거)");
+                            $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴]{(enemy.ShieldDmgRdc > 0 ? $" + 받피감 {enemy.ShieldDmgRdc:0}%" : "")} (버프해제/소진 시 제거)");
                     }
                     // 상대(보스) 스킬 사용 → 그 스킬 소요시간(1스킬 3초·2스킬 4초)만큼 시간 경과 → 전체(아군+적) 쿨 감소.
                     //   [정정] 이전엔 별도 ReduceCooldowns(5)까지 더해 이중 감소 → 교만 등 쿨이 실시간보다 빨리 회복됐음.
@@ -618,6 +619,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ApplyHitCdReduce(state, target);
                 return;
             }
+
+            // 받피감 버프(루디 방어 준비 = 데미지감소 10%): 루디는 「보호막[5턴]」「데미지감소[5턴]」 2개의 독립 버프를
+            //   동시에 얻는다(유저 확정). 받피감은 대체HP 풀과 별개라 ★데미지로 보호막 풀을 깨도 사라지지 않는다 →
+            //   ShieldTurns(버프 지속턴)로만 게이팅(Shield 잔량 무관). 흡수 後 HP딜(점수 집계분)에도 곱연산 → 점수 직접 영향.
+            //   루디 대체HP(방어력×100=9.3만)는 첫 타에 깨져도 -10%는 5턴 내내 유효. 비스킷 리프어택(쿨60s)이
+            //   버프해제로 둘 다 지워야(DispelBuffCount=2=정확히 이 2개) -10%가 풀린다 → 재해제가 점수에 유의미.
+            if (target.ShieldTurns > 0 && target.ShieldDmgRdc > 0)
+                dmg *= 1.0 - target.ShieldDmgRdc / 100.0;
 
             // 보호막 흡수: 보호막이 있으면 그만큼 먼저 깎이고 점수에 집계되지 않음. 파괴되면 잔여만 HP로(점수 집계).
             if (target.Shield > 0)
@@ -1519,8 +1528,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void TickEnemyAfterAction(SiegeBattleState state, SiegeEnemyState enemy)
         {
             enemy.Effects.TickTurn();
-            // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸)
-            if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) enemy.Shield = 0;
+            // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸 — 받피감도 함께 소멸)
+            if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) { enemy.Shield = 0; enemy.ShieldDmgRdc = 0; }
             // 적 진영 버프(챈슬러 분쇄 → 스파이크 치확/치피) 지속턴 경과. 챈슬러가 재시전하면 갱신됨.
             if (enemy.EnemyBuffTurns > 0 && --enemy.EnemyBuffTurns <= 0) enemy.EnemyBuff = null;
             // 피해 면역(화 R3 룩) 지속턴 경과 — 이 적의 행동마다 1턴 차감(per-action). 룩이 재시전하면 갱신됨.
@@ -1911,11 +1920,13 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   토요일 필수 기믹: 챈슬러 버프를 매번 해제해야 스파이크 치명타 학살을 막아 아군 생존·점수 유지.
             void DispelEnemyShield()
             {
-                foreach (var en in hitEnemies.Where(x => x.Shield > 0))
+                // 보호막 버프 활성(ShieldTurns>0)이면 해제 — 대체HP(루디 9.3만)는 첫 타에 깨져 Shield=0이 돼도
+                //   받피감 버프는 ShieldTurns로 남으므로 Shield>0가 아닌 ShieldTurns>0로 판별해야 -10%까지 제거된다.
+                foreach (var en in hitEnemies.Where(x => x.ShieldTurns > 0 || x.Shield > 0))
                 {
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
-                        $"{en.Source.Name} 보호막 {en.Shield:N0} 버프해제로 제거");
-                    en.Shield = 0; en.ShieldTurns = 0;
+                        $"{en.Source.Name} 보호막{(en.Shield > 0 ? $" {en.Shield:N0}" : "")}{(en.ShieldDmgRdc > 0 ? $"+받피감{en.ShieldDmgRdc:0}%" : "")} 버프해제로 제거");
+                    en.Shield = 0; en.ShieldTurns = 0; en.ShieldDmgRdc = 0;
                     _curCastDispelTargets.Add(en.Source.Name);
                 }
                 foreach (var en in state.Enemies.Where(x => x.HasEnemyBuff))

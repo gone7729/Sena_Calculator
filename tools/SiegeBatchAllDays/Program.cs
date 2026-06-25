@@ -390,8 +390,34 @@ foreach (var (day, ids) in DAYS)
             ("나타", SkillType.Skill2),                                    // 혼천
             ("나타", SkillType.Skill1),                                    // 화첨
         };
+        // 월요일: 빔(2해제) 플랜에 3번째 리프어택(루디 3번째 방어준비 T54 직후)을 슬롯17에 끼우고
+        //   나머지 버스트(혼천/교만/화첨)를 한 슬롯씩 밀어 평가 → "3해제 > 2해제"인지 검증.
+        var mondayThreeDispel = new (string Name, SkillType Skill)[]
+        {
+            ("미호", SkillType.Skill1),   // 1 살육
+            ("비스킷", SkillType.Skill1), // 2 장비강화
+            ("나타", SkillType.Skill1),   // 3 화첨
+            ("나타", SkillType.Skill2),   // 4 혼천
+            ("비스킷", SkillType.Skill2), // 5 리프 (해제1)
+            ("리나", SkillType.Skill2),   // 6 따뜻한울림
+            ("리나", SkillType.Skill1),   // 7 행진가
+            ("미호", SkillType.Skill1),   // 8 살육
+            ("나타", SkillType.Skill1),   // 9 화첨
+            ("나타", SkillType.Skill2),   // 10 혼천
+            ("비스킷", SkillType.Skill2), // 11 리프 (해제2)
+            ("비스킷", SkillType.Skill1), // 12 장비강화
+            ("미호", SkillType.Skill2),   // 13 교만
+            ("나타", SkillType.Skill1),   // 14 화첨
+            ("미호", SkillType.Skill1),   // 15 살육
+            ("리나", SkillType.Skill2),   // 16 따뜻한울림
+            ("비스킷", SkillType.Skill2), // 17 리프 (해제3 — NEW)
+            ("나타", SkillType.Skill2),   // 18 혼천
+            ("미호", SkillType.Skill2),   // 19 교만
+            ("나타", SkillType.Skill1),   // 20 화첨
+        };
         var alignedByName = (day == "화요일" && args.Contains("공개빌드")) ? tuesdayPublic
-                          : day == "화요일" ? tuesdayAligned : sundayAligned;
+                          : day == "화요일" ? tuesdayAligned
+                          : day == "월요일" ? mondayThreeDispel : sundayAligned;
         var alignedPlan = alignedByName
             .Select(s => new RotationDecision { HeroIndex = nm.FindIndex(n => n == s.Name), Skill = s.Skill })
             .Where(d => d.HeroIndex >= 0).ToList();

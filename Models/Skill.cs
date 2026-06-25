@@ -416,6 +416,9 @@ namespace GameDamageCalculator.Models
         // (10000 = 방어력 100배). 0이면 없음. 지속턴 = SelfShieldTurns.
         public double SelfShieldDefRatio { get; set; }
         public int SelfShieldTurns { get; set; }
+        // 보호막 버프가 동반하는 받는 피해 감소 %(예: 루디 방어 준비 = 10%). 보호막 지속 동안 시전자가 받는
+        //   모든 피해를 이 비율만큼 감소(대체HP 흡수와 별개). 버프해제(리프어택)/만료로 보호막이 사라지면 함께 소멸.
+        public int SelfShieldDmgReduction { get; set; }
 
         // 이 스킬 시전 시 시전자의 지정 스킬 쿨타임을 0으로 초기화 (예: 파스칼 어둠의 문 → 파괴의 거인).
         //   null이면 없음. 시전 직후(자기 쿨 set 後) 적용 → 다음 스킬턴에 그 스킬이 곧바로 준비됨.

@@ -21,6 +21,7 @@ namespace GameDamageCalculator.Database
     /// - 반격(제이브 25%): SiegeCounterattack + MaybeEnemyCounter. [구현]
     /// - 적군 사망 시 모든 피해 무효화[피격 4회](델론즈): OnAllyDeathNullifyHits + NullifyHitsRemaining. [구현]
     /// - 자기 보호막(루디 방어 준비, 방어력 10000%): SelfShieldDefRatio → enemy.Shield. [구현]
+    ///     + 보호막 버프 받는 피해 감소 10%(SelfShieldDmgReduction → enemy.ShieldDmgRdc): 지속 동안 -10%, 버프해제/만료 시 소멸. [구현]
     /// - 미구현: 적→아군 DoT(용염 화상 등)는 직격만 반영(틱뎀 0). 즉사(크리스)는 구현됨.
     /// </summary>
     public static class SiegeBossSkillDb
@@ -69,7 +70,10 @@ namespace GameDamageCalculator.Database
                             Cooldown = 80,
                             SelfShieldDefRatio = 10000,   // 방어력 100배 보호막 (대체HP, 점수 미집계, 버프해제로 제거)
                             SelfShieldTurns = 5,
-                            Effect = "모든 아군 링크[5턴] + 시전자 방어력의 10,000% 보호막[5턴]",
+                            SelfShieldDmgReduction = 10,  // ★실측: 「보호막[5턴]」과 별개의 「데미지감소[5턴]」 독립 버프.
+                                                          //   데미지로 보호막 풀을 깨도 감소는 안 사라짐(지속턴 기준). 미해제 시 R3 내내
+                                                          //   -10% → 비스킷 리프어택(버프해제2개=보호막+감소)이 둘 다 지워야 풀림.
+                            Effect = "모든 아군 링크[5턴] + 시전자 방어력의 10,000% 보호막[5턴] + 데미지 감소 10%[5턴]",
                         },
                     },
                 },

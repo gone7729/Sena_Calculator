@@ -131,6 +131,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 버프해제(BuffDispel)로 즉시 제거 가능. 보스 스킬(예: 루디 방어 준비)로 생성, 지속턴 경과 시 소멸.
         public double Shield { get; set; }
         public int ShieldTurns { get; set; }
+        // 보호막 버프가 동반하는 받는 피해 감소 %(루디 방어 준비 = 10%). ShieldTurns>0인 동안 이 적이 받는
+        //   모든 피해를 곱연산 감소(대체HP 흡수와 별개·점수에 직접 영향). 보호막 소멸(버프해제/만료) 시 0으로.
+        public double ShieldDmgRdc { get; set; }
 
         // 적 처치 시 피해 무효화 잔여 횟수 (델론즈 「죽음의 경계」: 아군 사망 시 4회 부여).
         //   >0이면 아군 직격을 무효(점수 미집계)·1 차감. DoT는 무효지만 차감 안 함.
