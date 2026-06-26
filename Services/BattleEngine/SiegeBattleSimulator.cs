@@ -178,7 +178,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
 
                 // 라운드 내 스킬턴: 2턴마다, 라운드 시작 선공 스킬 이후 후공→선공 교대 (턴 미소모)
-                if (roundTurn % 2 == 0)
+                //   ★스킬턴은 "뒤에 턴이 남아야" 나오는 특수턴(유저 실측) → 마지막 턴(t==MaxTurns)엔 평타만 진행되고
+                //     끝나므로 스킬턴 미발동. (이전: T70에 룩 1스킬이 발동해 비스킷 사망 = 과도한 막판 적 스킬턴.)
+                if (roundTurn % 2 == 0 && t < state.MaxTurns)
                 {
                     bool skillByAlly = (inRoundSkill % 2 == 0) ? !state.AllyFirst : state.AllyFirst;
                     inRoundSkill++;
@@ -833,6 +835,35 @@ namespace GameDamageCalculator.Services.BattleEngine
             >= 5 => enemy.MultiTargetReduction,
             _ => 0
         };
+
+        /// <summary>[허수아비 DPS] 스쿼드 풀버프를 dealerIndex 딜러에 적용하고 보스(HP=0=잃은체력 최대)에서 nukeSkill
+        ///   단타 데미지를 계산. 로테/cadence와 무관한 정적 딜 지표 — 딜러 기어 비교 + 딜비중 우선순위용.
+        ///   상시 패시브·파티버프는 FinalAtk 스냅샷에 이미 포함(아래 CalcDamageToEnemy 주석), 여기선 턴제 스킬버프·
+        ///   스킬 적디버프만 풀업(99턴) 적용 → CalcDamageToEnemy가 합산(이중계산 없음). 패시브 적디버프·펫은
+        ///   Initialize→ApplyStandingEnemyDebuffs가 이미 적용. "받을 수 있는 버프 다 켠" 천장 지표.</summary>
+        public double EvaluateDummyNuke(SiegeBattleConfig config, int dealerIndex, Skill nukeSkill)
+        {
+            if (nukeSkill == null) return 0;
+            var state = Initialize(config);   // FinalAtk(상시+파티 perm 포함) + 상시 적디버프(패시브·펫) 적용됨
+            if (dealerIndex < 0 || dealerIndex >= state.AllyStates.Count) return 0;
+            var dealer = state.AllyStates[dealerIndex];
+
+            // 스쿼드 전원의 비평타 스킬이 거는 턴제 파티버프 + 스킬 적디버프를 풀업으로 적용(같은 종류는 MaxMerge 병합).
+            foreach (var ally in state.AllyStates)
+                foreach (var sk in ally.Source.Character.Skills ?? Enumerable.Empty<Skill>())
+                {
+                    if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                    ApplySkillEffects(state, ally, sk, state.Enemies, preDamage: true);
+                    ApplySkillEffects(state, ally, sk, state.Enemies, preDamage: false);
+                }
+
+            // 보스(주 점수 타깃) = 최대HP 적. HP=0 → 잃은체력비례 최대(R3 넉 레짐).
+            var boss = state.Enemies.OrderByDescending(e => e.MaxHp).FirstOrDefault();
+            if (boss == null) return 0;
+            boss.CurrentHp = 0;
+
+            return CalcDamageToEnemy(dealer, boss, nukeSkill, state);
+        }
 
         /// <summary>적 → 아군 데미지 (적 공격력 vs 아군 방어/받피감). 적은 치확·약확 0이라 비치명·비약점 기본.
         /// forceCrit/critDmgOverride: 반격 등 강제 치명(제이브 반격 치확100·치피650)용.</summary>

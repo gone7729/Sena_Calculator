@@ -154,6 +154,13 @@ foreach (var (day, ids) in DAYS)
     //   옛 라이언 ForcedMain(목/금) 제거. 비교·디버그용으론 "노좌표상승" 인자로 옛 1패스 동작 복원.
     if (!args.Contains("노좌표상승")) cfg.CoordinateAscentGear = true;
 
+    // [탐색예산 override] 천장진단용 — 인자 "빔폭N"/"빔깊이N"으로 로테 빔 넓이·깊이 키워 탐색 부족 여부 판별.
+    //   점수가 크게 오르면 탐색 부족(빔 협소), 거의 안 오르면 모델 천장(uptime 등). 미지정이면 기본(10/36).
+    var bwArg = args.FirstOrDefault(a => a.StartsWith("빔폭"));
+    if (bwArg != null && int.TryParse(bwArg.Substring("빔폭".Length), out var bw) && bw > 0) cfg.RotationBeamWidth = bw;
+    var bdArg = args.FirstOrDefault(a => a.StartsWith("빔깊이"));
+    if (bdArg != null && int.TryParse(bdArg.Substring("빔깊이".Length), out var bd) && bd > 0) cfg.RotationMaxDepth = bd;
+
     // [반격 평균 탐색] 금요일(제이브 반격)만: 빔/채택 평가를 반격 ON N시드 평균으로 → 평균점 최고 로테 선택
     //   (반격 RNG 과적합 방지). 기본 10시드. 인자 "반격시드N"으로 조절. 다른 요일은 1(기존 OFF 탐색).
     int caSeeds = day == "금요일" ? 10 : 1;
@@ -204,6 +211,40 @@ foreach (var (day, ids) in DAYS)
     var sw = System.Diagnostics.Stopwatch.StartNew();
     var res = new SiegeOptimizer().Optimize(cfg);
     sw.Stop();
+
+    // ── [허수아비] 딜러별 풀버프 단타 DPS 지표 (인자 "허수아비") — 기어 평가/딜비중 우선순위 검증용.
+    //   각 딜러의 최대배율 비평타 스킬(넉)을 보스 HP0(잃은체력 최대)+스쿼드 풀버프에서 단타 계산.
+    if (args.Contains("허수아비"))
+    {
+        for (int i = 0; i < res.BestParty.Count; i++)
+            res.BestParty[i].IsBackPosition = res.BestBackRow != null
+                && res.BestParty[i].Character != null && res.BestBackRow.Contains(res.BestParty[i].Character.Name);
+        var dummyCfg = new SiegeBattleConfig
+        {
+            AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
+            AllyPet = cfg.AllyPet, PetStar = cfg.PetStar, PetEnhance = cfg.PetEnhance,
+            PetOptionAtkRate = cfg.PetOptionAtkRate, PetOptionDefRate = cfg.PetOptionDefRate,
+            PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
+        };
+        var dummySim = new SiegeBattleSimulator(777);
+        Console.WriteLine($"\n══════ [허수아비 단타 DPS] {day} {SUFFIX} (보스 HP0 + 스쿼드 풀버프) ══════");
+        for (int i = 0; i < res.BestParty.Count; i++)
+        {
+            var bc = res.BestParty[i];
+            // 넉 = 최대 배율 비평타 스킬
+            Skill nuke = null; double bestRatio = -1;
+            foreach (var sk in bc.Character.Skills ?? Enumerable.Empty<Skill>())
+            {
+                if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                double r = sk.GetLevelData(bc.IsSkillEnhanced)?.Ratio ?? 0;
+                if (r > bestRatio) { bestRatio = r; nuke = sk; }
+            }
+            if (nuke == null) { Console.WriteLine($"  {bc.Character.Name,-6}: (넉 없음)"); continue; }
+            double dmg = dummySim.EvaluateDummyNuke(dummyCfg, i, nuke);
+            Console.WriteLine($"  {bc.Character.Name,-6}: {nuke.Name,-10} 배율{bestRatio,4:0} → 단타 {dmg,12:N0}");
+        }
+        Console.WriteLine("══════════════════════════════════\n");
+    }
 
     // [기어 스탯 출력] 각 영웅 기어 블록 끝에 "기어만"(기본+장비+세트+초월+잠재+전용) 치확/약확/치피 삽입.
     //   StatCalculator는 본인 상시 패시브 자버프(예: 나타 치확33)를 DisplayStats에 항상 더하므로,
