@@ -421,7 +421,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                     // 광역은 타겟수만큼, 단일은 1명 — 모두 랜덤 아군
                     int targetCount = Math.Max(1, skill.GetTargetCount(false, 0));
                     var recast = skill.GetLevelData(false)?.OnKillRecast;
-                    foreach (var target in PickRandomAllies(state, targetCount))
+                    var mainTargets = PickRandomAllies(state, targetCount);
+                    var primaryTarget = mainTargets.FirstOrDefault();   // 도발 우선 타겟(라이언 등) — 동일 열 추가타 기준
+                    foreach (var target in mainTargets)
                     {
                         bool wasAlive = !target.IsDead;
                         double dmg = CalcDamageToAlly(enemy, target, skill);
@@ -444,7 +446,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     // 추가타(예: 스파이크 혹한의 일격 "동일 열 75% 1회"). 빙결 무관 직접딜 → 면역으로 못 막음.
                     //   챈슬러 버프 시 추가타도 치명타(CalcDamageToAlly가 enemy.EnemyBuff 반영). 빙결 상태는 메인 skill로 부여(풍연 면역 차단).
                     var lvld = skill.GetLevelData(false);
-                    if (lvld != null && lvld.EnemyExtraHitRatio > 0 && lvld.EnemyExtraHitTargets > 0)
+                    if (lvld != null && lvld.EnemyExtraHitRatio > 0 && lvld.EnemyExtraHitTargets > 0 && primaryTarget != null)
                     {
                         var extraSkill = new Skill
                         {
@@ -452,7 +454,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                             LevelData = new Dictionary<int, SkillLevelData>
                             { [0] = new SkillLevelData { Ratio = lvld.EnemyExtraHitRatio, AtkCount = 1, TargetCount = 1 } },
                         };
-                        foreach (var t in PickRandomAllies(state, lvld.EnemyExtraHitTargets))
+                        // ★동일 열: 주 대상(도발타겟)과 같은 열(IsBackPosition) 아군 전원에게 추가타.
+                        //   밸런스(딜러 2명 같은 후열)면 비탱 딜러(타카)가 휩쓸려 사망, 보호(딜러 다른 열)면 회피.
+                        //   (이전: PickRandomAllies=랜덤 근사라 같은 열 사망을 못 잡아 밸런스를 과대평가했음.)
+                        foreach (var t in state.AllyStates.Where(a => !a.IsDead
+                            && a.Source.IsBackPosition == primaryTarget.Source.IsBackPosition).ToList())
                         {
                             double dmg = CalcDamageToAlly(enemy, t, extraSkill);
                             ApplyDamageToAlly(state, enemy, t, dmg, extraSkill.Name);
