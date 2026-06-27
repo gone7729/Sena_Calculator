@@ -45,8 +45,24 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   플랜 구조(Dps)는 OFF로 결정론 유지하고 점수만 ON N시드 평균(RotationBeamSearch).
         public int CounterattackSearchSeeds { get; set; } = 1;
 
+        // [허수아비 딜러 기어] ON이면 딜러(공격/마법/만능형)의 세트·메인부옵·전용조율을 "허수아비 단타 DPS"
+        //   (스쿼드 풀버프 + 보스 HP0=잃은체력 최대)로 전수 탐색. 풀시뮬 좌표상승 프록시의 그리디·uptime 노이즈를
+        //   제거하고 R3 넉 레짐을 직접 최대화. 탱·서포터는 기존 FullScore 유지. OFF면 전부 기존 동작(무회귀).
+        public bool DummyGearForDealers { get; set; }
+
         // 진형 단일 강제 (실측 비교용). null이면 전 진형 탐색.
         public string ForcedFormation { get; set; }
+
+        // [공성 진형 규칙] 기본진형(3후열) 포함 여부. 기본 OFF — 비스킷 장비강화 버프가 2명에게만 들어가 메인딜러는
+        //   최대 2명이므로, 3후열은 약한 3번째 딜러에 후열공%를 분산해 비효율(유저 확정). 탐색은 밸런스(2)·보호(1)만.
+        //   비교·디버그용으로만 true.
+        public bool IncludeBasicFormation { get; set; }
+
+        // [후열 = dummy DPS 상위 N딜러] 기본 ON. 후열마스크 전수탐색이 cadence 아티팩트(후열 누구냐가 속공/턴순서를
+        //   바꿔 점수 ±흔들림)로 최고딜러를 전열에 버리는 오선택을 막는다. 도발은 열 무관(라이언 후열서도 탱킹)이라
+        //   최고딜러는 후열에 둬야 공%버프까지 받아 무조건 이득. 후열 = 허수아비 단타 상위 requiredBack명으로 강제.
+        //   false면 기존 전수 마스크 탐색(비교·디버그용).
+        public bool DummyBackRow { get; set; } = true;
 
         // 후열 강제 (실측 비교용). null이면 전 마스크 탐색. 캐릭터 이름 리스트.
         public List<string> ForcedBackRow { get; set; }
@@ -200,9 +216,40 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (team.Count == 0) continue;
 
                 int n = team.Count;
-                // 진형 강제 옵션 (실측 비교): null이면 전체 탐색.
-                var formationsToTry = string.IsNullOrEmpty(config.ForcedFormation)
+
+                // [후열 = dummy DPS 상위] 팀별 허수아비 단타 순위 1회 계산 → 진형별 top-requiredBack을 후열로 강제.
+                int[] dummyRank = null;
+                if (config.DummyBackRow && config.ForcedBackRow == null)
+                {
+                    var dsim = new SiegeBattleSimulator(GearCompareSeed);
+                    var dcfg = new SiegeBattleConfig
+                    {
+                        AllyParty = team, FormationName = "밸런스 진형", SiegeStage = config.SiegeStage,
+                        AllyPet = config.AllyPet, PetStar = config.PetStar, PetEnhance = config.PetEnhance,
+                        PetOptionAtkRate = config.PetOptionAtkRate, PetOptionDefRate = config.PetOptionDefRate,
+                        PetOptionHpRate = config.PetOptionHpRate, MaxTurns = config.MaxTurns,
+                    };
+                    var dps = new double[n];
+                    for (int i = 0; i < n; i++)
+                    {
+                        double bd = -1;
+                        foreach (var sk in team[i].Character?.Skills ?? Enumerable.Empty<Skill>())
+                        {
+                            if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                            double d = dsim.EvaluateDummyNuke(dcfg, i, sk);
+                            if (d > bd) bd = d;
+                        }
+                        dps[i] = bd;
+                    }
+                    dummyRank = Enumerable.Range(0, n).OrderByDescending(i => dps[i]).ToArray();
+                }
+                // 진형 강제 옵션 (실측 비교): null이면 탐색. 기본진형은 비스킷 2명 버프 한계로 제외(밸런스·보호만),
+                //   IncludeBasicFormation=true면 기본까지 포함(비교·디버그용).
+                var searchFormations = config.IncludeBasicFormation
                     ? Formations
+                    : Formations.Where(f => f != "기본 진형").ToArray();
+                var formationsToTry = string.IsNullOrEmpty(config.ForcedFormation)
+                    ? searchFormations
                     : new[] { config.ForcedFormation };
                 foreach (var formation in formationsToTry)
                 {
@@ -217,6 +264,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                         int fm = 0;
                         for (int i = 0; i < n; i++)
                             if (config.ForcedBackRow.Contains(team[i].Character?.Name)) fm |= (1 << i);
+                        forcedMask = fm;
+                    }
+                    else if (dummyRank != null)
+                    {
+                        // 후열 = 허수아비 단타 상위 requiredBack명 강제 (cadence 노이즈 무시, 도발 열무관).
+                        int fm = 0;
+                        for (int k = 0; k < requiredBack && k < dummyRank.Length; k++) fm |= (1 << dummyRank[k]);
                         forcedMask = fm;
                     }
 
@@ -526,8 +580,58 @@ namespace GameDamageCalculator.Services.BattleEngine
                 return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc).TotalScore;
             }
 
+            // [허수아비 딜러 기어] 딜러 판별 + 대표 넉 + 허수아비 단타 DPS (스쿼드 풀버프 + 보스 HP0=잃은체력 최대).
+            bool IsDealerChar(BattleCharacter b) => config.DummyGearForDealers && b.Character != null
+                && (b.Character.Type == "공격형" || b.Character.Type == "마법형" || b.Character.Type == "만능형");
+            // 넉 = 최대 배율이 아니라 ★최대 실제 허수아비 단타로 선정 — 죽음의무도(배율 낮아도 잃은체력 조건 260%·
+            //   타수)처럼 S2가 메인딜인 경우를 올바로 잡는다. 스쿼드 풀버프+보스HP0 기준.
+            Skill DealerNuke(BattleCharacter b)
+            {
+                Skill nuke = null; double best = -1;
+                foreach (var sk in b.Character.Skills ?? Enumerable.Empty<Skill>())
+                {
+                    if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                    double d = DummyScore(b, sk);
+                    if (d > best) { best = d; nuke = sk; }
+                }
+                return nuke;
+            }
+            double DummyScore(BattleCharacter b, Skill nuke)
+            {
+                if (config.GearEvalBackRow != null)
+                    foreach (var t in team)
+                        t.IsBackPosition = t.Character != null && config.GearEvalBackRow.Contains(t.Character.Name);
+                var dsc = BuildSimConfig(config, team, config.GearEvalFormation ?? "기본 진형");
+                return new SiegeBattleSimulator(GearCompareSeed).EvaluateDummyNuke(dsc, team.IndexOf(b), nuke);
+            }
+
             foreach (var bc in targets)
             {
+                // [허수아비] 딜러는 세트·메인부옵·장신구·전용을 허수아비 단타 DPS로 전수탐색 (4세트 한정 v1).
+                //   풀버프가 치확/약확 캡을 직접 반영 → Floor 프록시 불필요(default). 탱·서포터는 아래 기존 경로.
+                if (IsDealerChar(bc))
+                {
+                    var nuke = DealerNuke(bc);
+                    if (nuke != null)
+                    {
+                        var allowed = GcForChar(bc)?.AllowedSets ?? new[] { "복수자", "암살자", "추적자", "선봉장" };
+                        EquipmentLoadout best = null; double bestS = -1; string bestSet = null; var per = new List<string>();
+                        foreach (var setName in allowed)
+                        {
+                            var lo = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, setName,
+                                GcForChar(bc), l => { bc.Equipment = l; return DummyScore(bc, nuke); });
+                            if (lo == null) continue;
+                            bc.Equipment = lo; double s = DummyScore(bc, nuke);
+                            per.Add($"{setName}={s:N0}");
+                            if (s > bestS) { bestS = s; best = lo; bestSet = setName; }
+                        }
+                        if (best != null) bc.Equipment = best;
+                        log.Add($"[{bc.Character.Name}] 세트 선택(허수아비 {nuke.Name} 단타 {bestS:N0}): {bestSet}  ← {string.Join(" / ", per)}");
+                        log.Add(FormatGear(bc));
+                        continue;
+                    }
+                }
+
                 var list = cands[bc];
                 string chosenSet = list.Count > 0 ? list[0].Set : null;
                 if (list.Count > 1)
@@ -564,11 +668,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                     bool magic = bc.Character.AttackType == AttackType.Magic;
                     // 딜러(공격/마법/만능형) = 공격조율만. 지원/방어형만 생존조율 후보 포함.
                     bool isDealer = bc.Character.Type is "공격형" or "마법형" or "만능형";
+                    // [허수아비] 딜러 전용조율도 허수아비 단타 DPS로 (탱·서포터는 FullScore).
+                    var dummyNuke = IsDealerChar(bc) ? DealerNuke(bc) : null;
                     ExclusiveWeapon bestW = bc.Character.ExclusiveWeapon; double bestS = -1;
                     foreach (var w in ExclusiveTuningCandidates(magic, bc.Character.Id, isDealer))
                     {
                         bc.Character.ExclusiveWeapon = w;
-                        double s = FullScore();
+                        double s = dummyNuke != null ? DummyScore(bc, dummyNuke) : FullScore();
                         if (s > bestS) { bestS = s; bestW = w; }
                     }
                     bc.Character.ExclusiveWeapon = bestW;

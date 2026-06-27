@@ -63,6 +63,11 @@ var expertByDay = new Dictionary<string, (string Name, SkillType Skill)[]>
 bool isLowSpec = args.Contains("6초월");
 int TRANS = isLowSpec ? 6 : 12;
 int POT = isLowSpec ? 0 : 3;
+// [스펙 override] 인자 "초월N"/"잠재N"으로 초월·잠재 레벨 맞춤(유저 실측 스펙 대조용). 예: 초월9 잠재3.
+var transArg = args.FirstOrDefault(a => a.StartsWith("초월") && int.TryParse(a.Substring("초월".Length), out _));
+if (transArg != null) TRANS = int.Parse(transArg.Substring("초월".Length));
+var potArg = args.FirstOrDefault(a => a.StartsWith("잠재") && int.TryParse(a.Substring("잠재".Length), out _));
+if (potArg != null) POT = int.Parse(potArg.Substring("잠재".Length));
 bool searchExclusive = !isLowSpec;       // 6초월=전용장비 미장착, 12초월=전설 4슬롯 조율 탐색
 bool enableRings = !isLowSpec;           // 6초월=권능반지 제외, 12초월=생존(권능)반지 후처리 포함
 string petName = args.Contains("델로") ? "델로"
@@ -154,6 +159,10 @@ foreach (var (day, ids) in DAYS)
     //   옛 라이언 ForcedMain(목/금) 제거. 비교·디버그용으론 "노좌표상승" 인자로 옛 1패스 동작 복원.
     if (!args.Contains("노좌표상승")) cfg.CoordinateAscentGear = true;
 
+    // [허수아비 딜러 기어] 인자 "허수아비기어" — 딜러 세트·메인부옵·전용을 허수아비 단타 DPS(스쿼드 풀버프+보스HP0)로
+    //   전수탐색. 탱·서포터는 기존 풀시뮬. 기어→로테 단방향(좌표상승 딜러 우회). 기본 OFF(무회귀).
+    if (args.Contains("허수아비기어")) cfg.DummyGearForDealers = true;
+
     // [탐색예산 override] 천장진단용 — 인자 "빔폭N"/"빔깊이N"으로 로테 빔 넓이·깊이 키워 탐색 부족 여부 판별.
     //   점수가 크게 오르면 탐색 부족(빔 협소), 거의 안 오르면 모델 천장(uptime 등). 미지정이면 기본(10/36).
     var bwArg = args.FirstOrDefault(a => a.StartsWith("빔폭"));
@@ -231,18 +240,41 @@ foreach (var (day, ids) in DAYS)
         for (int i = 0; i < res.BestParty.Count; i++)
         {
             var bc = res.BestParty[i];
-            // 넉 = 최대 배율 비평타 스킬
-            Skill nuke = null; double bestRatio = -1;
-            foreach (var sk in bc.Character.Skills ?? Enumerable.Empty<Skill>())
+            // 모든 비평타 스킬의 허수아비 단타를 평가해 ★최대를 넉으로 (max 배율 아님 — 죽음의무도 등 S2 메인딜 포착).
+            var sks = (bc.Character.Skills ?? Enumerable.Empty<Skill>())
+                .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2).ToList();
+            if (sks.Count == 0) { Console.WriteLine($"  {bc.Character.Name,-6}: (넉 없음)"); continue; }
+            Skill bestNuke = null; double bestDmg = -1; var parts = new List<string>();
+            foreach (var sk in sks)
             {
-                if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
-                double r = sk.GetLevelData(bc.IsSkillEnhanced)?.Ratio ?? 0;
-                if (r > bestRatio) { bestRatio = r; nuke = sk; }
+                double d = dummySim.EvaluateDummyNuke(dummyCfg, i, sk);
+                parts.Add($"{sk.Name}={d:N0}");
+                if (d > bestDmg) { bestDmg = d; bestNuke = sk; }
             }
-            if (nuke == null) { Console.WriteLine($"  {bc.Character.Name,-6}: (넉 없음)"); continue; }
-            double dmg = dummySim.EvaluateDummyNuke(dummyCfg, i, nuke);
-            Console.WriteLine($"  {bc.Character.Name,-6}: {nuke.Name,-10} 배율{bestRatio,4:0} → 단타 {dmg,12:N0}");
+            Console.WriteLine($"  {bc.Character.Name,-6}: ★{bestNuke.Name}({bestDmg:N0})  ←  {string.Join(" / ", parts)}");
         }
+        Console.WriteLine($"  [감사] 보스 적용 디버프: {dummySim.LastDummyDebuffSummary}");
+        Console.WriteLine($"  [감사] 딜러 액티브버프: {dummySim.LastDummyBuffSummary}");
+        Console.WriteLine("══════════════════════════════════\n");
+
+        // [강제 풀uptime] 최종 빌드를 아군버프 만료 없이 재생 → "넉↔버프 정렬/uptime이 갭의 전부인가" 못박기.
+        for (int i = 0; i < res.BestParty.Count; i++)
+            res.BestParty[i].IsBackPosition = res.BestBackRow != null
+                && res.BestParty[i].Character != null && res.BestBackRow.Contains(res.BestParty[i].Character.Name);
+        var fullUpCfg = new SiegeBattleConfig
+        {
+            AllyParty = res.BestParty, FormationName = res.BestFormation, SiegeStage = stage,
+            AllyPet = cfg.AllyPet, PetStar = cfg.PetStar, PetEnhance = cfg.PetEnhance,
+            PetOptionAtkRate = cfg.PetOptionAtkRate, PetOptionDefRate = cfg.PetOptionDefRate,
+            PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
+            RotationPlan = res.BestRotationPlan, ForceFullBuffUptime = true,
+        };
+        var fullUp = new SiegeBattleSimulator(777).Simulate(fullUpCfg);
+        Console.WriteLine($"══════ [강제 풀uptime] {day} {SUFFIX} ══════");
+        Console.WriteLine($"  일반(채택 로테)   : {res.BestScore,14:N0}");
+        Console.WriteLine($"  강제 풀uptime     : {fullUp.TotalScore,14:N0}  ({(fullUp.TotalScore/Math.Max(1,res.BestScore)-1)*100:+0.0;-0.0}%)");
+        foreach (var c in fullUp.CharacterResults.OrderByDescending(c => c.TotalDamage))
+            Console.WriteLine($"    {c.CharacterName,-6}: {c.TotalDamage,12:N0}");
         Console.WriteLine("══════════════════════════════════\n");
     }
 

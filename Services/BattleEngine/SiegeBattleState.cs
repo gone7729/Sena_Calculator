@@ -33,6 +33,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 현재 진행 중인 행동이 스킬턴(0턴, 턴 미소모)인지
         public bool IsSkillTurn { get; set; }
+        public bool ForceFullBuffUptime { get; set; }   // [진단] 아군 버프 만료 스킵(풀 uptime 실험)
 
         // (구) 전역 적 피해 면역 잔여 턴 — 적별 SiegeEnemyState.ImmunityTurns로 이전(per-action 차감). 필드 제거.
 

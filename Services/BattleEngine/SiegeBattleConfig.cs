@@ -49,6 +49,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   읽기 전용 계측 — 점수/전투 결과 불변. 보통 최종 빌드 1회 재생에만 켠다.
         public bool RecordFeasibility { get; set; }
 
+        // [진단] true면 아군 효과 만료(Effects.TickTurn)를 건너뛴다 → 파티버프(청소·따뜻한울림 등) 강제 풀 uptime.
+        //   "넉↔버프 정렬/uptime이 갭의 전부인가"를 못박는 실험용. 점수가 실측(13.15M)으로 가면 uptime이 전부.
+        public bool ForceFullBuffUptime { get; set; }
+
         // 보스 반격(제이브 「복수의 갑옷」) 발동 확률 오버라이드(%). null이면 보스 정의값(25%) 그대로 사용.
         //   0 = 반격 OFF — 빔서치는 반격 RNG·시간경과에 의존하지 않는 로테를 산출(0회 발동에도 실행가능한 빌드).
         //   금요일(제이브) 외 보스는 Counterattack=null이라 이 값과 무관(월화수목토 무영향).

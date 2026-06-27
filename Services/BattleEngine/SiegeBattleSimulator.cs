@@ -114,6 +114,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 SiegeStage = config.SiegeStage,
                 MaxTurns = config.MaxTurns,
+                ForceFullBuffUptime = config.ForceFullBuffUptime,
             };
 
             // 아군 스탯 — 기존 BattleSimulator.InitializeCharacterState 재사용 (TargetEnemy 불필요)
@@ -862,8 +863,39 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (boss == null) return 0;
             boss.CurrentHp = 0;
 
+            // 공격 발동형 스택 디버프(타카 매의발톱 EagleClaw 등)를 ★max 스택으로 선적용 — 스쿼드가 유지 가능한 디버프.
+            //   단발 평가라 트리거가 안 돌므로 명시 적용(스택당 받물피증 등 × MaxStacks). ProcessAttackStacks와 동일 분류.
+            foreach (var ally in state.AllyStates)
+            {
+                var pas = ally.Source.Character.Passive;
+                var plvl = pas?.GetLevelData(ally.Source.IsSkillEnhanced);
+                if (plvl?.Effects == null) continue;
+                var trEff = pas.GetTranscendBonus(ally.Source.TranscendLevel)?.Effects;
+                foreach (var be in plvl.Effects)
+                {
+                    var ef = be;
+                    if (trEff != null)
+                    {
+                        var ov = trEff.FirstOrDefault(e => e.StatusType == be.StatusType && e.StatusType != StatusEffectType.None);
+                        if (ov != null) ef = ov;
+                    }
+                    if (ef.ApplyMode != ApplyMode.Triggered || ef.MaxStacks <= 0) continue;
+                    if (ef.Type != PersistentEffectType.Debuff || ef.Debuff == null) continue;
+                    if (ef.Target != EffectTarget.Enemy && ef.Target != EffectTarget.AllEnemies) continue;
+                    AddEnemyDebuff(boss, ScaleDebuff(ef.Debuff, ef.MaxStacks), 99,
+                        $"dummy_stack:{ally.PartyIndex}:{ef.StatusType}", EffectCategory.PassiveDebuff);
+                }
+            }
+
+            // 감사용: 허수아비 보스에 실제로 적용된 디버프(방깎·취약·받피증) 요약 — 디버퍼 디버프 반영 확인.
+            LastDummyDebuffSummary = SummarizeDebuff(boss.Effects.GetTotalDebuffs());
+            LastDummyBuffSummary = SummarizeBuff(dealer.Effects.GetTotalBuffs());
             return CalcDamageToEnemy(dealer, boss, nukeSkill, state);
         }
+
+        /// <summary>[감사] 마지막 EvaluateDummyNuke에서 보스에 적용된 디버프 / 딜러에 적용된 액티브 버프 요약.</summary>
+        public string LastDummyDebuffSummary { get; private set; }
+        public string LastDummyBuffSummary { get; private set; }
 
         /// <summary>적 → 아군 데미지 (적 공격력 vs 아군 방어/받피감). 적은 치확·약확 0이라 비치명·비약점 기본.
         /// forceCrit/critDmgOverride: 반격 등 강제 치명(제이브 반격 치확100·치피650)용.</summary>
@@ -1220,7 +1252,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (ally.IsDead) return;
             ProcessInstantDeathOnAlly(state, ally);   // 즉사 DoT(현재HP%) + 마지막 턴 사망 (일요일 크리스)
             if (ally.IsDead) return;
-            ally.Effects.TickTurn();
+            if (!state.ForceFullBuffUptime) ally.Effects.TickTurn();   // [진단] 풀uptime이면 아군 버프 만료 스킵
             foreach (var k in ally.StatusImmunityTurns.Keys.ToList())
                 ally.StatusImmunityTurns[k] = Math.Max(0, ally.StatusImmunityTurns[k] - 1);
             // 턴 기반 생존(피해무효화[N턴]·불사[N턴]) 잔여 턴 감소
