@@ -45,6 +45,12 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   플랜 구조(Dps)는 OFF로 결정론 유지하고 점수만 ON N시드 평균(RotationBeamSearch).
         public int CounterattackSearchSeeds { get; set; } = 1;
 
+        // [채택 평가 평균 시드] >1이면 채택/비교 점수(ScoreOnPlan)를 N시드 평균으로 — 적의 아군 타겟 선정이
+        //   랜덤(_rng)이라 단일 시드면 "누가 죽느냐"가 시드에 과적합됨(예: 일요일 미호가 시드777에서만 어둠의일격
+        //   2연타로 사망). 채택/IsBetterPick의 RankScore가 기대 사망수를 반영하도록 평균. 빔(로테 발굴)은 단일
+        //   시드 유지(로테 최적은 타겟 RNG에 둔감·속도). CounterattackSearchSeeds와 Max로 합쳐 적용.
+        public int EvalSeeds { get; set; } = 1;
+
         // [허수아비 딜러 기어] ON이면 딜러(공격/마법/만능형)의 세트·메인부옵·전용조율을 "허수아비 단타 DPS"
         //   (스쿼드 풀버프 + 보스 HP0=잃은체력 최대)로 전수 탐색. 풀시뮬 좌표상승 프록시의 그리디·uptime 노이즈를
         //   제거하고 R3 넉 레짐을 직접 최대화. 탱·서포터는 기존 FullScore 유지. OFF면 전부 기존 동작(무회귀).
@@ -849,14 +855,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         };
 
         /// <summary>빔이 고른 로테를 반격 ON(실전·기본 25%)으로 재평가 — 채택 점수 일관성.
-        ///   CounterattackSearchSeeds>1(금요일)이면 N시드 평균(TotalScore·RankScore)으로 — 반격 RNG 과적합 방지.
+        ///   Max(CounterattackSearchSeeds, EvalSeeds)>1이면 N시드 평균(TotalScore·RankScore)으로 — 반격(금요일)·
+        ///   아군타겟(일요일 등) RNG 과적합 방지. 시드 GearCompareSeed+s가 _rng 전체(반격+타겟)를 함께 흔든다.
         ///   반환 result는 첫 시드 것(라운드/기여/로테 표시용)에 헤드라인 점수만 평균으로 덮어씀.</summary>
         private static SiegeBattleResult ScoreOnPlan(SiegeOptimizerConfig config, List<BattleCharacter> team,
             string formation, List<RotationDecision> plan)
         {
             var sc = BuildSimConfig(config, team, formation);   // override null = 반격 ON
             sc.RotationPlan = plan;
-            int n = System.Math.Max(1, config.CounterattackSearchSeeds);
+            int n = System.Math.Max(1, System.Math.Max(config.CounterattackSearchSeeds, config.EvalSeeds));
             if (n <= 1) return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
             double sumT = 0, sumR = 0;
             SiegeBattleResult first = null;

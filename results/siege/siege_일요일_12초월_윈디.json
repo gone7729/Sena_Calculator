@@ -1,7 +1,7 @@
 ﻿{
   "day": "일요일",
   "boss": "일요일 공성전 (지옥의 성)",
-  "score": 8947638,
+  "score": 8597551,
   "autoRotationScore": 4088563,
   "formation": "밸런스 진형",
   "backRow": [
@@ -206,9 +206,9 @@
     "unreached": 0,
     "minSlackSec": 8,
     "scoreReproduced": true,
-    "score25": 8947638,
+    "score25": 8597551,
     "floor0": 8947638,
-    "counterattackDelta": 0,
+    "counterattackDelta": -350087,
     "steps": [
       {
         "step": 1,

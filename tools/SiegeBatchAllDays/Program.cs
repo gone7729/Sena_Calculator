@@ -170,12 +170,25 @@ foreach (var (day, ids) in DAYS)
     var bdArg = args.FirstOrDefault(a => a.StartsWith("빔깊이"));
     if (bdArg != null && int.TryParse(bdArg.Substring("빔깊이".Length), out var bd) && bd > 0) cfg.RotationMaxDepth = bd;
 
-    // [반격 평균 탐색] 금요일(제이브 반격)만: 빔/채택 평가를 반격 ON N시드 평균으로 → 평균점 최고 로테 선택
-    //   (반격 RNG 과적합 방지). 기본 10시드. 인자 "반격시드N"으로 조절. 다른 요일은 1(기존 OFF 탐색).
-    int caSeeds = day == "금요일" ? 10 : 1;
+    // [빔 평균 시드] 빔 로테 선택을 N시드 평균으로 → 빔이 RNG(반격·아군타겟) 과적합 없이 기대점 최고 로테 발굴.
+    //   금요일(제이브 반격) 10시드, 일요일(적 타겟 랜덤→사망 변수 큼) 4시드, 그 외 1. 인자 "반격시드N"으로 조절.
+    int caSeeds = day == "금요일" ? 10 : day == "일요일" ? 4 : 1;
     var caArg = args.FirstOrDefault(a => a.StartsWith("반격시드"));
     if (caArg != null && int.TryParse(caArg.Substring("반격시드".Length), out var cav) && cav > 0) caSeeds = cav;
     cfg.CounterattackSearchSeeds = caSeeds;
+
+    // [채택 평가 평균 시드] 적의 아군 타겟이 랜덤(_rng)이라 단일 시드면 "누가 죽느냐"가 과적합됨.
+    //   채택/비교·리포트 점수(ScoreOnPlan)를 N시드 평균으로 → 기대 점수·사망수 반영(빔보다 큰 N로 정확히).
+    //   일요일만 기본 16, 그 외 1. 인자 "평가시드N"으로 조절. 빔=caSeeds(속도), 채택=Max(caSeeds,evalSeeds).
+    int evalSeeds = day == "일요일" ? 16 : 1;
+    var esArg = args.FirstOrDefault(a => a.StartsWith("평가시드"));
+    if (esArg != null && int.TryParse(esArg.Substring("평가시드".Length), out var esv) && esv > 0) evalSeeds = esv;
+    cfg.EvalSeeds = evalSeeds;
+
+    // [일요일 최고점 정책] 적 타겟이 랜덤이라 N시드 평균이면 사망의 딜 손실이 TotalScore에 이미 반영됨(죽으면
+    //   누적딜 멈춤). 인위적 사망 페널티는 이중계상 → 0으로 두고 "기대 TotalScore 최고점"으로 선택(사용자 '최고점').
+    //   파국적 전멸 시드는 평균을 끌어내려 자연히 회피되고, 무해한 막판 사망은 허용된다. 인자 "페널티N"이 우선.
+    if (day == "일요일" && penArg == null) cfg.AllyDeathPenalty = 0;
 
     // [기어=정렬 기준 선정] (실험·opt-in "기어정렬") expert 로테로 기어 선정. ★검증결과 역효과(목요일 14.87→13.92M):
     //   기본진형 단발 평가가 최종 빔과 불일치해 전체 기어가 나빠짐 → 기본 비활성. 라이언 치피 메인은 ForcedMain으로 별도 처리 권장.
@@ -387,15 +400,20 @@ foreach (var (day, ids) in DAYS)
         PetOptionHpRate = cfg.PetOptionHpRate, MaxTurns = cfg.MaxTurns,
         RotationPlan = res.BestRotationPlan,   // 반격 ON(기본)
     };
+    // 재생 시드 = Max(반격시드, 평가시드). N시드 평균 점수 + 시드별 사망수 분포 수집(타겟 RNG 과적합 진단).
+    int replaySeeds = Math.Max(Math.Max(caSeeds, evalSeeds), 1);
     SiegeBattleResult onReplay; double onReplayScore;
-    if (caSeeds <= 1) { onReplay = new SiegeBattleSimulator(777).Simulate(OnReplayCfg()); onReplayScore = onReplay.TotalScore; }
+    var deathCounts = new List<int>();
+    if (replaySeeds <= 1) { onReplay = new SiegeBattleSimulator(777).Simulate(OnReplayCfg()); onReplayScore = onReplay.TotalScore; deathCounts.Add(onReplay.Deaths?.Count ?? 0); }
     else
     {
         double sumOn = 0; onReplay = null;
-        for (int s = 0; s < caSeeds; s++) { var r = new SiegeBattleSimulator(777 + s).Simulate(OnReplayCfg()); sumOn += r.TotalScore; onReplay ??= r; }
-        onReplayScore = sumOn / caSeeds;
+        for (int s = 0; s < replaySeeds; s++) { var r = new SiegeBattleSimulator(777 + s).Simulate(OnReplayCfg()); sumOn += r.TotalScore; deathCounts.Add(r.Deaths?.Count ?? 0); onReplay ??= r; }
+        onReplayScore = sumOn / replaySeeds;
     }
-    bool feasScoreMatch = Math.Abs(onReplayScore - res.BestScore) < Math.Max(1.0, caSeeds > 1 ? res.BestScore * 0.005 : 1.0);
+    double avgDeaths = deathCounts.Count > 0 ? deathCounts.Average() : 0;
+    int seedsWithDeath = deathCounts.Count(d => d > 0);
+    bool feasScoreMatch = Math.Abs(onReplayScore - res.BestScore) < Math.Max(1.0, replaySeeds > 1 ? res.BestScore * 0.005 : 1.0);
     bool feasOk = feasFallbacks == 0 && feasUnreached == 0;
 
     // ── [정렬로테] 유저 지정 전문가 로테(이름·스킬)를 같은 기어/진형으로 평가 → 빔과 비교 (인자 "정렬로테") ──
@@ -708,6 +726,8 @@ foreach (var (day, ids) in DAYS)
     sb.AppendLine($"  실행가능성(반격 0% 기준): {(feasOk ? "가능 ✓" : "불가 ✗")}  (폴백 {feasFallbacks} · 미도달 {feasUnreached} · 최소 쿨여유 {feasMinSlackStr} · 점수재현 {(feasScoreMatch ? "일치" : $"불일치!{onReplayScore:N0}")})");
     if (Math.Abs(counterDelta) > 1.0)
         sb.AppendLine($"  반격 모델: 25% 평균 {score25:N0}  ·  0회 보장 {ceiling0:N0}  ·  반격 기여 {counterDelta:+#,0;-#,0}");
+    if (replaySeeds > 1)
+        sb.AppendLine($"  사망 분포({replaySeeds}시드): 평균 {avgDeaths:F2}명 · 사망발생 {seedsWithDeath}/{replaySeeds}시드 · 시드별 [{string.Join(",", deathCounts)}]");
     foreach (var f in feas)
     {
         string status = f.Hold ? "홀드"
@@ -735,7 +755,8 @@ foreach (var (day, ids) in DAYS)
     string txtPath = System.IO.Path.Combine(outDir, $"siege_{day}_{SUFFIX}.txt");
     System.IO.File.WriteAllText(txtPath, sb.ToString(), Encoding.UTF8);
 
-    Console.WriteLine($"[{day}] 총점 {res.BestScore:N0} · {res.BestFormation} · 실행가능 {(feasOk ? "✓" : $"✗(폴백{feasFallbacks}/미도달{feasUnreached})")} 최소여유 {feasMinSlackStr} · {sw.ElapsedMilliseconds / 1000.0:F0}s → JSON+TXT 저장");
+    string deathDist = replaySeeds > 1 ? $" · 사망 평균 {avgDeaths:F2}({seedsWithDeath}/{replaySeeds}시드)" : "";
+    Console.WriteLine($"[{day}] 총점 {res.BestScore:N0} · {res.BestFormation} · 실행가능 {(feasOk ? "✓" : $"✗(폴백{feasFallbacks}/미도달{feasUnreached})")} 최소여유 {feasMinSlackStr}{deathDist} · {sw.ElapsedMilliseconds / 1000.0:F0}s → JSON+TXT 저장");
 }
 
 Console.WriteLine("=== 전체 완료 ===");
