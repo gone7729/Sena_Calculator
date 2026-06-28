@@ -5955,7 +5955,9 @@ namespace GameDamageCalculator.Database
                                 // 자신 마법 피해량 증가 [상시]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 24 } },
                                 // 모든 아군 마비 면역 [2턴]
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } },
+                                // 스킬 1회당 시전자 마법공격력 45% 보호막 [2턴] (나타 2초월과 동일 패턴: 모든 아군 스킬 시전 시 시전자 보호막)
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 45 } }
                             },
                             Effect = "아군 마비 면역[2턴], 기본공격 1회당 마비 면역[2턴], 스킬 1회당 시전자 마법공격력 45% 보호막[2턴]"
                         }},
@@ -5963,7 +5965,9 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 29 } },
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } },
+                                // 스킬 1회당 시전자 마법공격력 45% 보호막 [2턴]
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SkillOnly, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 45 } }
                             },
                             Effect = "아군 마비 면역[2턴], 기본공격 1회당 마비 면역[2턴], 스킬 1회당 시전자 마법공격력 45% 보호막[2턴]"
                         }}
