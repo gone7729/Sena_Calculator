@@ -639,14 +639,41 @@ namespace GameDamageCalculator.Services.Optimizer
             System.Collections.Generic.List<BattleCharacter> party, int charIndex, string dealerClass)
         {
             double cri = 0, wek = 0;
+            // HighestAtkAlly 선택자 버프(예: 비스킷 장비강화 약확54·6초월 수혜 2명)는 실효 수혜자(대표딜 상위 N)만
+            //   받는다. floor가 이를 무시하고 전원에 가산하면 비수혜 멤버(샤오/미호 등) 약확이 과소 세팅됨(R3 약점공격
+            //   미확보). 시뮬 ResolveAllyBuffTargets와 동일 취지로 대표딜 프록시(기본공격력×최대 공격스킬 배율) 상위 N 판정.
+            double Proxy(BattleCharacter bc)
+            {
+                if (bc?.Character == null) return 0;
+                var bs = bc.Character.GetBaseStats();
+                double atk = (bs?.Atk ?? 0) + (bs?.MagicAtk ?? 0);
+                double ratio = 0;
+                foreach (var s in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
+                {
+                    if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
+                    double r = s.GetLevelData(bc.IsSkillEnhanced)?.Ratio ?? 0;
+                    if (r > ratio) ratio = r;
+                }
+                return atk * ratio;
+            }
+            var ranked = System.Linq.Enumerable.Range(0, party.Count)
+                .OrderByDescending(i => Proxy(party[i])).ToList();
+            bool IsTopN(int idx, int n) => ranked.Take(System.Math.Max(1, n)).Contains(idx);
+
             void AccBuff(BuffSet b) { if (b != null) { cri += b.Cri; wek += b.Wek; } }
-            void AccEffects(System.Collections.Generic.IEnumerable<Models.Effects.SkillEffect> effs)
+            void AccEffects(System.Collections.Generic.IEnumerable<Models.Effects.SkillEffect> effs, int? selectorCount)
             {
                 if (effs == null) return;
                 foreach (var e in effs)
                 {
                     if (e.Type != Models.Effects.SkillEffectType.Buff || e.Target != Models.Effects.EffectTarget.Party || e.Buff == null) continue;
                     if (e.TargetClasses != null && dealerClass != null && !System.Linq.Enumerable.Contains(e.TargetClasses, dealerClass)) continue;
+                    // HighestAtkAlly 선택자면 대표딜 상위 N(초월 TargetCountOverride 반영)만 실효 수혜 → charIndex가 비수혜면 스킵.
+                    if (e.TargetSelector == Models.Effects.TargetSelector.HighestAtkAlly)
+                    {
+                        int n = selectorCount ?? System.Math.Max(1, e.TargetCount);
+                        if (!IsTopN(charIndex, n)) continue;
+                    }
                     AccBuff(e.Buff);
                 }
             }
@@ -658,14 +685,15 @@ namespace GameDamageCalculator.Services.Optimizer
                 // 패시브 파티버프 (상시 + 조건부)
                 AccBuff(bc.Character.Passive?.GetPartyBuff(enh, tx, dealerClass));
                 AccBuff(bc.Character.Passive?.GetConditionalPartyBuff(enh, tx, dealerClass));
-                // 스킬 파티버프 (Effects + 레거시 PartyBuff + 초월)
+                // 스킬 파티버프 (Effects + 레거시 PartyBuff + 초월). 초월 TargetCountOverride는 HighestAtkAlly 수혜 인원수.
                 foreach (var skill in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
                 {
                     var ld = skill.GetLevelData(enh);
-                    AccEffects(ld?.Effects);
-                    AccBuff(ld?.PartyBuff);
                     var txb = skill.GetTranscendBonus(tx);
-                    AccEffects(txb?.Effects);
+                    int? ov = txb?.TargetCountOverride;
+                    AccEffects(ld?.Effects, ov);
+                    AccBuff(ld?.PartyBuff);
+                    AccEffects(txb?.Effects, ov);
                     AccBuff(txb?.PartyBuff);
                 }
             }
