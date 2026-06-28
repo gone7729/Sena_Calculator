@@ -696,6 +696,8 @@ foreach (var (day, ids) in DAYS)
     sb.AppendLine($"팀: {string.Join(", ", nm)}");
     sb.AppendLine($"총점: {res.BestScore:N0}   [자동로테 {res.AutoRotationScore:N0} → 빔 {res.BestScore:N0}]");
     sb.AppendLine($"진형: {res.BestFormation} / 후열: {string.Join(",", res.BestBackRow)} / 탐색 {sw.ElapsedMilliseconds / 1000.0:F0}s");
+    // 자리(진형 번호 1~5) — 행동순서 = 속공 내림차순, 동속공이면 자리 낮은 순. (라운드 시작 선공도 이 순서)
+    sb.AppendLine($"자리: {string.Join(" · ", res.BestParty.Select((p, i) => $"{i + 1}.{p.Character?.Name}({(p.IsBackPosition ? "후열" : "전열")})"))}");
     if (res.BestResult != null)
         sb.AppendLine($"라운드별: {string.Join(", ", res.BestResult.RoundScore.OrderBy(k => k.Key).Select(k => $"R{k.Key}={k.Value:N0}"))}");
     sb.AppendLine("\n──── 캐릭터별 기여 ────");
