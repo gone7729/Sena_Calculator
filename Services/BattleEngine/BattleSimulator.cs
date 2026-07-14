@@ -121,17 +121,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             var loadout = battleChar.Equipment;
             var activeSets = loadout?.GetActiveSets() ?? new List<EquipmentSet>();
 
-            // 가장 큰 세트 효과를 EquipSetName/Count로 전달
-            string equipSetName = "";
-            int equipSetCount = 0;
-            foreach (var set in activeSets)
-            {
-                if (set.PieceCount > equipSetCount)
-                {
-                    equipSetName = set.SetName;
-                    equipSetCount = set.PieceCount;
-                }
-            }
+            // 활성 세트 전부 전달 (2+2세트면 두 세트 모두). 옛 코드는 최대 조각수 1개만 넘겨
+            //   2+2에서 뒤쪽 세트 보너스를 통째로 누락시켰다.
 
             // 파티 버프 계산 (다른 파티원의 패시브/스킬 버프)
             var partyBuffConfigs = BuildPartyBuffConfigs(config, index);
@@ -156,8 +147,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsSkillEnhanced = battleChar.IsSkillEnhanced,
                 IsPassiveConditionMet = battleChar.IsPassiveConditionMet,
                 Equipments = loadout?.GetEquipments(),
-                EquipSetName = equipSetName,
-                EquipSetCount = equipSetCount,
+                EquipSets = activeSets,
                 PotentialAtkLevel = battleChar.PotentialAtkLevel,
                 PotentialDefLevel = battleChar.PotentialDefLevel,
                 PotentialHpLevel = battleChar.PotentialHpLevel,

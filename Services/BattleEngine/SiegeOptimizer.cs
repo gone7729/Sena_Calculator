@@ -172,7 +172,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (!canAscend || r1?.BestParty == null || autoTargets.Count == 0) return r1;
 
             // 1패스 기어 스냅샷(공유객체 보존) + 최종 레짐을 기어평가에 피드백.
+            //   전용무기 조율은 BattleCharacter가 아니라 공유 Character 객체에 얹히므로(SearchExclusiveWeapon이
+            //   bc.Character.ExclusiveWeapon을 직접 교체) Equipment만 스냅샷하면 2패스 조율이 롤백 후에도 남는다.
+            //   → r1 채택 시 점수·로테는 1패스 조율 기준인데 캐릭은 2패스 조율을 낀 상태가 돼 결과가 재현 불가였다.
             var p1Gear = autoTargets.Select(t => t.Equipment).ToList();
+            var p1Exclusive = autoTargets.Select(t => t.Character?.ExclusiveWeapon).ToList();
             config.GearEvalFormation = r1.BestFormation;
             config.GearEvalBackRow = r1.BestBackRow != null ? new List<string>(r1.BestBackRow) : null;
             config.GearEvalRotation = (r1.BestRotationPlan != null && r1.BestRotationPlan.Count > 0)
@@ -185,7 +189,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 무회귀: 2패스가 더 나으면 채택, 아니면 1패스 기어·자리를 공유객체에 복원해 반환.
             if (r2?.BestParty != null && IsBetterPick(r2.BestScore, r2.BestRankScore, r1.BestScore, r1.BestRankScore))
                 return r2;
-            for (int i = 0; i < autoTargets.Count; i++) autoTargets[i].Equipment = p1Gear[i];
+            for (int i = 0; i < autoTargets.Count; i++)
+            {
+                autoTargets[i].Equipment = p1Gear[i];
+                if (autoTargets[i].Character != null) autoTargets[i].Character.ExclusiveWeapon = p1Exclusive[i];
+            }
             for (int i = 0; i < r1.BestParty.Count; i++)
                 r1.BestParty[i].IsBackPosition = (r1.BestMask & (1 << i)) != 0;
             if (r1.RingedAcc != null)
@@ -235,6 +243,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                         PetOptionAtkRate = config.PetOptionAtkRate, PetOptionDefRate = config.PetOptionDefRate,
                         PetOptionHpRate = config.PetOptionHpRate, MaxTurns = config.MaxTurns,
                     };
+                    // 위치 중립(전원 전열)으로 재서 순위가 "지금 누가 후열인가"에 오염되지 않게 한다.
+                    //   team은 공유·변형 객체라 2패스에선 1패스 후열 플래그가 남아 있고, 밸런스 진형에선 후열이
+                    //   공%를 받아 dummy DPS가 부풀려진다 → 1패스 후열 멤버가 계속 상위로 나오는 자기강화 편향
+                    //   (좌표상승의 "2패스 재탐색" 취지와 충돌). 순위 산정 후 원래 플래그를 복원한다.
+                    var posBak = team.Select(t => t.IsBackPosition).ToArray();
+                    foreach (var t in team) t.IsBackPosition = false;
                     var dps = new double[n];
                     for (int i = 0; i < n; i++)
                     {
@@ -247,6 +261,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         }
                         dps[i] = bd;
                     }
+                    for (int i = 0; i < n; i++) team[i].IsBackPosition = posBak[i];
                     dummyRank = Enumerable.Range(0, n).OrderByDescending(i => dps[i]).ToArray();
                 }
                 // 진형 강제 옵션 (실측 비교): null이면 탐색. 기본진형은 비스킷 2명 버프 한계로 제외(밸런스·보호만),
@@ -290,19 +305,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (System.Numerics.BitOperations.PopCount((uint)mask) != requiredBack) continue;
                         for (int i = 0; i < n; i++) team[i].IsBackPosition = (mask & (1 << i)) != 0;
 
-                        var simConfig = new SiegeBattleConfig
-                        {
-                            AllyParty = team,
-                            FormationName = formation,
-                            SiegeStage = config.SiegeStage,
-                            AllyPet = config.AllyPet,
-                            PetStar = config.PetStar,
-                            PetEnhance = config.PetEnhance,
-                            PetOptionAtkRate = config.PetOptionAtkRate,
-                            PetOptionDefRate = config.PetOptionDefRate,
-                            PetOptionHpRate = config.PetOptionHpRate,
-                            MaxTurns = config.MaxTurns,
-                        };
+                        // BuildSimConfig 경유 — AllyDeathPenalty를 반드시 함께 전달한다. 옛 인라인 config는
+                        //   페널티를 빼먹어 이 단계의 RankScore가 TotalScore와 같아졌고(사망 무시), 자리·진형
+                        //   선택에서 전멸 빌드 회피가 전혀 작동하지 않았다. 게다가 이 무페널티 RankScore가
+                        //   뒤의 ScoreOnPlan(페널티 반영)과 섞여 비교돼 사망 빌드가 부당하게 이길 수 있었다.
+                        var simConfig = BuildSimConfig(config, team, formation);
                         // 매 마스크 새 시뮬 인스턴스 — 공유 인스턴스는 시뮬 간 상태(쿨/카운터 등) 누적 오염 위험
                         //   (같은 config가 자리탐색 경로에 따라 다른 자동로테 점수를 내던 문제 방지).
                         var result = new SiegeBattleSimulator(GearCompareSeed).Simulate(simConfig);
@@ -407,6 +414,23 @@ namespace GameDamageCalculator.Services.BattleEngine
                     }
                     AddCand(bestDealerBack);
                     foreach (var full in bestDealerBackFull.Values) AddCand(full);
+
+                    // 기준선 재평가: 마스크 탐색은 단일 시드(GearCompareSeed)로 점수를 냈는데, 아래 빔·교차수분
+                    //   후보는 ScoreOnPlan(N시드 평균)으로 잰다. 그대로 비교하면 "단일시드 고점 vs 기대값"의
+                    //   비대칭이라, 시드 777이 자동로테에 유리한 요일(일요일)에선 기대값이 더 높은 플랜이 기각되고
+                    //   보고 점수도 단일시드 고점으로 남는다(평균 정책의 취지 위배). N>1이면 자동로테(plan=null)를
+                    //   같은 평균 기준으로 다시 재서 기준선을 맞춘다.
+                    int evalN = System.Math.Max(1, System.Math.Max(config.CounterattackSearchSeeds, config.EvalSeeds));
+                    if (evalN > 1)
+                        foreach (var cand in beamCands)
+                        {
+                            for (int i = 0; i < cand.BestParty.Count; i++)
+                                cand.BestParty[i].IsBackPosition = (cand.BestMask & (1 << i)) != 0;
+                            var autoAvg = ScoreOnPlan(config, cand.BestParty, cand.BestFormation, null);
+                            cand.BestScore = autoAvg.TotalScore;
+                            cand.BestRankScore = autoAvg.RankScore;
+                            cand.BestResult = autoAvg;
+                        }
 
                     foreach (var cand in beamCands)
                     {
@@ -531,8 +555,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             var targets = config.FixedMembers.Concat(config.Candidates).Where(bc => bc != null && bc.Equipment == null).ToList();
             var team = config.FixedMembers.Concat(config.Candidates).ToList();   // 풀시뮬 평가 팀
 
-            // 1) 영웅별 세트 후보 생성 (메인·부옵은 프록시 데미지로 최적). 기준선 = 첫 후보.
-            var cands = new Dictionary<BattleCharacter, List<(string Set, EquipmentLoadout Lo)>>();
+            // 1) 영웅별 세트 후보 생성 (4세트 + 2+2세트, 메인·부옵은 프록시 데미지로 최적). 기준선 = 첫 후보.
+            var cands = new Dictionary<BattleCharacter, List<(EquipSetConfig Set, EquipmentLoadout Lo)>>();
             // 딜러별 풀파티 버스트 크리/약점 floor (SoloConfig엔 파티버프가 없으므로 풀팀에서 따로 계산해 주입)
             // FloorFirstGear OFF면 default(0,0) → 기존 동작 그대로(회귀 없음).
             (double Cri, double Wek) Floor(BattleCharacter bc) =>
@@ -622,14 +646,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         var allowed = GcForChar(bc)?.AllowedSets ?? new[] { "복수자", "암살자", "추적자", "선봉장" };
                         EquipmentLoadout best = null; double bestS = -1; string bestSet = null; var per = new List<string>();
-                        foreach (var setName in allowed)
+                        foreach (var setCombo in EquipmentOptimizer.BuildSetCombos(allowed))   // 4세트 + 2+2세트
                         {
-                            var lo = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, setName,
+                            var lo = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, setCombo,
                                 GcForChar(bc), l => { bc.Equipment = l; return DummyScore(bc, nuke); });
                             if (lo == null) continue;
                             bc.Equipment = lo; double s = DummyScore(bc, nuke);
-                            per.Add($"{setName}={s:N0}");
-                            if (s > bestS) { bestS = s; best = lo; bestSet = setName; }
+                            per.Add($"{setCombo.Description}={s:N0}");
+                            if (s > bestS) { bestS = s; best = lo; bestSet = setCombo.Description; }
                         }
                         if (best != null) bc.Equipment = best;
                         log.Add($"[{bc.Character.Name}] 세트 선택(허수아비 {nuke.Name} 단타 {bestS:N0}): {bestSet}  ← {string.Join(" / ", per)}");
@@ -639,20 +663,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
 
                 var list = cands[bc];
-                string chosenSet = list.Count > 0 ? list[0].Set : null;
+                var chosenSet = list.Count > 0 ? list[0].Set : null;
                 if (list.Count > 1)
                 {
                     EquipmentLoadout bestLo = bc.Equipment; double bestScore = -1;
                     var perSet = new List<string>();
-                    foreach (var (setName, lo) in list)
+                    foreach (var (setCombo, lo) in list)
                     {
                         bc.Equipment = lo;
                         double sc = FullScore();
-                        perSet.Add($"{setName}={sc:N0}");
-                        if (sc > bestScore) { bestScore = sc; bestLo = lo; chosenSet = setName; }
+                        perSet.Add($"{setCombo.Description}={sc:N0}");
+                        if (sc > bestScore) { bestScore = sc; bestLo = lo; chosenSet = setCombo; }
                     }
                     bc.Equipment = bestLo;
-                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {chosenSet}  ← {string.Join(" / ", perSet)}");
+                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {chosenSet?.Description}  ← {string.Join(" / ", perSet)}");
                 }
 
                 // 메인·부옵·장신구도 풀시뮬 점수로 재최적화 (선택된 세트 안에서, 강제 옵션 반영)
@@ -699,14 +723,12 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <returns>생존반지를 1개 이상 채택했으면 true (호출부가 로테 재최적화 트리거).</returns>
         private bool ApplySurvivalRings(SiegeOptimizerConfig config, SiegeOptimizerResult best)
         {
-            SiegeBattleResult SimBest() => new SiegeBattleSimulator(GearCompareSeed).Simulate(new SiegeBattleConfig
-            {
-                AllyParty = best.BestParty, FormationName = best.BestFormation, SiegeStage = config.SiegeStage,
-                AllyPet = config.AllyPet, PetStar = config.PetStar, PetEnhance = config.PetEnhance,
-                PetOptionAtkRate = config.PetOptionAtkRate, PetOptionDefRate = config.PetOptionDefRate,
-                PetOptionHpRate = config.PetOptionHpRate, MaxTurns = config.MaxTurns,
-                RotationPlan = best.BestRotationPlan,
-            });
+            // ScoreOnPlan 경유 — 페널티 + N시드 평균을 채택 판정과 동일 기준으로 맞춘다. 옛 인라인 config는
+            //   AllyDeathPenalty를 빼먹어 RankScore=TotalScore가 됐고, 그 결과 ① "딜을 조금 낮추고 생존을
+            //   얻는 반지"가 절대 채택되지 않았으며(생존 우선 철학이 무력화) ② 무페널티 RankScore로
+            //   best.BestRankScore를 덮어써 최종 후보 선정이 페널티 유/무가 섞인 비대칭 비교가 됐다.
+            SiegeBattleResult SimBest() =>
+                ScoreOnPlan(config, best.BestParty, best.BestFormation, best.BestRotationPlan);
 
             var ringed = new HashSet<BattleCharacter>();
             for (int guard = 0; guard < 5; guard++)

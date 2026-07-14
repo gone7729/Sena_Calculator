@@ -131,10 +131,12 @@ namespace GameDamageCalculator.Services.Optimizer
         }
 
         /// <summary>
-        /// 허용 세트별로 최적화된 후보 장비를 1벌씩 생성 (세트=4세트, 메인옵·부옵은 프록시 데미지로 최적화).
-        /// 공성전 풀시뮬 점수로 세트를 비교하기 위한 후보 목록. 세트 라벨과 함께 반환.
+        /// 허용 세트 조합별로 최적화된 후보 장비를 1벌씩 생성 (메인옵·부옵은 프록시 데미지로 최적화).
+        /// 공성전 풀시뮬 점수로 세트를 비교하기 위한 후보 목록. 세트 조합과 함께 반환.
+        /// 4세트뿐 아니라 2+2세트도 후보에 포함한다 — 옛 코드는 4세트만 만들어 공성 기어가 2+2를
+        /// 아예 탐색하지 못했다(예: 암살자2(치확15)+복수자2(피증15) 같은 혼합이 후보에조차 없었음).
         /// </summary>
-        public List<(string SetName, EquipmentLoadout Loadout)> BuildSetCandidates(
+        public List<(EquipSetConfig Set, EquipmentLoadout Loadout)> BuildSetCandidates(
             BattleCharacter battleChar, BattleConfig config, int charIndex, GearConstraints gc,
             (double Cri, double Wek) partyCritWeakFloor = default)
         {
@@ -148,12 +150,11 @@ namespace GameDamageCalculator.Services.Optimizer
             var sets = (gc?.AllowedSets != null && gc.AllowedSets.Length > 0
                     ? gc.AllowedSets
                     : EquipmentDb.SetEffects.Keys.ToArray())
-                .Where(EquipmentDb.SetEffects.ContainsKey).Distinct();
+                .Where(EquipmentDb.SetEffects.ContainsKey).Distinct().ToArray();
 
-            var result = new List<(string, EquipmentLoadout)>();
-            foreach (var setName in sets)
+            var result = new List<(EquipSetConfig, EquipmentLoadout)>();
+            foreach (var setConfig in BuildSetCombos(sets))
             {
-                var setConfig = new EquipSetConfig { WeaponSetName = setName, ArmorSetName = setName, Is4Set = true, Description = $"{setName} 4세트" };
                 // 메인옵 × 부옵 조인트 (OptimizeForSetFull과 동일 원칙, 프록시 데미지 기준): 메인 후보마다 부옵까지
                 //   최적화 후 비교 → 포화 치확/약확을 굵은 메인에 낭비하지 않고 부옵으로 캡 맞추는 빌드를 본다.
                 EquipmentLoadout best = null; double bestD = -1;
@@ -167,7 +168,7 @@ namespace GameDamageCalculator.Services.Optimizer
                     }
                 if (best == null) continue;
                 OptimizeAccessory(best, battleChar, config, charIndex);
-                result.Add((setName, best));
+                result.Add((setConfig, best));
             }
             return result;
         }
@@ -177,17 +178,16 @@ namespace GameDamageCalculator.Services.Optimizer
         /// 세트는 이미 정해졌고, 그 안에서 메인/부옵/장신구를 풀시뮬 기준으로 고른다.
         /// </summary>
         public EquipmentLoadout OptimizeForSetFull(BattleCharacter battleChar, BattleConfig config, int charIndex,
-            string setName, GearConstraints gc, Func<EquipmentLoadout, double> scorer,
+            EquipSetConfig setConfig, GearConstraints gc, Func<EquipmentLoadout, double> scorer,
             (double Cri, double Wek) partyCritWeakFloor = default)
         {
+            if (setConfig == null) return null;
             var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
             var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
             string[] weaponMains = (gc?.WeaponMains ?? new[] { "공격력%" }).Where(weaponAvail.Contains).Distinct().ToArray();
             string[] armorMains = (gc?.ArmorMains ?? new[] { "공격력%" }).Where(armorAvail.Contains).Distinct().ToArray();
             if (weaponMains.Length == 0) weaponMains = new[] { "공격력%" };
             if (armorMains.Length == 0) armorMains = new[] { "공격력%" };
-
-            var setConfig = new EquipSetConfig { WeaponSetName = setName, ArmorSetName = setName, Is4Set = true, Description = $"{setName} 4세트" };
 
             // 1) 메인옵 × 부옵 조인트: 각 (무기메인×방어구메인) 후보마다 부옵까지 최적화한 뒤 전체 점수로 비교.
             //    메인 치확(24) = 부옵 치확 최대(24)로 동치라, 메인을 부옵과 분리해 고르면 포화 스탯(치확/약확)을
@@ -214,16 +214,17 @@ namespace GameDamageCalculator.Services.Optimizer
         }
 
         /// <summary>허용 세트 이름 목록으로 4세트 + 2+2세트(허용끼리) 조합 생성.</summary>
-        private static List<EquipSetConfig> BuildSetCombos(string[] allowed)
+        public static List<EquipSetConfig> BuildSetCombos(string[] allowed)
         {
             var valid = allowed.Where(s => EquipmentDb.SetEffects.ContainsKey(s)).ToList();
             var combos = new List<EquipSetConfig>();
             foreach (var s in valid)
                 combos.Add(new EquipSetConfig { WeaponSetName = s, ArmorSetName = s, Is4Set = true, Description = $"{s} 4세트" });
+            // j>i만 — (A무기,B방어구)와 (B무기,A방어구)는 스탯 동치(장비 기본스탯은 Slot에만 의존,
+            //   세트 보너스는 2세트(A)+2세트(B) 합으로 같음)이므로 순서쌍 전수는 절반이 중복.
             for (int i = 0; i < valid.Count; i++)
-                for (int j = 0; j < valid.Count; j++)
+                for (int j = i + 1; j < valid.Count; j++)
                 {
-                    if (i == j) continue;
                     combos.Add(new EquipSetConfig { WeaponSetName = valid[i], ArmorSetName = valid[j], Is4Set = false,
                         Description = $"{valid[i]} 2 + {valid[j]} 2" });
                 }
@@ -280,15 +281,19 @@ namespace GameDamageCalculator.Services.Optimizer
 
             RankedLoadout best = null;
 
-            // 무기1 메인옵 × 무기2 메인옵 × 방어구1 메인옵 × 방어구2 메인옵
-            foreach (var w1 in dpsWeaponOptions)
+            // 무기1 메인옵 × 무기2 메인옵 × 방어구1 메인옵 × 방어구2 메인옵.
+            //   무기1/무기2(방어구1/2)는 슬롯·기본스탯이 완전히 같아 (A,B)와 (B,A)가 동치 → 비내림차순 조합만
+            //   훑는다(옛 순서쌍 전수 대비 약 2.2배 절감). 내부에서 부옵 그리디 + 장신구 전수를 돌므로 체감 큼.
+            for (int wi = 0; wi < dpsWeaponOptions.Length; wi++)
             {
-                foreach (var w2 in dpsWeaponOptions)
+                for (int wj = wi; wj < dpsWeaponOptions.Length; wj++)
                 {
-                    foreach (var a1 in dpsArmorOptions)
+                    string w1 = dpsWeaponOptions[wi], w2 = dpsWeaponOptions[wj];
+                    for (int ai = 0; ai < dpsArmorOptions.Length; ai++)
                     {
-                        foreach (var a2 in dpsArmorOptions)
+                        for (int aj = ai; aj < dpsArmorOptions.Length; aj++)
                         {
+                            string a1 = dpsArmorOptions[ai], a2 = dpsArmorOptions[aj];
                             searchCount++;
 
                             var loadout = BuildLoadout(setConfig, w1, w2, a1, a2);
@@ -368,17 +373,21 @@ namespace GameDamageCalculator.Services.Optimizer
                 .FirstOrDefault();
             var capBonus = capSkill?.GetTotalBonus(battleChar.IsSkillEnhanced, battleChar.TranscendLevel) ?? new BuffSet();
 
-            // 저점-우선 캡: 치확/약확이 100% 도달하면 그 이상은 순수 낭비 → 후보 거절(자연스럽게 치피/공%로 우회).
-            // 기준 = 프록시 DisplayStats(base·초월·펫·진형·장비) + 풀파티 버스트 버프 floor(비스킷 약확54·레이첼 약확27 등).
-            bool ExceedsCritWeakCap(string statName)
+            // 캡 판정 = "추가 前에 이미 100%인가". 이미 캡이면 그 부옵은 한계효용 0인 죽은 옵션이라 거절한다.
+            //   옛 코드는 후보 티어를 반영한 뒤 ">= 100"이면 거절해서, 정확히 100을 맞추는 배분은 물론
+            //   96→100.8처럼 캡을 살짝 넘기며 실효 치확을 100까지 끌어올리는 티어까지 전부 막았다(치확이
+            //   96~99%에서 멈추는 언더슈트). 데미지 평가는 확률을 100으로 클램프한 기댓값이라 초과분 가치는
+            //   이미 0으로 반영되므로, 캡 미만이면 거절하지 말고 Score 비교에 맡기는 게 옳다.
+            //   기준 = 프록시 DisplayStats(base·초월·펫·진형·장비) + 파티 버스트 floor + 스킬 내장 확정치명(capBonus).
+            (bool Cri, bool Wek) CappedNow()
             {
-                if (statName != "치명타확률%" && statName != "약점공격확률%") return false;
                 var (sr, _) = ComputeStatResult(loadout, battleChar, config, charIndex);
-                if (sr.DisplayStats == null) return false;
-                if (statName == "치명타확률%" && sr.DisplayStats.Cri + partyCritWeakFloor.Cri + capBonus.Cri >= 100) return true;
-                if (statName == "약점공격확률%" && sr.DisplayStats.Wek + partyCritWeakFloor.Wek + capBonus.Wek >= 100) return true;
-                return false;
+                if (sr.DisplayStats == null) return (false, false);
+                return (sr.DisplayStats.Cri + partyCritWeakFloor.Cri + capBonus.Cri >= 100,
+                        sr.DisplayStats.Wek + partyCritWeakFloor.Wek + capBonus.Wek >= 100);
             }
+            static bool IsDeadStat(string stat, (bool Cri, bool Wek) capped) =>
+                (stat == "치명타확률%" && capped.Cri) || (stat == "약점공격확률%" && capped.Wek);
 
             foreach (var equip in loadout.GetEquipments())
             {
@@ -389,51 +398,54 @@ namespace GameDamageCalculator.Services.Optimizer
                 //   (부옵끼리만 서로 다름 — 아래 used 해시셋이 보장. 메인=부옵은 허용.)
                 var cands = subStatNames.Distinct().ToList();
 
-                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 점수 최대 / 치확·약확은 캡 초과 시 거절)
+                // 1) 서로 다른 부옵 4개를 1티어로 채움 (그리디: 점수 최대 / 이미 캡인 치확·약확은 거절)
                 var used = new HashSet<string>();
                 for (int i = 0; i < nSlots; i++)
                 {
                     var slot = equip.SubSlots[i];
+                    // 이 슬롯을 채우기 前 상태의 캡 여부. 슬롯이 비어 있으므로 후보마다 재계산할 필요 없다
+                    //   (옛 코드는 후보 하나마다 StatCalculator 풀계산을 한 번씩 더 돌렸다).
+                    var capped = CappedNow();
                     string bestStat = null; double bestDmg = -1;
-                    string fallbackStat = null; double fallbackPrio = double.NegativeInfinity;   // 캡 초과라 데미지 0이지만, 빈 슬롯 방지용 폴백(실제 장비는 부옵 4개)
+                    string fallbackStat = null; double fallbackPrio = double.NegativeInfinity;   // 캡이라 이득 0이지만, 빈 슬롯 방지용 폴백(실제 장비는 부옵 4개)
                     foreach (var stat in cands)
                     {
                         if (used.Contains(stat)) continue;
-                        slot.StatName = stat; slot.Tier = 1;
-                        if (ExceedsCritWeakCap(stat))
+                        if (IsDeadStat(stat, capped))
                         {
-                            slot.StatName = ""; slot.Tier = 0;
-                            // 캡 초과(데미지 0) → 폴백 후보로만. 단, 스킬 내장(확정치명 등 capBonus, 항상 가동)으로 캡된 스탯은
-                            //   진짜 죽은 옵션이고, 파티 버프 floor로만 캡된 스탯(예: 약확)은 버프 비가동 구간·타라운드에서 잔존 가치 →
-                            //   capBonus 기여가 작은(=floor로만 캡된) 쪽을 우선해 더 의미있는 필러를 채운다.
+                            // 이미 캡 → 폴백 후보로만. 스킬 내장(확정치명 등 capBonus, 항상 가동)으로 캡된 스탯은
+                            //   진짜 죽은 옵션이고, 파티 버프 floor로만 캡된 스탯(예: 약확)은 버프 비가동 구간·타라운드에서
+                            //   잔존 가치 → capBonus 기여가 작은(=floor로만 캡된) 쪽을 우선해 더 의미있는 필러를 채운다.
                             double prio = -(stat == "치명타확률%" ? capBonus.Cri : capBonus.Wek);
                             if (prio > fallbackPrio) { fallbackPrio = prio; fallbackStat = stat; }
                             continue;
                         }
+                        slot.StatName = stat; slot.Tier = 1;
                         double d = Score(loadout);
-                        if (d > bestDmg) { bestDmg = d; bestStat = stat; }
                         slot.StatName = ""; slot.Tier = 0;
+                        if (d > bestDmg) { bestDmg = d; bestStat = stat; }
                     }
-                    // 데미지 양수 후보가 없으면(남은 게 전부 캡 초과 치확/약확) 캡 후보로라도 채움 — 빈 슬롯 방지.
-                    //   점수 불변(캡 초과=한계효용 0), 표시·티어수(4기본) 정합. 처리순서상 뒷 장비가 빈슬롯 남기던 문제 해결.
+                    // 유효 후보가 없으면(남은 게 전부 캡인 치확/약확) 캡 후보로라도 채움 — 빈 슬롯 방지.
+                    //   점수 불변(캡=한계효용 0), 표시·티어수(4기본) 정합.
                     bestStat ??= fallbackStat;
                     if (bestStat == null) break;
                     slot.StatName = bestStat; slot.Tier = 1; used.Add(bestStat);
                 }
 
-                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 점수 증가 최대 슬롯에 / 캡 도달 슬롯 스킵)
+                // 2) 티어업 5번 분배 (각 슬롯 최대 6티어, 점수 증가 최대 슬롯에 / 이미 캡인 슬롯은 스킵)
                 for (int up = 0; up < TierUps; up++)
                 {
+                    var capped = CappedNow();   // 티어업 前 상태 — 슬롯 스캔 중엔 불변이라 1회면 충분
                     int bestSlot = -1; double bestDmg = -1;
                     for (int i = 0; i < nSlots; i++)
                     {
                         var slot = equip.SubSlots[i];
                         if (string.IsNullOrEmpty(slot.StatName) || slot.Tier >= MaxTier) continue;
+                        if (IsDeadStat(slot.StatName, capped)) continue;   // 이미 캡 → 더 올려도 이득 0
                         slot.Tier++;
-                        if (ExceedsCritWeakCap(slot.StatName)) { slot.Tier--; continue; }   // 캡 초과 → 거절
                         double d = Score(loadout);
-                        if (d > bestDmg) { bestDmg = d; bestSlot = i; }
                         slot.Tier--;
+                        if (d > bestDmg) { bestDmg = d; bestSlot = i; }
                     }
                     if (bestSlot < 0) break;
                     equip.SubSlots[bestSlot].Tier++;
@@ -576,17 +588,9 @@ namespace GameDamageCalculator.Services.Optimizer
         {
             var character = battleChar.Character;
 
+            // 활성 세트 전부 (2+2세트면 두 세트 모두). 옛 코드는 최대 조각수 1개만 넘겨 2+2의 뒤쪽
+            //   세트 보너스를 통째로 누락 → 2+2 탐색공간 전체가 체계적으로 저평가되던 버그.
             var activeSets = loadout.GetActiveSets();
-            string equipSetName = "";
-            int equipSetCount = 0;
-            foreach (var set in activeSets)
-            {
-                if (set.PieceCount > equipSetCount)
-                {
-                    equipSetName = set.SetName;
-                    equipSetCount = set.PieceCount;
-                }
-            }
 
             var partyBuffConfigs = BuildPartyBuffConfigs(config, charIndex);
             var partyEffects = new EffectManager();
@@ -608,8 +612,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 IsSkillEnhanced = battleChar.IsSkillEnhanced,
                 IsPassiveConditionMet = battleChar.IsPassiveConditionMet,
                 Equipments = loadout.GetEquipments(),
-                EquipSetName = equipSetName,
-                EquipSetCount = equipSetCount,
+                EquipSets = activeSets,
                 PotentialAtkLevel = battleChar.PotentialAtkLevel,
                 PotentialDefLevel = battleChar.PotentialDefLevel,
                 PotentialHpLevel = battleChar.PotentialHpLevel,
@@ -638,7 +641,11 @@ namespace GameDamageCalculator.Services.Optimizer
         public (double Cri, double Wek) PartyBuffCritWeak(
             System.Collections.Generic.List<BattleCharacter> party, int charIndex, string dealerClass)
         {
-            double cri = 0, wek = 0;
+            // 버프 병합 규칙(EffectManager와 동일): 한 묶음(상시 / 턴제) 안에서 같은 종류는 MaxMerge,
+            //   묶음 사이는 Add. 옛 코드는 전부 Add해서 비스킷 약확54 + 레이첼 약확27을 81로 봤다(실효는 54).
+            //   floor가 과대하면 캡 거절이 일찍 걸려 부옵 약확이 실수요보다 부족하게 세팅된다.
+            double permCri = 0, permWek = 0;     // 상시 패시브 파티버프 묶음
+            double timedCri = 0, timedWek = 0;   // 턴제(조건부 패시브 + 스킬 파티버프) 묶음
             // HighestAtkAlly 선택자 버프(예: 비스킷 장비강화 약확54·6초월 수혜 2명)는 실효 수혜자(대표딜 상위 N)만
             //   받는다. floor가 이를 무시하고 전원에 가산하면 비수혜 멤버(샤오/미호 등) 약확이 과소 세팅됨(R3 약점공격
             //   미확보). 시뮬 ResolveAllyBuffTargets와 동일 취지로 대표딜 프록시(기본공격력×최대 공격스킬 배율) 상위 N 판정.
@@ -660,8 +667,20 @@ namespace GameDamageCalculator.Services.Optimizer
                 .OrderByDescending(i => Proxy(party[i])).ToList();
             bool IsTopN(int idx, int n) => ranked.Take(System.Math.Max(1, n)).Contains(idx);
 
-            void AccBuff(BuffSet b) { if (b != null) { cri += b.Cri; wek += b.Wek; } }
-            void AccEffects(System.Collections.Generic.IEnumerable<Models.Effects.SkillEffect> effs, int? selectorCount)
+            // 묶음 내 MaxMerge — 같은 종류(치확/약확)는 가장 높은 값 하나만 살아남는다.
+            void MaxPerm(BuffSet b)
+            {
+                if (b == null) return;
+                permCri = System.Math.Max(permCri, b.Cri);
+                permWek = System.Math.Max(permWek, b.Wek);
+            }
+            void MaxTimed(BuffSet b)
+            {
+                if (b == null) return;
+                timedCri = System.Math.Max(timedCri, b.Cri);
+                timedWek = System.Math.Max(timedWek, b.Wek);
+            }
+            void MaxTimedEffects(System.Collections.Generic.IEnumerable<Models.Effects.SkillEffect> effs, int? selectorCount)
             {
                 if (effs == null) return;
                 foreach (var e in effs)
@@ -674,7 +693,7 @@ namespace GameDamageCalculator.Services.Optimizer
                         int n = selectorCount ?? System.Math.Max(1, e.TargetCount);
                         if (!IsTopN(charIndex, n)) continue;
                     }
-                    AccBuff(e.Buff);
+                    MaxTimed(e.Buff);
                 }
             }
             for (int i = 0; i < party.Count; i++)
@@ -682,22 +701,23 @@ namespace GameDamageCalculator.Services.Optimizer
                 if (i == charIndex || party[i]?.Character == null) continue;
                 var bc = party[i];
                 bool enh = bc.IsSkillEnhanced; int tx = bc.TranscendLevel;
-                // 패시브 파티버프 (상시 + 조건부)
-                AccBuff(bc.Character.Passive?.GetPartyBuff(enh, tx, dealerClass));
-                AccBuff(bc.Character.Passive?.GetConditionalPartyBuff(enh, tx, dealerClass));
-                // 스킬 파티버프 (Effects + 레거시 PartyBuff + 초월). 초월 TargetCountOverride는 HighestAtkAlly 수혜 인원수.
+                // 패시브 파티버프: 상시는 상시 묶음, 조건부는 턴제 묶음.
+                MaxPerm(bc.Character.Passive?.GetPartyBuff(enh, tx, dealerClass));
+                MaxTimed(bc.Character.Passive?.GetConditionalPartyBuff(enh, tx, dealerClass));
+                // 스킬 파티버프(턴제 묶음) — Effects + 레거시 PartyBuff + 초월. 초월 TargetCountOverride는 HighestAtkAlly 수혜 인원수.
                 foreach (var skill in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
                 {
                     var ld = skill.GetLevelData(enh);
                     var txb = skill.GetTranscendBonus(tx);
                     int? ov = txb?.TargetCountOverride;
-                    AccEffects(ld?.Effects, ov);
-                    AccBuff(ld?.PartyBuff);
-                    AccEffects(txb?.Effects, ov);
-                    AccBuff(txb?.PartyBuff);
+                    MaxTimedEffects(ld?.Effects, ov);
+                    MaxTimed(ld?.PartyBuff);
+                    MaxTimedEffects(txb?.Effects, ov);
+                    MaxTimed(txb?.PartyBuff);
                 }
             }
-            return (cri, wek);
+            // 묶음 간 Add.
+            return (permCri + timedCri, permWek + timedWek);
         }
 
         private double EvaluateDamage(

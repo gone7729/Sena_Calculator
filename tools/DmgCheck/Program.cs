@@ -22,11 +22,11 @@ double TakaCriDmg(SiegeOptimizerResult r)
 {
     var t = r.BestParty.First(c => c.Character.Id == 1);
     var sc = new StatCalculator();
-    var lo = t.Equipment; var bigSet = lo?.GetActiveSets().OrderByDescending(s => s.PieceCount).FirstOrDefault();
+    var lo = t.Equipment;
     var si = new StatCalculationInput {
         Character = t.Character, TranscendLevel = 12, IsSkillEnhanced = true,
         Equipments = lo?.GetEquipments(), Accessory = lo?.Accessory,
-        EquipSetName = bigSet?.SetName ?? "", EquipSetCount = bigSet?.PieceCount ?? 0,
+        EquipSets = lo?.GetActiveSets(),
         Formation = new Formation { Name = "밸런스 진형", IsBackPosition = r.BestBackRow.Contains("타카") },
         Pet = PetDb.GetByName("윈디"), PetStar = 6, PetOptionAtkRate = 72, PartyPetBuffs = new BuffSet { Atk_Rate = 15 },
     };
@@ -84,12 +84,11 @@ bool takaBack = optResult.BestBackRow.Contains("타카");
 var statCalc = new StatCalculator();
 var loadout = taka.Equipment;
 var sets = loadout?.GetActiveSets() ?? new System.Collections.Generic.List<EquipmentSet>();
-var bigSet = sets.OrderByDescending(s => s.PieceCount).FirstOrDefault();
 var statInput = new StatCalculationInput
 {
     Character = taka.Character, TranscendLevel = 12, IsSkillEnhanced = true,
     Equipments = loadout?.GetEquipments(), Accessory = loadout?.Accessory,
-    EquipSetName = bigSet?.SetName ?? "", EquipSetCount = bigSet?.PieceCount ?? 0,
+    EquipSets = sets,
     Formation = new Formation { Name = "밸런스 진형", IsBackPosition = takaBack },
     Pet = PetDb.GetByName("윈디"), PetStar = 6, PetOptionAtkRate = 72,
     PartyPetBuffs = new BuffSet { Atk_Rate = 15 },   // 윈디 6성 강화3 공격력버프 (펫버프 레이어)
@@ -100,7 +99,7 @@ Console.WriteLine("================ 타카 FinalAtk 분해 (실제 StatCalculato
 Console.WriteLine($"기초공(전설 공격형 Lv30+5) = {taka.Character.GetBaseStats().Atk}");
 Console.WriteLine($"BaseAtk(장비/세트/초월/장신구 atk% 포함, 진형·펫·버프 前) = {sr.BaseAtk:N0}");
 Console.WriteLine($"FinalAtk(진형+펫잠재+펫버프 모두 적용) = {sr.FinalAtk:N0}");
-Console.WriteLine($"치피 = {sr.DisplayStats?.Cri_Dmg}, 후열={takaBack}, 세트={bigSet?.SetName} {bigSet?.PieceCount}\n");
+Console.WriteLine($"치피 = {sr.DisplayStats?.Cri_Dmg}, 후열={takaBack}, 세트={string.Join(" + ", sets.Select(s => $"{s.SetName}{s.PieceCount}"))}\n");
 Console.WriteLine("---- StatCalculator DebugLog (레이어별) ----");
 Console.WriteLine(sr.DebugLog.ToString());
 
@@ -135,11 +134,11 @@ Console.WriteLine($"  룩(조건X,약점X)       = {Run(sr.FinalAtk, false, fals
 
 // ===== 라이언 광풍참 1타 (실측 T20: 440554/454031, 체력비례 최대, EagleClaw 4스택) =====
 var ryan = optResult.BestParty.First(c => c.Character.Id == 2);
-var rlo = ryan.Equipment; var rSet = rlo?.GetActiveSets().OrderByDescending(s => s.PieceCount).FirstOrDefault();
+var rlo = ryan.Equipment;
 var rsr = statCalc.Calculate(new StatCalculationInput {
     Character = ryan.Character, TranscendLevel = 12, IsSkillEnhanced = true,
     Equipments = rlo?.GetEquipments(), Accessory = rlo?.Accessory,
-    EquipSetName = rSet?.SetName ?? "", EquipSetCount = rSet?.PieceCount ?? 0,
+    EquipSets = rlo?.GetActiveSets(),
     Formation = new Formation { Name = "밸런스 진형", IsBackPosition = optResult.BestBackRow.Contains("라이언") },
     Pet = PetDb.GetByName("윈디"), PetStar = 6, PetOptionAtkRate = 72, PartyPetBuffs = new BuffSet { Atk_Rate = 15 },
 });

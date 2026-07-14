@@ -21,6 +21,12 @@ namespace GameDamageCalculator.Services
 
         // 장비
         public IEnumerable<Equipment> Equipments { get; set; }
+
+        // 활성 세트 전체 (2+2세트면 2개). 이게 지정되면 EquipSetName/Count 대신 이걸 쓴다.
+        //   단일 세트만 받던 옛 필드는 2+2에서 한쪽(작은/뒤쪽) 세트 보너스를 통째로 누락시켰다.
+        public List<EquipmentSet> EquipSets { get; set; }
+
+        // [레거시] 단일 세트. EquipSets 미지정 시에만 사용.
         public string EquipSetName { get; set; }
         public int EquipSetCount { get; set; } = 4;
 
@@ -121,7 +127,7 @@ namespace GameDamageCalculator.Services
             var equipmentStats = GetEquipmentStats(input.Equipments);
             var accessoryStats = input.Accessory?.GetTotalStats() ?? new BaseStatSet();
             var transcendStats = input.Character?.GetTranscendStats(input.TranscendLevel) ?? new BaseStatSet();
-            var setBonus = GetSetBonus(input.EquipSetName, input.EquipSetCount);
+            var setBonus = GetSetBonus(input);
             var petBaseStats = input.Pet?.GetBaseStats(input.PetStar) ?? new BaseStatSet();
 
             // 전용무기 (공격력 flat + 조율 4슬롯). null이면 빈 set — 영향 없음.
@@ -134,7 +140,7 @@ namespace GameDamageCalculator.Services
             // ========== 디버그 로그: 피증 출처별 상세 ==========
             result.DebugLog.AppendLine("══════════ 스탯 출처별 상세 ══════════");
             result.DebugLog.AppendLine($"캐릭터: {input.Character?.Name}, 초월: {input.TranscendLevel}, 스강: {input.IsSkillEnhanced}");
-            result.DebugLog.AppendLine($"세트: {input.EquipSetName} {input.EquipSetCount}세트");
+            result.DebugLog.AppendLine($"세트: {DescribeSets(input)}");
             
             result.DebugLog.AppendLine("\n[피증% 출처]");
             result.DebugLog.AppendLine($"  캐릭터 기본: {characterStats.Dmg_Dealt}%");
@@ -447,6 +453,25 @@ namespace GameDamageCalculator.Services
             return (mainStats, subStats);
         }
 
+        /// <summary>
+        /// 활성 세트 전부의 보너스 합. 2+2세트면 두 세트의 2세트 효과가 모두 붙는다.
+        /// EquipSets가 지정되면 그것을, 아니면 레거시 단일 세트(EquipSetName/Count)를 쓴다.
+        /// </summary>
+        private BaseStatSet GetSetBonus(StatCalculationInput input)
+        {
+            BaseStatSet total = new BaseStatSet();
+
+            if (input.EquipSets != null && input.EquipSets.Count > 0)
+            {
+                foreach (var set in input.EquipSets)
+                    total.Add(GetSetBonus(set?.SetName, set?.PieceCount ?? 0));
+                return total;
+            }
+
+            total.Add(GetSetBonus(input.EquipSetName, input.EquipSetCount));
+            return total;
+        }
+
         private BaseStatSet GetSetBonus(string setName, int setCount)
         {
             BaseStatSet total = new BaseStatSet();
@@ -456,7 +481,7 @@ namespace GameDamageCalculator.Services
 
             if (EquipmentDb.SetEffects.TryGetValue(setName, out var setData))
             {
-                // 4세트면 4세트만, 2세트면 2세트만 적용 (중복 X)
+                // 4세트면 4세트만, 2세트면 2세트만 적용 (중복 X — DB의 4세트 값이 2세트를 대체하는 총량)
                 if (setCount >= 4 && setData.TryGetValue(4, out var bonus4))
                 {
                     total.Add(bonus4);
@@ -468,6 +493,13 @@ namespace GameDamageCalculator.Services
             }
 
             return total;
+        }
+
+        private static string DescribeSets(StatCalculationInput input)
+        {
+            if (input.EquipSets != null && input.EquipSets.Count > 0)
+                return string.Join(" + ", input.EquipSets.Select(s => $"{s.SetName} {s.PieceCount}세트"));
+            return $"{input.EquipSetName} {input.EquipSetCount}세트";
         }
 
         private (double Atk, double Def, double Hp, double Cri, double Blk, double DmgRdc) CalculateStatScaling(

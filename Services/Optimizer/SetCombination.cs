@@ -37,12 +37,13 @@ namespace GameDamageCalculator.Services.Optimizer
                 });
             }
 
-            // 2. 2+2세트 (무기세트 ≠ 방어구세트)
+            // 2. 2+2세트 (무기세트 ≠ 방어구세트). j>i만 — (A무기,B방어구)와 (B무기,A방어구)는
+            //    스탯이 완전히 같다(장비 기본스탯은 Slot에만 의존하고, 세트 보너스는 2세트(A)+2세트(B) 합으로 동일).
+            //    옛 코드는 순서쌍 전체(72개)를 돌아 절반이 중복 탐색이었다.
             for (int i = 0; i < setNames.Count; i++)
             {
-                for (int j = 0; j < setNames.Count; j++)
+                for (int j = i + 1; j < setNames.Count; j++)
                 {
-                    if (i == j) continue; // 같은 세트는 4세트로 이미 처리
                     combinations.Add(new EquipSetConfig
                     {
                         WeaponSetName = setNames[i],
@@ -80,12 +81,16 @@ namespace GameDamageCalculator.Services.Optimizer
                 }
             }
 
-            // 2+2세트 (DPS 세트끼리 조합)
+            // 2+2세트 (DPS 세트 하나 이상 포함). 무기/방어구 순서는 스탯상 동치라 무순서 쌍으로 중복 제거.
+            var seenPairs = new HashSet<string>();
             for (int i = 0; i < dpsSetNames.Length; i++)
             {
                 for (int j = 0; j < allSets.Count; j++)
                 {
                     if (dpsSetNames[i] == allSets[j]) continue;
+                    var pair = string.CompareOrdinal(dpsSetNames[i], allSets[j]) <= 0
+                        ? $"{dpsSetNames[i]}|{allSets[j]}" : $"{allSets[j]}|{dpsSetNames[i]}";
+                    if (!seenPairs.Add(pair)) continue;
                     combinations.Add(new EquipSetConfig
                     {
                         WeaponSetName = dpsSetNames[i],

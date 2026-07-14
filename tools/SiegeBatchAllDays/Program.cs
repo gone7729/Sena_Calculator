@@ -100,6 +100,9 @@ BattleCharacter Hero(int id)
 }
 
 // 커밋된 결과 JSON의 skillOrder(hero·skill 이름)를 RotationDecision으로 매핑 — 빔 교차수분 시드용. 없으면 null.
+//   플랜 인덱스 = 전역 스킬턴 인덱스이고 홀드도 한 스텝을 차지하는데, skillOrder는 홀드를 빼고 저장한다
+//   (feas.Where(!f.Hold)). 그래서 순서대로 이어붙이면 홀드 뒤의 모든 결정이 한 칸씩 당겨진 '다른 로테'가 된다.
+//   → 각 항목의 step(1-based 스킬턴 인덱스)으로 원위치에 놓고, 빈 칸은 홀드로 복원한다. (스키마 불변 = 옛 JSON도 그대로 복원)
 List<RotationDecision> LoadRot(string path, List<BattleCharacter> team)
 {
     if (!System.IO.File.Exists(path)) return null;
@@ -107,7 +110,8 @@ List<RotationDecision> LoadRot(string path, List<BattleCharacter> team)
     {
         using var doc = JsonDocument.Parse(System.IO.File.ReadAllText(path));
         if (!doc.RootElement.TryGetProperty("skillOrder", out var so)) return null;
-        var plan = new List<RotationDecision>();
+        var byStep = new Dictionary<int, RotationDecision>();
+        int maxStep = -1;
         foreach (var s in so.EnumerateArray())
         {
             if (s.TryGetProperty("isAuto", out var au) && au.GetBoolean()) continue;   // 빔 결정만(자동 꼬리 제외)
@@ -115,12 +119,27 @@ List<RotationDecision> LoadRot(string path, List<BattleCharacter> team)
             string sn = s.GetProperty("skill").GetString();
             int hi = team.FindIndex(t => t.Character?.Name == hn);
             var sk = hi >= 0 ? team[hi].Character.Skills.FirstOrDefault(k => k.Name == sn) : null;
-            if (hi >= 0 && sk != null) plan.Add(new RotationDecision { HeroIndex = hi, Skill = sk.SkillType });
+            if (hi < 0 || sk == null) continue;
+            int idx = s.TryGetProperty("step", out var st) ? st.GetInt32() - 1 : byStep.Count;
+            if (idx < 0 || byStep.ContainsKey(idx)) continue;
+            byStep[idx] = new RotationDecision { HeroIndex = hi, Skill = sk.SkillType };
+            if (idx > maxStep) maxStep = idx;
         }
+        if (maxStep < 0) return new List<RotationDecision>();
+        var plan = new List<RotationDecision>(maxStep + 1);
+        for (int i = 0; i <= maxStep; i++)
+            plan.Add(byStep.TryGetValue(i, out var d) ? d : new RotationDecision { Hold = true });   // 빈 칸 = 홀드
         return plan;
     }
     catch { return null; }
 }
+
+// 시드 변형: 홀드를 모두 제거해 "쉬지 않고 계속 시전"하는 로테로 압축한다. 원본과 다른 별개의 유효 전략이며
+//   (버스트를 늦추지 않고 앞당김), 다른 프로필/자리에선 이쪽이 더 높은 경우가 있다. 후보로만 쓰이므로(무회귀) 안전.
+//   ※ 옛 LoadRot의 홀드 유실 버그가 사실상 이 변형을 만들어냈고, 월·화·수 12초월 시드(홀드 7~8칸)에선
+//     그게 6초월 config의 고점이었다. 충실 복원만 남기면 그 고점을 잃으므로 둘 다 시드로 넣는다.
+List<RotationDecision> StripHolds(List<RotationDecision> plan) =>
+    plan?.Where(d => !d.Hold).ToList();
 
 string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 // 출력은 results/siege/ 아래로 모은다 (json/txt/battlelog). 웹 반영은 web/scripts/sync-siege.mjs.
@@ -224,9 +243,15 @@ foreach (var (day, ids) in DAYS)
     //   "노교차시드"로 비활성. (시드는 검증된 유효 로테라 stale이어도 후보로만 쓰여 안전.)
     if (!args.Contains("노교차시드"))
     {
-        var seeds = new[] { "6초월", "12초월" }
-            .Select(sp => LoadRot(System.IO.Path.Combine(outDir, $"siege_{day}_{sp}_윈디.json"), team))
-            .Where(r => r != null && r.Count > 0).ToList();
+        var seeds = new List<List<RotationDecision>>();
+        foreach (var sp in new[] { "6초월", "12초월" })
+        {
+            var rot = LoadRot(System.IO.Path.Combine(outDir, $"siege_{day}_{sp}_윈디.json"), team);
+            if (rot == null || rot.Count == 0) continue;
+            seeds.Add(rot);                                   // 충실 복원(홀드 포함)
+            var packed = StripHolds(rot);                     // 변형: 홀드 제거(쉬지 않고 시전)
+            if (packed != null && packed.Count > 0 && packed.Count != rot.Count) seeds.Add(packed);
+        }
         if (seeds.Count > 0) cfg.SeedRotations = seeds;
     }
 
@@ -299,12 +324,11 @@ foreach (var (day, ids) in DAYS)
         string GearStat(BattleCharacter bc)
         {
             var lo = bc.Equipment;
-            var big = lo?.GetActiveSets().OrderByDescending(s => s.PieceCount).FirstOrDefault();
             var ds = statCalc.Calculate(new StatCalculationInput
             {
                 Character = bc.Character, TranscendLevel = bc.TranscendLevel, IsSkillEnhanced = bc.IsSkillEnhanced,
                 Equipments = lo?.GetEquipments(), Accessory = lo?.Accessory,
-                EquipSetName = big?.SetName ?? "", EquipSetCount = big?.PieceCount ?? 0,
+                EquipSets = lo?.GetActiveSets(),
                 PotentialAtkLevel = bc.PotentialAtkLevel, PotentialDefLevel = bc.PotentialDefLevel, PotentialHpLevel = bc.PotentialHpLevel,
                 ExclusiveWeapon = bc.Character?.ExclusiveWeapon,
                 Formation = new Formation { Name = res.BestFormation, IsBackPosition = bc.IsBackPosition },

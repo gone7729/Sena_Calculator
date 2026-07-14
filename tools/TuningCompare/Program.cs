@@ -24,7 +24,6 @@ var opt = new SiegeOptimizer().Optimize(new SiegeOptimizerConfig
 });
 var nata = opt.BestParty.First(c => c.Character.Id == 118);
 var loadout = nata.Equipment;
-var bigSet = loadout?.GetActiveSets().OrderByDescending(s => s.PieceCount).FirstOrDefault();
 bool nataBack = opt.BestBackRow.Contains("나타");
 var hon = nataChar.Skills.First(s => s.Name == "혼천릉파");
 var enemy = EnemyDb.Bosses.First(b => b.Name == "아일린");
@@ -42,7 +41,7 @@ double Compute(TuningOption opt4, string label)
     {
         Character = nataChar, TranscendLevel = 12, IsSkillEnhanced = true,
         Equipments = loadout?.GetEquipments(), Accessory = loadout?.Accessory,
-        EquipSetName = bigSet?.SetName ?? "", EquipSetCount = bigSet?.PieceCount ?? 0,
+        EquipSets = loadout?.GetActiveSets(),
         PotentialAtkLevel = 3, PotentialDefLevel = 3, PotentialHpLevel = 3,
         ExclusiveWeapon = nataChar.ExclusiveWeapon,
         Formation = new Formation { Name = opt.BestFormation, IsBackPosition = nataBack },
@@ -68,7 +67,8 @@ double Compute(TuningOption opt4, string label)
     return dmg;
 }
 
-Console.WriteLine($"\n═══ 나타 혼천릉파 1타 조율 비교 (확정치명·약점·비스킷버프 / 기어 {bigSet?.SetName}4 고정·{(nataBack?"후열":"전열")}) ═══");
+string setLabel = string.Join(" + ", (loadout?.GetActiveSets() ?? new List<EquipmentSet>()).Select(s => $"{s.SetName}{s.PieceCount}"));
+Console.WriteLine($"\n═══ 나타 혼천릉파 1타 조율 비교 (확정치명·약점·비스킷버프 / 기어 {setLabel} 고정·{(nataBack?"후열":"전열")}) ═══");
 double a = Compute(TuningOption.모든공격력, "모든공격력×4");
 double b = Compute(TuningOption.피해증폭, "피해증폭×4");
 Console.WriteLine($"\n  → 모든공격력 / 피해증폭 = {a/b*100:F1}%  ({(a>b?"모든공격력":"피해증폭")} 우세, 차이 {Math.Abs(a-b):N0} / {Math.Abs(a-b)/Math.Min(a,b)*100:F1}%)");

@@ -277,16 +277,17 @@ namespace GameDamageCalculator.Models
             if (EquipmentDb.SetEffects.TryGetValue(SetName, out var setData))
             {
                 BaseStatSet total = new BaseStatSet();
-                
-                if (PieceCount >= 2 && setData.TryGetValue(2, out var bonus2))
-                {
-                    total.Add(bonus2);
-                }
+
+                // 4세트 값은 2세트를 대체하는 총량(예: 선봉장 2=공20% → 4=공45%) — 중첩 금지.
                 if (PieceCount >= 4 && setData.TryGetValue(4, out var bonus4))
                 {
                     total.Add(bonus4);
                 }
-                
+                else if (PieceCount >= 2 && setData.TryGetValue(2, out var bonus2))
+                {
+                    total.Add(bonus2);
+                }
+
                 return total;
             }
             return new BaseStatSet();
