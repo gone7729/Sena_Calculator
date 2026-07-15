@@ -1,4 +1,12 @@
 ﻿{
+  "generatedWith": {
+    "engineHash": "sha256:8999c888cd2a5e8a",
+    "gitCommit": "fb6638b-dirty",
+    "profile": "6초월_윈디",
+    "penalty": 1000000,
+    "coordAscent": true,
+    "crossSeed": true
+  },
   "day": "수요일",
   "boss": "수요일 공성전 (불멸의 성)",
   "score": 8105221,

@@ -1,8 +1,16 @@
 ﻿{
+  "generatedWith": {
+    "engineHash": "sha256:8999c888cd2a5e8a",
+    "gitCommit": "fb6638b-dirty",
+    "profile": "6초월_윈디",
+    "penalty": 1000000,
+    "coordAscent": true,
+    "crossSeed": true
+  },
   "day": "일요일",
   "boss": "일요일 공성전 (지옥의 성)",
-  "score": 6295074,
-  "autoRotationScore": 3224477,
+  "score": 6621372,
+  "autoRotationScore": 2821713,
   "formation": "밸런스 진형",
   "backRow": [
     "파스칼",
@@ -13,7 +21,7 @@
   "roundScore": {
     "1": 25170,
     "2": 31450,
-    "3": 6238454
+    "3": 6407393
   },
   "team": [
     {
@@ -22,8 +30,8 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": true,
-      "totalDamage": 3785599,
-      "damageShare": 60.1
+      "totalDamage": 4675991,
+      "damageShare": 72.3
     },
     {
       "id": 117,
@@ -31,8 +39,8 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": true,
-      "totalDamage": 1746936,
-      "damageShare": 27.8
+      "totalDamage": 1123170,
+      "damageShare": 17.4
     },
     {
       "id": 201,
@@ -40,8 +48,8 @@
       "role": "지원형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 154996,
-      "damageShare": 2.5
+      "totalDamage": 193235,
+      "damageShare": 3
     },
     {
       "id": 57,
@@ -49,8 +57,8 @@
       "role": "공격형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 244505,
-      "damageShare": 3.9
+      "totalDamage": 324712,
+      "damageShare": 5
     },
     {
       "id": 103,
@@ -58,26 +66,26 @@
       "role": "마법형",
       "transcend": 6,
       "isBackRow": false,
-      "totalDamage": 363038,
-      "damageShare": 5.8
+      "totalDamage": 146905,
+      "damageShare": 2.3
     }
   ],
   "gear": [
-    "[파스칼] 세트 선택(풀시뮬): 복수자  ← 복수자=3,162,666 / 암살자=3,067,971 / 추적자=3,136,672 / 선봉장=2,881,228",
-    "[파스칼] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 30, 약점공격확률% 10, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 약점공격확률% 20, 치명타피해% 18, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 30, 약점공격확률% 10, 공격력% 5, 공격력 50\n  장신구: 6성 메인 보피증% / 부 1-3인기%",
-    "[파스칼] 기어스탯(버프전): 치확 53% · 약확 45% · 치피 288%",
-    "[소교] 세트 선택(풀시뮬): 복수자  ← 복수자=3,202,551 / 암살자=3,162,590 / 추적자=3,111,698 / 선봉장=3,007,108",
-    "[소교] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타확률% 4, 치명타피해% 36, 공격력% 5, 공격력 50\n  무기2: 메인 치명타확률% 24% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 12, 치명타피해% 24, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 4, 치명타피해% 36, 공격력% 5, 공격력 50\n  장신구: 6성 메인 치명타확률% / 부 보피증%",
+    "[파스칼] 세트 선택(풀시뮬): 복수자 4세트  ← 복수자 4세트=6,642,073 / 암살자 4세트=6,198,516 / 추적자 4세트=6,515,712 / 선봉장 4세트=5,870,552 / 복수자 2 + 암살자 2=5,894,612 / 복수자 2 + 추적자 2=5,965,816 / 복수자 2 + 선봉장 2=5,939,811 / 암살자 2 + 추적자 2=5,823,427 / 암살자 2 + 선봉장 2=5,798,551 / 추적자 2 + 선봉장 2=5,867,624",
+    "[파스칼] 세트 복수자4\n  무기1: 메인 치명타피해% 36% | 부옵 약점공격확률% 10, 치명타피해% 30, 공격력% 5, 공격력 50\n  무기2: 메인 치명타피해% 36% | 부옵 약점공격확률% 15, 치명타피해% 24, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 약점공격확률% 5, 치명타피해% 36, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 약점공격확률% 5, 치명타피해% 36, 공격력% 5, 공격력 50\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
+    "[파스칼] 기어스탯(버프전): 치확 5% · 약확 47% · 치피 372%",
+    "[소교] 세트 선택(풀시뮬): 복수자 4세트  ← 복수자 4세트=6,714,520 / 암살자 4세트=6,655,648 / 추적자 4세트=6,564,251 / 선봉장 4세트=6,382,228 / 복수자 2 + 암살자 2=6,460,495 / 복수자 2 + 추적자 2=6,321,815 / 복수자 2 + 선봉장 2=6,401,484 / 암살자 2 + 추적자 2=6,344,310 / 암살자 2 + 선봉장 2=6,425,075 / 추적자 2 + 선봉장 2=6,289,164",
+    "[소교] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 공격력% 5, 공격력 50, 치명타확률% 4\n  무기2: 메인 치명타확률% 24% | 부옵 치명타확률% 12, 치명타피해% 24, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 4, 치명타피해% 36, 공격력% 5, 공격력 50\n  장신구: 6성 메인 치명타확률% / 부 보피증%",
     "[소교] 기어스탯(버프전): 치확 99% · 약확 20% · 치피 264%",
-    "[비스킷] 세트 선택(풀시뮬): 복수자  ← 복수자=3,226,419 / 수문장=3,183,121",
+    "[비스킷] 세트 선택(풀시뮬): 복수자 4세트  ← 복수자 4세트=6,752,892 / 수문장 4세트=6,709,213 / 복수자 2 + 수문장 2=6,718,573",
     "[비스킷] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 30, 치명타확률% 8, 약점공격확률% 5, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 약점공격확률% 5, 공격력% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 12, 치명타피해% 24, 약점공격확률% 5, 공격력% 5\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
     "[비스킷] 기어스탯(버프전): 치확 97% · 약확 32% · 치피 252%",
-    "[샤오] 세트 선택(풀시뮬): 복수자  ← 복수자=3,227,525 / 암살자=3,197,082 / 추적자=3,200,048 / 선봉장=3,177,710",
-    "[샤오] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 치명타확률% 4, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 30, 약점공격확률% 10, 치명타확률% 4, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 약점공격확률% 5, 공격력% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 24, 치명타확률% 8, 약점공격확률% 10, 공격력% 5\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
-    "[샤오] 기어스탯(버프전): 치확 99% · 약확 42% · 치피 258%",
-    "[미호] 세트 선택(풀시뮬): 복수자  ← 복수자=3,229,061 / 암살자=3,213,421 / 추적자=3,217,400 / 선봉장=3,199,556",
-    "[미호] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 약점공격확률% 25, 치명타피해% 12, 치명타확률% 4, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 30, 치명타확률% 8, 공격력% 5, 공격력 50\n  방어구1: 메인 공격력% 28% | 부옵 치명타피해% 24, 치명타확률% 12, 공격력% 5, 공격력 50\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 공격력% 5, 공격력 50\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
-    "[미호] 기어스탯(버프전): 치확 93% · 약확 57% · 치피 234%"
+    "[샤오] 세트 선택(풀시뮬): 복수자 4세트  ← 복수자 4세트=6,754,008 / 암살자 4세트=6,706,674 / 추적자 4세트=6,725,490 / 선봉장 4세트=6,690,547 / 복수자 2 + 암살자 2=6,685,602 / 복수자 2 + 추적자 2=6,685,211 / 복수자 2 + 선봉장 2=6,680,576 / 암살자 2 + 추적자 2=6,677,831 / 암살자 2 + 선봉장 2=6,673,323 / 추적자 2 + 선봉장 2=6,672,949",
+    "[샤오] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 치명타확률% 4, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 치명타피해% 30, 약점공격확률% 10, 치명타확률% 4, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타확률% 16, 치명타피해% 18, 약점공격확률% 5, 공격력% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타피해% 24, 치명타확률% 8, 약점공격확률% 10, 공격력% 5\n  장신구: 6성 메인 방어력% / 부 보피증%",
+    "[샤오] 기어스탯(버프전): 치확 99% · 약확 30% · 치피 258%",
+    "[미호] 세트 선택(풀시뮬): 복수자 4세트  ← 복수자 4세트=6,763,465 / 암살자 4세트=6,749,327 / 추적자 4세트=6,758,024 / 선봉장 4세트=6,731,317 / 복수자 2 + 암살자 2=6,740,564 / 복수자 2 + 추적자 2=6,737,087 / 복수자 2 + 선봉장 2=6,734,943 / 암살자 2 + 추적자 2=6,737,494 / 암살자 2 + 선봉장 2=6,735,847 / 추적자 2 + 선봉장 2=6,732,487",
+    "[미호] 세트 복수자4\n  무기1: 메인 치명타확률% 24% | 부옵 치명타피해% 36, 약점공격확률% 5, 치명타확률% 4, 공격력% 5\n  무기2: 메인 치명타확률% 24% | 부옵 약점공격확률% 5, 치명타확률% 16, 치명타피해% 18, 공격력% 5\n  방어구1: 메인 공격력% 28% | 부옵 치명타피해% 24, 치명타확률% 12, 약점공격확률% 5, 공격력% 5\n  방어구2: 메인 공격력% 28% | 부옵 치명타확률% 12, 치명타피해% 24, 약점공격확률% 5, 공격력% 5\n  장신구: 6성 메인 약점공격확률% / 부 보피증%",
+    "[미호] 기어스탯(버프전): 치확 97% · 약확 52% · 치피 252%"
   ],
   "skillOrder": [
     {
@@ -130,14 +138,14 @@
     },
     {
       "step": 9,
-      "hero": "미호",
-      "skill": "살육의 춤",
+      "hero": "비스킷",
+      "skill": "리프 어택",
       "isAuto": false
     },
     {
       "step": 10,
-      "hero": "미호",
-      "skill": "교만의 일격",
+      "hero": "파스칼",
+      "skill": "어둠의 문",
       "isAuto": false
     },
     {
@@ -148,39 +156,45 @@
     },
     {
       "step": 12,
-      "hero": "비스킷",
-      "skill": "리프 어택",
-      "isAuto": false
-    },
-    {
-      "step": 13,
-      "hero": "파스칼",
-      "skill": "어둠의 문",
-      "isAuto": false
-    },
-    {
-      "step": 14,
       "hero": "소교",
       "skill": "호접지몽",
       "isAuto": false
     },
     {
+      "step": 13,
+      "hero": "파스칼",
+      "skill": "파괴의 거인",
+      "isAuto": false
+    },
+    {
+      "step": 14,
+      "hero": "파스칼",
+      "skill": "어둠의 문",
+      "isAuto": false
+    },
+    {
       "step": 15,
+      "hero": "파스칼",
+      "skill": "파괴의 거인",
+      "isAuto": false
+    },
+    {
+      "step": 16,
+      "hero": "샤오",
+      "skill": "정기흡공",
+      "isAuto": false
+    },
+    {
+      "step": 17,
       "hero": "소교",
       "skill": "우후죽순",
       "isAuto": false
     },
     {
-      "step": 16,
-      "hero": "미호",
-      "skill": "교만의 일격",
-      "isAuto": false
-    },
-    {
       "step": 17,
-      "hero": "파스칼",
-      "skill": "파괴의 거인",
-      "isAuto": false
+      "hero": "비스킷",
+      "skill": "리프 어택",
+      "isAuto": true
     },
     {
       "step": 18,
@@ -192,18 +206,18 @@
       "step": 19,
       "hero": "파스칼",
       "skill": "파괴의 거인",
-      "isAuto": true
+      "isAuto": false
     }
   ],
   "feasibility": {
-    "ok": true,
-    "fallbacks": 0,
+    "ok": false,
+    "fallbacks": 1,
     "unreached": 0,
-    "minSlackSec": 10,
+    "minSlackSec": 8,
     "scoreReproduced": true,
-    "score25": 6295074,
-    "floor0": 6295074,
-    "counterattackDelta": 0,
+    "score25": 6621372,
+    "floor0": 6464013,
+    "counterattackDelta": 157359,
     "steps": [
       {
         "step": 1,
@@ -339,30 +353,26 @@
         "step": 9,
         "turn": 27,
         "elapsedSec": 103,
-        "hero": "미호",
-        "skill": "살육의 춤",
+        "hero": "비스킷",
+        "skill": "리프 어택",
         "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
+        "firstUse": false,
+        "slackSec": 26,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
-        "debuffTargets": [
-          "크리스",
-          "룩",
-          "챈슬러"
-        ],
+        "debuffTargets": null,
         "dispelTargets": null
       },
       {
         "step": 10,
         "turn": 31,
-        "elapsedSec": 118,
-        "hero": "미호",
-        "skill": "교만의 일격",
+        "elapsedSec": 119,
+        "hero": "파스칼",
+        "skill": "어둠의 문",
         "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
+        "firstUse": false,
+        "slackSec": 13,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -391,41 +401,11 @@
         "step": 12,
         "turn": 39,
         "elapsedSec": 147,
-        "hero": "비스킷",
-        "skill": "리프 어택",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 70,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 13,
-        "turn": 43,
-        "elapsedSec": 163,
-        "hero": "파스칼",
-        "skill": "어둠의 문",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 57,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 14,
-        "turn": 47,
-        "elapsedSec": 177,
         "hero": "소교",
         "skill": "호접지몽",
         "status": "ok",
         "firstUse": false,
-        "slackSec": 47,
+        "slackSec": 17,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": [
@@ -438,11 +418,103 @@
         "dispelTargets": null
       },
       {
+        "step": 13,
+        "turn": 43,
+        "elapsedSec": 162,
+        "hero": "파스칼",
+        "skill": "파괴의 거인",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 40,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 14,
+        "turn": 47,
+        "elapsedSec": 177,
+        "hero": "파스칼",
+        "skill": "어둠의 문",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 15,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
         "step": 15,
         "turn": 51,
-        "elapsedSec": 192,
+        "elapsedSec": 188,
+        "hero": "파스칼",
+        "skill": "파괴의 거인",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 8,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 16,
+        "turn": 55,
+        "elapsedSec": 204,
+        "hero": "샤오",
+        "skill": "정기흡공",
+        "status": "ok",
+        "firstUse": false,
+        "slackSec": 89,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": [
+          "크리스"
+        ],
+        "dispelTargets": null
+      },
+      {
+        "step": 17,
+        "turn": 59,
+        "elapsedSec": 218,
         "hero": "소교",
         "skill": "우후죽순",
+        "status": "fallback",
+        "firstUse": false,
+        "slackSec": null,
+        "reason": "시전자 사망",
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 17,
+        "turn": 59,
+        "elapsedSec": 222,
+        "hero": "비스킷",
+        "skill": "리프 어택",
+        "status": "ok",
+        "firstUse": true,
+        "slackSec": null,
+        "reason": null,
+        "cooldownRemainingSec": null,
+        "buffTargets": null,
+        "debuffTargets": null,
+        "dispelTargets": null
+      },
+      {
+        "step": 18,
+        "turn": 63,
+        "elapsedSec": 233,
+        "hero": "파스칼",
+        "skill": "어둠의 문",
         "status": "ok",
         "firstUse": false,
         "slackSec": 13,
@@ -453,59 +525,14 @@
         "dispelTargets": null
       },
       {
-        "step": 16,
-        "turn": 55,
-        "elapsedSec": 203,
-        "hero": "미호",
-        "skill": "교만의 일격",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 11,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 17,
-        "turn": 59,
-        "elapsedSec": 219,
-        "hero": "파스칼",
-        "skill": "파괴의 거인",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 53,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
-        "step": 18,
-        "turn": 63,
-        "elapsedSec": 234,
-        "hero": "파스칼",
-        "skill": "어둠의 문",
-        "status": "ok",
-        "firstUse": false,
-        "slackSec": 28,
-        "reason": null,
-        "cooldownRemainingSec": null,
-        "buffTargets": null,
-        "debuffTargets": null,
-        "dispelTargets": null
-      },
-      {
         "step": 19,
         "turn": 67,
-        "elapsedSec": 252,
+        "elapsedSec": 248,
         "hero": "파스칼",
         "skill": "파괴의 거인",
         "status": "ok",
-        "firstUse": true,
-        "slackSec": null,
+        "firstUse": false,
+        "slackSec": 12,
         "reason": null,
         "cooldownRemainingSec": null,
         "buffTargets": null,
@@ -515,22 +542,28 @@
     ],
     "deaths": [
       {
-        "turn": 57,
-        "elapsedSec": 211,
-        "ally": "샤오",
-        "cause": "크리스 어둠의 속삭임"
-      },
-      {
-        "turn": 61,
-        "elapsedSec": 227,
+        "turn": 45,
+        "elapsedSec": 170,
         "ally": "미호",
         "cause": "크리스 어둠의 일격"
       },
       {
-        "turn": 65,
-        "elapsedSec": 241,
+        "turn": 57,
+        "elapsedSec": 211,
+        "ally": "소교",
+        "cause": "크리스 어둠의 일격"
+      },
+      {
+        "turn": 61,
+        "elapsedSec": 226,
         "ally": "비스킷",
-        "cause": "룩 1스킬"
+        "cause": "크리스 어둠의 일격"
+      },
+      {
+        "turn": 63,
+        "elapsedSec": 231,
+        "ally": "샤오",
+        "cause": "크리스 기본 공격"
       }
     ]
   }

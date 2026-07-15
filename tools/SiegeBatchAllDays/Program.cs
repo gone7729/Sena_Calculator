@@ -73,7 +73,9 @@ bool enableRings = !isLowSpec;           // 6초월=권능반지 제외, 12초�
 string petName = args.Contains("델로") ? "델로"
                : args.Contains("리첼") ? "리첼"
                : "윈디";
-string SUFFIX = $"{TRANS}초월_{petName}";
+// 자력탐색 측정 모드(교차시드·전문가 둘 다 OFF)면 접미사에 _자력 — 정식 결과 파일을 덮어쓰지 않게 분리.
+bool soloSearch = args.Contains("노교차시드") && args.Contains("노전문가");
+string SUFFIX = $"{TRANS}초월_{petName}" + (soloSearch ? "_자력" : "");
 
 // 인자로 요일 지정 시 해당 요일만 탐색 (예: dotnet run -- 수요일). 미지정이면 전 요일. (프로필 토큰은 요일 아님 → 무시)
 var dayArgs = args.Where(a => DAYS.Any(d => d.Day == a)).ToArray();
@@ -141,11 +143,84 @@ List<RotationDecision> LoadRot(string path, List<BattleCharacter> team)
 List<RotationDecision> StripHolds(List<RotationDecision> plan) =>
     plan?.Where(d => !d.Hold).ToList();
 
+// 시드 JSON의 신선도 판정 — generatedWith.engineHash가 현재 엔진과 같으면 fresh, 다르면 stale, 없으면 구버전(미상).
+string SeedFreshness(string path, string currentEngineHash)
+{
+    try
+    {
+        using var doc = JsonDocument.Parse(System.IO.File.ReadAllText(path));
+        if (!doc.RootElement.TryGetProperty("generatedWith", out var gw)
+            || !gw.TryGetProperty("engineHash", out var eh))
+            return "구버전(생성메타 없음 — 재생성 권장)";
+        string seedHash = eh.GetString();
+        double sc = doc.RootElement.TryGetProperty("score", out var s) ? s.GetDouble() : 0;
+        return seedHash == currentEngineHash
+            ? $"fresh (score {sc:N0})"
+            : $"STALE — 다른 엔진({seedHash}) (score {sc:N0}, 재생성 권장)";
+    }
+    catch { return "읽기 실패"; }
+}
+
 string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 // 출력은 results/siege/ 아래로 모은다 (json/txt/battlelog). 웹 반영은 web/scripts/sync-siege.mjs.
 string outDir = System.IO.Path.Combine(repoRoot, "results", "siege");
 System.IO.Directory.CreateDirectory(outDir);
 var jsonOpts = new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+// [T1 stale 감지] 결과 JSON에 "이 결과를 만든 코드 상태"를 박아, 커밋된 점수가 현재 코드로 재현되는지
+//   한눈에 판별한다(무회귀 검증의 기준선 착오 방지). 두 축:
+//   ▸ engineHash = 시뮬 엔진 소스(Services/Models/DB) 전체 내용 해시 — 미커밋 변경도 감지(커밋 해시론 못 잡음).
+//   ▸ gitCommit  = 참고용 HEAD(짧은 해시, dirty 표시). 재현 명령을 찾는 앵커.
+string GitOut(string cmdArgs)
+{
+    try
+    {
+        var psi = new System.Diagnostics.ProcessStartInfo("git", cmdArgs)
+        { WorkingDirectory = repoRoot, RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
+        using var p = System.Diagnostics.Process.Start(psi);
+        string o = p.StandardOutput.ReadToEnd().Trim(); p.WaitForExit();
+        return p.ExitCode == 0 ? o : null;
+    }
+    catch { return null; }
+}
+string ComputeEngineHash()
+{
+    // 엔진 로직이 담긴 소스만 해시(결과 재현에 영향 주는 코드). 파일 경로+내용을 정렬해 결정적으로.
+    try
+    {
+        var dirs = new[] { "Services", "Models", "DB" }.Select(d => System.IO.Path.Combine(repoRoot, d));
+        var files = dirs.Where(System.IO.Directory.Exists)
+            .SelectMany(d => System.IO.Directory.EnumerateFiles(d, "*.cs", System.IO.SearchOption.AllDirectories))
+            .Where(f => !f.Contains($"{System.IO.Path.DirectorySeparatorChar}obj{System.IO.Path.DirectorySeparatorChar}")
+                     && !f.Contains($"{System.IO.Path.DirectorySeparatorChar}bin{System.IO.Path.DirectorySeparatorChar}"))
+            .OrderBy(f => f, StringComparer.Ordinal).ToList();
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        using var ms = new System.IO.MemoryStream();
+        foreach (var f in files)
+        {
+            var rel = System.IO.Path.GetRelativePath(repoRoot, f).Replace('\\', '/');
+            var hdr = Encoding.UTF8.GetBytes(rel + "\n");
+            ms.Write(hdr, 0, hdr.Length);
+            var body = System.IO.File.ReadAllBytes(f);
+            ms.Write(body, 0, body.Length);
+        }
+        ms.Position = 0;
+        return "sha256:" + Convert.ToHexString(sha.ComputeHash(ms)).ToLowerInvariant()[..16];
+    }
+    catch { return null; }
+}
+string engineHash = ComputeEngineHash();
+string gitCommit = GitOut("rev-parse --short HEAD");
+bool gitDirty = !string.IsNullOrEmpty(GitOut("status --porcelain -- Services Models DB tools/SiegeBatchAllDays"));
+var genMeta = new
+{
+    engineHash,                                  // 엔진 소스 내용 해시 — 값 다르면 결과 재생성 필요(stale)
+    gitCommit = gitCommit == null ? null : (gitDirty ? gitCommit + "-dirty" : gitCommit),
+    profile = SUFFIX,
+    penalty = deathPenalty,
+    coordAscent = !args.Contains("노좌표상승"),
+    crossSeed = !args.Contains("노교차시드"),
+};
 
 foreach (var (day, ids) in DAYS)
 {
@@ -246,8 +321,11 @@ foreach (var (day, ids) in DAYS)
         var seeds = new List<List<RotationDecision>>();
         foreach (var sp in new[] { "6초월", "12초월" })
         {
-            var rot = LoadRot(System.IO.Path.Combine(outDir, $"siege_{day}_{sp}_윈디.json"), team);
+            var sPath = System.IO.Path.Combine(outDir, $"siege_{day}_{sp}_윈디.json");
+            var rot = LoadRot(sPath, team);
             if (rot == null || rot.Count == 0) continue;
+            // 시드 원본의 신선도 표시(무회귀라 stale이어도 후보로만 쓰여 안전하지만, 출처를 드러냄).
+            Console.WriteLine($"  [교차시드] {day} {sp}: {SeedFreshness(sPath, engineHash)}");
             seeds.Add(rot);                                   // 충실 복원(홀드 포함)
             var packed = StripHolds(rot);                     // 변형: 홀드 제거(쉬지 않고 시전)
             if (packed != null && packed.Count > 0 && packed.Count != rot.Count) seeds.Add(packed);
@@ -356,7 +434,8 @@ foreach (var (day, ids) in DAYS)
     var nm = res.BestParty.Select(b => b.Character.Name).ToList();
 
     // [전문가 로테 시드] 등록된 요일이면 공개 로테를 같은 기어/진형으로 평가해 빔보다 높으면 정식 채택(무회귀).
-    if (expertByDay.TryGetValue(day, out var expert))
+    //   "노전문가" 인자로 비활성 — 교차시드까지 함께 끄면(노교차시드 노전문가) 순수 자력 탐색 점수를 측정할 수 있다.
+    if (!args.Contains("노전문가") && expertByDay.TryGetValue(day, out var expert))
     {
         var expertPlan = expert
             .Select(s => new RotationDecision { HeroIndex = nm.FindIndex(n => n == s.Name), Skill = s.Skill })
@@ -670,6 +749,9 @@ foreach (var (day, ids) in DAYS)
     // ── JSON ──
     var jsonObj = new
     {
+        // [T1] 이 결과를 만든 코드 상태. engineHash가 현재 소스와 다르면 stale(재생성 필요).
+        //   재현: dotnet run --project tools/SiegeBatchAllDays -c Release -- {profile 토큰} {요일}
+        generatedWith = genMeta,
         day,
         boss = stage.Name,
         score = Math.Round(res.BestScore),
@@ -734,6 +816,7 @@ foreach (var (day, ids) in DAYS)
         ? $"{TRANS}초월·잠재0·전용X·권능반지X·펫{petName}76"
         : $"{TRANS}초월·잠재{POT}·전용전설·권능반지O·펫{petName}76";
     sb.AppendLine($"════════ {day} 공성전 — {specDesc} / 진형·기어·전용조율·스킬순서 탐색 ════════");
+    sb.AppendLine($"[생성코드] engineHash={engineHash} · git={genMeta.gitCommit}   ← 현재 소스와 다르면 stale(재생성 필요)");
     sb.AppendLine($"보스: {stage.Name}");
     sb.AppendLine($"팀: {string.Join(", ", nm)}");
     sb.AppendLine($"총점: {res.BestScore:N0}   [자동로테 {res.AutoRotationScore:N0} → 빔 {res.BestScore:N0}]");
