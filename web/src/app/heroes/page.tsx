@@ -1,8 +1,9 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import charactersData from "@/data/characters.json";
 import HeroIcon from "@/components/HeroIcon";
+import { USAGE_GROUPS, isPvpUsage } from "@/data/usageCategories";
 
 interface SkillTier {
   cooldown: number;
@@ -32,50 +33,87 @@ interface SkillTier {
   effect?: string;
 }
 
-// 스킬 자체 보너스(치피추가·약점추가피해·방어무시 등)를 "배율처럼" 한 줄씩
-function skillBonusLines(bonus?: Record<string, number>): string[] {
-  if (!bonus) return [];
-  const lbl: Record<string, (v: number) => string> = {
-    criDmg: (v) => `치명타피해 +${v}%`,
-    criBonusDmg: (v) => `치명 시 추가피해 ${v}%`,
-    wekDmg: (v) => `약점피해 +${v}%`,
-    wekBonusDmg: (v) => `약점 시 추가피해 ${v}%`,
-    cri: (v) => `치명확률 +${v}%`,
-    wek: (v) => `약점확률 +${v}%`,
-    armPen: (v) => `방어무시 ${v}%`,
-    dmgDealt: (v) => `피해증가 ${v}%`,
-    dmgDealtType: (v) => `타입피증 ${v}%`,
-    dmgDealtBoss: (v) => `보스피증 ${v}%`,
-    dmgDealt1to3: (v) => `1-3인기피증 ${v}%`,
-    dmgDealt4to5: (v) => `4-5인기피증 ${v}%`,
-    atkRate: (v) => `공격력 +${v}%`,
-    magicAtkRate: (v) => `마법공격력 +${v}%`,
-  };
-  return Object.entries(bonus).map(([k, v]) => (lbl[k] ? lbl[k](v) : `${k} ${v}%`));
+// 스킬 자체 보너스 키 → 한글 라벨
+const BONUS_LABELS: Record<string, string> = {
+  criDmg: "치명타피해",
+  criBonusDmg: "치명 시 추가피해",
+  wekDmg: "약점피해",
+  wekBonusDmg: "약점 시 추가피해",
+  cri: "치명확률",
+  wek: "약점확률",
+  armPen: "방어무시",
+  dmgDealt: "피해증가",
+  dmgDealtType: "타입피증",
+  dmgDealtBoss: "보스피증",
+  dmgDealt1to3: "1-3인기피증",
+  dmgDealt4to5: "4-5인기피증",
+  atkRate: "공격력",
+  magicAtkRate: "마법공격력",
+};
+
+/**
+ * 스킬 티어를 "항목 → 값" 맵으로 평탄화.
+ * 티어 간 비교(기본 → 스강 → 초월)를 항목 단위로 하기 위한 정규형이라,
+ * 값이 바뀐 항목만 골라내는 게 문자열 비교 한 번으로 끝난다.
+ */
+function tierFields(t: SkillTier): Record<string, string> {
+  const f: Record<string, string> = {};
+  const pct = (v: number) => `${v}%`;
+  if (t.cooldown) f["쿨타임"] = `${t.cooldown}초`;
+  if (t.target) f["대상"] = `${t.target}명`;
+  if (t.ratio) f["배율"] = pct(t.ratio);
+  if (t.atk > 1) f["타수"] = `${t.atk}타`;
+  if (t.hpRatio) f["생명력 비례"] = pct(t.hpRatio);
+  if (t.defRatio) f["방어력 비례"] = pct(t.defRatio);
+  if (t.spdRatio) f["속공 비례"] = pct(t.spdRatio);
+  if (t.targetMaxHpRatio) f["대상 최대생명력"] = pct(t.targetMaxHpRatio);
+  if (t.targetCurrentHpRatio) f["대상 현재생명력"] = pct(t.targetCurrentHpRatio);
+  if (t.atkCap) f["공격력 상한"] = pct(t.atkCap);
+  if (t.lostHpBonusMax) f["잃은HP 비례 피증(최대)"] = pct(t.lostHpBonusMax);
+  if (t.currentHpBonusMax) f["현재HP 비례 피증(최대)"] = pct(t.currentHpBonusMax);
+  if (t.condRatioBonus) f["조건부 배율"] = pct(t.condRatioBonus);
+  if (t.condExtraDmg) f["조건부 추가피해"] = pct(t.condExtraDmg);
+  if (t.condDmgBonus) f["조건부 피해증가"] = pct(t.condDmgBonus);
+  if (t.condExtraDmgSelfHp) f["자가 잃은HP 추가피해"] = pct(t.condExtraDmgSelfHp);
+  if (t.healAtkRatio) f["공격력 비례 회복"] = pct(t.healAtkRatio);
+  if (t.healHpRatio) f["생명력 비례 회복"] = pct(t.healHpRatio);
+  if (t.healDmgRatio) f["피해량 비례 회복"] = pct(t.healDmgRatio);
+  if (t.healDefRatio) f["방어력 비례 회복"] = pct(t.healDefRatio);
+  if (t.fixedDamage) f["고정피해"] = t.fixedDamage.toLocaleString();
+  if (t.penetrate) f["관통"] = "적용";
+  for (const [k, v] of Object.entries(t.bonus ?? {})) {
+    f[BONUS_LABELS[k] ?? k] = `${v > 0 ? "+" : ""}${v}%`;
+  }
+  return f;
 }
 
-// 스킬 티어의 데미지 변수들을 "배율처럼" 한 줄씩 출력할 문자열로 변환
-function skillDmgLines(t: SkillTier): string[] {
-  const lines: string[] = [];
-  const times = t.atk > 1 ? ` × ${t.atk}타` : "";
-  const cap = t.atkCap ? ` (공격력 ${t.atkCap}% 제한)` : "";
-  if (t.hpRatio) lines.push(`생명력 ${t.hpRatio}% 비례${times}`);
-  if (t.defRatio) lines.push(`방어력 ${t.defRatio}% 비례${times}`);
-  if (t.targetMaxHpRatio) lines.push(`최대 생명력 ${t.targetMaxHpRatio}%${times}${cap}`);
-  if (t.targetCurrentHpRatio) lines.push(`현재 생명력 ${t.targetCurrentHpRatio}%${times}${cap}`);
-  if (t.lostHpBonusMax) lines.push(`잃은 생명력 비례 최대 ${t.lostHpBonusMax}% 피해증가`);
-  if (t.currentHpBonusMax) lines.push(`현재 생명력 비례 최대 ${t.currentHpBonusMax}% 피해증가`);
-  if (t.condRatioBonus) lines.push(`조건부 배율 +${t.condRatioBonus}%`);
-  if (t.condExtraDmg) lines.push(`조건부 추가피해 ${t.condExtraDmg}%`);
-  if (t.condDmgBonus) lines.push(`조건부 피해증가 ${t.condDmgBonus}%`);
-  if (t.condExtraDmgSelfHp) lines.push(`자가 잃은HP 비례 추가피해 ${t.condExtraDmgSelfHp}%`);
-  if (t.healAtkRatio) lines.push(`공격력 ${t.healAtkRatio}% 회복`);
-  if (t.healHpRatio) lines.push(`생명력 ${t.healHpRatio}% 회복`);
-  if (t.healDmgRatio) lines.push(`가한 피해량 ${t.healDmgRatio}% 회복`);
-  if (t.healDefRatio) lines.push(`방어력 ${t.healDefRatio}% 회복`);
-  if (t.fixedDamage) lines.push(`고정 피해 ${t.fixedDamage.toLocaleString()}`);
-  if (t.penetrate) lines.push(`관통(대상 피해 면역 무시)`);
-  return lines;
+/** 패시브 버프 맵 → "항목 → 값" (스킬과 같은 정규형) */
+function passiveFields(buff?: Record<string, number>): Record<string, string> {
+  const f: Record<string, string> = {};
+  for (const [k, v] of Object.entries(buff ?? {})) {
+    f[passiveStatLabel(k)] = `${v > 0 ? "+" : ""}${v}%`;
+  }
+  return f;
+}
+
+interface FieldChange {
+  key: string;
+  /** 이전 티어 값 — 새로 생긴 항목이면 undefined */
+  from?: string;
+  to: string;
+}
+
+/** prev → next 에서 값이 바뀌거나 새로 생긴 항목만. (같은 값은 버려서 "변경값만" 표시가 된다) */
+function diffFields(
+  prev: Record<string, string>,
+  next: Record<string, string>
+): FieldChange[] {
+  const out: FieldChange[] = [];
+  for (const [key, to] of Object.entries(next)) {
+    const from = prev[key];
+    if (from !== to) out.push({ key, from, to });
+  }
+  return out;
 }
 
 interface Skill {
@@ -124,9 +162,12 @@ interface Hero {
   } | null;
   skills: Skill[];
   tags?: string[]; // 버프/디버프 태그 (공략 데이터 연동 예정)
+  mainUsages?: string[]; // 주 사용처 (heroUsage.json 오버레이 → export 시 병합)
 }
 
-const heroes = charactersData as Hero[];
+// JSON 리터럴은 필드별 유니온으로 추론돼(빈 배열 → never[], 선택적 키 → undefined) Hero와 직접 겹치지 않는다.
+// 구조는 export가 보장하므로 unknown 경유로 단언.
+const heroes = charactersData as unknown as Hero[];
 
 // 패시브 buffTier 스탯 코드 → 한글 라벨 (대부분 % 값)
 const PASSIVE_STAT_LABELS: Record<string, string> = {
@@ -195,12 +236,244 @@ function atkLabel(attackType: string) {
   return attackType === "Magic" ? "마법" : "물리";
 }
 
+/** 기본 칸: 항목 전체를 그대로 나열 */
+function BaseColumn({ fields, effects }: { fields: Record<string, string>; effects?: string[] }) {
+  const entries = Object.entries(fields);
+  if (entries.length === 0 && !(effects ?? []).length) {
+    return <span className="tier-none">-</span>;
+  }
+  return (
+    <>
+      {entries.map(([k, v]) => (
+        <div key={k} className="tier-line">
+          <span className="tier-key">{k}</span>
+          <span className="tier-val">{v}</span>
+        </div>
+      ))}
+      {(effects ?? []).map((e, i) => (
+        <div key={`e${i}`} className="tier-effect">
+          {e}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/**
+ * 스강/초월 칸: 직전 티어 대비 "변경된 항목만".
+ * 값이 바뀐 항목은 이전값 → 새값으로, 새로 생긴 항목은 새값만 보여준다.
+ */
+function DiffColumn({
+  changes,
+  addedText,
+}: {
+  changes: FieldChange[];
+  addedText?: string | null;
+}) {
+  if (changes.length === 0 && !addedText) {
+    return <span className="tier-none">변경 없음</span>;
+  }
+  return (
+    <>
+      {changes.map((c) => (
+        <div key={c.key} className="tier-line">
+          <span className="tier-key">{c.key}</span>
+          <span className="tier-val">
+            {c.from !== undefined ? <span className="tier-from">{c.from} → </span> : null}
+            <span className="tier-to">{c.to}</span>
+          </span>
+        </div>
+      ))}
+      {addedText ? <div className="tier-effect tier-effect-add">{addedText}</div> : null}
+    </>
+  );
+}
+
+/** 스킬/패시브 1개를 기본·스킬강화·초월 3칸으로 */
+function TierBlock({
+  title,
+  subtitle,
+  accent,
+  base,
+  enhanced,
+  transcend,
+  baseEffects,
+  enhanceAdds,
+  transcendEffect,
+}: {
+  title: string;
+  subtitle?: string;
+  accent: "skill" | "passive";
+  base: Record<string, string>;
+  enhanced: Record<string, string>;
+  transcend: Record<string, string>;
+  baseEffects?: string[];
+  enhanceAdds?: string | null;
+  transcendEffect?: string | null;
+}) {
+  // 스강은 기본 대비, 초월은 스강 대비 — 단계별 증분이라 중복 없이 읽힌다
+  const enhChanges = diffFields(base, enhanced);
+  const trChanges = diffFields(enhanced, transcend);
+  return (
+    <div className={`tier-block tier-${accent}`}>
+      <div className="tier-block-head">
+        <span className="tier-block-name">{title}</span>
+        {subtitle ? <span className="tier-block-sub">{subtitle}</span> : null}
+      </div>
+      <div className="tier-grid">
+        <div className="tier-col-head">기본</div>
+        <div className="tier-col-head">스킬강화</div>
+        <div className="tier-col-head">초월</div>
+        <div className="tier-col">
+          <BaseColumn fields={base} effects={baseEffects} />
+        </div>
+        <div className="tier-col">
+          <DiffColumn changes={enhChanges} addedText={enhanceAdds} />
+        </div>
+        <div className="tier-col">
+          <DiffColumn changes={trChanges} addedText={transcendEffect} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 주 사용처 표시 + 편집.
+ * 편집은 개발 서버에서만 (API가 프로덕션 쓰기를 거부) — 서비스 전 데이터 입력 용도.
+ */
+function UsageSection({
+  hero,
+  usages,
+  onSaved,
+}: {
+  hero: Hero;
+  usages: string[];
+  onSaved: (heroId: number, next: string[]) => void;
+}) {
+  const editable = process.env.NODE_ENV !== "production";
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<string[]>(usages);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 영웅이 바뀔 때의 초안 리셋은 호출부의 key={hero.id}가 처리한다(리마운트).
+  // effect로 setState 하면 불필요한 연쇄 렌더가 생겨 React가 권장하지 않는 패턴.
+
+  const toggle = (u: string) =>
+    setDraft((prev) => (prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u]));
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/hero-usage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ heroId: hero.id, usages: draft }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "저장 실패");
+      onSaved(hero.id, data.usages ?? []);
+      setEditing(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "저장 실패");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="usage-box">
+      <div className="usage-head">
+        <span className="usage-title">주 사용처</span>
+        {editable ? (
+          editing ? (
+            <span className="usage-actions">
+              <button
+                type="button"
+                className="usage-btn"
+                onClick={() => {
+                  setDraft(usages);
+                  setEditing(false);
+                  setError(null);
+                }}
+                disabled={saving}
+              >
+                취소
+              </button>
+              <button type="button" className="usage-btn primary" onClick={save} disabled={saving}>
+                {saving ? "저장 중…" : "저장"}
+              </button>
+            </span>
+          ) : (
+            <button type="button" className="usage-btn" onClick={() => setEditing(true)}>
+              편집
+            </button>
+          )
+        ) : null}
+      </div>
+
+      {error ? <div className="usage-error">{error}</div> : null}
+
+      {editing ? (
+        <div className="usage-edit">
+          {USAGE_GROUPS.map((g) => (
+            <div key={g.group} className="usage-group">
+              <div className="usage-group-title">{g.group}</div>
+              <div className="usage-group-items">
+                {g.items.map((u) => (
+                  <label key={u} className="usage-check">
+                    <input type="checkbox" checked={draft.includes(u)} onChange={() => toggle(u)} />
+                    <span>{u}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : usages.length > 0 ? (
+        <div className="usage-tags">
+          {usages.map((u) => (
+            <span key={u} className={`usage-tag${isPvpUsage(u) ? " pvp" : ""}`}>
+              {u}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="usage-empty">{editable ? "미지정 — 편집으로 추가" : "미지정"}</div>
+      )}
+    </div>
+  );
+}
+
 export default function HeroesPage() {
   const [grade, setGrade] = useState("전체");
   const [role, setRole] = useState("전체");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  // 스킬 설명 단계: 기본 / 스강 / 초월
+
+  // 주 사용처 오버레이 — characters.json에 구운 값을 기준으로, 편집 저장분을 덮어쓴다.
+  //   (개발 중 편집한 내용이 export 전에도 화면에 바로 반영되도록)
+  const [usageOverlay, setUsageOverlay] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/hero-usage")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d: unknown) => {
+        if (alive && d && typeof d === "object") setUsageOverlay(d as Record<string, string[]>);
+      })
+      .catch(() => {
+        /* 저장소를 못 읽어도 characters.json 값으로 표시 */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const handleUsageSaved = useCallback((heroId: number, next: string[]) => {
+    setUsageOverlay((prev) => ({ ...prev, [String(heroId)]: next }));
+  }, []);
 
   // 우측 상세 패널 높이를 측정해 좌측 리스트 패널 높이를 맞춘다
   const detailRef = useRef<HTMLElement>(null);
@@ -410,67 +683,52 @@ export default function HeroesPage() {
                     })}
                   </div>
                 </div>
-                
+
               </div>
 
-              {/* 스킬 (스강+초월 적용 상태로 출력, 초월 추가효과는 하단 주석으로) */}
+                {/* 주 사용처 — 스탯 옆. 개발 서버에서 편집·저장 (heroUsage.json) */}
+                <UsageSection
+                  key={selected.id}
+                  hero={selected}
+                  usages={usageOverlay[String(selected.id)] ?? selected.mainUsages ?? []}
+                  onSaved={handleUsageSaved}
+                />
+              </div>
+
+              {/* 스킬·패시브 — 기본 / 스킬강화 / 초월 3칸. 스강·초월 칸은 직전 단계 대비 변경값만. */}
               <div className="w-full content-box">
 
                 <div className="flex justify-between">
-                  <span className="label">스킬</span>
-                  <span className="text-xs text-gray-400">스강+초월 적용</span>
+                  <span className="label">스킬 · 패시브</span>
+                  <span className="text-xs text-gray-400">스강·초월은 변경값만</span>
                 </div>
 
                 <div className="flex flex-col gap-2 mt-2">
                   {(() => {
                   const renderSkill = (skill: Skill) => {
-                    // 스강+초월 적용 상태: 숫자/효과는 enhanced, 초월이 추가하는 효과는 transcend.effect
+                    const b = skill.tiers.base;
                     const e = skill.tiers.enhanced;
                     const tr = skill.tiers.transcend;
-                    const ratio = tr.ratio ?? e.ratio;
-                    const atk = tr.atk ?? e.atk;
-                    const target = tr.target ?? e.target;
-                    const cooldown = tr.cooldown ?? e.cooldown;
+                    // 기본 칸에 붙일 효과 텍스트: 구조화 라인이 있으면 그걸, 없으면 prose 폴백(정보 손실 방지)
+                    const baseEffects =
+                      (b.effects ?? []).length > 0
+                        ? b.effects
+                        : b.effect
+                          ? [b.effect]
+                          : [];
                     return (
-                      <div
+                      <TierBlock
                         key={skill.id}
-                        className="flex flex-col border-2 border-blue-400 rounded-xl p-2"
-                      >
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="font-bold text-sm">{skill.name}</span>
-                          <span className="text-xs text-gray-500">
-                            {cooldown > 0 ? `쿨 ${cooldown}초` : ""}
-                          </span>
-                        </div>
-                        <div className="flex flex-col text-sm mt-1">
-                          <span>
-                            배율 {ratio}%
-                            {atk > 1 ? ` × ${atk}타` : ""}
-                          </span>
-                          {skillDmgLines(e).map((line, i) => (
-                            <span key={`d${i}`}>{line}</span>
-                          ))}
-                          {skillBonusLines(e.bonus).map((line, i) => (
-                            <span key={`b${i}`}>{line}</span>
-                          ))}
-                          {(e.effects ?? []).map((line, i) => (
-                            <span key={`e${i}`} className="text-gray-500">{line}</span>
-                          ))}
-                          <span className="text-gray-500">대상 {target}</span>
-                          {/* 구조화 효과/보너스가 전혀 없을 때만 prose 폴백 (정보 손실 방지) */}
-                          {(e.effects ?? []).length === 0 &&
-                          (!e.bonus || Object.keys(e.bonus).length === 0) &&
-                          e.effect ? (
-                            <span className="text-xs text-gray-400 mt-1">{e.effect}</span>
-                          ) : null}
-                          {skill.enhanceAdds ? (
-                            <span className="text-xs text-green-500 mt-1">{`// 스강: ${skill.enhanceAdds}`}</span>
-                          ) : null}
-                          {tr.effect ? (
-                            <span className="text-xs text-blue-400 mt-1">{`// 초월: ${tr.effect}`}</span>
-                          ) : null}
-                        </div>
-                      </div>
+                        accent="skill"
+                        title={skill.name}
+                        subtitle={SKILL_TYPE_LABEL[skill.skillType] ?? skill.skillType}
+                        base={tierFields(b)}
+                        enhanced={tierFields(e)}
+                        transcend={tierFields(tr)}
+                        baseEffects={baseEffects}
+                        enhanceAdds={skill.enhanceAdds ?? null}
+                        transcendEffect={tr.effect ?? null}
+                      />
                     );
                   };
                   // 변신(분신) 영웅: Normal2/Skill3/Skill4 = 변신 상태 스킬 → 별도 그룹으로 분리.
@@ -496,107 +754,34 @@ export default function HeroesPage() {
                   })()}
                   {selected.passive && (() => {
                     const p = selected.passive;
-                    const groups = p.effectGroups ?? [];
-                    const trEffect = p.effectTiers?.transcend;
-                    // 그룹이 없으면 텍스트/수치 폴백
-                    const fallbackText = p.effectTiers?.enhanced;
                     const bt = p.buffTiers;
-                    const stats = { ...(bt?.enhanced ?? {}), ...(bt?.transcend ?? {}) };
-                    const entries = Object.entries(stats);
+                    // 기본 칸 효과 텍스트: 대상별 그룹이 있으면 그걸 줄로 펴고, 없으면 기본 효과 문구
+                    const groups = p.effectGroups ?? [];
+                    const baseEffects =
+                      groups.length > 0
+                        ? groups.flatMap((g) => g.items.map((it) => `[${g.target}] ${it}`))
+                        : p.effectTiers?.base
+                          ? [p.effectTiers.base]
+                          : [];
+                    // 스강 텍스트는 기본과 다를 때만 (같으면 "변경 없음"으로 빠짐)
+                    const enhText =
+                      p.effectTiers?.enhanced && p.effectTiers.enhanced !== p.effectTiers?.base
+                        ? p.effectTiers.enhanced
+                        : null;
                     return (
-                      <div className="flex flex-col border-2 border-amber-400 rounded-xl p-2">
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="font-bold text-sm">{p.name}</span>
-                          {p.maxStacks > 1 ? (
-                            <span className="text-xs text-gray-500">
-                              최대 {p.maxStacks}스택
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="flex flex-col text-sm mt-1 gap-2">
-                          {groups.length > 0 ? (
-                            groups.map((g) => (
-                              <div key={g.target} className="flex flex-col">
-                                <span className="font-semibold">{g.target}</span>
-                                <ul className="list-disc list-inside text-gray-500">
-                                  {g.items.map((it, i) => (
-                                    <li key={i}>{it}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))
-                          ) : fallbackText ? (
-                            <span className="text-gray-500">{fallbackText}</span>
-                          ) : entries.length > 0 ? (
-                            entries.map(([k, v]) => (
-                              <span key={k} className="text-gray-500">
-                                {passiveStatLabel(k)} {v}%
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                          {trEffect ? (
-                            <span className="text-xs text-blue-400 mt-1">{`// 초월: ${trEffect}`}</span>
-                          ) : null}
-                        </div>
-                      </div>
+                      <TierBlock
+                        accent="passive"
+                        title={p.name}
+                        subtitle={p.maxStacks > 1 ? `패시브 · 최대 ${p.maxStacks}스택` : "패시브"}
+                        base={passiveFields(bt?.base)}
+                        enhanced={passiveFields(bt?.enhanced)}
+                        transcend={passiveFields(bt?.transcend)}
+                        baseEffects={baseEffects}
+                        enhanceAdds={enhText}
+                        transcendEffect={p.effectTiers?.transcend ?? null}
+                      />
                     );
                   })()}
-                </div>
-              </div>
-              
-            </div>
-
-              
-
-              {/* 무기 (추천 세팅 — 공략 데이터 입력 예정) */}
-              <div className="equip-group">
-                <h3 className="equip-group-title">무기</h3>
-                <div className="set-row">
-                  {[0, 1].map((i) => (
-                    <div className="set-card" key={i}>
-                      <div className="set-name">세트명</div>
-                      <div className="opt-row">
-                        <div>메인 옵션</div>
-                        <div>부 옵션</div>
-                      </div>
-                      <div className="opt-row">
-                        <div className="opt-list">옵션 명</div>
-                        <div className="opt-list">
-                          <div>옵션 명</div>
-                          <div>옵션 명</div>
-                          <div>옵션 명</div>
-                          <div>옵션 명</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 방어구 */}
-              <div className="equip-group">
-                <h3 className="equip-group-title">방어구</h3>
-                <div className="set-row">
-                  {[0, 1].map((i) => (
-                    <div className="set-card" key={i}>
-                      <div className="set-name">세트명</div>
-                      <div className="opt-row">
-                        <div>메인 옵션</div>
-                        <div>부 옵션</div>
-                      </div>
-                      <div className="opt-row">
-                        <div className="opt-list">옵션 명</div>
-                        <div className="opt-list">
-                          <div>옵션 명</div>
-                          <div>옵션 명</div>
-                          <div>옵션 명</div>
-                          <div>옵션 명</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </>

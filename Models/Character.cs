@@ -40,6 +40,14 @@ namespace GameDamageCalculator.Models
 
         public List<Skill> Skills { get; set; } = new List<Skill>();
         public Passive Passive { get; set; }
+
+        /// <summary>
+        /// 주 사용처 (공성전 / 모험·스토리 / 강림-태오 / 결투장 …).
+        /// 시뮬 계산에는 쓰이지 않는 표시용 메타데이터.
+        /// 값의 기준 목록·저장소는 웹 쪽: web/src/data/usageCategories.ts, heroUsage.json
+        /// (웹 영웅 페이지에서 편집 → heroUsage.json에 저장 → export 시 characters.json에 병합)
+        /// </summary>
+        public List<string> MainUsages { get; set; } = new List<string>();
         
         // 초월 타입 (TranscendDb에서 보너스 가져옴)
         public TranscendType TranscendType { get; set; } = TranscendType.AtkCri;

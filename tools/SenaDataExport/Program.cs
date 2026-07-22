@@ -383,6 +383,28 @@ object SkillTierObj(SkillLevelData l, double cooldown, int atkCount, int targetC
     effect,
 };
 
+// 주 사용처(웹에서 편집·저장) 오버레이 로드 — web/src/data/heroUsage.json { "<id>": ["공성전", ...] }.
+//   시뮬 계산과 무관한 표시용 메타라 C# DB에 하드코딩하지 않고 이 파일을 단일 저장소로 둔다.
+//   (웹 영웅 페이지 편집 UI → API가 이 파일을 갱신 → export가 characters.json에 병합)
+var usageByHeroId = new Dictionary<int, List<string>>();
+{
+    string usagePath = Path.GetFullPath(Path.Combine(
+        AppContext.BaseDirectory, "..", "..", "..", "..", "..", "web", "src", "data", "heroUsage.json"));
+    if (File.Exists(usagePath))
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(usagePath));
+            foreach (var prop in doc.RootElement.EnumerateObject())
+                if (int.TryParse(prop.Name, out var hid) && prop.Value.ValueKind == JsonValueKind.Array)
+                    usageByHeroId[hid] = prop.Value.EnumerateArray()
+                        .Where(v => v.ValueKind == JsonValueKind.String)
+                        .Select(v => v.GetString()!).ToList();
+        }
+        catch (Exception ex) { Console.WriteLine($"[주사용처] 로드 실패 — 빈 값으로 진행: {ex.Message}"); }
+    }
+}
+
 var heroes = CharacterDb.Characters.Select(c =>
 {
     var bs = c.GetBaseStats(); // 등급/타입별 기본 스탯
@@ -553,6 +575,8 @@ var heroes = CharacterDb.Characters.Select(c =>
         };
     }).ToList(),
         tags = tags.ToList(),
+        // 주 사용처 — heroUsage.json 오버레이(웹 편집 결과). 미지정이면 빈 배열.
+        mainUsages = usageByHeroId.TryGetValue(c.Id, out var mu) ? mu : new List<string>(),
     };
 }).ToList();
 
