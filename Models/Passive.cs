@@ -95,11 +95,6 @@ namespace GameDamageCalculator.Models
                         result.Add(e.Buff);
                 }
             }
-            else
-            {
-                if (levelData.SelfBuff != null) result.Add(levelData.SelfBuff);
-                if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
-            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             // 초월 버프는 override (선언값 = 최종값, 예: 기본 Cri 20 → 초월 Cri 100)
@@ -126,11 +121,6 @@ namespace GameDamageCalculator.Models
                         && e.Buff != null)
                         result.Add(e.Buff);
                 }
-            }
-            else
-            {
-                if (levelData.ConditionalSelfBuff != null) result.Add(levelData.ConditionalSelfBuff);
-                if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
             }
 
             var transcend = GetTranscendBonus(transcendLevel);
@@ -163,10 +153,6 @@ namespace GameDamageCalculator.Models
                         result.Add(e.Buff);
                 }
             }
-            else
-            {
-                if (levelData.PartyBuff != null) result.Add(levelData.PartyBuff);
-            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             // 초월 버프는 override (선언값 = 최종값)
@@ -193,10 +179,6 @@ namespace GameDamageCalculator.Models
                         result.Add(e.Buff);
                 }
             }
-            else
-            {
-                if (levelData.ConditionalPartyBuff != null) result.Add(levelData.ConditionalPartyBuff);
-            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.ConditionalPartyBuff != null) result.Add(transcend.ConditionalPartyBuff);
@@ -220,10 +202,6 @@ namespace GameDamageCalculator.Models
                         && e.Debuff != null)
                         result.Add(e.Debuff);
                 }
-            }
-            else
-            {
-                if (levelData.Debuff != null) result.Add(levelData.Debuff);
             }
 
             var transcend = GetTranscendBonus(transcendLevel);
@@ -249,10 +227,6 @@ namespace GameDamageCalculator.Models
                         result.Add(e.Debuff);
                 }
             }
-            else
-            {
-                if (levelData.ConditionalDebuff != null) result.Add(levelData.ConditionalDebuff);
-            }
 
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.ConditionalDebuff != null) result.Add(transcend.ConditionalDebuff);
@@ -269,18 +243,10 @@ namespace GameDamageCalculator.Models
         // 최대 스택 (0이면 Passive.MaxStacks 폴백)
         public int MaxStacks { get; set; }
 
-        // ===== 상시 버프/디버프 =====
-        public PermanentBuff SelfBuff { get; set; } = new PermanentBuff();       // 본인 전용 상시
-        public PermanentBuff PartyBuff { get; set; } = new PermanentBuff();      // 아군 전체 상시
-        public PermanentDebuff Debuff { get; set; } = new PermanentDebuff();     // 상시 디버프
-
-        // ===== 턴제 버프/디버프 (조건부) =====
-        public TimedBuff ConditionalSelfBuff { get; set; } = new TimedBuff();    // 본인 전용 조건부
-        public TimedBuff ConditionalPartyBuff { get; set; } = new TimedBuff();   // 아군 전체 조건부
-        public TimedDebuff ConditionalDebuff { get; set; } = new TimedDebuff();  // 조건부 디버프
-
-        // 상태이상 부여 (레거시)
-        public List<SkillStatusEffect> StatusEffects { get; set; } = new List<SkillStatusEffect>();
+        // 버프·디버프·상태이상은 전부 Effects(PersistentEffect) 리스트로 표현한다.
+        //   대상(Self/Party/Enemy)·조건부 여부(IsConditional)를 항목마다 명시하는 방식.
+        //   ※ 옛 전용 필드(SelfBuff/PartyBuff/Debuff/Conditional*/StatusEffects)는 제거됨 —
+        //     DB가 전부 Effects로 이관됐고, 두 방식을 한 레벨에 같이 쓰면 한쪽이 조용히 무시되던 구조였다.
         public string Effect { get; set; }
 
         // ===== 특수 메카닉 (레거시 set + Effects 리스트 fallback) =====

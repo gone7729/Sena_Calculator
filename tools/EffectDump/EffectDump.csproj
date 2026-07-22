@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 효과 해석 결과 전수 덤프 (무회귀 검증용).
+       모든 영웅 × 스킬/패시브 × 티어에 대해, 시뮬레이터가 실제로 호출하는 접근자를 통해
+       해석된 효과(상태이상·버프·디버프·수치)를 결정적 텍스트로 출력한다.
+       리팩터 전후 덤프를 diff해서 "동작 불변"을 증명하는 용도.
+       사용: dotnet run (project=tools/EffectDump) -c Release [출력경로] -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GameDamageCalculator</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\DB\**\*.cs" />
+    <Compile Include="..\..\Models\**\*.cs" />
+    <Compile Include="..\..\Services\**\*.cs" />
+  </ItemGroup>
+
+</Project>

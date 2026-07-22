@@ -318,12 +318,9 @@ namespace GameDamageCalculator.Models
         public BuffSet Bonus { get; set; } = new BuffSet();
         public BuffSet PreCastBuff { get; set; }        // 스킬 발동 전 적용, 스킬 끝나면 소멸
 
-        // ===== 턴제 버프 (파티/본인에게 부여) =====
-        public TimedBuff SelfBuff { get; set; }           // 본인 전용 버프
-        public TimedBuff PartyBuff { get; set; }          // 아군 전체 버프
-
-        // ===== 턴제 디버프 =====
-        public TimedDebuff DebuffEffect { get; set; }
+        // 버프/디버프/상태이상은 Effects(SkillEffect) 리스트로 표현한다 — 대상·종류를 항목마다 명시.
+        //   ※ 옛 전용 필드(SelfBuff/PartyBuff/DebuffEffect)는 제거됨: DB가 전부 Effects로 이관됐고,
+        //     한 레벨에 두 방식을 같이 쓰면 한쪽이 조용히 무시되는 구조였다.
         public int EffectDuration { get; set; }
         public double EffectChance { get; set; } = 0;
         public double DispelDefReduction { get; set; }  // 버프 해제 연계 방깎%
@@ -352,17 +349,15 @@ namespace GameDamageCalculator.Models
         // ===== 상태이상 해제 시 폭발 피해 (빙결/석화 해제 시 등) =====
         public CleanseExplosion CleanseExplosion { get; set; }
 
-        // ===== 상태이상 =====
-        // 새 Effects가 있으면 자동 변환, 없으면 레거시 필드 사용
-        private List<SkillStatusEffect> _statusEffects = new List<SkillStatusEffect>();
+        // ===== 상태이상 (Effects에서 뽑아낸 읽기 전용 뷰) =====
+        // 상태이상의 원본 저장소는 Effects 하나뿐이다. 여기서는 상태이상 항목만 골라
+        // SkillStatusEffect 형태로 투영해 준다 — 저장소가 아니라서 대입할 수 없다.
         public List<SkillStatusEffect> StatusEffects
         {
             get
             {
-                if (_statusEffects.Count > 0) return _statusEffects;
-                if (Effects == null || Effects.Count == 0) return _statusEffects;
-                // Effects에서 상태이상만 추출하여 레거시 형식으로 변환
                 var converted = new List<SkillStatusEffect>();
+                if (Effects == null || Effects.Count == 0) return converted;
                 foreach (var e in Effects)
                 {
                     if (e.Type == SkillEffectType.StatusAilment)
@@ -388,10 +383,9 @@ namespace GameDamageCalculator.Models
                 }
                 return converted;
             }
-            set => _statusEffects = value ?? new List<SkillStatusEffect>();
         }
 
-        // ===== 통합 효과 리스트 (새 방식) =====
+        // ===== 통합 효과 리스트 (효과의 단일 저장소) =====
         public List<SkillEffect> Effects { get; set; }
 
         // ===== 관통 =====
@@ -461,15 +455,13 @@ namespace GameDamageCalculator.Models
         public double ConditionalExtraDmg { get; set; }
         public double ConditionalExtraDmgSelfHpRatio { get; set; }
 
-        // 상태이상
-        private List<SkillStatusEffect> _statusEffects = new List<SkillStatusEffect>();
+        // 상태이상 (Effects에서 뽑아낸 읽기 전용 뷰 — 저장소는 Effects 하나뿐)
         public List<SkillStatusEffect> StatusEffects
         {
             get
             {
-                if (_statusEffects.Count > 0) return _statusEffects;
-                if (Effects == null || Effects.Count == 0) return _statusEffects;
                 var converted = new List<SkillStatusEffect>();
+                if (Effects == null || Effects.Count == 0) return converted;
                 foreach (var e in Effects)
                 {
                     if (e.Type == SkillEffectType.StatusAilment)
@@ -495,7 +487,6 @@ namespace GameDamageCalculator.Models
                 }
                 return converted;
             }
-            set => _statusEffects = value ?? new List<SkillStatusEffect>();
         }
         public ConsumeExtraDamage ConsumeExtra { get; set; }
 

@@ -144,14 +144,7 @@ namespace GameDamageCalculator.Services
                 }
             }
 
-            // 패시브 상태이상
-            if (levelData.StatusEffects != null)
-            {
-                foreach (var se in levelData.StatusEffects)
-                {
-                    effects.Add(FromSkillStatusEffect(se, characterName, passive.Name));
-                }
-            }
+            // 패시브 상태이상은 Effects(PersistentEffect) 경로에서 처리된다 — 옛 StatusEffects 전용 필드는 제거됨.
 
             return effects;
         }
@@ -201,7 +194,7 @@ namespace GameDamageCalculator.Services
                 return effects;
             }
 
-            // === 레거시 필드 변환 ===
+            // === Effects가 없는 스킬 (수치·보너스만 있는 단순 스킬) ===
 
             // 스킬 보너스 (해당 스킬 데미지 계산에만 적용)
             if (totalBonus != null && !IsEmpty(totalBonus))
@@ -216,54 +209,6 @@ namespace GameDamageCalculator.Services
                     IsPermanent = false,
                     RemainingTurns = 0, // 즉시 소멸 (계산에만 사용)
                     BuffValues = totalBonus
-                });
-            }
-
-            // 스킬 자버프
-            if (levelData?.SelfBuff != null && !IsEmpty(levelData.SelfBuff))
-            {
-                effects.Add(new BattleEffect
-                {
-                    Id = $"skill_self:{characterName}:{skill.Name}",
-                    SourceName = characterName,
-                    Category = EffectCategory.ActiveSelfBuff,
-                    Target = EffectTarget.Self,
-                    MergeStrategy = MergeStrategy.MaxMerge,
-                    IsPermanent = false,
-                    RemainingTurns = 3, // 기본 3턴 (스킬별 다를 수 있음)
-                    BuffValues = levelData.SelfBuff
-                });
-            }
-
-            // 스킬 파티버프
-            if (levelData?.PartyBuff != null && !IsEmpty(levelData.PartyBuff))
-            {
-                effects.Add(new BattleEffect
-                {
-                    Id = $"skill_party:{characterName}:{skill.Name}",
-                    SourceName = characterName,
-                    Category = EffectCategory.ActivePartyBuff,
-                    Target = EffectTarget.Party,
-                    MergeStrategy = MergeStrategy.MaxMerge,
-                    IsPermanent = false,
-                    RemainingTurns = 3,
-                    BuffValues = levelData.PartyBuff
-                });
-            }
-
-            // 스킬 디버프
-            if (levelData?.DebuffEffect != null && !IsEmptyDebuff(levelData.DebuffEffect))
-            {
-                effects.Add(new BattleEffect
-                {
-                    Id = $"skill_debuff:{characterName}:{skill.Name}",
-                    SourceName = characterName,
-                    Category = EffectCategory.ActiveDebuff,
-                    Target = EffectTarget.Enemy,
-                    MergeStrategy = MergeStrategy.MaxMerge,
-                    IsPermanent = false,
-                    RemainingTurns = 3,
-                    DebuffValues = levelData.DebuffEffect
                 });
             }
 
@@ -299,14 +244,7 @@ namespace GameDamageCalculator.Services
                 });
             }
 
-            // 상태이상
-            if (levelData?.StatusEffects != null)
-            {
-                foreach (var se in levelData.StatusEffects)
-                {
-                    effects.Add(FromSkillStatusEffect(se, characterName, skill.Name));
-                }
-            }
+            // 상태이상은 Effects 경로(위 early return)에서 처리된다 — 여기는 Effects가 없는 스킬이라 해당 없음.
 
             // 초월 상태이상
             if (transcendBonus?.StatusEffects != null)
@@ -713,22 +651,7 @@ namespace GameDamageCalculator.Services
 
                     if (config.IsBuff)
                     {
-                        // 스킬 파티버프
-                        var levelData = skill.GetLevelData(isEnhanced);
-                        if (levelData?.PartyBuff != null && !IsEmpty(levelData.PartyBuff))
-                        {
-                            effects.Add(new BattleEffect
-                            {
-                                Id = $"skill_party:{config.CharacterName}:{skill.Name}",
-                                SourceName = config.CharacterName,
-                                Category = EffectCategory.ActivePartyBuff,
-                                Target = EffectTarget.Party,
-                                MergeStrategy = MergeStrategy.MaxMerge,
-                                IsPermanent = false,
-                                RemainingTurns = 99,
-                                BuffValues = levelData.PartyBuff
-                            });
-                        }
+                        // 스킬 파티버프는 Effects 경로에서 처리된다 (전용 PartyBuff 필드는 제거됨).
 
                         // 초월 파티버프
                         var transcendBonus = skill.GetTranscendBonus(transcendLevel);
@@ -749,22 +672,7 @@ namespace GameDamageCalculator.Services
                     }
                     else
                     {
-                        // 스킬 디버프
-                        var levelData = skill.GetLevelData(isEnhanced);
-                        if (levelData?.DebuffEffect != null && !IsEmptyDebuff(levelData.DebuffEffect))
-                        {
-                            effects.Add(new BattleEffect
-                            {
-                                Id = $"skill_debuff:{config.CharacterName}:{skill.Name}",
-                                SourceName = config.CharacterName,
-                                Category = EffectCategory.ActiveDebuff,
-                                Target = EffectTarget.Enemy,
-                                MergeStrategy = MergeStrategy.MaxMerge,
-                                IsPermanent = false,
-                                RemainingTurns = 99,
-                                DebuffValues = levelData.DebuffEffect
-                            });
-                        }
+                        // 스킬 디버프는 Effects 경로에서 처리된다 (전용 DebuffEffect 필드는 제거됨).
 
                         // 초월 디버프
                         var transcendBonus = skill.GetTranscendBonus(transcendLevel);

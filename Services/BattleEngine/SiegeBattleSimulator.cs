@@ -2125,15 +2125,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             // base + 초월 Effects를 필드별 오버라이드로 병합한 유효 리스트 1회 적용(최종값 컨벤션).
             //   예: 리나 울림 방깎 base34 + 초월41 → 41 (이전엔 base 후 초월을 같은 id로 덮어써 7만 남았음).
             HandleEffects(skill.GetEffectiveEffects(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
-            // 레거시 필드는 PreDamage 플래그가 없으므로 피해 後(기본)로 처리.
-            if (!preDamage)
-            {
-                if (lvl.DebuffEffect != null) ApplyDebuff(lvl.DebuffEffect, lvl.EffectDuration, EffectTarget.Enemy);
-                if (lvl.SelfBuff != null) ApplyBuff(EffectTarget.Self, null, 1, lvl.SelfBuff, lvl.EffectDuration);
-                if (lvl.PartyBuff != null) ApplyBuff(EffectTarget.Party, null, 0, lvl.PartyBuff, lvl.EffectDuration);
-            }
-
-            // 초월 Effects는 위 GetEffectiveEffects에 병합됨. 레거시 초월 필드(tr.Debuff/tr.PartyBuff)만 별도 처리.
+            // 초월 Effects는 위 GetEffectiveEffects에 병합됨. 초월 전용 필드(tr.Debuff/tr.PartyBuff)만 별도 처리.
+            //   ※ 이 둘은 아직 DB에서 쓰인다(에반·유진호 PartyBuff, 샤오 Debuff). Effects로 옮기면
+            //     GetEffectiveEffects가 같은 (Target,Type)의 base 효과와 병합해 지속시간이 달라지므로 별도 유지.
             if (tr != null)
             {
                 if (!preDamage && tr.Debuff != null) ApplyDebuff(tr.Debuff, 0, EffectTarget.Enemy);

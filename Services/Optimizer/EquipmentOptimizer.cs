@@ -704,16 +704,15 @@ namespace GameDamageCalculator.Services.Optimizer
                 // 패시브 파티버프: 상시는 상시 묶음, 조건부는 턴제 묶음.
                 MaxPerm(bc.Character.Passive?.GetPartyBuff(enh, tx, dealerClass));
                 MaxTimed(bc.Character.Passive?.GetConditionalPartyBuff(enh, tx, dealerClass));
-                // 스킬 파티버프(턴제 묶음) — Effects + 레거시 PartyBuff + 초월. 초월 TargetCountOverride는 HighestAtkAlly 수혜 인원수.
+                // 스킬 파티버프(턴제 묶음) — Effects + 초월. 초월 TargetCountOverride는 HighestAtkAlly 수혜 인원수.
                 foreach (var skill in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
                 {
                     var ld = skill.GetLevelData(enh);
                     var txb = skill.GetTranscendBonus(tx);
                     int? ov = txb?.TargetCountOverride;
                     MaxTimedEffects(ld?.Effects, ov);
-                    MaxTimed(ld?.PartyBuff);
                     MaxTimedEffects(txb?.Effects, ov);
-                    MaxTimed(txb?.PartyBuff);
+                    MaxTimed(txb?.PartyBuff);   // 초월 전용 PartyBuff는 아직 DB에서 쓰임(에반·유진호)
                 }
             }
             // 묶음 간 Add.
