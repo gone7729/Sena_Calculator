@@ -793,7 +793,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 BossVulnerability = debuffs.Boss_Vulnerability,
                 IsCritical = true,
                 IsWeakpoint = true,
-                IsSkillConditionMet = true,
+                // 조건부 추가피해의 발동 조건을 실제 전투 상태로 판정 (조건 미입력 스킬은 항상 true).
+                //   예: 타카 죽음의 무도 +260%는 대상 HP 30% 미만일 때만.
+                IsSkillConditionMet = SkillConditionEvaluator.IsMet(
+                    skill.GetLevelData(battleChar.IsSkillEnhanced)?.Condition, ally, target, state),
                 // 잃은HP 비례 보너스(예: 광풍참 +50%) — 대상 실제 잔여HP%로 비례. R3 보스 음수HP면 0%잔여→풀보너스.
                 IsLostHpConditionMet = true,
                 LostHpActualRemainingPct = target.MaxHp > 0 ? target.CurrentHp / target.MaxHp * 100.0 : 0,

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
@@ -33,6 +33,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 100,
                                 ConditionalExtraDmg = 45,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrBelow, Threshold = 30, Desc = "대상 현재 생명력 30% 이하" },
                                 Effect = "대상 현재 생명력 30% 이하일 경우 공격력45% 추가피해"
                                 } },
                             { 1, new SkillLevelData {
@@ -40,6 +41,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 120,
                                 ConditionalExtraDmg = 55,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrBelow, Threshold = 30, Desc = "대상 현재 생명력 30% 이하" },
                                 Effect = "대상 현재 생명력 30% 이하일 경우 공격력55% 추가피해"
                                 } }
                         }
@@ -82,6 +84,9 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 70,
                                 Ratio = 145,
                                 ConditionalExtraDmg = 260,
+                                // 실측 근거(SIEGE_FORMULA_CALIBRATION.md): 풀피 잡몹 '룩'에는 조건 미발동 →
+                                //   "체력"은 자신이 아니라 대상 HP다.
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpBelow, Threshold = 30, Desc = "대상 체력 30% 미만" },
                                 ConditionalDesc = "체력 30% 미만",
                                 Effect = "체력 30% 미만일 경우 추가 피해 260%"
                                 } },
@@ -91,6 +96,9 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 70,
                                 Ratio = 170,
                                 ConditionalExtraDmg = 260,
+                                // 실측 근거(SIEGE_FORMULA_CALIBRATION.md): 풀피 잡몹 '룩'에는 조건 미발동 →
+                                //   "체력"은 자신이 아니라 대상 HP다.
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpBelow, Threshold = 30, Desc = "대상 체력 30% 미만" },
                                 ConditionalDesc = "체력 30% 미만",
                                 Effect = "체력 30% 미만일 경우 추가 피해 260%"
                                 } }
@@ -1200,6 +1208,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 96,
                                 Ratio = 115,
                                 ConditionalExtraDmg = 100,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrBelow, Threshold = 50, Desc = "대상 현재 생명력 50% 이하" },
                                 Effect = "관통, 대상 현재 생명력이 50% 이하일 시 물공 100%만큼 추가 관통 피해"
                                 } },
                             { 1, new SkillLevelData {
@@ -1208,6 +1217,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 76,
                                 Ratio = 150,
                                 ConditionalExtraDmg = 100,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrBelow, Threshold = 50, Desc = "대상 현재 생명력 50% 이하" },
                                 Effect = "관통, 대상 현재 생명력이 50% 이하일 시 물공 100%만큼 추가 관통 피해"
                                 } }
                         },
@@ -1231,6 +1241,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 96,
                                 Ratio = 125,
                                 ConditionalExtraDmg = 115,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrAbove, Threshold = 50, Desc = "대상 현재 생명력 50% 이상" },
                                 Effect = "관통, 대상 현재 생명력이 50% 이상일 시 물공 115%만큼 추가 관통 피해"
                                 } },
                             { 1, new SkillLevelData {
@@ -1239,6 +1250,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 96,
                                 Ratio = 165,
                                 ConditionalExtraDmg = 115,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrAbove, Threshold = 50, Desc = "대상 현재 생명력 50% 이상" },
                                 Effect = "관통, 대상 현재 생명력이 50% 이상일 시 물공 115%만큼 추가 관통 피해"
                                 } }
                         },
@@ -2566,6 +2578,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 100 },
                                 ConditionalExtraDmg = 91,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetStatLowerThanSelf, Stat = StatType.Atk, Desc = "대상 공격력 < 자신" },
                                 ConditionalDesc = "대상 공격력이 자신보다 낮을 경우 각 공격마다 물리 공격력 91% 관통 추가 피해",
                                 TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effect = "전열 우선, 4회 관통(피해 면역 무시). 전투 시작 시 아군에 공격형 5명 이상 시 생명력 전환 32%. 대상 공격력이 자신보다 낮으면 각 공격마다 91% 관통 추가 피해"
@@ -2578,6 +2591,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 100 },
                                 ConditionalExtraDmg = 91,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetStatLowerThanSelf, Stat = StatType.Atk, Desc = "대상 공격력 < 자신" },
                                 ConditionalDesc = "대상 공격력이 자신보다 낮을 경우 각 공격마다 물리 공격력 91% 관통 추가 피해",
                                 TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effect = "전열 우선, 4회 관통(피해 면역 무시). 전투 시작 시 아군에 공격형 5명 이상 시 생명력 전환 32%. 대상 공격력이 자신보다 낮으면 각 공격마다 91% 관통 추가 피해"
@@ -5450,6 +5464,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 70,
                                 ConditionalExtraDmg = 42,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrAbove, Threshold = 50, Desc = "대상 현재 생명력 50% 이상" },
                                 ConditionalDesc = "대상 현재 생명력 50% 이상 시 각 공격마다 마법공격력 42% 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
@@ -5464,6 +5479,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 90,
                                 ConditionalExtraDmg = 42,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHpAtOrAbove, Threshold = 50, Desc = "대상 현재 생명력 50% 이상" },
                                 ConditionalDesc = "대상 현재 생명력 50% 이상 시 각 공격마다 마법공격력 42% 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
@@ -6320,6 +6336,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 100,
                                 // 대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해 (조건부)
                                 ConditionalExtraDmg = 45,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasDefenseBuff, Desc = "대상 [방어력 증가] 상태" },
                                 ConditionalDesc = "대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해",
                                 Effect = "대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해"
                                 } },
@@ -6328,6 +6345,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 130,
                                 ConditionalExtraDmg = 45,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasDefenseBuff, Desc = "대상 [방어력 증가] 상태" },
                                 ConditionalDesc = "대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해",
                                 Effect = "대상이 [방어력 증가] 상태일 경우 마법 공격력 45% 추가 피해"
                                 } }
@@ -6379,6 +6397,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 62,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetStatLowerThanSelf, Stat = StatType.Spd, Desc = "대상 속공 < 자신" },
                                 ConditionalDesc = "대상 속공이 자신보다 낮을 경우 각 공격마다 마법 공격력 62% 추가 방어 무시 피해",
                                 Effect = "마법 공격력 45% 2회 방어 무시(40%) 피해. 대상 속공이 자신보다 낮을 경우 각 공격마다 마법 공격력 62% 추가 방어 무시 피해"
                                 } },
@@ -6390,6 +6409,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 62,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetStatLowerThanSelf, Stat = StatType.Spd, Desc = "대상 속공 < 자신" },
                                 ConditionalDesc = "대상 속공이 자신보다 낮을 경우 각 공격마다 마법 공격력 62% 추가 방어 무시 피해",
                                 Effect = "강화: 마법 공격력 55% 2회 방어 무시(40%) 피해. 대상 속공이 자신보다 낮을 경우 각 공격마다 마법 공격력 62% 추가 방어 무시 피해"
                                 } }
@@ -6685,6 +6705,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 285,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 170,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Burn, Desc = "대상 [화상] 상태" },
                                 ConditionalDesc = "대상이 화상 상태일 경우 마법 공격력의 170% 추가 피해",
                                 Effect = "방어 무시"
                                 } },
@@ -6695,6 +6716,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 340,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 170,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Burn, Desc = "대상 [화상] 상태" },
                                 ConditionalDesc = "대상이 화상 상태일 경우 마법 공격력의 170% 추가 피해",
                                 Effect = "방어 무시"
                                 } }
@@ -8491,6 +8513,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 100,
                                 ConditionalExtraDmg = 45,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Shock, Desc = "대상 [감전] 상태" },
                                 ConditionalDesc = "대상이 [감전] 상태일 경우 물리 공격력의 45% 추가 피해",
                                 Effect = ""
                                 } },
@@ -8499,6 +8522,7 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Ratio = 130,
                                 ConditionalExtraDmg = 55,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Shock, Desc = "대상 [감전] 상태" },
                                 ConditionalDesc = "대상이 [감전] 상태일 경우 물리 공격력의 55% 추가 피해",
                                 Effect = ""
                                 } }
@@ -12763,6 +12787,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 78,
                                 Ratio = 230,
                                 ConditionalExtraDmg = 180,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Bleeding, Desc = "대상 [출혈] 상태" },
                                 ConditionalDesc = "대상이 [출혈] 상태일 경우 물리 공격력 180% 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
@@ -12776,6 +12801,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 78,
                                 Ratio = 270,
                                 ConditionalExtraDmg = 180,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Bleeding, Desc = "대상 [출혈] 상태" },
                                 ConditionalDesc = "대상이 [출혈] 상태일 경우 물리 공격력 180% 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
@@ -13197,6 +13223,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 60,
                                 Ratio = 285,
                                 ConditionalExtraDmg = 190,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
                                 ConditionalDesc = "대상 [중독] 상태 시 물리 공격력 190% 추가 피해",
                                 Effect = "단일 적군. 대상 중독 시 공격력 190% 추가 피해"
                                 } },
@@ -13206,6 +13233,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 60,
                                 Ratio = 240,
                                 ConditionalExtraDmg = 190,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
                                 ConditionalDesc = "대상 [중독] 상태 시 물리 공격력 190% 추가 피해",
                                 Effect = "강화: 240%. 대상 중독 시 공격력 190% 추가 피해"
                                 } }

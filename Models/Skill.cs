@@ -307,6 +307,9 @@ namespace GameDamageCalculator.Models
         public int AtkCount { get; set; }               // 공격 횟수(타수)
 
         // ===== 조건부 효과 =====
+        // 아래 값들은 Condition이 충족될 때만 적용된다.
+        //   Condition이 null이면 조건 없이 항상 발동 (아직 조건을 입력하지 않은 스킬 = 종전 동작).
+        public SkillCondition Condition { get; set; }
         public double ConditionalRatioBonus { get; set; }
         public double ConditionalExtraDmg { get; set; }
         public double ConditionalExtraDmgSelfHpRatio { get; set; }
