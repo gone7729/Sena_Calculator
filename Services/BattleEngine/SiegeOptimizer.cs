@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
@@ -986,7 +986,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (passive == null) return false;
             bool Has(System.Collections.Generic.IEnumerable<Models.Effects.PersistentEffect> effs) =>
                 effs != null && effs.Any(e => e.Type == Models.Effects.PersistentEffectType.Immunity);
-            return Has(passive.GetLevelData(bc.IsSkillEnhanced)?.Effects)
+            return Has(passive.GetLevelData(bc.IsSkillEnhanced, bc.IsAwakened)?.Effects)
                 || Has(passive.GetTranscendBonus(bc.TranscendLevel)?.Effects);
         }
 

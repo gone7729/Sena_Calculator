@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
@@ -188,7 +188,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var passive = battleChar.Character.Passive;
             if (passive != null)
             {
-                foreach (var e in (passive.GetLevelData(battleChar.IsSkillEnhanced)?.Effects)
+                foreach (var e in (passive.GetLevelData(battleChar.IsSkillEnhanced, battleChar.IsAwakened)?.Effects)
                                   ?? new List<PersistentEffect>())
                 {
                     if (e.Type == PersistentEffectType.DamageNullification && e.ApplyMode == ApplyMode.Immediate
@@ -363,12 +363,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 RegisterCastEffects(state, charState, skill);
 
                 // 스킬 쿨다운 세팅 (티어별)
-                double cooldown = skill.GetCooldown(charState.Source.IsSkillEnhanced, charState.Source.TranscendLevel);
+                double cooldown = skill.GetCooldown(charState.Source.IsSkillEnhanced, charState.Source.TranscendLevel, charState.Source.IsAwakened);
                 if (cooldown > 0)
                     charState.SkillCooldowns[nextSkillType] = cooldown;
 
                 // 지정 스킬 쿨타임 초기화 (파스칼 어둠의 문 → 파괴의 거인)
-                var resetTarget = skill.GetLevelData(charState.Source.IsSkillEnhanced)?.ResetsCooldownOf;
+                var resetTarget = skill.GetLevelData(charState.Source.IsSkillEnhanced, charState.Source.IsAwakened)?.ResetsCooldownOf;
                 if (resetTarget.HasValue)
                     charState.SkillCooldowns[resetTarget.Value] = 0;
 
@@ -689,7 +689,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var passive = charState.Source.Character.Passive;
             if (passive == null) return null;
 
-            var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced);
+            var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced, charState.Source.IsAwakened);
             return levelData?.PainEndurance;
         }
 
@@ -805,7 +805,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var passive = charState.Source.Character.Passive;
             if (passive == null) return;
 
-            var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced);
+            var levelData = passive.GetLevelData(charState.Source.IsSkillEnhanced, charState.Source.IsAwakened);
             if (levelData.Effects == null) return;
 
             // 초월 Effects가 있으면 같은 StatusType을 오버라이드
@@ -874,7 +874,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (passive == null) return;
 
             var effects = new List<PersistentEffect>();
-            var lvl = passive.GetLevelData(charState.Source.IsSkillEnhanced);
+            var lvl = passive.GetLevelData(charState.Source.IsSkillEnhanced, charState.Source.IsAwakened);
             if (lvl?.Effects != null) effects.AddRange(lvl.Effects);
             var tr = passive.GetTranscendBonus(charState.Source.TranscendLevel);
             if (tr?.Effects != null) effects.AddRange(tr.Effects);

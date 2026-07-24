@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
@@ -387,7 +387,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         {
                             if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
                             if (!a.IsSkillReady(s.SkillType) || !IsPartyBuffSetup(s, a.Source.IsSkillEnhanced)) continue;
-                            double cd = s.GetCooldown(a.Source.IsSkillEnhanced, a.Source.TranscendLevel);
+                            double cd = s.GetCooldown(a.Source.IsSkillEnhanced, a.Source.TranscendLevel, a.Source.IsAwakened);
                             if (cd > bestSetup.cd) bestSetup = (idx, s, cd);
                         }
                     }
@@ -532,15 +532,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                     var normal = ally.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
                     if (normal != null)
                     {
-                        int tc = System.Math.Max(1, normal.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
+                        int tc = System.Math.Max(1, normal.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened));
                         var targets = PickTargets(state, tc, ally);
                         foreach (var target in targets)
                         {
                             double dmg = CalcDamageToEnemy(ally, target, normal, state);
-                            bool pen = normal.GetLevelData(ally.Source.IsSkillEnhanced)?.IgnoresTurnDamageImmunity ?? false;
+                            bool pen = normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.IgnoresTurnDamageImmunity ?? false;
                             ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false, penetrate: pen);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
-                            MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
+                            MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
                         }
                         if (targets.Count > 0)
                         {
@@ -796,7 +796,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 조건부 추가피해의 발동 조건을 실제 전투 상태로 판정 (조건 미입력 스킬은 항상 true).
                 //   예: 타카 죽음의 무도 +260%는 대상 HP 30% 미만일 때만.
                 IsSkillConditionMet = SkillConditionEvaluator.IsMet(
-                    skill.GetLevelData(battleChar.IsSkillEnhanced)?.Condition, ally, target, state),
+                    skill.GetLevelData(battleChar.IsSkillEnhanced, battleChar.IsAwakened)?.Condition, ally, target, state),
                 // 잃은HP 비례 보너스(예: 광풍참 +50%) — 대상 실제 잔여HP%로 비례. R3 보스 음수HP면 0%잔여→풀보너스.
                 IsLostHpConditionMet = true,
                 LostHpActualRemainingPct = target.MaxHp > 0 ? target.CurrentHp / target.MaxHp * 100.0 : 0,
@@ -877,7 +877,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var ally in state.AllyStates)
             {
                 var pas = ally.Source.Character.Passive;
-                var plvl = pas?.GetLevelData(ally.Source.IsSkillEnhanced);
+                var plvl = pas?.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened);
                 if (plvl?.Effects == null) continue;
                 var trEff = pas.GetTranscendBonus(ally.Source.TranscendLevel)?.Effects;
                 foreach (var be in plvl.Effects)
@@ -1358,7 +1358,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         private void ApplySkillHeal(SiegeBattleState state, CharacterBattleState caster, Skill skill)
         {
-            var lvl = skill.GetLevelData(caster.Source.IsSkillEnhanced);
+            var lvl = skill.GetLevelData(caster.Source.IsSkillEnhanced, caster.Source.IsAwakened);
             if (lvl == null) return;
             double ratio = lvl.HealHpRatio + (skill.GetTranscendBonus(caster.Source.TranscendLevel)?.HealHpRatio ?? 0);
             if (ratio <= 0) return;
@@ -1515,7 +1515,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private IEnumerable<PersistentEffect> GetPassiveEffects(Passive passive, CharacterBattleState ally)
         {
             var list = new List<PersistentEffect>();
-            var lvl = passive.GetLevelData(ally.Source.IsSkillEnhanced);
+            var lvl = passive.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened);
             if (lvl?.Effects != null) list.AddRange(lvl.Effects);
             var tr = passive.GetTranscendBonus(ally.Source.TranscendLevel);
             if (tr?.Effects != null) list.AddRange(tr.Effects);
@@ -1595,7 +1595,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         private void RegisterDotToEnemy(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target, Skill skill)
         {
-            var statuses = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.StatusEffects;
+            var statuses = skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.StatusEffects;
             if (statuses == null) return;
             foreach (var se in statuses)
             {
@@ -1690,7 +1690,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// </summary>
         private void ApplyBasicAttackCdReduction(SiegeBattleState state, CharacterBattleState ally, Skill normal)
         {
-            var lvl = normal?.GetLevelData(ally.Source.IsSkillEnhanced);
+            var lvl = normal?.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened);
             if (lvl?.Effects == null) return;
             foreach (var e in lvl.Effects)
             {
@@ -1783,6 +1783,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             int tr = ally.Source.TranscendLevel;
             var ready = ally.Source.Character.Skills?
                 .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
+                .Where(s => !s.IsAwakenOnly || ally.Source.IsAwakened)   // 각성 전용 스킬은 각성 상태에서만
                 .Where(s => ally.IsSkillReady(s.SkillType))
                 .ToList();
             if (ready == null || ready.Count == 0) return null;
@@ -1811,7 +1812,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             _curCastAllyBuffTargets.Clear();   // 이 시전이 부여한 아군 버프 수령자 누적(스킬 순서 [대상] 표기용)
             _curCastDebuffTargets.Clear();     // 디버프 대상(적) 누적
             _curCastDispelTargets.Clear();     // 버프해제 대상(적) 누적
-            int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
+            int tc = System.Math.Max(1, skill.GetTargetCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened));
             var targets = PickTargets(state, tc, ally);
             if (targets.Count == 0) return;
             // 툴팁 순서: 적 대상 효과(디버프·턴감소·버프해제)를 피해 前에 적용 → 같은 스킬 피해가 증폭/면역관통/보호막관통.
@@ -1819,10 +1820,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var target in targets)
             {
                 double dmg = CalcDamageToEnemy(ally, target, skill, state);
-                bool pen = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.IgnoresTurnDamageImmunity ?? false;
+                bool pen = skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.IgnoresTurnDamageImmunity ?? false;
                 ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true, penetrate: pen);
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
-                MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced)?.AtkCount ?? 1);
+                MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
             ProcessAttackBuffs(state, ally, isSkill: true);    // 공격 발동형 아군 버프(지크 물공증) — 스킬 발동 시 1회
@@ -1835,13 +1836,13 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   "시전 완료 시점부터" 카운트(자기 컷신 시간엔 자기 쿨 안 깎임) → AdvanceTime을 쿨 set보다 먼저.
             //   (이전 버그: set(105) 후 AdvanceTime(5)이 자기 쿨까지 깎아 105→100 = 자기 시전시간만큼 조기회복.)
             AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소(자기 제외 효과)
-            double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel);
+            double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened);
             if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
             // [실행가능성] 방금 시전 → 이 스킬은 쿨 중(준비 전). 다시 0 도달 시점까지 pending(∞) 마킹.
             if (_recordFeasibility && cd > 0) _readySince[(allyIdx, skill.SkillType)] = double.PositiveInfinity;
 
             // 지정 스킬 쿨타임 초기화 (파스칼 어둠의 문 → 파괴의 거인). 자기 쿨 set 後 적용 → 다음 스킬턴 즉시 준비.
-            var resetTarget = skill.GetLevelData(ally.Source.IsSkillEnhanced)?.ResetsCooldownOf;
+            var resetTarget = skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.ResetsCooldownOf;
             if (resetTarget.HasValue)
             {
                 ally.SkillCooldowns[resetTarget.Value] = 0;
@@ -1870,6 +1871,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 foreach (var s in a.Source.Character.Skills ?? Enumerable.Empty<Skill>())
                 {
                     if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
+                    if (s.IsAwakenOnly && !a.Source.IsAwakened) continue;   // 각성 전용 스킬은 각성 상태에서만
                     if (!a.IsSkillReady(s.SkillType)) continue;
                     if (allFull && IsHealSkill(s, a.Source.IsSkillEnhanced)) continue;   // 풀피 → 회복 스킬 미발동
                     choices.Add(new RotationDecision { HeroIndex = ai, Skill = s.SkillType });
@@ -2155,7 +2157,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // base + 초월 Effects를 필드별 오버라이드로 병합한 유효 리스트 1회 적용(최종값 컨벤션).
             //   예: 리나 울림 방깎 base34 + 초월41 → 41 (이전엔 base 후 초월을 같은 id로 덮어써 7만 남았음).
-            HandleEffects(skill.GetEffectiveEffects(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel));
+            HandleEffects(skill.GetEffectiveEffects(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened));
             // 초월 Effects는 위 GetEffectiveEffects에 병합됨. 초월 전용 필드(tr.Debuff/tr.PartyBuff)만 별도 처리.
             //   ※ 이 둘은 아직 DB에서 쓰인다(에반·유진호 PartyBuff, 샤오 Debuff). Effects로 옮기면
             //     GetEffectiveEffects가 같은 (Target,Type)의 base 효과와 병합해 지속시간이 달라지므로 별도 유지.
@@ -2193,7 +2195,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void ProcessAttackStacks(SiegeBattleState state, CharacterBattleState ally, bool isSkill)
         {
             var passive = ally.Source.Character.Passive;
-            var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced);
+            var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened);
             if (lvl?.Effects == null) return;
             var trEffects = passive.GetTranscendBonus(ally.Source.TranscendLevel)?.Effects;
 
@@ -2260,7 +2262,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void ProcessAttackBuffs(SiegeBattleState state, CharacterBattleState ally, bool isSkill)
         {
             var passive = ally.Source.Character.Passive;
-            var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced);
+            var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened);
             if (lvl?.Effects == null) return;
 
             for (int ei = 0; ei < lvl.Effects.Count; ei++)

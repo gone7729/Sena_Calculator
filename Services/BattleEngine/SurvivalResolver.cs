@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Models.Effects;
@@ -46,7 +46,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var passive = charState.Source.Character.Passive;
             if (passive != null)
             {
-                Scan(passive.GetLevelData(charState.Source.IsSkillEnhanced)?.Effects, false);
+                Scan(passive.GetLevelData(charState.Source.IsSkillEnhanced, charState.Source.IsAwakened)?.Effects, false);
                 Scan(passive.GetTranscendBonus(charState.Source.TranscendLevel)?.Effects, false);
             }
 
@@ -131,7 +131,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (passive == null) return;
 
             var effects = new List<PersistentEffect>();
-            var lvl = passive.GetLevelData(target.Source.IsSkillEnhanced);
+            var lvl = passive.GetLevelData(target.Source.IsSkillEnhanced, target.Source.IsAwakened);
             if (lvl?.Effects != null) effects.AddRange(lvl.Effects);
             var tr = passive.GetTranscendBonus(target.Source.TranscendLevel);
             if (tr?.Effects != null) effects.AddRange(tr.Effects);

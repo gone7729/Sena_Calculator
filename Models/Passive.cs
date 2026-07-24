@@ -16,8 +16,10 @@ namespace GameDamageCalculator.Models
         public Dictionary<int, PassiveLevelData> LevelData { get; set; } = new();
         public Dictionary<int, PassiveTranscend> TranscendBonuses { get; set; } = new();
 
-        public PassiveLevelData GetLevelData(bool isEnhanced)
+        /// <summary>티어별 패시브. 우선순위: 각성(2) > 강화(1) > 기본(0). 각성 미입력이면 종전 동작.</summary>
+        public PassiveLevelData GetLevelData(bool isEnhanced, bool isAwakened = false)
         {
+            if (isAwakened && LevelData.TryGetValue(2, out var awaken)) return awaken;
             int key = isEnhanced ? 1 : 0;
             return LevelData.TryGetValue(key, out var data) ? data : new PassiveLevelData();
         }

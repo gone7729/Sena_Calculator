@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -369,7 +369,7 @@ namespace GameDamageCalculator.Services.Optimizer
             //   이미 확정인 치확/약확 부옵을 낭비 배분하지 않게 한다. (데미지 평가는 DamageCalculator가 직접 반영)
             var capSkill = battleChar.Character?.Skills?
                 .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
-                .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced)?.Ratio ?? 0)
+                .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced, battleChar.IsAwakened)?.Ratio ?? 0)
                 .FirstOrDefault();
             var capBonus = capSkill?.GetTotalBonus(battleChar.IsSkillEnhanced, battleChar.TranscendLevel) ?? new BuffSet();
 
@@ -658,7 +658,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 foreach (var s in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
                 {
                     if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
-                    double r = s.GetLevelData(bc.IsSkillEnhanced)?.Ratio ?? 0;
+                    double r = s.GetLevelData(bc.IsSkillEnhanced, bc.IsAwakened)?.Ratio ?? 0;
                     if (r > ratio) ratio = r;
                 }
                 return atk * ratio;
@@ -732,7 +732,7 @@ namespace GameDamageCalculator.Services.Optimizer
             // 대표 스킬: 가장 높은 배율의 스킬 선택
             var bestSkill = character.Skills?
                 .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
-                .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced)?.Ratio ?? 0)
+                .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced, battleChar.IsAwakened)?.Ratio ?? 0)
                 .FirstOrDefault();
 
             if (bestSkill == null)

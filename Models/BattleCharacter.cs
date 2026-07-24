@@ -8,6 +8,8 @@ namespace GameDamageCalculator.Models
         public Character Character { get; set; }
         public int TranscendLevel { get; set; }
         public bool IsSkillEnhanced { get; set; }
+        /// <summary>각성 여부. true면 스킬/패시브가 각성 티어(LevelData[2]) 수치를 쓰고 각성 전용 스킬이 열린다.</summary>
+        public bool IsAwakened { get; set; }
         public bool IsPassiveConditionMet { get; set; }
 
         // 장비

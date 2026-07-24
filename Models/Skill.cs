@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GameDamageCalculator.Models.Effects;
 
@@ -15,7 +15,8 @@ namespace GameDamageCalculator.Models
         Skill2,     // 스킬 2
         Skill3,     // 스킬 3
         Skill4,     // 스킬 4
-        Ultimate    // 궁극기
+        Ultimate,   // 궁극기
+        Awaken      // 각성 전용 스킬 (각성 상태에서만 사용 가능)
     }
 
     /// <summary>
@@ -50,16 +51,26 @@ namespace GameDamageCalculator.Models
             };
         }
 
-        // 레벨별 데이터 (0=기본, 1=강화)
+        // 레벨별 데이터 (0=기본, 1=강화, 2=각성)
+        //   각성은 강화 위에 얹히는 증분이 아니라 수치를 통째로 덮어쓰는 상위 사양이라 독립 티어로 둔다.
+        //   (예: 헤브니아 검의심판 120/강화145 → 각성 160, 위키에서 강화 표기 자체가 사라짐)
         public Dictionary<int, SkillLevelData> LevelData { get; set; } = new();
+
+        /// <summary>이 스킬이 각성 전용인지 (각성 상태에서만 사용 가능).</summary>
+        public bool IsAwakenOnly => SkillType == SkillType.Awaken;
 
         // 초월별 추가 효과
         public Dictionary<int, SkillTranscend> TranscendBonuses { get; set; } = new();
 
         // === 헬퍼 메서드 ===
 
-        public SkillLevelData GetLevelData(bool isEnhanced)
+        /// <summary>
+        /// 티어별 스킬 수치. 우선순위: 각성(2) > 강화(1) > 기본(0).
+        /// 각성 데이터가 없는 스킬은 강화/기본으로 폴백하므로, 각성 미입력 영웅은 종전 동작 그대로다.
+        /// </summary>
+        public SkillLevelData GetLevelData(bool isEnhanced, bool isAwakened = false)
         {
+            if (isAwakened && LevelData.TryGetValue(2, out var awaken)) return awaken;
             int key = isEnhanced ? 1 : 0;
             return LevelData.TryGetValue(key, out var data) ? data : new SkillLevelData();
         }
@@ -118,10 +129,10 @@ namespace GameDamageCalculator.Models
         /// 비중첩 필드는 Override가 곧 추가와 동일하므로 안전(BuffSet/DebuffSet.Override = 0 아닌 필드만 대체).
         /// 양 경로(EffectConverter·SiegeBattleSimulator)가 이 메서드로 동일 병합을 공유한다.
         /// </summary>
-        public List<SkillEffect> GetEffectiveEffects(bool isEnhanced, int transcendLevel)
+        public List<SkillEffect> GetEffectiveEffects(bool isEnhanced, int transcendLevel, bool isAwakened = false)
         {
             var result = new List<SkillEffect>();
-            var baseEffects = GetLevelData(isEnhanced)?.Effects;
+            var baseEffects = GetLevelData(isEnhanced, isAwakened)?.Effects;
             if (baseEffects != null)
                 foreach (var e in baseEffects) result.Add(CloneSkillEffect(e));
 
@@ -170,12 +181,12 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 티어별 대상 수. 우선순위: 초월 오버라이드 > 레벨별 > Skill.TargetCount
         /// </summary>
-        public int GetTargetCount(bool isEnhanced, int transcendLevel)
+        public int GetTargetCount(bool isEnhanced, int transcendLevel, bool isAwakened = false)
         {
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.TargetCountOverride.HasValue) return transcend.TargetCountOverride.Value;
 
-            var levelData = GetLevelData(isEnhanced);
+            var levelData = GetLevelData(isEnhanced, isAwakened);
             if (levelData.TargetCount > 0) return levelData.TargetCount;
 
             return TargetCount;
@@ -184,12 +195,12 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 티어별 공격 횟수. 우선순위: 초월 오버라이드 > 레벨별 > Skill.Atk_Count
         /// </summary>
-        public int GetAtkCount(bool isEnhanced, int transcendLevel)
+        public int GetAtkCount(bool isEnhanced, int transcendLevel, bool isAwakened = false)
         {
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.AtkCountOverride.HasValue) return transcend.AtkCountOverride.Value;
 
-            var levelData = GetLevelData(isEnhanced);
+            var levelData = GetLevelData(isEnhanced, isAwakened);
             if (levelData.AtkCount > 0) return levelData.AtkCount;
 
             return Atk_Count;
@@ -198,12 +209,12 @@ namespace GameDamageCalculator.Models
         /// <summary>
         /// 티어별 쿨타임 반환. 우선순위: 초월 오버라이드 > 레벨별 쿨타임 > Skill.CooldownSeconds 폴백
         /// </summary>
-        public double GetCooldown(bool isEnhanced, int transcendLevel)
+        public double GetCooldown(bool isEnhanced, int transcendLevel, bool isAwakened = false)
         {
             var transcend = GetTranscendBonus(transcendLevel);
             if (transcend.Cooldown > 0) return transcend.Cooldown;
 
-            var levelData = GetLevelData(isEnhanced);
+            var levelData = GetLevelData(isEnhanced, isAwakened);
             if (levelData.Cooldown > 0) return levelData.Cooldown;
 
             // 강화 레벨에 쿨 미입력(0)이면 기본 레벨 쿨로 폴백 (강화가 쿨을 0으로 만들지 않음 — 데이터 누락 방어)
@@ -220,11 +231,11 @@ namespace GameDamageCalculator.Models
         /// 스킬 레벨 보너스에 초월 보너스를 필드별 override한 BuffSet 반환 (스킬 계산 전용)
         /// 겹치는 필드는 초월값이 기본값을 덮어씀(예: 기본 Cri 30 → 초월 Cri 100 = 100), 안 겹치면 유지.
         /// </summary>
-        public BuffSet GetTotalBonus(bool isEnhanced, int transcendLevel)
+        public BuffSet GetTotalBonus(bool isEnhanced, int transcendLevel, bool isAwakened = false)
         {
             var result = new BuffSet();
 
-            var levelData = GetLevelData(isEnhanced);
+            var levelData = GetLevelData(isEnhanced, isAwakened);
             if (levelData.Bonus != null) result.Add(levelData.Bonus);
 
             var transcend = GetTranscendBonus(transcendLevel);
@@ -233,9 +244,9 @@ namespace GameDamageCalculator.Models
             return result;
         }
 
-        public ConsumeExtraDamage GetTotalConsumeExtra(bool isEnhanced, int transcendLevel)
+        public ConsumeExtraDamage GetTotalConsumeExtra(bool isEnhanced, int transcendLevel, bool isAwakened = false)
 {
-    var levelData = GetLevelData(isEnhanced);
+    var levelData = GetLevelData(isEnhanced, isAwakened);
     var transcend = GetTranscendBonus(transcendLevel);
 
     // 둘 다 없으면 null

@@ -52,9 +52,13 @@ namespace GameDamageCalculator.Models
         // 초월 타입 (TranscendDb에서 보너스 가져옴)
         public TranscendType TranscendType { get; set; } = TranscendType.AtkCri;
 
+        /// <summary>각성 구현 여부 (각성 티어 데이터가 DB에 들어있는 영웅). 표시·UI 게이팅용.</summary>
+        public bool HasAwakening { get; set; }
+
         // 런타임 상태
         public int TranscendLevel { get; set; } = 0;
         public bool IsSkillEnhanced { get; set; } = false;
+        public bool IsAwakened { get; set; } = false;
 
         /// <summary>
         /// 전용무기 (캐릭터별 또는 공용). null이면 미장착.
