@@ -893,7 +893,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 };
                 if (!matches) continue;
 
-                string key = $"tfd:{charState.Source.Character.Name}:{tfd.TriggerOn}:{tfd.AtkRatio}:{tfd.FixedDamage}";
+                string key = $"tfd:{charState.Source.Character.Name}:{tfd.TriggerOn}:{tfd.AtkRatio}:{tfd.DefRatio}:{tfd.FixedDamage}";
                 if (!charState.StackTriggerCounters.ContainsKey(key)) charState.StackTriggerCounters[key] = 0;
                 charState.StackTriggerCounters[key]++;
                 if (charState.StackTriggerCounters[key] < Math.Max(1, tfd.TriggerCount)) continue;
@@ -905,8 +905,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                     SkillType = SkillType.Skill1,
                     LevelData = new Dictionary<int, SkillLevelData>
                     {
-                        { 0, new SkillLevelData { Ratio = tfd.AtkRatio, FixedDamage = tfd.FixedDamage, TargetCount = Math.Max(1, tfd.TargetCount), AtkCount = Math.Max(1, tfd.HitCount) } },
-                        { 1, new SkillLevelData { Ratio = tfd.AtkRatio, FixedDamage = tfd.FixedDamage, TargetCount = Math.Max(1, tfd.TargetCount), AtkCount = Math.Max(1, tfd.HitCount) } },
+                        { 0, new SkillLevelData { Ratio = tfd.AtkRatio, DefRatio = tfd.DefRatio, FixedDamage = tfd.FixedDamage, TargetCount = Math.Max(1, tfd.TargetCount), AtkCount = Math.Max(1, tfd.HitCount) } },
+                        { 1, new SkillLevelData { Ratio = tfd.AtkRatio, DefRatio = tfd.DefRatio, FixedDamage = tfd.FixedDamage, TargetCount = Math.Max(1, tfd.TargetCount), AtkCount = Math.Max(1, tfd.HitCount) } },
                     }
                 };
                 double dmg = CalculateSkillDamage(config, state, charState, synth);

@@ -172,6 +172,10 @@ namespace GameDamageCalculator.Services
             result.WriteDebugFile = writeDebugFile;
             var levelData = input.Skill?.GetLevelData(input.IsSkillEnhanced);
             var skillBonus = input.Skill?.GetTotalBonus(input.IsSkillEnhanced, input.TranscendLevel) ?? new BuffSet();
+            // 초월 배율 오버라이드(선언값 = 최종값). 예: 에반 연속공격 2초월 물리 170%/방어 200%.
+            var txOverride = input.Skill?.GetTranscendBonus(input.TranscendLevel);
+            double effRatio = txOverride?.RatioOverride ?? levelData?.Ratio ?? 100;
+            // (방어비례는 CalcBaseDamage에서 별도 계산 — 그쪽 스코프에서 초월 오버라이드 적용)
 
             // ===== 디버깅 로그 =====
             result.DebugLog.AppendLine("══════════ 데미지 계산 디버그 ══════════");
@@ -184,8 +188,8 @@ namespace GameDamageCalculator.Services
             result.DebugLog.AppendLine($"\n[2] PreCast 후 공격력: {result.FinalAtk:N0}, 타수: {result.AtkCount}");
 
             // 2. 스킬 배율
-            result.SkillRatio = (levelData?.Ratio ?? 100) / 100.0;
-            result.DebugLog.AppendLine($"[3] 스킬배율: {levelData?.Ratio ?? 100}% = {result.SkillRatio:F4}x");
+            result.SkillRatio = effRatio / 100.0;
+            result.DebugLog.AppendLine($"[3] 스킬배율: {effRatio}% = {result.SkillRatio:F4}x");
 
             // 3. 방어 관통
             double inputArmorPen = input.ArmorPen;
@@ -464,10 +468,13 @@ namespace GameDamageCalculator.Services
             double defDamage = 0;
             double hpDamage = 0;
 
-            if (levelData?.DefRatio > 0 && input.FinalDef > 0)
+            // 초월 방어비례 오버라이드(에반·유진호 2초월 방어 200%) 우선, 없으면 레벨 선언값.
+            double defRatio = input.Skill?.GetTranscendBonus(input.TranscendLevel)?.DefRatioOverride
+                              ?? levelData?.DefRatio ?? 0;
+            if (defRatio > 0 && input.FinalDef > 0)
             {
                 double defOverDef = input.FinalDef / result.DefCoefficient;
-                defDamage = defOverDef * (levelData.DefRatio / 100.0);
+                defDamage = defOverDef * (defRatio / 100.0);
             }
 
             if (levelData?.HpRatio > 0 && input.FinalHp > 0)

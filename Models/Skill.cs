@@ -449,6 +449,9 @@ namespace GameDamageCalculator.Models
         public TimedDebuff Debuff { get; set; } = new TimedDebuff();
         public int? TargetCountOverride { get; set; }
         public int? AtkCountOverride { get; set; }      // 초월 시 공격 횟수 변경
+        // 초월 시 배율 변경 (선언값 = 최종값). 예: 에반 연속공격 2초월 "물리 170% / 방어 200%"
+        public double? RatioOverride { get; set; }      // 공격력 비례 배율
+        public double? DefRatioOverride { get; set; }   // 방어력 비례 배율
 
         // 쿨타임 (초월 시 변경, 0이면 강화 레벨 쿨타임 유지)
         public double Cooldown { get; set; }

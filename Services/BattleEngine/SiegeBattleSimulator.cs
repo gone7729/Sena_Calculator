@@ -1420,6 +1420,23 @@ namespace GameDamageCalculator.Services.BattleEngine
                         }
                     }
 
+                    // 트리거 회복 (예: 손오공 미후분신술 — 자신의 스킬 1회 발동 시 모든 아군이 시전자 마법공 35% 회복).
+                    //   위 보호막·흡혈은 "스킬을 쓴 당사자가 받는" 효과라 caster에만 적용하지만, 이건 패시브 보유자가
+                    //   시전했을 때 아군 전체가 받는 회복이다 → owner==caster일 때만, 회복량은 보유자 스탯 기준.
+                    if (e.Type == PersistentEffectType.TriggeredHeal && owner == caster)
+                    {
+                        double flat = owner.FinalAtk * e.TriggeredHealAtkRatio / 100.0
+                                    + owner.FinalDef * e.TriggeredHealDefRatio / 100.0;
+                        var healTargets = e.Target == EffectTarget.Party
+                            ? state.AllyStates.Where(a => !a.IsDead).ToList()
+                            : new List<CharacterBattleState> { caster };
+                        foreach (var t in healTargets)
+                        {
+                            double amount = flat + t.MaxHp * e.TriggeredHealHpRatio / 100.0;
+                            if (amount > 0) HealAlly(state, t, amount, owner.Source.Character.Name, "패시브 회복(스킬 시전)");
+                        }
+                    }
+
                     // 피해 무효화 (예: 타카 강화 - 스킬 1회 발동 시 피격 N회 무효)
                     if (e.Type == PersistentEffectType.DamageNullification && e.DamageNullification != null)
                     {
@@ -1461,25 +1478,36 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>생명력 임계 자힐 (예: 샤오 HP50%↓ → 시전자 물공 40~45% 회복, 전투당 1회). 피격/DoT 직후 호출.</summary>
+        /// <summary>생명력 임계 회복 (전투당 1회). 피격/DoT 직후 호출.
+        ///   ① 자기 패시브 자힐 — 예: 샤오 HP50%↓ → 자기 물공 40~45% 회복
+        ///   ② 다른 아군의 파티 패시브 — 예: 손오공 2초월 "[모든 아군] HP50%↓ 시 시전자 마법공 95% 회복"
+        ///      (회복량이 보유자 스탯 기준이라 ①의 자기-스탯 계산으론 표현이 안 된다)</summary>
         private void CheckHpThresholdHeal(SiegeBattleState state, CharacterBattleState ally)
         {
             if (ally.IsDead || ally.HpThresholdHealUsed || ally.MaxHp <= 0) return;
             double hpPct = ally.CurrentHp / ally.MaxHp * 100.0;
-            var passive = ally.Source.Character.Passive;
-            if (passive == null) return;
-            foreach (var e in GetPassiveEffects(passive, ally))
-            {
-                if (e.Type != PersistentEffectType.TriggeredHeal) continue;
-                if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnHpBelow) continue;
-                if (hpPct > e.TriggerHpThreshold) continue;
 
-                ally.HpThresholdHealUsed = true;
-                double amount = ally.FinalAtk * e.TriggeredHealAtkRatio / 100.0
-                              + ally.FinalDef * e.TriggeredHealDefRatio / 100.0
-                              + ally.MaxHp * e.TriggeredHealHpRatio / 100.0;
-                HealAlly(state, ally, amount, ally.Source.Character.Name, $"임계 회복(HP{e.TriggerHpThreshold:0}%↓)");
-                break;
+            // 자기 패시브(Self/미지정) 우선, 없으면 아군의 Party 패시브를 찾는다.
+            foreach (var owner in state.AllyStates.Where(a => !a.IsDead))
+            {
+                var passive = owner.Source.Character.Passive;
+                if (passive == null) continue;
+                bool isSelf = owner == ally;
+                foreach (var e in GetPassiveEffects(passive, owner))
+                {
+                    if (e.Type != PersistentEffectType.TriggeredHeal) continue;
+                    if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnHpBelow) continue;
+                    // 남의 패시브는 Party 대상일 때만 이 아군에게 적용된다.
+                    if (!isSelf && e.Target != EffectTarget.Party) continue;
+                    if (hpPct > e.TriggerHpThreshold) continue;
+
+                    ally.HpThresholdHealUsed = true;
+                    double amount = owner.FinalAtk * e.TriggeredHealAtkRatio / 100.0
+                                  + owner.FinalDef * e.TriggeredHealDefRatio / 100.0
+                                  + ally.MaxHp * e.TriggeredHealHpRatio / 100.0;
+                    HealAlly(state, ally, amount, owner.Source.Character.Name, $"임계 회복(HP{e.TriggerHpThreshold:0}%↓)");
+                    return;
+                }
             }
         }
 

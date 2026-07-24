@@ -173,6 +173,7 @@ namespace GameDamageCalculator.Models.Effects
         public TriggerCondition TriggerOn { get; set; } = TriggerCondition.AllAttack;  // 무엇을 카운트하는지
         public double FixedDamage { get; set; }                                        // 1회 발동 시 고정 데미지값
         public double AtkRatio { get; set; }                                           // 1회 발동 시 시전자 공격력 비례% (FixedDamage 대신 사용 가능)
+        public double DefRatio { get; set; }                                           // 1회 발동 시 시전자 방어력 비례% (예: 겔리두스 "물리 60% + 방어력 65%")
         public int TargetCount { get; set; } = 1;                                      // 적 명수
         public int HitCount { get; set; } = 1;                                         // 발동당 타격 횟수
         public int DispelBuffCount { get; set; }                                       // 발동 공격 시 대상 버프 해제 개수 (0이면 없음)
