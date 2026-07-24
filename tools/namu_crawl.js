@@ -67,7 +67,8 @@ function buildIndex() {
       const title = m[2].replace(/&amp;/g, "&");
       if (/^(분류|틀|템플릿):/.test(title) || seen.has(title)) continue;
       seen.add(title);
-      map.set(title.replace(/\(세븐나이츠 리버스\)$/, ""), href);
+      // "이름(세븐나이츠 리버스)/각성" → "이름/각성" 으로 정규화 (각성은 별도 페이지로 존재)
+      map.set(title.replace(/\(세븐나이츠 리버스\)/, ""), href);
     }
     const nm = h.match(/<a href="([^"]*cfrom=[^"]*)"/);
     const next = nm ? nm[1].replace(/&amp;/g, "&") : null;
@@ -98,6 +99,13 @@ function metaBlock(fullText, skillText) {
   );
 }
 
+// 각성 페이지는 스킬 구간 끝이 "각성 - <스킬명>" 절로 이어진다.
+// (일반 페이지의 skillSection이 "콘텐츠별 평가/진화"에서 끊으므로 각성 절도 함께 포함됨)
+const isAwaken = (name) => name.endsWith("/각성");
+// 파일명: 각성은 "이름_각성.txt", 일반은 "이름.txt". &, / 등은 _ 로.
+const fileNameFor = (name) =>
+  (isAwaken(name) ? name.replace(/\/각성$/, "") + "_각성" : name).replace(/[\\/&]/g, "_") + ".txt";
+
 // 본문에서 스킬/패시브(게임 내 성능) 구간만 잘라낸다.
 function skillSection(text) {
   let s = text.indexOf("스킬[편집]");
@@ -126,14 +134,16 @@ function main() {
     const outDir = path.join(__dirname, "crawled_txt");
     fs.mkdirSync(outDir, { recursive: true });
     const names = [...index.keys()].filter((n) => !STAGES.has(n));
-    console.log(`전체 ${names.length}명 크롤링 시작 → ${outDir}`);
+    const nAwaken = names.filter(isAwaken).length;
+    console.log(`전체 ${names.length}건(영웅 ${names.length - nAwaken} + 각성 ${nAwaken}) 크롤링 시작 → ${outDir}`);
     let i = 0;
     for (const name of names) {
       i++;
       const full = toText(fetchHtml(index.get(name)));
       const skill = skillSection(full);
-      const body = `==================== ${name} ====================\n${metaBlock(full, skill)}\n${skill}\n`;
-      fs.writeFileSync(path.join(outDir, name.replace(/[\\/&]/g, "_") + ".txt"), body, "utf8");
+      const tag = isAwaken(name) ? "[각성] O\n" : "";
+      const body = `==================== ${name} ====================\n${tag}${metaBlock(full, skill)}\n${skill}\n`;
+      fs.writeFileSync(path.join(outDir, fileNameFor(name)), body, "utf8");
       console.log(`[${i}/${names.length}] ${name}`);
     }
     console.log("완료.");
