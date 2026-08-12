@@ -1488,6 +1488,11 @@ html, body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0 10px;
 }
+/* 각성 보유 스킬/패시브: 각성 칸을 더해 4칸 */
+.tier-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tier-col-head-awaken { color: #f59e0b; border-bottom-color: #f59e0b; }
+.tier-col-awaken .tier-to { color: #f59e0b; }
+.tier-col-awaken .tier-effect-add { color: #f59e0b; }
 .tier-col-head {
   font-size: 10.5px;
   font-weight: 700;
@@ -1526,7 +1531,7 @@ html, body {
 
 /* 좁은 화면에서는 3칸이 뭉개지므로 세로로 */
 @media (max-width: 900px) {
-  .tier-grid { grid-template-columns: 1fr; }
+  .tier-grid, .tier-grid-4 { grid-template-columns: 1fr; }
   .tier-col-head { margin-top: 8px; }
 }
 

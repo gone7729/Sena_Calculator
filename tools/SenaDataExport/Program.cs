@@ -518,6 +518,7 @@ var heroes = CharacterDb.Characters.Select(c =>
         type = c.Type,                       // 공격형 / 마법형 / 만능형 / 지원형 / 방어형
         attackType = c.AttackType.ToString(), // Physical / Magic
         transcendType = c.TranscendType.ToString(),
+        hasAwakening = c.HasAwakening,        // 각성 티어 보유 여부 (웹 각성 칸 게이팅)
         baseStats = Stat(new BaseStatSet()),
         transcend6 = Stat(t6),
         transcend12 = Stat(t12),
@@ -542,6 +543,8 @@ var heroes = CharacterDb.Characters.Select(c =>
             enhanced = c.Passive.GetLevelData(true)?.Effect,
             // 구조화 초월 Effects가 그룹에 합쳐졌으면 중복이라 null. 텍스트-only 초월만 주석으로 노출.
             transcend = PassiveHasTranscendEffects(c.Passive) ? null : c.Passive.GetTranscendBonus(12)?.Effect,
+            // 각성 티어(key 2) 패시브 효과 텍스트 — 각성 데이터 있을 때만.
+            awaken = (c.Passive.LevelData != null && c.Passive.LevelData.ContainsKey(2)) ? c.Passive.GetLevelData(true, true)?.Effect : null,
         }
     },
     skills = c.Skills.Select(s =>
@@ -569,6 +572,10 @@ var heroes = CharacterDb.Characters.Select(c =>
                 @base = SkillTierObj(l0, s.GetCooldown(false, 0), s.GetAtkCount(false, 0), l0.TargetCount, l0.Effect),
                 enhanced = SkillTierObj(l1, s.GetCooldown(true, 0), s.GetAtkCount(true, 0), l1.TargetCount, l1.Effect),
                 transcend = SkillTierObj(l1, s.GetCooldown(true, 12), s.GetAtkCount(true, 12), tr.TargetCountOverride ?? l1.TargetCount, SynthTranscendEffect(tr)),
+                // 각성 티어(key 2) — 기존 스킬에 각성으로 덮어써진 값. 각성 데이터 있을 때만, 없으면 null.
+                awaken = s.LevelData.ContainsKey(2)
+                    ? SkillTierObj(s.GetLevelData(true, true), s.GetCooldown(true, 0, true), s.GetAtkCount(true, 0, true), s.GetLevelData(true, true).TargetCount, s.GetLevelData(true, true).Effect)
+                    : null,
             },
         };
     }).ToList(),

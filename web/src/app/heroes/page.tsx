@@ -121,7 +121,7 @@ interface Skill {
   name: string;
   skillType: string;
   enhanceAdds?: string;
-  tiers: { base: SkillTier; enhanced: SkillTier; transcend: SkillTier };
+  tiers: { base: SkillTier; enhanced: SkillTier; transcend: SkillTier; awaken?: SkillTier | null };
 }
 
 interface BaseStats {
@@ -157,9 +157,11 @@ interface Hero {
       base?: string;
       enhanced?: string;
       transcend?: string;
+      awaken?: string;
     };
     effectGroups?: { target: string; items: string[] }[];
   } | null;
+  hasAwakening?: boolean;
   skills: Skill[];
   tags?: string[]; // 버프/디버프 태그 (공략 데이터 연동 예정)
   mainUsages?: string[]; // 주 사용처 (heroUsage.json 오버레이 → export 시 병합)
@@ -230,6 +232,7 @@ const SKILL_TYPE_LABEL: Record<string, string> = {
   Skill2: "2스킬",
   Skill3: "3스킬",
   Skill4: "4스킬",
+  Awaken: "각성 전용",
 };
 
 function atkLabel(attackType: string) {
@@ -297,9 +300,11 @@ function TierBlock({
   base,
   enhanced,
   transcend,
+  awaken,
   baseEffects,
   enhanceAdds,
   transcendEffect,
+  awakenEffect,
 }: {
   title: string;
   subtitle?: string;
@@ -307,23 +312,29 @@ function TierBlock({
   base: Record<string, string>;
   enhanced: Record<string, string>;
   transcend: Record<string, string>;
+  awaken?: Record<string, string> | null;
   baseEffects?: string[];
   enhanceAdds?: string | null;
   transcendEffect?: string | null;
+  awakenEffect?: string | null;
 }) {
   // 스강은 기본 대비, 초월은 스강 대비 — 단계별 증분이라 중복 없이 읽힌다
   const enhChanges = diffFields(base, enhanced);
   const trChanges = diffFields(enhanced, transcend);
+  // 각성은 강화 대비 (각성이 강화를 포함·대체하므로) — 데이터 있을 때만 4번째 칸 노출
+  const hasAwaken = awaken != null || (awakenEffect != null && awakenEffect !== "");
+  const awChanges = awaken != null ? diffFields(enhanced, awaken) : [];
   return (
     <div className={`tier-block tier-${accent}`}>
       <div className="tier-block-head">
         <span className="tier-block-name">{title}</span>
         {subtitle ? <span className="tier-block-sub">{subtitle}</span> : null}
       </div>
-      <div className="tier-grid">
+      <div className={hasAwaken ? "tier-grid tier-grid-4" : "tier-grid"}>
         <div className="tier-col-head">기본</div>
         <div className="tier-col-head">스킬강화</div>
         <div className="tier-col-head">초월</div>
+        {hasAwaken ? <div className="tier-col-head tier-col-head-awaken">각성</div> : null}
         <div className="tier-col">
           <BaseColumn fields={base} effects={baseEffects} />
         </div>
@@ -333,6 +344,11 @@ function TierBlock({
         <div className="tier-col">
           <DiffColumn changes={trChanges} addedText={transcendEffect} />
         </div>
+        {hasAwaken ? (
+          <div className="tier-col tier-col-awaken">
+            <DiffColumn changes={awChanges} addedText={awakenEffect} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -709,6 +725,7 @@ export default function HeroesPage() {
                     const b = skill.tiers.base;
                     const e = skill.tiers.enhanced;
                     const tr = skill.tiers.transcend;
+                    const aw = skill.tiers.awaken;
                     // 기본 칸에 붙일 효과 텍스트: 구조화 라인이 있으면 그걸, 없으면 prose 폴백(정보 손실 방지)
                     const baseEffects =
                       (b.effects ?? []).length > 0
@@ -725,15 +742,20 @@ export default function HeroesPage() {
                         base={tierFields(b)}
                         enhanced={tierFields(e)}
                         transcend={tierFields(tr)}
+                        awaken={aw && skill.skillType !== "Awaken" ? tierFields(aw) : null}
                         baseEffects={baseEffects}
                         enhanceAdds={skill.enhanceAdds ?? null}
                         transcendEffect={tr.effect ?? null}
+                        awakenEffect={skill.skillType !== "Awaken" ? (aw?.effect ?? null) : null}
                       />
                     );
                   };
                   // 변신(분신) 영웅: Normal2/Skill3/Skill4 = 변신 상태 스킬 → 별도 그룹으로 분리.
                   const tfTypes = new Set(["Normal2", "Skill3", "Skill4"]);
-                  const baseSkills = selected.skills.filter((s) => !tfTypes.has(s.skillType));
+                  const awakenSkills = selected.skills.filter((s) => s.skillType === "Awaken");
+                  const baseSkills = selected.skills.filter(
+                    (s) => !tfTypes.has(s.skillType) && s.skillType !== "Awaken"
+                  );
                   const tfSkills = selected.skills.filter((s) => tfTypes.has(s.skillType));
                   const trigger = selected.skills.find(
                     (s) =>
@@ -749,6 +771,12 @@ export default function HeroesPage() {
                         </div>
                       ) : null}
                       {tfSkills.map(renderSkill)}
+                      {awakenSkills.length > 0 ? (
+                        <div className="text-xs text-amber-400 font-semibold mt-1">
+                          ✦ 각성 전용 스킬 (각성 게이지 발동)
+                        </div>
+                      ) : null}
+                      {awakenSkills.map(renderSkill)}
                     </>
                   );
                   })()}
@@ -776,9 +804,11 @@ export default function HeroesPage() {
                         base={passiveFields(bt?.base)}
                         enhanced={passiveFields(bt?.enhanced)}
                         transcend={passiveFields(bt?.transcend)}
+                        awaken={p.effectTiers?.awaken ? {} : null}
                         baseEffects={baseEffects}
                         enhanceAdds={enhText}
                         transcendEffect={p.effectTiers?.transcend ?? null}
+                        awakenEffect={p.effectTiers?.awaken ?? null}
                       />
                     );
                   })()}

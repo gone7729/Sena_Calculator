@@ -6,6 +6,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -68,7 +69,8 @@
       ],
       "effectTiers": {
         "base": "자신: 모든 피해 면역[2턴], 사망 시 불사로 부활[2턴](전투당 1회). 모든 아군: 효과 적중 28% 증가[상시]. 아군(공격형·자신 제외): 스킬 2회 발동 시 불공정 계약(위치별 효과). 피해 면역·불공정 계약 미모델",
-        "enhanced": "강화: 불사 부활[3턴], 효과 적중 34% 증가"
+        "enhanced": "강화: 불사 부활[3턴], 효과 적중 34% 증가",
+        "awaken": "각성: 모든 피해 면역[2턴], 사망 시 불사로 부활[3턴](전투당 1회), 불사 발동 시 각성 게이지 +40. 모든 아군: 효과 적중 34% 증가[상시]. 아군(공격형·자신 제외): 스킬 2회 발동 시 불공정 계약(후열 물공+25%[2턴]·피해 무효화 리필 등). 피해 면역·불공정 계약·각성 게이지 미모델"
       }
     },
     "skills": [
@@ -156,6 +158,33 @@
             "penetrate": false,
             "bonus": {},
             "effects": []
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 145,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "각성: 물리 145%. 악성 채무[100%][피격 4회] (미모델)"
           }
         }
       },
@@ -250,6 +279,35 @@
               "효과적중감소 24%[3턴]"
             ],
             "effect": "방어력 40% 무시"
+          },
+          "awaken": {
+            "cooldown": 104,
+            "target": 4,
+            "atk": 2,
+            "ratio": 72,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "효과적중감소 24%[3턴]"
+            ],
+            "effect": "각성: 물리 72%. 관통, 효과 적용 확률 감소 24%[100%][3턴], 악성 채무 (미모델)"
           }
         }
       },
@@ -344,6 +402,126 @@
               "턴제감소(100%) 2턴"
             ],
             "effect": "방어력 40% 무시"
+          },
+          "awaken": {
+            "cooldown": 112,
+            "target": 4,
+            "atk": 2,
+            "ratio": 90,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "턴제감소(100%) 2턴"
+            ],
+            "effect": "각성: 물리 90%. 대상의 턴제 버프 2턴 감소[100%]"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "최후통첩",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 72,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {
+              "criBonusDmg": 60
+            },
+            "effects": [
+              "턴제감소(100%) 2턴"
+            ],
+            "effect": "[각성 게이지 145, 미모델] 모든 적군 물리 72% 2회. 대상 턴제 버프 2턴 감소[100%]. 치명타 발생 시 각 공격마다 물리 60% 추가 피해"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "방어력 40% 무시"
           }
         }
       }
@@ -361,6 +539,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -423,7 +602,8 @@
       "effectTiers": {
         "base": "자신: 우위[2턴], 사망 시 생명력 80% 부활(전투당 1회), 적 공격 3회 적중 시 귀면 1중첩[최대6](공격형 3명 이상). 모든 아군: 물공+19%[상시]. 귀면 6중첩 시 무영비검 자동 발동(전투당 1회). 우위/귀면 스택 미모델",
         "enhanced": "강화: 우위[3턴], 부활 시 생명력 100%, 무영비검 발동 시 물리 51%",
-        "transcend": "전투 시작 시 귀면 3중첩, 약점 공격 확률 증가 100% [상시]"
+        "transcend": "전투 시작 시 귀면 3중첩, 약점 공격 확률 증가 100% [상시]",
+        "awaken": "각성: 자신 우위[3턴], 사망 시 생명력 100% 부활(전투당 1회)+부활 시 우위[2턴], 자신 스킬 2회 발동 시 우위 1턴 증가. 모든 아군: 물공+25%[상시]. 귀면 6중첩 시 무영비검(물리 55%+대상 최대HP 7%) 자동 발동(전투당 1회). 우위/귀면 스택 미모델"
       }
     },
     "skills": [
@@ -511,6 +691,33 @@
             "penetrate": false,
             "bonus": {},
             "effects": []
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 145,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "각성: 단일 물리 145% 1회"
           }
         }
       },
@@ -599,6 +806,33 @@
             "bonus": {},
             "effects": [],
             "effect": "대상 수 변경: 적군 4명"
+          },
+          "awaken": {
+            "cooldown": 91,
+            "target": 3,
+            "atk": 3,
+            "ratio": 51,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "각성: 적군 3명(후열 우선) 물리 51% 3회. [귀면] 3중첩당 각 공격마다 물리 19% 추가 피해 [최대 6중첩] (귀면 스택 미모델)"
           }
         }
       },
@@ -693,6 +927,121 @@
               "버프해제(100%) 2개"
             ],
             "effect": "대상 수 변경: 적군 4명"
+          },
+          "awaken": {
+            "cooldown": 98,
+            "target": 3,
+            "atk": 3,
+            "ratio": 55,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 7,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 100,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "버프해제(100%) 2개"
+            ],
+            "effect": "각성: 적군 3명(후열 우선): 버프해제2, 물리 55% + 대상 최대HP 7% 3회(HP비례는 시전자 공격력 100% 제한)"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "천검",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 117,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 9,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 100,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [],
+            "effect": "[각성 게이지 130, 미모델] 모든 적군: 물리 117% + 대상 최대HP 9% 2회(HP비례는 시전자 공격력 100% 제한). 관통(피해 무효화 무시). [귀면] 6중첩 보유 시 대상 현재HP 비례 최대 100% 피증(귀면 스택 미모델)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
@@ -709,6 +1058,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -1050,6 +1400,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -1411,6 +1762,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -1472,7 +1824,8 @@
       ],
       "effectTiers": {
         "base": "자신 - 모든 피해 무효화[피격 3회], 아군 - 물피증 17%[상시]",
-        "enhanced": "자신 - 모든 피해 무효화[피격 4회], 아군 - 물피증 20%[상시]"
+        "enhanced": "자신 - 모든 피해 무효화[피격 4회], 아군 - 물피증 20%[상시]",
+        "awaken": "자신 - 모든 피해 무효화[피격 4회], 아군 - 물피증 20%[상시]. (각성 추가: 각성게이지 축적·변신 중 적 2명 사망 시 무효화[피격1회] 리필 = 미모델)"
       }
     },
     "skills": [
@@ -1565,6 +1918,35 @@
             "effects": [
               "침묵(45%)[1턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 145,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "침묵(45%)[1턴]"
+            ],
+            "effect": "침묵(45%)[1턴]"
           }
         }
       },
@@ -1658,6 +2040,35 @@
             "effects": [
               "침묵(60%)[2턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 80,
+            "target": 5,
+            "atk": 1,
+            "ratio": 135,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "침묵(60%)[2턴]"
+            ],
+            "effect": "침묵(60%)[2턴], 관통(피해면역 무시)"
           }
         }
       },
@@ -1746,12 +2157,390 @@
             "bonus": {},
             "effects": [],
             "effect": "처치 시 재시전(100%)"
+          },
+          "awaken": {
+            "cooldown": 108,
+            "target": 1,
+            "atk": 5,
+            "ratio": 174,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": ""
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "파멸의 손아귀",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 250,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "모든 피해 무효화[피격 4회]",
+              "모든 피해 무효화[피격 2회]",
+              "치명피해 48% 증가"
+            ],
+            "effect": "각성게이지85 / 변신[상시]·행동제어면역(미모델), 자신 치명타피해 3중첩(16%/중첩,최대8중첩=128%), 자신 물공250% 회복. 무효화 자신[피격4회]·아군[피격2회] 증가(각 최대6)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          }
+        }
+      },
+      {
+        "id": 5,
+        "name": "기본 공격[변신]",
+        "skillType": "Normal2",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 2,
+            "ratio": 30,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "대상 1명 줄 때마다 각 공격 15% 피해증가(3인60/2인90/1인120%), 자신 스킬쿨 19초 감소(미모델)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          }
+        }
+      },
+      {
+        "id": 6,
+        "name": "사신의 심판",
+        "skillType": "Skill3",
+        "tiers": {
+          "base": {
+            "cooldown": 80,
+            "target": 5,
+            "atk": 2,
+            "ratio": 97,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "버프해제(100%) 2개"
+            ],
+            "effect": "모든 적군 물공 97% 2회 관통(피해면역 무시), 버프 2개 해제"
+          },
+          "enhanced": {
+            "cooldown": 80,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 80,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          }
+        }
+      },
+      {
+        "id": 7,
+        "name": "사신난무",
+        "skillType": "Skill4",
+        "tiers": {
+          "base": {
+            "cooldown": 108,
+            "target": 1,
+            "atk": 5,
+            "ratio": 174,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "생명력 30% 이하 즉시 처형(현재HP가 시전자 공격력 120% 초과 대상엔 무효, 미모델), 처치 시 100% 위력 연속발동"
+          },
+          "enhanced": {
+            "cooldown": 108,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 108,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
     ],
     "tags": [
       "물피증",
+      "치피증",
       "침묵"
     ],
     "mainUsages": []
@@ -1763,6 +2552,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -2019,6 +2809,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -2374,6 +3165,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -2740,6 +3532,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCriDmg",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -3085,6 +3878,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -3419,6 +4213,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -3768,6 +4563,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -4131,6 +4927,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -4493,6 +5290,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -4745,6 +5543,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -5124,6 +5923,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -5479,6 +6279,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -5834,6 +6635,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -6186,6 +6988,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -6530,6 +7333,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -6870,6 +7674,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -7229,6 +8034,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -7606,6 +8412,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -7946,6 +8753,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -8293,6 +9101,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -8348,7 +9157,8 @@
       ],
       "effectTiers": {
         "base": "자신 모든 피해 무효화[피격3회]. 모든 적군 효저28[상시]. 적중 시 [운명의 실][3턴](마법형 3명 이상 편성); 스킬 1회 발동 시 적 받는 보호막 52% 감소[100%][3턴]",
-        "enhanced": "강화: 피해 무효화 4회, 받는 보호막 60% 감소"
+        "enhanced": "강화: 피해 무효화 4회, 받는 보호막 60% 감소",
+        "awaken": "각성: 피해 무효화[피격4회], 모든 적군 효저 34% 감소[상시], 스킬 1회 발동 시 받는 보호막 60% 감소[100%][3턴]"
       }
     },
     "skills": [
@@ -8441,6 +9251,35 @@
             "effects": [
               "마법받피증 10%[2턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 2,
+            "atk": 1,
+            "ratio": 70,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "마법받피증 10%[2턴]"
+            ],
+            "effect": "각성: 마법 70% 1회(2인), 마법취약 10%[100%][2턴]"
           }
         }
       },
@@ -8540,6 +9379,37 @@
               "침묵(60%)[2턴]",
               "받는 회복량 감소 48%[3턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 104,
+            "target": 5,
+            "atk": 2,
+            "ratio": 37,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "아군 디버프 해제 2개",
+              "침묵(60%)[2턴]",
+              "받는 회복량 감소 48%[3턴]"
+            ],
+            "effect": "각성: 마법 37% 2회(5인), 침묵 60%[2턴], 마법취약 대상 시 받는 회복량 48% 감소[3턴], 아군(마법형) 디버프해제2"
           }
         }
       },
@@ -8636,6 +9506,135 @@
               "턴제감소(100%) 2턴",
               "쿨증가 23초(60%)"
             ]
+          },
+          "awaken": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 3,
+            "ratio": 26,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "턴제감소(100%) 2턴",
+              "쿨증가 23초(70%)"
+            ],
+            "effect": "각성: 마법 26% 3회 관통(5인), 턴제버프 2턴 감소[100%], 마법취약 대상 시 스킬 쿨타임 증가 23초[70%]"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "천운의 광휘",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 145,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "생명력 전환",
+              "회복 불가[3턴]",
+              "쿨증가 26초"
+            ],
+            "effect": "각성기[각성 게이지 100]: 마법 145% 1회 관통(3인), 마법취약 대상 시 생명력 전환 39%, 회복 불가[100%][3턴], 쿨타임 증가 26초[100%]"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 155,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "생명력 전환",
+              "회복 불가[3턴]",
+              "쿨증가 26초"
+            ],
+            "effect": "각성기 강화[각성 게이지 100]: 마법 155% 1회 관통(3인), 마법취약 대상 시 생명력 전환 39%, 회복 불가[100%][3턴], 쿨타임 증가 26초[100%]"
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 155,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [
+              "생명력 전환",
+              "회복 불가[3턴]",
+              "쿨증가 26초"
+            ]
           }
         }
       }
@@ -8643,8 +9642,10 @@
     "tags": [
       "받마피증",
       "받회감",
+      "생명력 전환",
       "침묵",
       "쿨증",
+      "회복 불가",
       "효저깎"
     ],
     "mainUsages": []
@@ -8656,6 +9657,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCriDmg",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -9009,6 +10011,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -9357,6 +10360,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -9711,6 +10715,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -10069,6 +11074,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -10414,6 +11420,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -10774,6 +11781,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -11118,6 +12126,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -11461,6 +12470,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -11809,6 +12819,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -12162,6 +13173,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -12528,6 +13540,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -12584,7 +13597,8 @@
       "effectTiers": {
         "base": "자신 권능(전투당 1회)",
         "enhanced": "자신 권능(전투당 1회)",
-        "transcend": "권능 발동 시 모든 디버프 해제 + 최대 생명력의 100% 회복"
+        "transcend": "권능 발동 시 모든 디버프 해제 + 최대 생명력의 100% 회복",
+        "awaken": "[각성] 축복25%, 권능(전투당1회·발동시 마법공격력135% 보호막[3턴]), 받는 회복량+36%, 스킬 1회 발동 시 마법공격력96% 회복, 행동제어 시 모든 디버프 해제→행동제어 면역[1턴](미모델), 디버프 해제 시 마법공격력+10% 1중첩(최대4, 미모델)"
       }
     },
     "skills": [
@@ -12672,6 +13686,33 @@
             "penetrate": false,
             "bonus": {},
             "effects": []
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 145,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": ""
           }
         }
       },
@@ -12760,6 +13801,35 @@
             "bonus": {},
             "effects": [],
             "effect": "방어무시 40%"
+          },
+          "awaken": {
+            "cooldown": 84,
+            "target": 3,
+            "atk": 2,
+            "ratio": 95,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {
+              "armPen": 40
+            },
+            "effects": [],
+            "effect": "[각성 - 번뇌의 단죄] 방어무시 40%, 관통(피해면역 무시), 직접 피해로 처치 시 100% 위력 연속 발동 (각성으로 흡혈 삭제)"
           }
         }
       },
@@ -12854,6 +13924,127 @@
               "턴제감소(100%) 2턴"
             ],
             "effect": "방어무시 40%"
+          },
+          "awaken": {
+            "cooldown": 88,
+            "target": 5,
+            "atk": 2,
+            "ratio": 75,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {
+              "armPen": 40
+            },
+            "effects": [
+              "턴제감소(100%) 2턴"
+            ],
+            "effect": "[각성 - 재기의 일격] 턴제 버프 감소 2턴, 방어무시 40%, 대상 최대생명력 9% 비례피해(공격력 75% 제한, 미모델)"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "정화하는 어둠",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 2,
+            "ratio": 100,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {
+              "armPen": 40
+            },
+            "effects": [
+              "버프해제(100%) 2개"
+            ],
+            "effect": "[각성기, 각성 게이지 120] 방어무시 40%, 버프 2개 해제(면역/무효화/권능 제외), 시전 시 자신 모든 스킬 쿨타임 초기화(미모델)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
@@ -12868,6 +14059,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -13243,6 +14435,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -13617,6 +14810,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -13980,6 +15174,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -14344,6 +15539,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -14715,6 +15911,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -15064,6 +16261,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -15438,6 +16636,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -15789,6 +16988,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1500,
       "def": 571,
@@ -16149,6 +17349,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -16499,6 +17700,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCriDmg",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -16848,6 +18050,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -17192,6 +18395,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -17247,7 +18451,8 @@
       ],
       "effectTiers": {
         "base": "자신: 최대 생명력 비례 막기 확률 증가[상시](1000당 3%, 최대 27%), 사망 시 생명력 80% 부활(전투당 1회). 모든 적군: 모든 공격력 13% 감소[상시]. 모든 아군: 자신 스킬 발동 시 지속 회복[1턴]",
-        "enhanced": "강화: 최대 생명력 비례 막기 확률 최대 증가 33%, 모든 적군 모든 공격력 16% 감소"
+        "enhanced": "강화: 최대 생명력 비례 막기 확률 최대 증가 33%, 모든 적군 모든 공격력 16% 감소",
+        "awaken": "각성(강화): 막기 최대 33%, 사망 시 생명력 100% 부활(전투당 1회)+부활 시 모든 피해 면역[2턴](전투당 1회), 아군 역할 지원[상시]. 모든 적군 모든 공격력 16% 감소[상시]"
       }
     },
     "skills": [
@@ -17341,6 +18546,35 @@
             "effects": [
               "보호막(최대 생명력 15% 비례)[2턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 65,
+            "hpRatio": 14,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "보호막(최대 생명력 15% 비례)[2턴]"
+            ],
+            "effect": "각성(강화): 마공 65%/최대HP 14% 피해, 보호막 최대HP 15%[2턴]"
           }
         }
       },
@@ -17437,6 +18671,36 @@
               "재생[3턴]",
               "회복량 22% 증가, 효과저항 28% 증가[3턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 1,
+            "ratio": 30,
+            "hpRatio": 7,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "재생[3턴]",
+              "회복량 28% 증가, 효과저항 37% 증가[3턴]"
+            ],
+            "effect": "각성(강화): 지속회복 15%[3턴]·효저37·받회증28[3턴]"
           }
         }
       },
@@ -17540,6 +18804,126 @@
               "주는피해감소 16%[3턴]"
             ],
             "effect": "6초월: 모든 직업군 버프 지속 4턴"
+          },
+          "awaken": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "치명피해 49% 증가[4턴]",
+              "방어력 39% 증가[4턴]",
+              "피해증가 20% 증가, 효과적중 19% 증가[4턴]",
+              "주는피해감소 16%[4턴]"
+            ],
+            "effect": "각성(강화): 직업군 버프[4턴](치피49·방어39·피증20·효적19). 적 피감16[100%][4턴]"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "구원의 힘",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 26,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "사망 아군 2명 생명력 65% 부활"
+            ],
+            "effect": "[각성 게이지 145] 사망 아군 2명 부활(공/마=불사 3턴·나머지=HP65%)+부활 시 행동제어 면역[2턴], 모든 아군 최대HP 26% 회복"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
@@ -17565,6 +18949,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -17926,6 +19311,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -18285,6 +19671,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -18638,6 +20025,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -18986,6 +20374,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -19338,6 +20727,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -19683,6 +21073,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1095,
       "def": 675,
@@ -20021,6 +21412,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -20374,6 +21766,7 @@
     "type": "지원형",
     "attackType": "Physical",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -20712,6 +22105,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -20780,7 +22174,8 @@
       "effectTiers": {
         "base": "사망 시 생명력 80%로 부활(전투당 1회). 피격 1회 시 지룡의 격노 1중첩(최대30, 중첩당 주는피해+2%/물리공격력+2%). 모든 아군 막기확률+19%[상시]. 아군 전열: 자신의 스킬 1회 발동 시 시전자 물리공격력 45% 보호막[2턴]",
         "enhanced": "사망 시 생명력 100%로 부활(전투당 1회). 피격 1회 시 지룡의 격노 1중첩(최대30, 중첩당 주는피해+2%/물리공격력+2%). 모든 아군 막기확률+23%[상시]. 아군 전열: 자신의 스킬 1회 발동 시 시전자 물리공격력 45% 보호막[2턴]",
-        "transcend": "지룡의 격노 중첩당 주는피해량 증가 2%→6%, 물리공격력 증가 2%→6% (최대 30중첩)"
+        "transcend": "지룡의 격노 중첩당 주는피해량 증가 2%→6%, 물리공격력 증가 2%→6% (최대 30중첩)",
+        "awaken": "사망 시 생명력 100%로 부활(전투당 1회, 부활 시 지룡의 격노 10중첩). 피격 1회 시 지룡의 격노 1중첩 + 각성 게이지 3 증가(최대30, 중첩당 주는피해+2%/물리공격력+2%). 모든 아군 막기확률+23%[상시]. 아군 전열: 자신의 스킬 1회 발동 시 시전자 물리공격력 52% 보호막[2턴]"
       }
     },
     "skills": [
@@ -20873,6 +22268,35 @@
             "effects": [
               "기절(40%)[1턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 60,
+            "hpRatio": 0,
+            "defRatio": 70,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "기절(40%)[1턴]"
+            ],
+            "effect": "기절 [40% 확률] [1턴]"
           }
         }
       },
@@ -20961,6 +22385,33 @@
             "bonus": {},
             "effects": [],
             "effect": "해당 스킬로 적군 처치 시 100% 위력으로 최대 1회 연속 발동"
+          },
+          "awaken": {
+            "cooldown": 78,
+            "target": 1,
+            "atk": 5,
+            "ratio": 62,
+            "hpRatio": 0,
+            "defRatio": 71,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": true,
+            "bonus": {},
+            "effects": [],
+            "effect": "관통(피해 면역 무시)"
           }
         }
       },
@@ -21054,6 +22505,151 @@
             "effects": [
               "기절(45%)[2턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 100,
+            "target": 5,
+            "atk": 2,
+            "ratio": 45,
+            "hpRatio": 0,
+            "defRatio": 50,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "기절(45%)[2턴]"
+            ],
+            "effect": "기절 [45% 확률] [2턴]"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "위태로운 공존",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "막기감소 23%, 받는 회복량 감소 52%",
+              "방어무시 40% 증가",
+              "아군 디버프 해제 2개"
+            ],
+            "effect": "[각성 게이지 75] 적군: 받는회복량-52%·막기확률-23%[상시]. 자신: 모든 피해 방어무시(방무40%)[상시]. 아군: 시전자 물리공격력 95% 회복 + 디버프 2개 해제. 막기 성공 1회 시 대상 방어력 178% 1회 피해 + 대상 턴제버프 2턴 감소[100%](미모델)"
           }
         }
       }
@@ -21073,6 +22669,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -21438,6 +23035,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -21791,6 +23389,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -22127,6 +23726,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -22485,6 +24085,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -22849,6 +24450,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -23213,6 +24815,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -23558,6 +25161,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -23903,6 +25507,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -24258,6 +25863,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -24611,6 +26217,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -24976,6 +26583,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -25336,6 +26944,7 @@
     "type": "만능형",
     "attackType": "Physical",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -25695,6 +27304,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -26057,6 +27667,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -26707,6 +28318,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -27067,6 +28679,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -27430,6 +29043,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1306,
       "def": 659,
@@ -27787,6 +29401,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1238,
       "def": 616,
@@ -28130,6 +29745,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 727,
       "def": 892,
@@ -28191,7 +29807,9 @@
           ]
         }
       ],
-      "effectTiers": {}
+      "effectTiers": {
+        "awaken": "각성: [모든 아군] 방어력 +24%[상시] + 링크[2턴 시작] / [자신] 감쇄 20%(받피감) + 반격 38%[상시] / [아군 전열] 자신 3회 피격 시 감쇄 23%[피격 2회] / 반격 발동 시 단일 적 물리 50%+방어 60% 1회 피해 + 기절 35%[1턴] (링크·반격·전열 조건부 감쇄는 모델 미지원)"
+      }
     },
     "skills": [
       {
@@ -28278,6 +29896,33 @@
             "penetrate": false,
             "bonus": {},
             "effects": []
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 70,
+            "hpRatio": 0,
+            "defRatio": 85,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "각성: 자신 방어자세 1중첩[최대 4, 중첩당 방어력 +15%] (방어자세 스택은 모델 미지원)"
           }
         }
       },
@@ -28374,6 +30019,36 @@
               "턴제감소(100%) 3턴",
               "기절[3턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 91,
+            "target": 3,
+            "atk": 1,
+            "ratio": 85,
+            "hpRatio": 0,
+            "defRatio": 100,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "턴제감소(100%) 2턴",
+              "기절(65%)[2턴]"
+            ],
+            "effect": "각성: 대상 선정 버프가 많은 적군 / 자신 방어자세 2중첩[최대 4] (방어자세 스택은 모델 미지원)"
           }
         }
       },
@@ -28467,6 +30142,124 @@
               "받피감 10% 증가[2턴]"
             ],
             "effect": "6초월: 행동 제어 면역[2턴]"
+          },
+          "awaken": {
+            "cooldown": 96,
+            "target": 5,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 115,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "받피감 20% 증가[2턴]",
+              "아군 디버프 해제 1개"
+            ],
+            "effect": "각성: 모든 아군 링크[2턴, 피해 감소율 20%]+디버프 해제 1개, 방어자세 4개 소모 시 시전자 방어력 115% 생명력 회복 / 자신 방어자세 2중첩 (링크·방어자세 스택은 모델 미지원; HealDefRatio는 4스택 조건 무시하고 상시 적용됨)"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "영광의 심판",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 5,
+            "atk": 1,
+            "ratio": 90,
+            "hpRatio": 0,
+            "defRatio": 100,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "받피감 20% 증가[3턴]"
+            ],
+            "effect": "[각성 게이지 130] 각성 전용 / 모든 적 각성 게이지 감소 10[100%](강화 시 20) / 모든 아군 링크[3턴] (각성 게이지 감소는 모델 미지원, 링크는 Dmg_Rdc 20% 근사)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
@@ -28485,6 +30278,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 727,
       "def": 892,
@@ -28822,6 +30616,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 727,
       "def": 892,
@@ -29184,6 +30979,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 727,
       "def": 892,
@@ -29442,6 +31238,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 727,
       "def": 892,
@@ -29789,6 +31586,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 727,
       "def": 892,
@@ -30147,6 +31945,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -30512,6 +32311,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -30861,6 +32661,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -31228,6 +33029,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -31572,6 +33374,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -31924,6 +33727,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -32287,6 +34091,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -32628,6 +34433,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkEff",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -32960,6 +34766,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -33314,6 +35121,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -33660,6 +35468,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -34012,6 +35821,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -34067,7 +35877,8 @@
       ],
       "effectTiers": {
         "base": "자신 물리 공격력 +25%[3턴]",
-        "enhanced": "강화: 물리 공격력 +31%[3턴]. 6초월: 모든 피해 면역[2턴]"
+        "enhanced": "강화: 물리 공격력 +31%[3턴]. 6초월: 모든 피해 면역[2턴]",
+        "awaken": "각성: 물리 공격력 +31%[상시]. 6초월 모든 피해 면역[2턴]. 모든 아군 - 모든 공격 2회 발동 시 물리 공격력 35% 회복"
       }
     },
     "skills": [
@@ -34161,6 +35972,35 @@
             "effects": [
               "빙결(50%)[1턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 120,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "빙결(50%)[1턴]"
+            ],
+            "effect": "각성: 120%. 빙결[50%][1턴](해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
           }
         }
       },
@@ -34255,6 +36095,35 @@
               "빙결(75%)[2턴]"
             ],
             "effect": "2초월: 빙결 확률 85%"
+          },
+          "awaken": {
+            "cooldown": 70,
+            "target": 3,
+            "atk": 1,
+            "ratio": 160,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "빙결(75%)[2턴]"
+            ],
+            "effect": "각성: 160%. 적군 3명. 빙결[75%][2턴](해제 시 대상 최대 생명력 40% 방무 피해, 공격력 300% 제한)"
           }
         }
       },
@@ -34348,13 +36217,132 @@
             "effects": [
               "턴제감소(100%) 2턴"
             ]
+          },
+          "awaken": {
+            "cooldown": 66,
+            "target": 1,
+            "atk": 1,
+            "ratio": 340,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "턴제감소(100%) 3턴",
+              "물리받피증 29%[5턴]"
+            ],
+            "effect": "각성: 340%. 대상 턴제 버프 -3턴[100%]. 물리 취약 29%[100%][5턴]"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "유성 폭발",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 350,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "공격력 23% 증가, 치명피해 34% 증가[5턴]"
+            ],
+            "effect": "[각성 게이지 120, 미모델] 단일 적군 350%. 자신+공격력 높은 아군 2명: 물리 공격력+23%·치명타 피해+34%[5턴]"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
     ],
     "tags": [
       "물공증",
-      "빙결"
+      "빙결",
+      "치피증"
     ],
     "mainUsages": []
   },
@@ -34365,6 +36353,7 @@
     "type": "공격형",
     "attackType": "Physical",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -34708,6 +36697,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -35055,6 +37045,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -35398,6 +37389,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -35736,6 +37728,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -36077,6 +38070,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -36425,6 +38419,7 @@
     "type": "마법형",
     "attackType": "Magic",
     "transcendType": "AtkCri",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1389,
       "def": 533,
@@ -36784,6 +38779,7 @@
     "type": "지원형",
     "attackType": "Physical",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -37131,6 +39127,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -37485,6 +39482,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -37823,6 +39821,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -38155,6 +40154,7 @@
     "type": "지원형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1035,
       "def": 632,
@@ -38503,6 +40503,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "AtkWek",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1238,
       "def": 616,
@@ -38836,6 +40837,7 @@
     "type": "만능형",
     "attackType": "Magic",
     "transcendType": "AtkDmgRdc",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 1238,
       "def": 616,
@@ -39181,6 +41183,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 704,
       "def": 818,
@@ -39534,6 +41537,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 704,
       "def": 818,
@@ -39868,6 +41872,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 704,
       "def": 818,
@@ -40215,6 +42220,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": false,
     "baseStats": {
       "atk": 704,
       "def": 818,
@@ -40562,6 +42568,7 @@
     "type": "방어형",
     "attackType": "Physical",
     "transcendType": "DefBlk",
+    "hasAwakening": true,
     "baseStats": {
       "atk": 704,
       "def": 818,
@@ -40617,7 +42624,8 @@
       "effectTiers": {
         "base": "[자신] 방어력 증가 22%[상시], 자신이 피격 5회 시 현재 생명력 가장 낮은 아군에게 시전자 방어력 30% 회복",
         "enhanced": "[자신] 방어력 증가 22%[상시], 자신이 피격 5회 시 현재 생명력 가장 낮은 아군에게 시전자 방어력 35% 회복",
-        "transcend": "6초월: 회복 대상 현재 생명력 가장 낮은 아군 2명"
+        "transcend": "6초월: 회복 대상 현재 생명력 가장 낮은 아군 2명",
+        "awaken": "각성: [자신] 마법 감쇄 24%[상시] + 생명력 50%↓ 시 시전자 방어력 138% 회복(전투당 2회), [생명력 낮은 아군 2명(6초월 3명)] 자신 3회 피격당 시전자 방어력 40% 회복, [후열 만능형 2명] 방호[상시](미모델)"
       }
     },
     "skills": [
@@ -40705,6 +42713,33 @@
             "penetrate": false,
             "bonus": {},
             "effects": []
+          },
+          "awaken": {
+            "cooldown": 0,
+            "target": 1,
+            "atk": 1,
+            "ratio": 65,
+            "hpRatio": 0,
+            "defRatio": 75,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [],
+            "effect": "각성: 단일 물리공 65% + 방어력 75% 피해"
           }
         }
       },
@@ -40799,6 +42834,36 @@
               "아군 디버프 해제 2개"
             ],
             "effect": "2초월: [모든 적군] 빗나감 확률 증가 40%[100%][3턴]"
+          },
+          "awaken": {
+            "cooldown": 70,
+            "target": 5,
+            "atk": 1,
+            "ratio": 50,
+            "hpRatio": 0,
+            "defRatio": 55,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "아군 디버프 해제 2개",
+              "약점확률감소 27%[3턴]"
+            ],
+            "effect": "각성: 모든 적군 물리공 50% + 방어력 55% 피해, [아군] 디버프 해제 2개, [적군] 약점 공격 확률 감소 27%[100%][3턴]"
           }
         }
       },
@@ -40895,6 +42960,126 @@
               "마법 피해 무효화[3턴]",
               "도발[2턴]"
             ]
+          },
+          "awaken": {
+            "cooldown": 66,
+            "target": 1,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "마법 피해 무효화[3턴]",
+              "도발[2턴]",
+              "마법받피감 26% 증가[3턴]"
+            ],
+            "effect": "각성: [자신] 마법 피해 면역[3턴] + 도발[2턴], [아군 3명] 마법 감쇄 26%[3턴]"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "name": "각성 - 구원의 축복",
+        "skillType": "Awaken",
+        "tiers": {
+          "base": {
+            "cooldown": 0,
+            "target": 3,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": [
+              "아군 디버프 해제 2개",
+              "보호막(방어력 135% 비례)[2턴]"
+            ],
+            "effect": "[각성 게이지 100, 미모델] [아군 3명] 모든 디버프 해제(전체) + 스킬 쿨타임 초기화(미모델) + 시전자 방어력 135% 보호막[2턴] (강화 최종값, 기본 120%)"
+          },
+          "enhanced": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
+          },
+          "transcend": {
+            "cooldown": 0,
+            "target": 0,
+            "atk": 1,
+            "ratio": 0,
+            "hpRatio": 0,
+            "defRatio": 0,
+            "spdRatio": 0,
+            "targetMaxHpRatio": 0,
+            "targetCurrentHpRatio": 0,
+            "atkCap": 0,
+            "lostHpBonusMax": 0,
+            "currentHpBonusMax": 0,
+            "condRatioBonus": 0,
+            "condExtraDmg": 0,
+            "condDmgBonus": 0,
+            "condExtraDmgSelfHp": 0,
+            "healAtkRatio": 0,
+            "healHpRatio": 0,
+            "healDmgRatio": 0,
+            "healDefRatio": 0,
+            "fixedDamage": 0,
+            "penetrate": false,
+            "bonus": {},
+            "effects": []
           }
         }
       }
