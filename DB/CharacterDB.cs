@@ -9478,28 +9478,6 @@ namespace GameDamageCalculator.Database
                     Effect = "기절 [45% 확률] [2턴]"
                     }}
             }
-        },
-        new Skill
-        {
-            Id = 4,
-            Name = "위태로운 공존",
-            SkillType = SkillType.Awaken,
-            LevelData = new Dictionary<int, SkillLevelData>
-            {
-                { 2, new SkillLevelData {
-                    TargetCount = 5,
-                    AtkCount = 1,
-                    Cooldown = 0,
-                    Ratio = 0,
-                    Effects = new List<SkillEffect>
-                    {
-                        new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 0, Debuff = new DebuffSet { Heal_Reduction = 52, Blk_Red = 23 } },
-                        new SkillEffect { Target = EffectTarget.Self, Type = SkillEffectType.Buff, Duration = 0, Buff = new BuffSet { Arm_Pen = 40 } },
-                        new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.DebuffCleanse, DispelDebuffCount = 2 }
-                    },
-                    Effect = "[각성 게이지 75] 적군: 받는회복량-52%·막기확률-23%[상시]. 자신: 모든 피해 방어무시(방무40%)[상시]. 아군: 시전자 물리공격력 95% 회복 + 디버프 2개 해제. 막기 성공 1회 시 대상 방어력 178% 1회 피해 + 대상 턴제버프 2턴 감소[100%](미모델)"
-                    }}
-            }
         }
     },
     Passive = new Passive
@@ -9527,12 +9505,16 @@ namespace GameDamageCalculator.Database
                 }
             }},
             { 2, new PassiveLevelData {
-                Effect = "사망 시 생명력 100%로 부활(전투당 1회, 부활 시 지룡의 격노 10중첩). 피격 1회 시 지룡의 격노 1중첩 + 각성 게이지 3 증가(최대30, 중첩당 주는피해+2%/물리공격력+2%). 모든 아군 막기확률+23%[상시]. 아군 전열: 자신의 스킬 1회 발동 시 시전자 물리공격력 52% 보호막[2턴]",
+                Effect = "사망 시 생명력 100%로 부활(전투당 1회, 부활 시 지룡의 격노 10중첩). 피격 1회 시 지룡의 격노 1중첩 + 각성 게이지 3 증가(최대30, 중첩당 주는피해+2%/물리공격력+2%). 모든 아군 막기확률+23%[상시]. 아군 전열: 자신의 스킬 1회 발동 시 시전자 물리공격력 52% 보호막[2턴]. "
+                    + "◆ 각성 패시브 [위태로운 공존] — 각성 게이지 75 충전 시 발동, 이후 상시: 모든 적군 받는회복량-52%·막기확률-23%, 자신 모든 피해 방어무시(방무40%). 발동 상태에서 막기 성공 1회 시 대상 방어력 178% 1회 피해 + 대상 턴제버프 2턴 감소[100%](막기 트리거 미모델). 발동 시 아군 시전자 물리공격력 95% 회복 + 디버프 2개 해제(1회, 미모델)",
                 Effects = new List<PersistentEffect>
                 {
                     new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { ReviveHpPercent = 100, OncePerBattle = true } },
                     new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blk = 23 } },
-                    new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggerCount = 1, StacksPerTrigger = 1, MaxStacks = 30, IsPerStack = true, Buff = new BuffSet { Atk_Rate = 2, Dmg_Dealt = 2 } }
+                    new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHit, TriggerCount = 1, StacksPerTrigger = 1, MaxStacks = 30, IsPerStack = true, Buff = new BuffSet { Atk_Rate = 2, Dmg_Dealt = 2 } },
+                    // 각성 패시브 [위태로운 공존] 상시 효과 — 각성 게이지 75 발동(IsAwakened 게이팅). 게이지 타이밍 미모델
+                    new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Heal_Reduction = 52, Blk_Red = 23 } },
+                    new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Arm_Pen = 40 } }
                 }
             }}
         },
