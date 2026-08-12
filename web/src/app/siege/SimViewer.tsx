@@ -146,6 +146,40 @@ function setLabel(s?: string): string {
   return m ? `${m[1]} ${m[2]}세트` : s;
 }
 
+// 장비 한 부위 = 한 줄 (부위 라벨 · 메인옵 · 부옵 칩) — 컴팩트 표
+function GearRow({
+  slot,
+  main,
+  subs,
+  grade,
+}: {
+  slot: string;
+  main: string;
+  subs: string[];
+  grade?: string;
+}) {
+  return (
+    <div className="gear-row">
+      <span className="gear-slot">{slot}</span>
+      <span className="gear-main">
+        {grade ? <span className="gear-grade">{grade}</span> : null}
+        {main}
+      </span>
+      <span className="gear-subs">
+        {subs.length === 0 ? (
+          <span className="gear-sub gear-sub-none">-</span>
+        ) : (
+          subs.map((s, j) => (
+            <span key={j} className="gear-sub">
+              {s}
+            </span>
+          ))
+        )}
+      </span>
+    </div>
+  );
+}
+
 export default function SimViewer() {
   const profiles = data.profiles;
   const profileByKey = (k: string) => profiles.find((p) => p.key === k) ?? profiles[0];
@@ -362,6 +396,9 @@ export default function SimViewer() {
                   <span className="siege-hero-gear-meta">
                     {selHero.role} · {selHero.transcend}초월
                   </span>
+                  {selGear.setName && (
+                    <span className="gear-set-badge">{setLabel(selGear.setName)}</span>
+                  )}
                   {selGear.stats && <span className="siege-hero-gear-stats">{selGear.stats}</span>}
                 </div>
 
@@ -370,91 +407,35 @@ export default function SimViewer() {
                     세팅 데이터가 없습니다.
                   </div>
                 ) : (
-                  <>
-                    <div className="equip-group">
-                      <h3 className="equip-group-title">무기</h3>
-                      <div className="set-row">
-                        {selGear.weapons.map((w, i) => (
-                          <div className="set-card" key={i}>
-                            <div className="set-name">{setLabel(selGear.setName)}</div>
-                            <div className="opt-row">
-                              <div>메인 옵션</div>
-                              <div>부 옵션</div>
-                            </div>
-                            <div className="opt-row">
-                              <div className="opt-list">{w.main}</div>
-                              <div className="opt-list">
-                                {w.subs.map((s, j) => (
-                                  <div key={j}>{s}</div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="gear-table">
+                    <div className="gear-table-head">
+                      <span className="gear-slot">부위</span>
+                      <span>메인 옵션</span>
+                      <span>부 옵션</span>
                     </div>
-
-                    <div className="equip-group">
-                      <h3 className="equip-group-title">방어구</h3>
-                      <div className="set-row">
-                        {selGear.armors.map((a, i) => (
-                          <div className="set-card" key={i}>
-                            <div className="set-name">{setLabel(selGear.setName)}</div>
-                            <div className="opt-row">
-                              <div>메인 옵션</div>
-                              <div>부 옵션</div>
-                            </div>
-                            <div className="opt-row">
-                              <div className="opt-list">{a.main}</div>
-                              <div className="opt-list">
-                                {a.subs.map((s, j) => (
-                                  <div key={j}>{s}</div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="siege-hero-gear-cols">
-                      <div className="equip-group">
-                        <h3 className="equip-group-title">장신구</h3>
-                        <div className="set-card">
-                          <div className="set-name">{selGear.accessory?.grade ?? "장신구"}</div>
-                          {selGear.accessory?.main ? (
-                            <>
-                              <div className="opt-row">
-                                <div>메인 옵션</div>
-                                <div>부 옵션</div>
-                              </div>
-                              <div className="opt-row">
-                                <div className="opt-list">{selGear.accessory.main}</div>
-                                <div className="opt-list">{selGear.accessory.sub}</div>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="opt-list">{selGear.accessory?.raw ?? "-"}</div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* 전용장비는 12초월(전용장비 포함) 프로필에서만 표시 */}
-                      {profile.exclusive && (
-                        <div className="equip-group">
-                          <h3 className="equip-group-title">전용장비</h3>
-                          <div className="set-card">
-                            <div className="set-name">조율</div>
-                            <div className="opt-list">
-                              {selGear.exclusive
-                                ? selGear.exclusive.split("+").map((s, i) => <div key={i}>{s.trim()}</div>)
-                                : "-"}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
+                    {selGear.weapons.map((w, i) => (
+                      <GearRow key={`w${i}`} slot="무기" main={w.main} subs={w.subs} />
+                    ))}
+                    {selGear.armors.map((a, i) => (
+                      <GearRow key={`a${i}`} slot="방어구" main={a.main} subs={a.subs} />
+                    ))}
+                    {selGear.accessory && (
+                      <GearRow
+                        slot="장신구"
+                        grade={selGear.accessory.grade}
+                        main={selGear.accessory.main ?? selGear.accessory.raw ?? "-"}
+                        subs={selGear.accessory.sub ? [selGear.accessory.sub] : []}
+                      />
+                    )}
+                    {/* 전용장비는 12초월(전용장비 포함) 프로필에서만 표시 */}
+                    {profile.exclusive && selGear.exclusive && (
+                      <GearRow
+                        slot="전용"
+                        main="조율"
+                        subs={selGear.exclusive.split("+").map((s) => s.trim())}
+                      />
+                    )}
+                  </div>
                 )}
               </div>
             )}

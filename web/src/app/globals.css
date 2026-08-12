@@ -1384,6 +1384,7 @@ html, body {
 .siege-hero-gear-head {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 14px;
   color: var(--text);
@@ -1409,6 +1410,90 @@ html, body {
   gap: 10px;
 }
 .siege-hero-gear-cols .equip-group { min-width: 0; }
+
+/* ===== 컴팩트 장비 표 (시뮬 뷰어) — 한 줄 = 한 부위 ===== */
+.gear-set-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--active);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.gear-table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+.gear-table-head,
+.gear-row {
+  display: grid;
+  grid-template-columns: 52px minmax(96px, max-content) 1fr;
+  gap: 14px;
+  align-items: baseline;
+}
+.gear-table-head {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.gear-row {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.gear-slot {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+}
+.gear-main {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+  word-break: keep-all;
+}
+.gear-grade {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-right: 6px;
+}
+.gear-subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.gear-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--active);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 7px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.gear-sub-none {
+  border: none;
+  background: none;
+  color: var(--text-faint);
+}
+@media (max-width: 560px) {
+  .gear-table-head { display: none; }
+  .gear-row {
+    grid-template-columns: 44px 1fr;
+    grid-template-areas: "slot main" "slot subs";
+    gap: 2px 12px;
+  }
+  .gear-slot { grid-area: slot; align-self: center; }
+  .gear-main { grid-area: main; }
+  .gear-subs { grid-area: subs; margin-top: 2px; }
+}
 
 /* ===== 스킬 순서 칩 (시뮬 뷰어) ===== */
 .siege-skill-list {
