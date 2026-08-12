@@ -497,10 +497,8 @@ var heroes = CharacterDb.Characters.Select(c =>
         {
             if (lvl == null) continue;
             AddBuff(lvl.Bonus);
-            AddBuff(lvl.SelfBuff);
-            AddBuff(lvl.PartyBuff);
             AddBuff(lvl.PreCastBuff);
-            AddDebuff(lvl.DebuffEffect);
+            // 버프/디버프/상태이상은 Effects 리스트로 통일됨(레거시 SelfBuff/PartyBuff/DebuffEffect 제거).
             if (lvl.Effects != null)
                 foreach (var e in lvl.Effects) { AddBuff(e.Buff); AddDebuff(e.Debuff); AddStatus(e.StatusType); }
         }
