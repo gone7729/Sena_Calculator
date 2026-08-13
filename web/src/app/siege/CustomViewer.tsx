@@ -94,7 +94,7 @@ interface RoutesResponse {
   error?: string;
 }
 
-const TRANSCEND_ROUTES = [2, 4, 6];
+const TRANSCEND_ROUTES = [6];
 
 export default function CustomViewer() {
   const [day, setDay] = useState("토");
@@ -259,7 +259,7 @@ export default function CustomViewer() {
             type="button"
             className={`chip${petMode === "sim" ? " active" : ""}`}
             onClick={() => setPetMode("sim")}
-            title="펫 윈디 6성 강화3, 잠재 공옵72% 고정 — 전원 2/4/6초월 3루트 탐색"
+            title="펫 윈디 6성 강화3, 잠재 공옵72% 고정 — 전원 6초월 탐색"
           >
             시뮬(고정)
           </button>
@@ -276,7 +276,7 @@ export default function CustomViewer() {
 
       {petMode === "sim" && (
         <p className="siege-mode-note">
-          영웅만 선택하면 <b>전원 2/4/6초월</b> 3가지 루트로 <b>템세팅·스킬순서</b>를 탐색합니다.
+          영웅만 선택하면 <b>전원 6초월</b>로 <b>템세팅·스킬순서</b>를 탐색합니다.
           잠재 0/0/0·스킬강화·펫 <b>윈디 6성 강화+3</b> 고정. (목적 = 최적 스킬순서·템세팅, 점수는 따라옴)
         </p>
       )}
@@ -499,19 +499,20 @@ export default function CustomViewer() {
         </section>
       </div>
 
-      {/* ===== 탐색 결과 (전원 2/4/6초월 3루트) ===== */}
+      {/* ===== 탐색 결과 (전원 6초월) ===== */}
       {routes && (
         <section className="panel siege-result">
           <h2 className="panel-title">탐색 결과</h2>
 
           {routes.status === "running" && (
             <div className="siege-mode-note" style={{ marginTop: 0 }}>
-              새 영웅 조합이라 탐색 중입니다 — 루트가 완료되는 대로 탭이 채워집니다.
-              ({Object.keys(routes.routes).length}/3 완료, 루트당 수 분 소요)
+              새 영웅 조합이라 탐색 중입니다 — 완료되는 대로 결과가 표시됩니다.
+              ({Object.keys(routes.routes).length}/{TRANSCEND_ROUTES.length} 완료, 수 분 소요)
             </div>
           )}
 
-          {/* 초월 루트 탭 (완료=클릭 / 미완료=탐색 중) */}
+          {/* 초월 루트 탭 — 루트 2개 이상일 때만 (현재 6초월 단일이면 숨김) */}
+          {TRANSCEND_ROUTES.length > 1 && (
           <div style={{ display: "flex", gap: 8, margin: "4px 0 14px", flexWrap: "wrap" }}>
             {TRANSCEND_ROUTES.map((t) => {
               const r = routes.routes[String(t)];
@@ -535,6 +536,7 @@ export default function CustomViewer() {
               );
             })}
           </div>
+          )}
 
           {active && (
           <>

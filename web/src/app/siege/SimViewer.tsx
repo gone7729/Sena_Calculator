@@ -181,7 +181,8 @@ function GearRow({
 }
 
 export default function SimViewer() {
-  const profiles = data.profiles;
+  // 웹은 6초월만 표시 (12초월 프로필 숨김)
+  const profiles = data.profiles.filter((p) => p.key !== "12초월");
   const profileByKey = (k: string) => profiles.find((p) => p.key === k) ?? profiles[0];
 
   // 프로필·펫 선택 (디폴트 = 6초월 / 윈디)

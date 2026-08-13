@@ -46,7 +46,7 @@ app.MapGet("/api/siege/days", () =>
 app.MapGet("/api/siege/pets", () =>
     PetDb.Pets.Select(p => new { id = p.Id, name = p.Name, rarity = p.Rarity }));
 
-// 탐색 실행: 선택 영웅 풀 → 전원 2/4/6초월 3루트.
+// 탐색 실행: 선택 영웅 풀 → 전원 6초월 단일 루트.
 //   캐시 HIT면 즉시 반환(done). MISS면 백그라운드 잡 시작(running) → 프론트가 /job 폴링.
 //   잠재 0/0/0 고정. 전용장비 전체포함(조율탐색)/전체제외 체크박스(includeExclusive).
 app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
@@ -63,7 +63,7 @@ app.MapPost("/api/siege/optimize", (OptimizeRequest req) =>
     bool incl = req.IncludeExclusive ?? true;
     var cached = new Dictionary<string, OptimizeResponse>();
     var missing = new List<int>();
-    foreach (int tr in new[] { 2, 4, 6 })
+    foreach (int tr in new[] { 6 })
     {
         if (SiegeApi.SiegeCache.TryGet<OptimizeResponse>(SiegeApi.SiegeCache.Key(req.Day, req.HeroIds, tr, incl), out var hit))
         {
@@ -102,7 +102,7 @@ app.MapPost("/api/siege/prefill", () =>
         foreach (var ids in teams)
             foreach (bool incl in new[] { true, false })
             {
-                var missing = new[] { 2, 4, 6 }
+                var missing = new[] { 6 }
                     .Where(tr => !SiegeApi.SiegeCache.Has(SiegeApi.SiegeCache.Key(day, ids, tr, incl))).ToList();
                 if (missing.Count == 0) { alreadyCached++; continue; }
                 string jobId = JobKey(day, ids, incl);
