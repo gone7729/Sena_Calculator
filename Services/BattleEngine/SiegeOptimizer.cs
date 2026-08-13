@@ -32,6 +32,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 버프-정렬 로테이션 전제(가 가정)라 정렬 안 되면 평균 점수 소폭 하락 가능 → 기본 OFF, Phase 2와 함께 평가.
         public bool FloorFirstGear { get; set; } = false;
 
+        // [실험] 딜러 기어 역할 제약 해제 — GetGearConstraints의 딜러 허용 세트/메인/부옵을 전 세트·광범위 옵션으로 개방.
+        //   "옵티마이저가 제약 없이도 좋은 메인/부옵을 스스로 찾는가" 확인용. 기본 OFF(무회귀).
+        public bool UnconstrainedGear { get; set; } = false;
+
         // 최종 best config(진형·자리·기어)에 스킬 로테이션 빔서치를 적용해 로테이션 최적 점수·플랜 산출
         public bool OptimizeRotation { get; set; } = true;
         public int RotationBeamWidth { get; set; } = 10;
@@ -565,7 +569,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 강제 옵션을 GearConstraints에 반영하는 헬퍼 — BuildSetCandidates와 OptimizeForSetFull에서 공통 사용.
             GearConstraints GcForChar(BattleCharacter bc)
             {
-                var gc = GetGearConstraints(bc, config.SiegeStage);
+                var gc = GetGearConstraints(bc, config.SiegeStage, config.UnconstrainedGear);
                 if (config.ForcedSetByCharId != null && bc.Character != null
                     && config.ForcedSetByCharId.TryGetValue(bc.Character.Id, out var fs)
                     && !string.IsNullOrEmpty(fs))
@@ -951,8 +955,17 @@ namespace GameDamageCalculator.Services.BattleEngine
         ///  · 면역/유틸리티(라이언 등 — 면역 패시브 보유 + 효과적 비딜러): 방어 전용 기어 (생존 우선, 죽으면 utility 손실)
         ///  · 서포터/버퍼(비스킷·리나 등): 혼합 (데미지 + 방어)
         /// </summary>
-        private static GearConstraints GetGearConstraints(BattleCharacter bc, Stage stage = null)
+        private static GearConstraints GetGearConstraints(BattleCharacter bc, Stage stage = null, bool unconstrained = false)
         {
+            // [실험] 딜러 제약 해제: 전 세트 + 오펜/디펜 광범위 옵션 개방 (옵티마이저 자율 탐색 확인용).
+            if (unconstrained && IsEffectiveDealer(bc, stage))
+                return new GearConstraints
+                {
+                    AllowedSets = new[] { "복수자", "암살자", "추적자", "선봉장", "성기사", "수문장" },
+                    WeaponMains = new[] { "치명타확률%", "치명타피해%", "공격력%", "약점공격확률%", "생명력%", "방어력%" },
+                    ArmorMains = new[] { "공격력%", "생명력%", "방어력%", "받피감%" },
+                    SubOptions = new[] { "치명타확률%", "치명타피해%", "약점공격확률%", "공격력%", "공격력", "생명력%", "방어력%", "막기확률%" },
+                };
             if (IsEffectiveDealer(bc, stage))
                 return new GearConstraints
                 {

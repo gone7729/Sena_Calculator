@@ -257,6 +257,9 @@ foreach (var (day, ids) in DAYS)
     //   전수탐색. 탱·서포터는 기존 풀시뮬. 기어→로테 단방향(좌표상승 딜러 우회). 기본 OFF(무회귀).
     if (args.Contains("허수아비기어")) cfg.DummyGearForDealers = true;
 
+    // [실험] 인자 "기어자유" — 딜러 기어 역할 제약(허용 세트·메인·부옵) 해제 → 옵티마이저가 스스로 잘 찾는지 확인. 기본 OFF.
+    if (args.Contains("기어자유")) cfg.UnconstrainedGear = true;
+
     // [탐색예산 override] 천장진단용 — 인자 "빔폭N"/"빔깊이N"으로 로테 빔 넓이·깊이 키워 탐색 부족 여부 판별.
     //   점수가 크게 오르면 탐색 부족(빔 협소), 거의 안 오르면 모델 천장(uptime 등). 미지정이면 기본(10/36).
     var bwArg = args.FirstOrDefault(a => a.StartsWith("빔폭"));
