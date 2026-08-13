@@ -579,15 +579,6 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
 
             AdvanceTime(state, GetActionDuration(null));
-            // [보류] 약점공격 발동 시 평타 시간 -0.5초 단축(게임 규칙) → 1-per-turn 시뮬에선 다른 cd가 추가로 진행되는 효과.
-            //   단축 시간(0.5초)이 정밀하게 측정된 값이 아니라 잠정 — 정확한 수치 확정 후 재활성화.
-            // if (actor.IsAlly && actor.Ally != null)
-            // {
-            //     var allyDs = actor.Ally.DisplayStats;
-            //     var allyBuffs = actor.Ally.Effects.GetTotalBuffs();
-            //     double pw = System.Math.Max(0, System.Math.Min(100, (allyDs?.Wek ?? 0) + allyBuffs.Wek)) / 100.0;
-            //     if (pw > 0) AdvanceTime(state, 0.5 * pw);
-            // }
 
             // 행동자(actor)만 효과 tick (per-character-action 모델)
             //   ★R3 적은 스펀지(HP≤0여도 행동 지속)다. 옛 `CurrentHp > 0` 가드는 음수HP가 된 R3 적의
@@ -648,7 +639,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 보호막 흡수 {absorbed:N0}{(broke ? " (보호막 파괴)" : $" (잔여 {target.Shield:N0})")} — 점수 미집계");
                 ApplyHitCdReduce(state, target);
                 if (dmg <= 0) return;   // 전부 보호막에 흡수 → HP 피해 없음
-                // 파괴 후 잔여 피해는 HP로 (아래 점수 집계). def0 기준이라 파괴 1타는 약간 과대(근사).
+                // 파괴 후 잔여 피해는 HP로 (아래 점수 집계). dmg는 이미 적 방어력 반영(post-def, BossDef=enemy.Stats.Def)이라
+                //   보호막 흡수분·HP 잔여분 모두 방어력이 포함된 값이다.
             }
 
             // R1/R2: 적 최대체력만큼만 점수 누적(오버킬 미집계). R3: 적 미사망이라 오버킬 누적.
@@ -695,8 +687,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         #region 타겟팅 / 데미지 계산
 
         /// <summary>
-        /// 타겟 선정: 약점공격(시뮬은 결정론적으로 항상 발동) = 생명력 최저 적, 동률이면 앞열(Position 낮은 순).
-        /// 라운드3에서는 약점공격 대상이 항상 보스(3보스 중 최저 HP).
+        /// 타겟 선정(타겟팅): 약점공격 = 생명력 최저 적, 동률이면 앞열(Position 낮은 순).
+        ///   ※ 약점 "데미지 계수"는 항상 100%가 아니라 실제 약확 기댓값(CalcDamageToEnemy의 ExpectedCritWeak). 여기선 타겟팅만.
+        /// 라운드3: 약확 100%↑ 단일기는 보스(크리스) 강제 집중(친위대 회피), 미만이면 최저 HP(룩/챈슬러로 분산).
         /// </summary>
         /// <summary>스킬 타겟 수만큼 적 선정 (최저 HP 우선·동률 앞열). 광역기는 여러 적을 친다. R3는 보스만.
         /// R3 약점공격 집중(일요일 핵심 기믹): 공격자 약점확률 100%↑이면 단일 타격을 전열 보스(자리2=크리스)로 집중 →
@@ -725,7 +718,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             return list.OrderBy(e => e.CurrentHp).ThenBy(e => e.Position).Take(System.Math.Max(1, count)).ToList();
         }
 
-        /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영. 시뮬은 치명·약점 항상 발동.</summary>
+        /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영.
+        ///   치명·약점은 실제 확률 기댓값(ExpectedCritWeak=true) — 치확/약확 기어 옵션이 딜에 실제로 반영된다.</summary>
         private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill, SiegeBattleState state = null)
         {
             var battleChar = ally.Source;
@@ -1285,9 +1279,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
-        /// 즉사(일요일 크리스) — 행동한 아군이 즉사 보유 시: 매 행동 현재 생명력 N%(기본 20%) 피해,
+        /// 즉사(일요일 크리스) — TickAllyAfterAction에서만 호출 = 즉사 보유 아군의 **기본공격(평타·턴 소모) 직후**에만 tick.
+        ///   스킬턴(턴 미소모)엔 발동 안 함. 매 평타마다 현재 생명력 N%(기본 20%) 피해,
         /// 그 즉사 효과의 마지막 턴(이번 tick에 만료)이면 즉시 사망. 면역 보유 시엔 애초에 부여되지 않음.
-        /// 여러 즉사 인스턴스가 겹쳐도 DoT는 1회(최대 비율)만 — "매 턴 현재 HP N%"는 상태당이 아닌 대상당.
+        /// 여러 즉사 인스턴스가 겹쳐도 DoT는 1회(최대 비율)만 — "매 평타 현재 HP N%"는 상태당이 아닌 대상당.
         /// </summary>
         private void ProcessInstantDeathOnAlly(SiegeBattleState state, CharacterBattleState ally)
         {

@@ -120,7 +120,8 @@ namespace GameDamageCalculator.Database
                 chanStatus: StatusEffectType.Burn, chanSkillName: "용염", chanStatusAtkRatio: 120,
                 pri3: new() { B("제이브", SkillType.Skill1), B("제이브", SkillType.Skill2), Chan1, Look1 }),
 
-            // ===== 일요일 — 크리스. 1스킬: 즉사[3턴]. 감쇄 5인기 90%만. 쿨 룩70/챈70. (몹 쿨감 패시브: 피격 시 쿨-15초 — 모델 미반영) =====
+            // ===== 일요일 — 크리스. 1스킬: 즉사[3턴]. 감쇄 5인기 90%만. 쿨 룩70/챈70.
+            //   (몹 쿨감 패시브: 룩/챈슬러 피격 시 공격력 최고 적=크리스 스킬 쿨-15초 — mobHitCdReduce=15로 반영됨, ApplyHitCdReduce) =====
             // 우선순위: 크리스2 → 크리스1 → 룩1 → 챈1
             Day(7, "일요일", "일요일 공성전 (지옥의 성)", "크리스",
                 new Reduction { Multi = 90 },
@@ -128,7 +129,7 @@ namespace GameDamageCalculator.Database
                 pri3: new() { B("크리스", SkillType.Skill2), B("크리스", SkillType.Skill1), Look1, Chan1 }),
         };
 
-        // R3 친위대 스탯은 요일별 미제공 → 토요일 값을 임시 placeholder로 사용 (실측 확보 시 요일별 교체).
+        // R3 친위대 스탯: HP 40000 확정(유저 실측). 방어력은 요일별(r3Def), Atk 룩1502/챈1754·Spd 룩19/챈25는 표준값.
         private static BaseStatSet R3LookPlaceholder() => new() { Atk = 1502, Def = 1423, Hp = 40000, Spd = 19, Cri_Dmg = 150, Eff_Hit = 100 };
         private static BaseStatSet R3ChanPlaceholder() => new() { Atk = 1754, Def = 1423, Hp = 40000, Spd = 25, Cri_Dmg = 150, Eff_Hit = 100 };
 

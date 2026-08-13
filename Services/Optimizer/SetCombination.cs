@@ -106,7 +106,9 @@ namespace GameDamageCalculator.Services.Optimizer
     }
 
     /// <summary>
-    /// 역할 기반 장비 탐색 제약 (허용 세트·메인옵·부옵). 치확%·약확%는 시뮬이 항상 100% 발동이라 제외.
+    /// 역할 기반 장비 탐색 제약 (허용 세트·메인옵·부옵). 치확%·약확%도 허용 옵션에 포함(SiegeOptimizer.GetGearConstraints):
+    ///   시뮬 딜은 실제 확률 기댓값(ExpectedCritWeak)이라 치확/약확이 딜에 반영되며, FloorFirstGear가 파티버프 포함
+    ///   100%까지 채우고 초과분만 치피/공%로 재배분한다.
     /// </summary>
     public class GearConstraints
     {
