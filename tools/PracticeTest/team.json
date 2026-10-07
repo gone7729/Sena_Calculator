@@ -1,0 +1,841 @@
+{
+  "heroes": [
+    {
+      "sheet": "진형번호1",
+      "type": "지원형",
+      "grade": "전설",
+      "name": "리나",
+      "transcend": 12,
+      "potential": {
+        "atk": 0,
+        "def": 0,
+        "hp": 0
+      },
+      "enhanced": {
+        "normal": true,
+        "skill1": true,
+        "skill2": true,
+        "passive": true
+      },
+      "gear": [
+        {
+          "slot": "무기",
+          "name": "무기1",
+          "set": "성기사",
+          "main": "생명력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "속공",
+              "value": 4,
+              "tier": 1
+            },
+            {
+              "stat": "방어력%",
+              "value": 20.0,
+              "tier": 4
+            },
+            {
+              "stat": "공격력%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "생명력",
+              "value": 360,
+              "tier": 2
+            }
+          ]
+        },
+        {
+          "slot": "무기",
+          "name": "무기2",
+          "set": "성기사",
+          "main": "생명력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "방어력",
+              "value": 90,
+              "tier": 3
+            },
+            {
+              "stat": "생명력%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "막기확률%",
+              "value": 4.0,
+              "tier": 1
+            },
+            {
+              "stat": "속공",
+              "value": 4,
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구1",
+          "set": "성기사",
+          "main": "생명력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "생명력%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "효과적중%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "생명력",
+              "value": 540,
+              "tier": 3
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 6.0,
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구2",
+          "set": "성기사",
+          "main": "생명력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "속공",
+              "value": 12,
+              "tier": 3
+            },
+            {
+              "stat": "생명력",
+              "value": 180,
+              "tier": 1
+            },
+            {
+              "stat": "생명력%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 16.0,
+              "tier": 4
+            }
+          ]
+        }
+      ],
+      "accessory": {
+        "grade": 0
+      },
+      "exclusive": null,
+      "warnings": [
+        "장신구 없음(빈칸)",
+        "전용장비 없음(빈칸)"
+      ],
+      "slot": 1
+    },
+    {
+      "sheet": "진형번호2",
+      "type": "공격형",
+      "grade": "전설",
+      "name": "지크",
+      "transcend": 12,
+      "potential": {
+        "atk": 3,
+        "def": 0,
+        "hp": 0
+      },
+      "enhanced": {
+        "normal": false,
+        "skill1": true,
+        "skill2": true,
+        "passive": true
+      },
+      "gear": [
+        {
+          "slot": "무기",
+          "name": "무기1",
+          "set": "수문장",
+          "main": "약점공격확률%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "약점공격확률%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "공격력",
+              "value": 50,
+              "tier": 1
+            },
+            {
+              "stat": "효과저항%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "생명력",
+              "value": 360,
+              "tier": 2
+            }
+          ]
+        },
+        {
+          "slot": "무기",
+          "name": "무기2",
+          "set": "수문장",
+          "main": "약점공격확률%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "약점공격확률%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "효과적중%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "막기확률%",
+              "value": 8.0,
+              "tier": 2
+            },
+            {
+              "stat": "속공",
+              "value": 12,
+              "tier": 3
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구1",
+          "set": "수문장",
+          "main": "막기확률%",
+          "mainValue": 24.0,
+          "subs": [
+            {
+              "stat": "약점공격확률%",
+              "value": 15.0,
+              "tier": 3
+            },
+            {
+              "stat": "막기확률%",
+              "value": 4.0,
+              "tier": 1
+            },
+            {
+              "stat": "방어력%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "공격력%",
+              "value": 15.0,
+              "tier": 3
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구2",
+          "set": "수문장",
+          "main": "막기확률%",
+          "mainValue": 24.0,
+          "subs": [
+            {
+              "stat": "공격력",
+              "value": 150,
+              "tier": 3
+            },
+            {
+              "stat": "막기확률%",
+              "value": 8.0,
+              "tier": 2
+            },
+            {
+              "stat": "생명력",
+              "value": 180,
+              "tier": 1
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 10.0,
+              "tier": 2
+            }
+          ]
+        }
+      ],
+      "accessory": {
+        "grade": 6,
+        "ring": "샐러맨더의 반지",
+        "ringValue": 0.15
+      },
+      "exclusive": {
+        "atk": 247,
+        "hp": 0,
+        "def": 0,
+        "tuning": [
+          {
+            "option": "피해증폭",
+            "value": 2.4,
+            "grade": "희귀"
+          },
+          {
+            "option": "모든공격력",
+            "value": 12.0,
+            "grade": "전설"
+          },
+          {
+            "option": "피해증폭",
+            "value": 4.0,
+            "grade": "전설"
+          },
+          {
+            "option": "피해증폭",
+            "value": 2.4,
+            "grade": "희귀"
+          }
+        ]
+      },
+      "warnings": [],
+      "slot": 2
+    },
+    {
+      "sheet": "진형번호3",
+      "type": "마법형",
+      "grade": "전설",
+      "name": "비스킷",
+      "transcend": 9,
+      "potential": {
+        "atk": 0,
+        "def": 0,
+        "hp": 0
+      },
+      "enhanced": {
+        "normal": true,
+        "skill1": true,
+        "skill2": true,
+        "passive": true
+      },
+      "gear": [
+        {
+          "slot": "무기",
+          "name": "무기1",
+          "set": "복수자",
+          "main": "치명타피해%",
+          "mainValue": 36.0,
+          "subs": [
+            {
+              "stat": "공격력%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 12.0,
+              "tier": 2
+            },
+            {
+              "stat": "공격력",
+              "value": 50,
+              "tier": 1
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 16.0,
+              "tier": 4
+            }
+          ]
+        },
+        {
+          "slot": "무기",
+          "name": "무기2",
+          "set": "복수자",
+          "main": "치명타확률%",
+          "mainValue": 24.0,
+          "subs": [
+            {
+              "stat": "방어력",
+              "value": 60,
+              "tier": 2
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 16.0,
+              "tier": 4
+            },
+            {
+              "stat": "공격력%",
+              "value": 5.0,
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구1",
+          "set": "복수자",
+          "main": "공격력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "효과적중%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "공격력%",
+              "value": 15.0,
+              "tier": 3
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 12.0,
+              "tier": 3
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구2",
+          "set": "복수자",
+          "main": "공격력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "공격력%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 16.0,
+              "tier": 4
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 12.0,
+              "tier": 2
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 5.0,
+              "tier": 1
+            }
+          ]
+        }
+      ],
+      "accessory": {
+        "grade": 6,
+        "ring": "권능의 반지",
+        "ringValue": 1.5,
+        "sub": "치명타확률%",
+        "subValue": 10.0
+      },
+      "exclusive": {
+        "atk": 153,
+        "hp": 883,
+        "def": 0,
+        "tuning": [
+          {
+            "option": "피해증폭",
+            "value": 4.0,
+            "grade": "전설"
+          },
+          {
+            "option": "모든공격력",
+            "value": 7.0,
+            "grade": "희귀"
+          },
+          {
+            "option": "피해증폭",
+            "value": 2.4,
+            "grade": "희귀"
+          },
+          {
+            "option": "모든공격력",
+            "value": 7.0,
+            "grade": "희귀"
+          }
+        ]
+      },
+      "warnings": [],
+      "slot": 3
+    },
+    {
+      "sheet": "진형번호4",
+      "type": "마법형",
+      "grade": "전설",
+      "name": "미호",
+      "transcend": 12,
+      "potential": {
+        "atk": 3,
+        "def": 3,
+        "hp": 3
+      },
+      "enhanced": {
+        "normal": true,
+        "skill1": true,
+        "skill2": true,
+        "passive": true
+      },
+      "gear": [
+        {
+          "slot": "무기",
+          "name": "무기1",
+          "set": "복수자",
+          "main": "치명타확률%",
+          "mainValue": 24.0,
+          "subs": [
+            {
+              "stat": "치명타피해%",
+              "value": 30.0,
+              "tier": 5
+            },
+            {
+              "stat": "공격력",
+              "value": 50,
+              "tier": 1
+            },
+            {
+              "stat": "공격력%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 4.0,
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "slot": "무기",
+          "name": "무기2",
+          "set": "복수자",
+          "main": "치명타확률%",
+          "mainValue": 24.0,
+          "subs": [
+            {
+              "stat": "치명타확률%",
+              "value": 16.0,
+              "tier": 4
+            },
+            {
+              "stat": "공격력",
+              "value": 100,
+              "tier": 2
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 6.0,
+              "tier": 1
+            },
+            {
+              "stat": "공격력%",
+              "value": 10.0,
+              "tier": 2
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구1",
+          "set": "복수자",
+          "main": "공격력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "약점공격확률%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "생명력%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 8.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 24.0,
+              "tier": 4
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구2",
+          "set": "복수자",
+          "main": "공격력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "방어력%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 15.0,
+              "tier": 3
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 4.0,
+              "tier": 1
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 24.0,
+              "tier": 4
+            }
+          ]
+        }
+      ],
+      "accessory": {
+        "grade": 6,
+        "main": "보피증%",
+        "mainValue": 12.0,
+        "sub": "치명타확률%",
+        "subValue": 10.0
+      },
+      "exclusive": {
+        "atk": 247,
+        "hp": 0,
+        "def": 0,
+        "tuning": [
+          {
+            "option": "피해증폭",
+            "value": 4.0,
+            "grade": "전설"
+          },
+          {
+            "option": "피해증폭",
+            "value": 4.0,
+            "grade": "전설"
+          },
+          {
+            "option": "피해증폭",
+            "value": 2.4,
+            "grade": "희귀"
+          },
+          {
+            "option": "피해증폭",
+            "value": 2.4,
+            "grade": "희귀"
+          }
+        ]
+      },
+      "warnings": [],
+      "slot": 4
+    },
+    {
+      "sheet": "진형번호5",
+      "type": "마법형",
+      "grade": "전설",
+      "name": "나타",
+      "transcend": 12,
+      "potential": {
+        "atk": 3,
+        "def": 3,
+        "hp": 3
+      },
+      "enhanced": {
+        "normal": true,
+        "skill1": true,
+        "skill2": true,
+        "passive": true
+      },
+      "gear": [
+        {
+          "slot": "무기",
+          "name": "무기1",
+          "set": "복수자",
+          "main": "치명타피해%",
+          "mainValue": 36.0,
+          "subs": [
+            {
+              "stat": "공격력%",
+              "value": 5.0,
+              "tier": 1
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 20.0,
+              "tier": 4
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 12.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 8.0,
+              "tier": 2
+            }
+          ]
+        },
+        {
+          "slot": "무기",
+          "name": "무기2",
+          "set": "복수자",
+          "main": "치명타피해%",
+          "mainValue": 36.0,
+          "subs": [
+            {
+              "stat": "공격력",
+              "value": 50,
+              "tier": 1
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 24.0,
+              "tier": 6
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 6.0,
+              "tier": 1
+            },
+            {
+              "stat": "공격력%",
+              "value": 5.0,
+              "tier": 1
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구1",
+          "set": "복수자",
+          "main": "공격력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "약점공격확률%",
+              "value": 10.0,
+              "tier": 2
+            },
+            {
+              "stat": "치명타피해%",
+              "value": 24.0,
+              "tier": 4
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 4.0,
+              "tier": 1
+            },
+            {
+              "stat": "공격력%",
+              "value": 10.0,
+              "tier": 2
+            }
+          ]
+        },
+        {
+          "slot": "방어구",
+          "name": "방어구2",
+          "set": "복수자",
+          "main": "공격력%",
+          "mainValue": 28.0,
+          "subs": [
+            {
+              "stat": "치명타피해%",
+              "value": 30.0,
+              "tier": 5
+            },
+            {
+              "stat": "막기확률%",
+              "value": 4.0,
+              "tier": 1
+            },
+            {
+              "stat": "치명타확률%",
+              "value": 4.0,
+              "tier": 1
+            },
+            {
+              "stat": "약점공격확률%",
+              "value": 10.0,
+              "tier": 2
+            }
+          ]
+        }
+      ],
+      "accessory": {
+        "grade": 6,
+        "main": "보피증%",
+        "mainValue": 12.0,
+        "sub": "1-3인기%",
+        "subValue": 10.0
+      },
+      "exclusive": {
+        "atk": 247,
+        "hp": 0,
+        "def": 0,
+        "tuning": [
+          {
+            "option": "피해증폭",
+            "value": 4.0,
+            "grade": "전설"
+          },
+          {
+            "option": "모든공격력",
+            "value": 12.0,
+            "grade": "전설"
+          },
+          {
+            "option": "피해증폭",
+            "value": 4.0,
+            "grade": "전설"
+          },
+          {
+            "option": "모든공격력",
+            "value": 7.0,
+            "grade": "희귀"
+          }
+        ]
+      },
+      "warnings": [],
+      "slot": 5
+    }
+  ],
+  "pet": {
+    "grade": "전설",
+    "name": "윈디",
+    "enhance": 3,
+    "potentialAtkRate": 72.0
+  }
+}
