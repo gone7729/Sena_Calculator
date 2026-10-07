@@ -115,6 +115,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   프로필(6↔12초월)의 빔 결과. 빔이 이 config에서 못 찾은 더 높은 로테를 교차평가로 회수(무회귀).
         //   HeroIndex는 동일 팀 순서 기준 — 고정팀에서만 의미.
         public List<List<RotationDecision>> SeedRotations { get; set; }
+
+        // [버프 타게팅 강제] SiegeBattleConfig.HighestAtkAllyOrder / ~CdrOnly 를 탐색 내 모든 시뮬에 그대로 전달.
+        //   인덱스는 FixedMembers+Candidates 순서 기준 — 고정팀(Candidates 없음)에서만 의미. null이면 기존 동작.
+        public List<int> HighestAtkAllyOrder { get; set; }
+        public bool HighestAtkAllyOverrideCdrOnly { get; set; }
+        // [진단] 아군 불사(SiegeBattleConfig.DiagAlliesImmortal) — 생존 제약 없는 순수 로테 품질 탐색 실험용.
+        public bool DiagAlliesImmortal { get; set; }
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -816,16 +823,17 @@ namespace GameDamageCalculator.Services.BattleEngine
                 best.GearLog.Add($"[로테 재최적화] 생존반지 後 천장 회수: {before:N0} → {best.BestScore:N0}");
         }
 
-        /// <summary>생존반지 후보 — 기존 장신구의 스탯(등급/메인/부옵)은 유지하고 권능 효과만 부여.
+        /// <summary>생존반지 후보 — 반지는 메인옵 자리를 권능 효과가 대신하고 옵션은 부옵 1줄뿐(연습전투 실측).
+        /// 기존 장신구의 메인/부옵 중 하나를 부옵으로 남기는 두 후보(같으면 1개). 등급 보너스는 유지.
         /// 공성전은 **권능의 반지만** 탐색한다: 권능은 사망하지 않고(생명력1로) 생존 → 버프 유지.
         /// 부활/불사는 사망 후 부활이라 보유 버프가 해제돼 저딜 서포터 생존 가치가 떨어짐(제외).</summary>
         private static IEnumerable<Accessory> SurvivalRingCandidates(Accessory baseAcc)
         {
-            yield return new Accessory
-            {
-                Grade = baseAcc.Grade, MainOption = baseAcc.MainOption,
-                SubOption = baseAcc.SubOption, RingName = "권능의 반지",
-            };
+            var subs = new[] { baseAcc.MainOption, baseAcc.SubOption }
+                .Where(o => !string.IsNullOrEmpty(o) && o != "없음").Distinct().ToList();
+            if (subs.Count == 0) subs.Add(null);
+            foreach (var sub in subs)
+                yield return new Accessory { Grade = baseAcc.Grade, SubOption = sub, RingName = "권능의 반지" };
         }
 
         /// <summary>전용무기 조율 후보(전설 4슬롯) — 딜러/탱커 공통 소수 조합만(8^4 전수 대신).
@@ -918,6 +926,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             PetOptionHpRate = config.PetOptionHpRate,
             MaxTurns = config.MaxTurns,
             AllyDeathPenalty = config.AllyDeathPenalty,   // 생존 우선(전멸 빌드 회피) — 보고 점수 불변, RankScore에만 반영
+            HighestAtkAllyOrder = config.HighestAtkAllyOrder,
+            HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
+            DiagAlliesImmortal = config.DiagAlliesImmortal,
         };
 
         /// <summary>장착된 장비의 세트·메인옵 값·부옵 값을 사람이 읽기 쉬운 문자열로.</summary>

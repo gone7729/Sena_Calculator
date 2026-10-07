@@ -34,6 +34,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 현재 진행 중인 행동이 스킬턴(0턴, 턴 미소모)인지
         public bool IsSkillTurn { get; set; }
         public bool ForceFullBuffUptime { get; set; }   // [진단] 아군 버프 만료 스킵(풀 uptime 실험)
+        public List<int> HighestAtkAllyOrder { get; set; }      // "공격력 최고 아군" 순위 강제(AllyParty 인덱스, 앞=1순위). null=DamageWeight 순
+        public bool HighestAtkAllyOverrideCdrOnly { get; set; } // 강제를 평타 쿨감에만 적용
+        public bool DiagAlliesImmortal { get; set; }            // [진단] 아군 HP 피해 무시(불사)
+        /// <summary>강제 순위 키(작을수록 우선). 미포함/미지정=int.MaxValue → 기존 DamageWeight 순서로 폴백.</summary>
+        public int AtkRankKey(int partyIndex, bool forCdr)
+        {
+            if (HighestAtkAllyOrder == null || (!forCdr && HighestAtkAllyOverrideCdrOnly)) return int.MaxValue;
+            int k = HighestAtkAllyOrder.IndexOf(partyIndex);
+            return k < 0 ? int.MaxValue : k;
+        }
 
         // (구) 전역 적 피해 면역 잔여 턴 — 적별 SiegeEnemyState.ImmunityTurns로 이전(per-action 차감). 필드 제거.
 

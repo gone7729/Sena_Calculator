@@ -58,6 +58,17 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   금요일(제이브) 외 보스는 Counterattack=null이라 이 값과 무관(월화수목토 무영향).
         public double? CounterattackChanceOverride { get; set; }
 
+        // [버프 타게팅 강제] "공격력이 가장 높은 아군"(라이언·나타 평타쿨감, 비스킷 장비강화) 순위를 이 AllyParty 인덱스
+        //   순서로 고정(앞이 1순위). 미포함 영웅은 그 뒤에 기존 순서(DamageWeight). null/빈 리스트면 기존 동작.
+        //   인게임은 raw 공격력 기준이라, 유저가 지원형(리나)에 공격 세트를 끼워 일부러 쿨감 수령자로 만드는 빌드
+        //   (예: 나타1위·리나2위 → 라이언쿨감→나타, 나타쿨감→리나)를 재현할 때 사용.
+        public List<int> HighestAtkAllyOrder { get; set; }
+        // true면 위 강제를 평타 쿨감(ApplyBasicAttackCdReduction)에만 적용하고 장비강화 등 스킬 버프는 기존 타게팅 유지.
+        public bool HighestAtkAllyOverrideCdrOnly { get; set; }
+
+        // [진단] true면 아군이 HP 피해를 받지 않는다(불사) — "생존을 전제로 한 순수 로테 품질" 비교 실험용. 점수 로직 불변.
+        public bool DiagAlliesImmortal { get; set; }
+
         // 아군 사망 1명당 랭킹 점수 페널티. 0이면 없음(기존 동작). >0이면 빔/옵티마이저가 생존(버프해제)을 우선해
         //   전멸 빌드를 피한다. 보고 점수(TotalScore=실제 누적딜)는 불변 — RankScore에만 반영. 사망 없는 날은 무영향.
         public double AllyDeathPenalty { get; set; }

@@ -115,6 +115,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 SiegeStage = config.SiegeStage,
                 MaxTurns = config.MaxTurns,
                 ForceFullBuffUptime = config.ForceFullBuffUptime,
+                HighestAtkAllyOrder = config.HighestAtkAllyOrder,
+                HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
+                DiagAlliesImmortal = config.DiagAlliesImmortal,
             };
 
             // 아군 스탯 — 기존 BattleSimulator.InitializeCharacterState 재사용 (TargetEnemy 불필요)
@@ -1045,6 +1048,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             double dmg, string label)
         {
             if (dmg <= 0 || ally.IsDead) return;
+            if (state.DiagAlliesImmortal) return;   // [진단] 불사 실험 — 피격 자체를 무시
 
             // 피해 무효화 (피격 N회 / N턴) — 피해 자체를 0으로. 타입 한정(물리/마법) 면역은 적 공격 타입과 일치할 때만.
             var incomingType = enemy.Source.AttackType == AttackType.Magic ? DamageNullType.Magic : DamageNullType.Physical;
@@ -1697,8 +1701,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                     || e.Target == EffectTarget.Party)
                 {
                     // "자신과 공격력 최고 아군" = 자신 + 자신 제외 실효딜 최고 아군 (raw atk 아닌 데미지 가중치)
+                    //   config.HighestAtkAllyOrder 지정 시 그 순위 우선(유저 빌드 재현: 리나 공격세트 → 쿨감 수령).
                     var top = state.AllyStates.Where(a => !a.IsDead && a != ally)
-                        .OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk).FirstOrDefault();
+                        .OrderBy(a => state.AtkRankKey(a.PartyIndex, forCdr: true))
+                        .ThenByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk).FirstOrDefault();
                     if (top != null) targets.Add(top);
                 }
                 foreach (var t in targets) t.ReduceCooldowns(cdr);
@@ -2173,7 +2179,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (selector == TargetSelector.HighestAtkAlly)
                 // 실효딜 가중치 상위 N명(딜러 우선). raw FinalAtk가 아니라 대표 스킬 데미지로 랭킹 →
                 // 공%로 atk만 뻥튀기한 캐릭(예: 레이첼)이 버프를 가로채는 문제 방지. 비딜러(=0)는 후순위.
-                return alive.OrderByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk)
+                //   config.HighestAtkAllyOrder(쿨감 전용이 아닐 때) 지정 시 그 순위 우선.
+                return alive.OrderBy(a => state.AtkRankKey(a.PartyIndex, forCdr: false))
+                    .ThenByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk)
                     .Take(System.Math.Max(1, tgtCount)).ToList();
             if (selector == TargetSelector.BackRowAlly)   // 후열 아군 한정 (지크 물공증, 미호 디버프해제와 동일 패턴)
                 return alive.Where(a => a.Source.IsBackPosition).ToList();
