@@ -34,8 +34,9 @@ namespace GameDamageCalculator.Models
             if (AccessoryDb.GradeBonus.TryGetValue(Grade, out var gradeBonus))
                 stats.Add(gradeBonus);
 
-            // 메인옵션
-            if (!string.IsNullOrEmpty(MainOption) && MainOption != "없음")
+            // 메인옵션 — 반지(RingName)는 메인옵 자리를 고유효과가 대신하므로 메인옵 없음
+            //   (2026-10 연습전투 실측: 비스킷 권능의 반지 + 부옵 치확10 → 옵션 1줄뿐)
+            if (string.IsNullOrEmpty(RingName) && !string.IsNullOrEmpty(MainOption) && MainOption != "없음")
             {
                 if (AccessoryDb.MainOptions.TryGetValue(Grade, out var mainOptions))
                 {

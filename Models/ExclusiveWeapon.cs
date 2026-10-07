@@ -78,6 +78,9 @@ namespace GameDamageCalculator.Models
         public double Atk { get; set; } = 247;
         /// <summary>마법 공격력 (마법형 캐릭이면 MagicAtk로 적용)</summary>
         public bool IsMagic { get; set; }
+        /// <summary>생명력/방어력 flat (지원·방어형 전용장비 일부 — 예: 비스킷 생명력 883). 기본 0.</summary>
+        public double Hp { get; set; }
+        public double Def { get; set; }
         /// <summary>조율 4슬롯 (공용 무기는 비어있음)</summary>
         public List<TuningSlot> Tuning { get; set; } = new();
 
@@ -90,6 +93,8 @@ namespace GameDamageCalculator.Models
         {
             if (IsMagic) stats.MagicAtk += Atk;
             else stats.Atk += Atk;
+            stats.Hp += Hp;
+            stats.Def += Def;
             foreach (var slot in Tuning) slot.ApplyTo(stats);
         }
 

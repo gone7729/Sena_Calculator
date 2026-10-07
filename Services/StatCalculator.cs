@@ -244,7 +244,8 @@ namespace GameDamageCalculator.Services
             // ========== 깡스탯 합계 ==========
             double equipFlatAtk = EquipmentDb.EquipStatTable.CommonWeaponStat.Atk * 2;
             double equipFlatDef = EquipmentDb.EquipStatTable.CommonArmorStat.Def * 2;
-            double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp;
+            // 방어구 2부위 모두 방어력+생명력 기본치 보유 (2026-10 연습전투 스탯창 실측: 나타 생명력 7,943 = 1079×2 반영값)
+            double equipFlatHp = EquipmentDb.EquipStatTable.CommonArmorStat.Hp * 2;
 
             // 패시브 FlatBonus (예: 밀리아 「광채의 수정비늘」 Def +1009, Hp +3929)
             var passiveLevelData = input.Character?.Passive?.GetLevelData(input.IsSkillEnhanced);
@@ -258,9 +259,11 @@ namespace GameDamageCalculator.Services
                            + petBaseStats.Atk + equipmentStats.MainStats.Atk + passiveFlatBonus.Atk
                            + exclusiveFlatAtk;
             double flatDef = equipFlatDef + potentialStats.Def + equipmentStats.SubStats.Def
-                           + petBaseStats.Def + equipmentStats.MainStats.Def + passiveFlatBonus.Def;
+                           + petBaseStats.Def + equipmentStats.MainStats.Def + passiveFlatBonus.Def
+                           + exclusiveStats.Def;
             double flatHp = equipFlatHp + potentialStats.Hp + equipmentStats.SubStats.Hp
-                          + petBaseStats.Hp + equipmentStats.MainStats.Hp + passiveFlatBonus.Hp;
+                          + petBaseStats.Hp + equipmentStats.MainStats.Hp + passiveFlatBonus.Hp
+                          + exclusiveStats.Hp;   // 전용장비 생명력 flat (예: 비스킷 883)
 
             // ========== 속공 계산 ==========
             double totalSpd = characterStats.Spd + equipmentStats.SubStats.Spd;
