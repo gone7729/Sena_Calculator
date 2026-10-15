@@ -26,12 +26,18 @@ namespace GameDamageCalculator.Services
             public double FinalHp { get; set; }
             public double CritDamage { get; set; }
             public double DmgDealt { get; set; }
+            // 피해증폭(전용장비 조율) — 피해증가(DmgDealt)와 별개로 최종 데미지에 ×(1+DmgAmp/100). 연습전투 실측 확정.
+            public double DmgAmp { get; set; }
             public double DmgDealtType { get; set; }
             public double DmgDealtBoss { get; set; }
             public double ArmorPen { get; set; }
             public double WeakpointDmg { get; set; }
             public double WeakpointDmgBuff { get; set; }
             public double Dmg1to3 { get; set; }
+            public double Dmg1 { get; set; }   // 1인 공격기 전용 피해량% (예: 강시의 부적 6초월)
+            public double Dmg3 { get; set; }
+            // 공성전 대상수 감쇄(1인기 70% 등) — 취약계수에 음수로 합산 (취약+보스취약+받피증 − 이 값, 0 하한)
+            public double TargetCountReduction { get; set; }   // 3인 공격기 전용 피해량% (예: 나타·라이언 패시브) — 평타(1인)엔 미적용(실측)
             public double Dmg4to5 { get; set; }
 
             // ===== 디버프 =====
@@ -274,13 +280,15 @@ namespace GameDamageCalculator.Services
             result.DamagePerHit = ApplyBlessing(result.DamagePerHit, input, result);
 
             // 17. 최종 데미지
-            double vulnerabilityTotal = 1 + (input.Vulnerability + input.BossVulnerability + input.DmgTakenIncrease) / 100;
+            double vulnerabilityTotal = Math.Max(0, 1 + (input.Vulnerability + input.BossVulnerability + input.DmgTakenIncrease - input.TargetCountReduction) / 100);
             result.SkillDamage = result.DamagePerHit * result.AtkCount;
             result.StatusDamage = result.BonusDamage * result.AtkCount;
-            result.FinalDamage = (result.SkillDamage + result.HpRatioDamage + result.ConsumeExtraDmg) * vulnerabilityTotal;
+            double ampMult = 1 + input.DmgAmp / 100.0;   // 피해증폭 최종 곱
+            result.FinalDamage = (result.SkillDamage + result.HpRatioDamage + result.ConsumeExtraDmg) * vulnerabilityTotal * ampMult;
 
             result.DebugLog.AppendLine($"\n[17] 최종계산:");
             result.DebugLog.AppendLine($"    취약계수: 1 + ({input.Vulnerability} + {input.BossVulnerability} + {input.DmgTakenIncrease})/100 = {vulnerabilityTotal:F4}x");
+            if (input.DmgAmp > 0) result.DebugLog.AppendLine($"    피해증폭: ×{ampMult:F4} ({input.DmgAmp}%)");
             result.DebugLog.AppendLine($"    스킬피해: {result.DamagePerHit:N0} × {result.AtkCount}타 = {result.SkillDamage:N0}");
             result.DebugLog.AppendLine($"    상태이상: {result.StatusDamage:N0}, HP비례: {result.HpRatioDamage:N0}, 스택소모: {result.ConsumeExtraDmg:N0}");
             result.DebugLog.AppendLine($"    취약전합계: {result.SkillDamage + result.HpRatioDamage + result.ConsumeExtraDmg:N0}");
@@ -379,6 +387,7 @@ namespace GameDamageCalculator.Services
             {
                 targetCount = input.Skill.GetTargetCount(input.IsSkillEnhanced, input.TranscendLevel);
                 targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3 : (targetCount >= 4) ? input.Dmg4to5 : 0;
+                targetTypeDmg += targetCount == 1 ? input.Dmg1 : targetCount == 3 ? input.Dmg3 : 0;
             }
 
             // 보스 피증
@@ -509,6 +518,7 @@ namespace GameDamageCalculator.Services
                 // 피증 구성요소 개별 출력 (소거법용)
                 int targetCount = input.Skill?.GetTargetCount(input.IsSkillEnhanced, input.TranscendLevel) ?? 0;
                 double targetTypeDmg = (targetCount >= 1 && targetCount <= 3) ? input.Dmg1to3 : (targetCount >= 4) ? input.Dmg4to5 : 0;
+                targetTypeDmg += targetCount == 1 ? input.Dmg1 : targetCount == 3 ? input.Dmg3 : 0;
                 double bossDmg = input.IsTargetBoss ? input.DmgDealtBoss : 0;
                 result.DebugLog.AppendLine($"    [피증분석] 기본:{input.DmgDealt}% 타입:{input.DmgDealtType}% 보스:{bossDmg}% {targetCount}인기:{targetTypeDmg}%");
                 result.DebugLog.AppendLine($"    [피증비교] 전체:{result.DamageMultiplier:F4} 스킬:{result.SkillDmgMultiplier:F4} 추가:{result.ExtraDmgMultiplier:F4}");

@@ -32,6 +32,8 @@ namespace GameDamageCalculator.Models
         public double Mark_Purify { get; set; }     // 마력 정화 (타입피증과 별도 적용)
         public double Dmg_Dealt_Bos { get; set; }   // 보스 피해량%
         public double Dmg_Dealt_1to3 { get; set; }  // 1-3인기 피해량%
+        public double Dmg_Dealt_1 { get; set; }  // 1인 공격기 전용 피해량%
+        public double Dmg_Dealt_3 { get; set; }  // 3인 공격기 전용 피해량%
         public double Dmg_Dealt_4to5 { get; set; }  // 4-5인기 피해량%
 
         // ===== 방어 관련 =====
@@ -76,6 +78,8 @@ namespace GameDamageCalculator.Models
             Mark_Purify += other.Mark_Purify;
             Dmg_Dealt_Bos += other.Dmg_Dealt_Bos;
             Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
+            Dmg_Dealt_1 += other.Dmg_Dealt_1;
+            Dmg_Dealt_3 += other.Dmg_Dealt_3;
             Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
             Arm_Pen += other.Arm_Pen;
             Dmg_Rdc += other.Dmg_Rdc;
@@ -117,6 +121,8 @@ namespace GameDamageCalculator.Models
             Mark_Purify = Math.Max(Mark_Purify, other.Mark_Purify);
             Dmg_Dealt_Bos = Math.Max(Dmg_Dealt_Bos, other.Dmg_Dealt_Bos);
             Dmg_Dealt_1to3 = Math.Max(Dmg_Dealt_1to3, other.Dmg_Dealt_1to3);
+            Dmg_Dealt_1 = Math.Max(Dmg_Dealt_1, other.Dmg_Dealt_1);
+            Dmg_Dealt_3 = Math.Max(Dmg_Dealt_3, other.Dmg_Dealt_3);
             Dmg_Dealt_4to5 = Math.Max(Dmg_Dealt_4to5, other.Dmg_Dealt_4to5);
             Arm_Pen = Math.Max(Arm_Pen, other.Arm_Pen);
             Dmg_Rdc = Math.Max(Dmg_Rdc, other.Dmg_Rdc);
@@ -162,6 +168,8 @@ namespace GameDamageCalculator.Models
             if (other.Mark_Purify != 0) Mark_Purify = other.Mark_Purify;
             if (other.Dmg_Dealt_Bos != 0) Dmg_Dealt_Bos = other.Dmg_Dealt_Bos;
             if (other.Dmg_Dealt_1to3 != 0) Dmg_Dealt_1to3 = other.Dmg_Dealt_1to3;
+            if (other.Dmg_Dealt_1 != 0) Dmg_Dealt_1 = other.Dmg_Dealt_1;
+            if (other.Dmg_Dealt_3 != 0) Dmg_Dealt_3 = other.Dmg_Dealt_3;
             if (other.Dmg_Dealt_4to5 != 0) Dmg_Dealt_4to5 = other.Dmg_Dealt_4to5;
             if (other.Arm_Pen != 0) Arm_Pen = other.Arm_Pen;
             if (other.Dmg_Rdc != 0) Dmg_Rdc = other.Dmg_Rdc;
@@ -204,6 +212,8 @@ namespace GameDamageCalculator.Models
                 Mark_Purify = Mark_Purify,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
+                Dmg_Dealt_1 = Dmg_Dealt_1,
+                Dmg_Dealt_3 = Dmg_Dealt_3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,
@@ -245,6 +255,8 @@ namespace GameDamageCalculator.Models
             Mark_Purify = 0;
             Dmg_Dealt_Bos = 0;
             Dmg_Dealt_1to3 = 0;
+            Dmg_Dealt_1 = 0;
+            Dmg_Dealt_3 = 0;
             Dmg_Dealt_4to5 = 0;
             Arm_Pen = 0;
             Dmg_Rdc = 0;
@@ -290,6 +302,8 @@ namespace GameDamageCalculator.Models
                 Mark_Purify = Mark_Purify,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
+                Dmg_Dealt_1 = Dmg_Dealt_1,
+                Dmg_Dealt_3 = Dmg_Dealt_3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,
@@ -335,6 +349,8 @@ namespace GameDamageCalculator.Models
                 Mark_Purify = timedBuff.Mark_Purify,
                 Dmg_Dealt_Bos = timedBuff.Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = timedBuff.Dmg_Dealt_1to3,
+                Dmg_Dealt_1 = timedBuff.Dmg_Dealt_1,
+                Dmg_Dealt_3 = timedBuff.Dmg_Dealt_3,
                 Dmg_Dealt_4to5 = timedBuff.Dmg_Dealt_4to5,
                 Arm_Pen = timedBuff.Arm_Pen,
                 Dmg_Rdc = timedBuff.Dmg_Rdc,
@@ -381,6 +397,8 @@ namespace GameDamageCalculator.Models
                 Mark_Purify = Mark_Purify,
                 Dmg_Dealt_Bos = Dmg_Dealt_Bos,
                 Dmg_Dealt_1to3 = Dmg_Dealt_1to3,
+                Dmg_Dealt_1 = Dmg_Dealt_1,
+                Dmg_Dealt_3 = Dmg_Dealt_3,
                 Dmg_Dealt_4to5 = Dmg_Dealt_4to5,
                 Arm_Pen = Arm_Pen,
                 Dmg_Rdc = Dmg_Rdc,

@@ -752,11 +752,14 @@ namespace GameDamageCalculator.Services.Optimizer
                 FinalHp = statResult.FinalHp,
                 CritDamage = statResult.DisplayStats.Cri_Dmg,
                 DmgDealt = statResult.DisplayStats.Dmg_Dealt,
+                DmgAmp = statResult.DisplayStats.Dmg_Amp,
                 DmgDealtType = statResult.DisplayStats.Dmg_Dealt_Type,
                 DmgDealtBoss = statResult.DisplayStats.Dmg_Dealt_Bos,
                 ArmorPen = statResult.DisplayStats.Arm_Pen,
                 WeakpointDmg = statResult.DisplayStats.Wek_Dmg,
                 Dmg1to3 = statResult.DisplayStats.Dmg_Dealt_1to3,
+                Dmg1 = statResult.DisplayStats.Dmg_Dealt_1,
+                Dmg3 = statResult.DisplayStats.Dmg_Dealt_3,
                 Dmg4to5 = statResult.DisplayStats.Dmg_Dealt_4to5,
                 // 치명·약점 확률 기반 기댓값 — 치확/약확 메인옵·부옵 탐색이 의미를 갖도록.
                 // 파티 버스트 버프(floor)를 더해 realized 크리/약점 반영 → 캡(100%) 넘는 기어 치확/약확은 한계효용 0이 됨.

@@ -712,7 +712,7 @@ namespace GameDamageCalculator.Database
                             Effect = "모든 아군 3인 공격기 피해량 25% 증가[상시], 아군 화상 면역[2턴], 자신의 기본 공격 1회 발동 시 아군 화상 면역[2턴]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 25 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_3 = 25 } },
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.NormalOnly, TriggerCount = 1, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } }
                             }
                         }},
@@ -720,7 +720,7 @@ namespace GameDamageCalculator.Database
                             Effect = "모든 아군 3인 공격기 피해량 31% 증가[상시], 아군 화상 면역[2턴], 자신의 기본 공격 1회 발동 시 아군 화상 면역[2턴]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 31 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_3 = 31 } },
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.NormalOnly, TriggerCount = 1, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Burn }, Duration = 2 } }
                             }
                         }}
@@ -6913,7 +6913,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 27 } },
-                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 28 } },
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_3 = 28 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, OncePerBattle = true, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
                             },
                             Effect = "[자신] 생명력 50% 이하 시 모든 피해 면역[2턴](전투당 1회), 치명타 확률 27% 증가[상시]. [아군(마법형)] 3인 공격기 피해량 증가 28%[상시]"
@@ -6923,7 +6923,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Cri = 33 } },
-                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 33 } },
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_3 = 33 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, OncePerBattle = true, DamageNullification = new DamageNullification { Duration = 2, Type = DamageNullType.All } }
                             },
                             Effect = "강화: [자신] 치명타 확률 33% 증가, 생명력 50% 이하 시 모든 피해 면역[2턴](전투당 1회). [아군(마법형)] 3인 공격기 피해량 증가 33%[상시]"
@@ -14168,7 +14168,7 @@ namespace GameDamageCalculator.Database
                                 // 강화: 자신 생명력 50% 이하 시 시전자 물리 공격력 45% 생명력 회복 (전투당 1회)
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnHpBelow, TriggerHpThreshold = 50, TriggeredHealAtkRatio = 45 },
                                 // 6초월: 모든 아군 1인 공격기 피해량 증가 23% [상시]
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1to3 = 23 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_1 = 23 } }
                             },
                             Effect = "강화: 생명력 회복량 물리 공격력 45%. 6초월: 모든 아군 1인 공격기 피해량 +23%"
                         }}

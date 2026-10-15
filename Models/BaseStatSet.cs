@@ -37,6 +37,9 @@ namespace GameDamageCalculator.Models
         public double Dmg_Dealt { get; set; }   // 주는 피해량 (%)
         public double Dmg_Dealt_Bos { get; set; } // 보스 대상 피해량 (%)
         public double Dmg_Dealt_Type { get; set; } // ~~ 주는 피해량 (%)
+        // 피해증폭(전용장비 조율) — 피해증가와 별개로 최종 데미지에 곱연산 (×(1+Dmg_Amp/100)).
+        //   2026-10 연습전투 실측: 나타→루디 혼천릉파 722,319 / 화첨창술 405,436 = 합산모델 ×1.08 정확 일치.
+        public double Dmg_Amp { get; set; }
 
         // ===== 비율 증가 (장비/버프용) =====
         public double Atk_Rate { get; set; }    // 공격력 % 증가
@@ -44,6 +47,8 @@ namespace GameDamageCalculator.Models
         public double Hp_Rate { get; set; }     // 생명력 % 증가
 
         public double Dmg_Dealt_1to3 { get; set; }  // ← 추가: 1-3인기 피해량
+        public double Dmg_Dealt_1 { get; set; }  // 1인 공격기 전용 피해량%
+        public double Dmg_Dealt_3 { get; set; }  // 3인 공격기 전용 피해량%
         public double Dmg_Dealt_4to5 { get; set; }  // ← 추가: 4-5인기 피해량
 
         public double Dmg_Rdc_Single { get; set; }  // 1인기 받피감
@@ -84,7 +89,10 @@ namespace GameDamageCalculator.Models
             Def_Rate += other.Def_Rate;
             Hp_Rate += other.Hp_Rate;
             Dmg_Dealt_1to3 += other.Dmg_Dealt_1to3;
+            Dmg_Dealt_1 += other.Dmg_Dealt_1;
+            Dmg_Dealt_3 += other.Dmg_Dealt_3;
             Dmg_Dealt_4to5 += other.Dmg_Dealt_4to5;
+            Dmg_Amp += other.Dmg_Amp;
             Dmg_Rdc_Single += other.Dmg_Rdc_Single;
             Dmg_Rdc_Triple += other.Dmg_Rdc_Triple;
             Dmg_Rdc_Multi += other.Dmg_Rdc_Multi;
@@ -158,7 +166,10 @@ namespace GameDamageCalculator.Models
                 Def_Rate = this.Def_Rate,
                 Hp_Rate = this.Hp_Rate,
                 Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3,
+                Dmg_Dealt_1 = this.Dmg_Dealt_1,
+                Dmg_Dealt_3 = this.Dmg_Dealt_3,
                 Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5,
+                Dmg_Amp = this.Dmg_Amp,
                 Dmg_Rdc_Single = this.Dmg_Rdc_Single,
                 Dmg_Rdc_Triple = this.Dmg_Rdc_Triple,
                 Dmg_Rdc_Multi = this.Dmg_Rdc_Multi,
@@ -195,7 +206,10 @@ namespace GameDamageCalculator.Models
             Def_Rate = 0;
             Hp_Rate = 0;
             Dmg_Dealt_1to3 = 0;
+            Dmg_Dealt_1 = 0;
+            Dmg_Dealt_3 = 0;
             Dmg_Dealt_4to5 = 0;
+            Dmg_Amp = 0;
             Dmg_Rdc_Single = 0;
             Dmg_Rdc_Triple = 0;
             Dmg_Rdc_Multi = 0;
@@ -236,7 +250,10 @@ namespace GameDamageCalculator.Models
                 Dmg_Dealt = this.Dmg_Dealt * multiplier,
                 Dmg_Dealt_Bos = this.Dmg_Dealt_Bos * multiplier,
                 Dmg_Dealt_1to3 = this.Dmg_Dealt_1to3 * multiplier,
+                Dmg_Dealt_1 = this.Dmg_Dealt_1 * multiplier,
+                Dmg_Dealt_3 = this.Dmg_Dealt_3 * multiplier,
                 Dmg_Dealt_4to5 = this.Dmg_Dealt_4to5 * multiplier,
+                Dmg_Amp = this.Dmg_Amp * multiplier,
         
                 // 비율 증가
                 Atk_Rate = this.Atk_Rate * multiplier,

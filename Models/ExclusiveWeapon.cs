@@ -22,7 +22,7 @@ namespace GameDamageCalculator.Models
         생명력,        // Hp_Rate
         효과적중,      // Eff_Hit
         효과저항,      // Eff_Res
-        피해증폭,      // Dmg_Dealt
+        피해증폭,      // Dmg_Amp (최종 별도 곱 — 피해증가와 합산 아님)
         파쇄,          // Block_Reduction
         탄성           // CritDmg_Taken_Reduction
     }
@@ -56,7 +56,7 @@ namespace GameDamageCalculator.Models
                 case TuningOption.생명력:     stats.Hp_Rate += v; break;
                 case TuningOption.효과적중:   stats.Eff_Hit += v; break;
                 case TuningOption.효과저항:   stats.Eff_Res += v; break;
-                case TuningOption.피해증폭:   stats.Dmg_Dealt += v; break;
+                case TuningOption.피해증폭:   stats.Dmg_Amp += v; break;
                 case TuningOption.파쇄:       stats.Block_Reduction += v; break;
                 case TuningOption.탄성:       stats.CritDmg_Taken_Reduction += v; break;
             }

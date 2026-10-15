@@ -25,7 +25,7 @@ namespace GameDamageCalculator.Database
                     { 6, new PetSkill { Buff = new BuffSet { Atk_Rate = 21 } } },
                 }
             },
-            // 연지
+            // 연지 — 마법 공격력 증가 (나무위키 원문 "마법 공격력"; 이전 Atk_Rate=물리로 오입력)
             new Pet
             {
                 Id = 2,
@@ -33,12 +33,13 @@ namespace GameDamageCalculator.Database
                 Rarity = "전설",
                 Skills = new Dictionary<int, PetSkill>
                 {
-                    { 4, new PetSkill { Buff = new BuffSet { Atk_Rate = 17 } } },
-                    { 5, new PetSkill { Buff = new BuffSet { Atk_Rate = 19 } } },
-                    { 6, new PetSkill { Buff = new BuffSet { Atk_Rate = 21 } } },
+                    { 4, new PetSkill { Buff = new BuffSet { MagicAtk_Rate = 17 } } },
+                    { 5, new PetSkill { Buff = new BuffSet { MagicAtk_Rate = 19 } } },
+                    { 6, new PetSkill { Buff = new BuffSet { MagicAtk_Rate = 21 } } },
                 }
             },
-            // 윈디 — 펫의 응원: 모든 아군 공격력 증가 + 보스 취약
+            // 윈디 — 펫의 응원: 모든 아군 "모든 공격력" 증가(물리+마법) + 보스 취약
+            //   (2026-10 연습전투 실측: 마법형 나타 전투 중 공격력 8,455 = 버프전 7,344 × 1.15 — 이전엔 물리만 → 마법 딜러 15% 누락)
             new Pet
             {
                 Id = 3,
@@ -47,24 +48,24 @@ namespace GameDamageCalculator.Database
                 Skills = new Dictionary<int, PetSkill>
                 {
                     { 4, new PetSkill {
-                        Buff = new BuffSet{ Atk_Rate = 8 },
+                        Buff = new BuffSet{ Atk_Rate = 8, MagicAtk_Rate = 8 },
                         Debuff = new DebuffSet{ Boss_Vulnerability = 15 }
                      } },
                     { 5, new PetSkill {
-                        Buff = new BuffSet{ Atk_Rate = 10 },
+                        Buff = new BuffSet{ Atk_Rate = 10, MagicAtk_Rate = 10 },
                         Debuff = new DebuffSet{ Boss_Vulnerability = 20 }
                      } },
                     { 6, new PetSkill {
-                        Buff = new BuffSet{ Atk_Rate = 12 },
+                        Buff = new BuffSet{ Atk_Rate = 12, MagicAtk_Rate = 12 },
                         Debuff = new DebuffSet{ Boss_Vulnerability = 26 }
                      } },
                 },
                 // 스킬강화: 공격력 증가·보스 취약을 절대값으로 변경 (6성 기준 12%/26% → 강화값)
                 EnhanceBonus = new Dictionary<int, PetSkill>
                 {
-                    { 1, new PetSkill { Buff = new BuffSet{ Atk_Rate = 13 }, Debuff = new DebuffSet{ Boss_Vulnerability = 27 } } },
-                    { 2, new PetSkill { Buff = new BuffSet{ Atk_Rate = 14 }, Debuff = new DebuffSet{ Boss_Vulnerability = 28 } } },
-                    { 3, new PetSkill { Buff = new BuffSet{ Atk_Rate = 15 }, Debuff = new DebuffSet{ Boss_Vulnerability = 30 } } },
+                    { 1, new PetSkill { Buff = new BuffSet{ Atk_Rate = 13, MagicAtk_Rate = 13 }, Debuff = new DebuffSet{ Boss_Vulnerability = 27 } } },
+                    { 2, new PetSkill { Buff = new BuffSet{ Atk_Rate = 14, MagicAtk_Rate = 14 }, Debuff = new DebuffSet{ Boss_Vulnerability = 28 } } },
+                    { 3, new PetSkill { Buff = new BuffSet{ Atk_Rate = 15, MagicAtk_Rate = 15 }, Debuff = new DebuffSet{ Boss_Vulnerability = 30 } } },
                 }
             },
             // 리첼
@@ -152,13 +153,13 @@ namespace GameDamageCalculator.Database
                 Skills = new Dictionary<int, PetSkill>
                 {
                     { 4, new PetSkill { 
-                        Buff = new BuffSet{ Eff_Hit = 13, Atk_Rate = 8 },
+                        Buff = new BuffSet{ Eff_Hit = 13, Atk_Rate = 8, MagicAtk_Rate = 8 },
                      } },
                     { 5, new PetSkill { 
-                        Buff = new BuffSet{ Eff_Hit = 16, Atk_Rate = 10 },
+                        Buff = new BuffSet{ Eff_Hit = 16, Atk_Rate = 10, MagicAtk_Rate = 10 },
                      } },
                     { 6, new PetSkill { 
-                        Buff = new BuffSet{ Eff_Hit = 19, Atk_Rate = 12 },
+                        Buff = new BuffSet{ Eff_Hit = 19, Atk_Rate = 12, MagicAtk_Rate = 12 },
                      } },
                 }
             },
@@ -229,9 +230,9 @@ namespace GameDamageCalculator.Database
                 Rarity = "희귀",
                 Skills = new Dictionary<int, PetSkill>
                 {
-                    { 4, new PetSkill { Buff = new BuffSet { Atk_Rate = 13 } } },
-                    { 5, new PetSkill { Buff = new BuffSet { Atk_Rate = 15 } } },
-                    { 6, new PetSkill { Buff = new BuffSet { Atk_Rate = 17 } } },
+                    { 4, new PetSkill { Buff = new BuffSet { MagicAtk_Rate = 13 } } },
+                    { 5, new PetSkill { Buff = new BuffSet { MagicAtk_Rate = 15 } } },
+                    { 6, new PetSkill { Buff = new BuffSet { MagicAtk_Rate = 17 } } },
                 }
             },
         };

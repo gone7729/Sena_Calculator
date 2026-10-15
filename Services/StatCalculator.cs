@@ -581,6 +581,9 @@ namespace GameDamageCalculator.Services
                     + accessoryStats.Dmg_Dealt + totalBuffs.Dmg_Dealt + characterPassiveBuff.Dmg_Dealt
                     + exclusiveStats.Dmg_Dealt,
 
+                // 피해증폭(전용장비) — 피증과 별개 최종 곱 (DamageInput.DmgAmp)
+                Dmg_Amp = exclusiveStats.Dmg_Amp,
+
                 Dmg_Dealt_Bos = characterStats.Dmg_Dealt_Bos + transcendStats.Dmg_Dealt_Bos
                     + setBonus.Dmg_Dealt_Bos + accessoryStats.Dmg_Dealt_Bos
                     + totalBuffs.Dmg_Dealt_Bos + characterPassiveBuff.Dmg_Dealt_Bos,
@@ -616,6 +619,9 @@ namespace GameDamageCalculator.Services
                 Dmg_Dealt_1to3 = characterStats.Dmg_Dealt_1to3 + transcendStats.Dmg_Dealt_1to3
                     + setBonus.Dmg_Dealt_1to3 + accessoryStats.Dmg_Dealt_1to3
                     + totalBuffs.Dmg_Dealt_1to3 + characterPassiveBuff.Dmg_Dealt_1to3,
+                // 1인 공격기 전용 / 3인 공격기 전용 (1~3인기와 별개 — 대상 수가 정확히 1/3일 때만)
+                Dmg_Dealt_1 = totalBuffs.Dmg_Dealt_1 + characterPassiveBuff.Dmg_Dealt_1,
+                Dmg_Dealt_3 = totalBuffs.Dmg_Dealt_3 + characterPassiveBuff.Dmg_Dealt_3,
 
                 Dmg_Dealt_4to5 = characterStats.Dmg_Dealt_4to5 + transcendStats.Dmg_Dealt_4to5
                     + setBonus.Dmg_Dealt_4to5 + accessoryStats.Dmg_Dealt_4to5

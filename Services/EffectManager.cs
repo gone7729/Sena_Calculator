@@ -51,7 +51,11 @@ namespace GameDamageCalculator.Services
             {
                 var e = _effects[i];
                 if (e.IsExpired) continue;
-                bool isDebuff = e.IsStatDebuff || e.StatusType != StatusEffectType.None;
+                // 디버프 = 스탯 디버프 또는 부정 상태이상. StatusType은 nullable이라 `!= None` 비교는 일반 버프(null)까지
+                //   디버프로 오판했음 → 미호 살육의춤 "후열 디버프 해제"가 나타의 장비강화·따뜻한울림 버프를 지우던 버그.
+                //   스탯 버프를 가진 효과와 지속회복(재생)은 해제 대상 아님.
+                bool isDebuff = e.IsStatDebuff
+                    || (e.IsStatusEffect && !e.IsStatBuff && e.StatusType != StatusEffectType.Regeneration);
                 if (isDebuff) { _effects.RemoveAt(i); removed++; }
             }
             return removed;
