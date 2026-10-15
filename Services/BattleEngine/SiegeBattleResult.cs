@@ -37,6 +37,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         // 아군 사망 이벤트 (턴/경과초/이름/사인). 사망 로그용.
         public List<SiegeDeathEvent> Deaths { get; set; } = new();
+
+        // [진단] 시간 장부 (config.DiagTimeLedger=true일 때만): 턴·경과초·사유
+        public List<(int Turn, double Sec, string Why, double Elapsed)> TimeLedger { get; set; }
     }
 
     /// <summary>

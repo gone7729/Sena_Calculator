@@ -69,6 +69,24 @@ namespace GameDamageCalculator.Services.BattleEngine
         // [진단] true면 아군이 HP 피해를 받지 않는다(불사) — "생존을 전제로 한 순수 로테 품질" 비교 실험용. 점수 로직 불변.
         public bool DiagAlliesImmortal { get; set; }
 
+        // [진단] true면 아군→적 치명·약점을 기댓값 대신 "항상 발동"으로 계산(실측 최고점 대조용 상한). 점수 비교 전용.
+        public bool DiagForceCritWeak { get; set; }
+
+        // 아군 스킬 쿨 안전 여유(초). 시전 시 쿨 = 원래 쿨 + 이 값 → 빔이 "딱 맞게 도는" 스텝을 피하고 항상 재현되는 로테만 산출.
+        //   2026-10 월요일 연습전투: 시뮬 여유 2.0초 스텝(턴28 혼천·턴32 교만)이 DoT 지연 없으면 0초/−0.n초 → 시뮬 시간 ~2~2.5초 과대.
+        //   0이면 기존 동작.
+        public double AllyCooldownMargin { get; set; }
+        // [진단] true면 시간 장부(SiegeBattleResult.TimeLedger) 기록 — 쿨 타이밍 검증용.
+        public bool DiagTimeLedger { get; set; }
+
+        // [시간 모델 보정] 평타 1회 소요시간(초). 기본 2.0 (정수 초 측정). 연습전투 쿨 타이밍 역산 후보 2.1.
+        public double BasicAttackSeconds { get; set; } = 2.0;
+        // [시간 모델 보정] true면 자기 스킬 쿨이 "시전 시작"부터 카운트(시전시간도 자기 쿨 감소). false면 "시전 완료 후"부터.
+        //   인게임 표시상으론 완료 후(false)가 맞다(혼천·화첨·울림 시전 직후 84/84/120 → 바로 119). 그러나 완료 후 모델은
+        //   유저 로테 턴16 혼천·빔 턴28 혼천을 2~3초 부족으로 막는데 인게임은 돈다 → 미모델 시간원(턴32~44 구간 +2초,
+        //   DoT 처리 지연 등)이 남아 있음. 그 원인을 녹화로 확정하기 전까진 실측 점수 재현(11.70M/12.55M)에 맞는 true 유지.
+        public bool OwnCooldownFromCastStart { get; set; } = true;
+
         // 아군 사망 1명당 랭킹 점수 페널티. 0이면 없음(기존 동작). >0이면 빔/옵티마이저가 생존(버프해제)을 우선해
         //   전멸 빌드를 피한다. 보고 점수(TotalScore=실제 누적딜)는 불변 — RankScore에만 반영. 사망 없는 날은 무영향.
         public double AllyDeathPenalty { get; set; }

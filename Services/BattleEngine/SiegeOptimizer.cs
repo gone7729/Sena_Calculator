@@ -122,6 +122,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool HighestAtkAllyOverrideCdrOnly { get; set; }
         // [진단] 아군 불사(SiegeBattleConfig.DiagAlliesImmortal) — 생존 제약 없는 순수 로테 품질 탐색 실험용.
         public bool DiagAlliesImmortal { get; set; }
+        // 아군 스킬 쿨 안전 여유(초) — SiegeBattleConfig.AllyCooldownMargin 전달. 0이면 기존 동작.
+        public double AllyCooldownMargin { get; set; }
     }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
@@ -929,6 +931,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             HighestAtkAllyOrder = config.HighestAtkAllyOrder,
             HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
             DiagAlliesImmortal = config.DiagAlliesImmortal,
+            AllyCooldownMargin = config.AllyCooldownMargin,
         };
 
         /// <summary>장착된 장비의 세트·메인옵 값·부옵 값을 사람이 읽기 쉬운 문자열로.</summary>

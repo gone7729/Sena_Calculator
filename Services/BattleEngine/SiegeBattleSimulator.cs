@@ -118,6 +118,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                 HighestAtkAllyOrder = config.HighestAtkAllyOrder,
                 HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
                 DiagAlliesImmortal = config.DiagAlliesImmortal,
+                DiagForceCritWeak = config.DiagForceCritWeak,
+                AllyCooldownMargin = config.AllyCooldownMargin,
+                BasicAttackSeconds = config.BasicAttackSeconds,
+                OwnCooldownFromCastStart = config.OwnCooldownFromCastStart,
+                TimeLedger = config.DiagTimeLedger ? new List<(int, double, string, double)>() : null,
             };
 
             // 아군 스탯 — 기존 BattleSimulator.InitializeCharacterState 재사용 (TargetEnemy 불필요)
@@ -243,7 +248,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void TransitionToNextRound(SiegeBattleConfig config, SiegeBattleState state)
         {
             // 적 사망 모션: 라운드 클리어 시 1초 경과(쿨 −1초), 그 후 전환 동안 쿨 동결(추가 시간 없음). (실측 2026-06-08)
-            AdvanceTime(state, 1.0);
+            AdvanceTime(state, 1.0, "라운드 전환(사망모션)");
             Log(state, "시스템", true, ActionType.BuffApplied, "라운드 전환", 0,
                 $"R{state.CurrentRound} 클리어 → R{state.CurrentRound + 1} 진입 (사망모션 1초 경과·선공 스킬턴)");
             state.CurrentRound++;
@@ -499,9 +504,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         enemy.Shield = enemy.Source.Stats.Def * sld.SelfShieldDefRatio / 100.0;
                         enemy.ShieldTurns = sld.SelfShieldTurns > 0 ? sld.SelfShieldTurns : 99;
-                        enemy.ShieldDmgRdc = sld.SelfShieldDmgReduction;   // 보호막 지속 동안 받는 피해 감소 %
                         Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
-                            $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴]{(enemy.ShieldDmgRdc > 0 ? $" + 받피감 {enemy.ShieldDmgRdc:0}%" : "")} (버프해제/소진 시 제거)");
+                            $"보호막 {enemy.Shield:N0} 생성 [{enemy.ShieldTurns}턴] (버프해제/소진 시 제거)");
+                        // 링크: 보스측 모든 적에게 [N턴] + 받는 피해 감소 (SelfShieldDmgReduction = 링크 감소율)
+                        if (sld.SelfShieldDmgReduction > 0)
+                        {
+                            foreach (var le in state.Enemies)
+                            {
+                                le.LinkTurns = enemy.ShieldTurns;
+                                le.LinkDmgRdc = sld.SelfShieldDmgReduction;
+                            }
+                            Log(state, enemy.Source.Name, false, ActionType.BuffApplied, skill.Name, 0,
+                                $"링크 [{enemy.ShieldTurns}턴]: {string.Join(",", state.Enemies.Select(x => x.Source.Name))} 받피감 {sld.SelfShieldDmgReduction:0}% (버프해제 시 제거)");
+                        }
                     }
                     // 상대(보스) 스킬 사용 → 그 스킬 소요시간(1스킬 3초·2스킬 4초)만큼 시간 경과 → 전체(아군+적) 쿨 감소.
                     //   [정정] 이전엔 별도 ReduceCooldowns(5)까지 더해 이중 감소 → 교만 등 쿨이 실시간보다 빨리 회복됐음.
@@ -509,7 +524,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     double enemyCd = GetActionDuration(skill);
                     Log(state, enemy.Source.Name, false, ActionType.BuffApplied, "쿨감", 0,
                         $"적 {skill.Name}({skill.SkillType}) 시전 → 시간경과 {enemyCd:F0}초 → 전체 쿨 -{enemyCd:F0}초 (경과 {state.ElapsedSeconds:F0}초)");
-                    AdvanceTime(state, GetActionDuration(skill));
+                    AdvanceTime(state, GetActionDuration(skill), $"[적스킬] {enemy.Source.Name} {skill.Name}");
                     // 자기 쿨은 시전 완료 시점부터 카운트(자기 컷신 시간엔 자기 쿨 안 깎임) → AdvanceTime 後 set.
                     double cd = skill.GetCooldown(false, 0);
                     if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
@@ -581,7 +596,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
             }
 
-            AdvanceTime(state, GetActionDuration(null));
+            AdvanceTime(state, GetActionDuration(null),
+                $"평타 {(actor.IsAlly ? actor.Ally.Source.Character.Name : actor.Enemy.Source.Name)}"
+                + ((actor.IsAlly && (actor.Ally.IsDead || actor.Ally.Effects.HasActionBlockingCC())) ? "(행동불가·스킵)" : ""));
 
             // 행동자(actor)만 효과 tick (per-character-action 모델)
             //   ★R3 적은 스펀지(HP≤0여도 행동 지속)다. 옛 `CurrentHp > 0` 가드는 음수HP가 된 R3 적의
@@ -628,8 +645,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   ShieldTurns(버프 지속턴)로만 게이팅(Shield 잔량 무관). 흡수 後 HP딜(점수 집계분)에도 곱연산 → 점수 직접 영향.
             //   루디 대체HP(방어력×100=9.3만)는 첫 타에 깨져도 -10%는 5턴 내내 유효. 비스킷 리프어택(쿨60s)이
             //   버프해제로 둘 다 지워야(DispelBuffCount=2=정확히 이 2개) -10%가 풀린다 → 재해제가 점수에 유의미.
-            if (target.ShieldTurns > 0 && target.ShieldDmgRdc > 0)
-                dmg *= 1.0 - target.ShieldDmgRdc / 100.0;
+            //   [2026-10 실측 정정] 이 받피감은 루디 전용이 아니라 「링크」 — 룩·챈슬러 포함 적 전원에게 걸린다 → LinkTurns/LinkDmgRdc.
+            if (target.LinkTurns > 0 && target.LinkDmgRdc > 0)
+                dmg *= 1.0 - target.LinkDmgRdc / 100.0;
 
             // 보호막 흡수: 보호막이 있으면 그만큼 먼저 깎이고 점수에 집계되지 않음. 파괴되면 잔여만 HP로(점수 집계).
             if (target.Shield > 0)
@@ -725,16 +743,51 @@ namespace GameDamageCalculator.Services.BattleEngine
         ///   치명·약점은 실제 확률 기댓값(ExpectedCritWeak=true) — 치확/약확 기어 옵션이 딜에 실제로 반영된다.</summary>
         private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill, SiegeBattleState state = null)
         {
+            var input = BuildDamageInputToEnemy(ally, target, skill, state,
+                out double reductionMult, out double elemReduction, out double targetReduction, out double atkRed);
+            var dr = _damageCalc.Calculate(input);
+            double raw = dr.FinalDamage;
+            double final = raw * Math.Max(0, reductionMult);
+
+            // [진단] 추적 스킬 타격 시 입력 구성요소 덤프
+            if (IsDiagSkill(skill.Name) && _diagCount < 200)
+            {
+                _diagCount++;
+                int diagTurn = state?.CurrentTurn ?? -1;
+                int diagRound = state?.CurrentRound ?? -1;
+                DiagLog.AppendLine($"───────── T{diagTurn,2} R{diagRound} {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
+                DiagLog.AppendLine($"  FinalAtk(공감반영후)={input.FinalAtk:N0} (공감={atkRed:F0}%, 스냅FinalAtk={ally.FinalAtk:N0}) 치피={input.CritDamage} 약피={input.WeakpointDmg}");
+                DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}");
+                DiagLog.AppendLine($"  [적디버프] 방깎={input.DefReduction} 취약={input.Vulnerability} 받피증={input.DmgTakenIncrease} 보스취약={input.BossVulnerability}");
+                DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
+                string lostHpFlag = dr.LostHpMultiplier > 1 ? "적용" : "미발동/0";
+                DiagLog.AppendLine($"  [잃은HP] 잔여HP%={input.LostHpActualRemainingPct:F1} → 보너스배수 ×{dr.LostHpMultiplier:F4} ({lostHpFlag})");
+                DiagLog.AppendLine($"  raw={raw:N0} × 감쇄{reductionMult:F3}(물마{elemReduction}/타겟{targetReduction}) = {final:N0} [기대값: 치명{dr.CritMultiplier:F3}×약점{dr.WeakpointMultiplier:F3}]");
+                // ★엑셀 "치명·약점" 칸과 사과:사과 비교용 — 치명+약점 둘다 발동한 결정값.
+                input.ExpectedCritWeak = false;
+                var drDet = _damageCalc.Calculate(input);
+                input.ExpectedCritWeak = true;
+                double finalDet = drDet.FinalDamage * System.Math.Max(0, reductionMult);
+                DiagLog.AppendLine($"  ★결정값(치명+약점 둘다 발동)={finalDet:N0} [치명{drDet.CritMultiplier:F3}×약점{drDet.WeakpointMultiplier:F3}]");
+            }
+            return final;
+        }
+
+        /// <summary>아군→적 DamageInput 구성 (CalcDamageToEnemy·진단 공용). 공성 감쇄(곱연산)는 reductionMult로 반환.</summary>
+        private DamageCalculator.DamageInput BuildDamageInputToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill,
+            SiegeBattleState state, out double reductionMult, out double elemReduction, out double targetReduction, out double atkRed)
+        {
             var battleChar = ally.Source;
+
             var character = battleChar.Character;
             var enemy = target.Source;
             var baseStats = character.GetBaseStats();
 
             int targetCount = skill.GetTargetCount(battleChar.IsSkillEnhanced, battleChar.TranscendLevel);
-            // 평타는 n인기 스킬이 아니므로 단일/광역 감쇄가 적용되지 않는다.
-            double targetReduction = skill.SkillType == SkillType.Normal ? 0 : GetTargetReduction(enemy, targetCount);
+            // 평타도 1인 공격 → 1인기 감쇄 적용 (2026-10 연습전투 실측: 나타·미호 평타 3건 일치. 이전엔 평타 면제).
+            targetReduction = GetTargetReduction(enemy, targetCount);
             // 공성전 감쇄: 캐릭터 공격속성에 따라 물리/마법 받피감
-            double elemReduction = character.AttackType == AttackType.Magic
+            elemReduction = character.AttackType == AttackType.Magic
                 ? enemy.MagicReduction
                 : enemy.PhysicalReduction;
 
@@ -747,7 +800,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
             // 아군에 걸린 공격력 감소 디버프(예: 보스 레이첼 불새 공감24/마공감24) → 실효 공격력 차감.
             var allyDebuffs = ally.Effects.GetTotalDebuffs();
-            double atkRed = character.AttackType == AttackType.Magic
+            atkRed = character.AttackType == AttackType.Magic
                 ? allyDebuffs.MagicAtk_Reduction : allyDebuffs.Atk_Reduction;
             // 전투 중 부여된 공격%버프(예: 클로에 청소시간 마공20%)를 실효 공격력에 반영.
             //   ally.FinalAtk = 전투시작 스냅샷(상시 패시브·파티버프 포함, 액티브 스킬버프 제외).
@@ -772,9 +825,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 WeakChance = ds.Wek + midBuffs.Wek,
                 WeakpointDmg = ds.Wek_Dmg + midBuffs.Wek_Dmg,
                 DmgDealt = ds.Dmg_Dealt + midBuffs.Dmg_Dealt,
+                DmgAmp = ds.Dmg_Amp,   // 피해증폭 = 최종 별도 곱
                 DmgDealtType = ds.Dmg_Dealt_Type + midBuffs.Dmg_Dealt_Type + midBuffs.Mark_Energeia + midBuffs.Mark_Purify,
                 DmgDealtBoss = ds.Dmg_Dealt_Bos + midBuffs.Dmg_Dealt_Bos,
                 Dmg1to3 = ds.Dmg_Dealt_1to3 + midBuffs.Dmg_Dealt_1to3,
+                Dmg1 = ds.Dmg_Dealt_1 + midBuffs.Dmg_Dealt_1,
+                Dmg3 = ds.Dmg_Dealt_3 + midBuffs.Dmg_Dealt_3,
                 Dmg4to5 = ds.Dmg_Dealt_4to5 + midBuffs.Dmg_Dealt_4to5,
                 ArmorPen = ds.Arm_Pen + midBuffs.Arm_Pen,
                 BossDef = enemy.Stats.Def,   // 보호막 흡수는 ApplyDamage에서 처리(보호막량만 미집계, 점수 일관성 위해 def 유지)
@@ -801,35 +857,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsTargetBoss = target.IsBoss,
                 SelfMaxHp = ally.MaxHp,
             };
-            var dr = _damageCalc.Calculate(input);
-            double raw = dr.FinalDamage;
-
+            if (state?.DiagForceCritWeak == true) input.ExpectedCritWeak = false;   // [진단] 치명·약점 항상 발동
             // 공성전 감쇄 = 곱연산 (받는 물/마 피해 N% 감소 × 타겟수별 감소). 합연산 시 180%↑ 차감으로 음수가 되므로.
-            double reductionMult = (1 - elemReduction / 100.0) * (1 - targetReduction / 100.0);
-            double final = raw * Math.Max(0, reductionMult);
-
-            // [진단] 추적 스킬 타격 시 입력 구성요소 덤프
-            if (IsDiagSkill(skill.Name) && _diagCount < 200)
-            {
-                _diagCount++;
-                int diagTurn = state?.CurrentTurn ?? -1;
-                int diagRound = state?.CurrentRound ?? -1;
-                DiagLog.AppendLine($"───────── T{diagTurn,2} R{diagRound} {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
-                DiagLog.AppendLine($"  FinalAtk(공감반영후)={input.FinalAtk:N0} (공감={atkRed:F0}%, 스냅FinalAtk={ally.FinalAtk:N0}) 치피={input.CritDamage} 약피={input.WeakpointDmg}");
-                DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}");
-                DiagLog.AppendLine($"  [적디버프] 방깎={input.DefReduction} 취약={input.Vulnerability} 받피증={input.DmgTakenIncrease} 보스취약={input.BossVulnerability}");
-                DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
-                string lostHpFlag = dr.LostHpMultiplier > 1 ? "적용" : "미발동/0";
-                DiagLog.AppendLine($"  [잃은HP] 잔여HP%={input.LostHpActualRemainingPct:F1} → 보너스배수 ×{dr.LostHpMultiplier:F4} ({lostHpFlag})");
-                DiagLog.AppendLine($"  raw={raw:N0} × 감쇄{reductionMult:F3}(물마{elemReduction}/타겟{targetReduction}) = {final:N0} [기대값: 치명{dr.CritMultiplier:F3}×약점{dr.WeakpointMultiplier:F3}]");
-                // ★엑셀 "치명·약점" 칸과 사과:사과 비교용 — 치명+약점 둘다 발동한 결정값.
-                input.ExpectedCritWeak = false;
-                var drDet = _damageCalc.Calculate(input);
-                input.ExpectedCritWeak = true;
-                double finalDet = drDet.FinalDamage * System.Math.Max(0, reductionMult);
-                DiagLog.AppendLine($"  ★결정값(치명+약점 둘다 발동)={finalDet:N0} [치명{drDet.CritMultiplier:F3}×약점{drDet.WeakpointMultiplier:F3}]");
-            }
-            return final;
+            // 대상수 감쇄(1인 70%·5인 90% 등)는 별도 곱이 아니라 "받는 피해 증가"(취약·보스취약·받피증)와 합산
+            //   → 취약계수 = 1 + (취약+보스취약+받피증 − 대상수감쇄)/100 (0 하한). 실측: 보스취약30·1인70 → 0.6배.
+            //   물/마 감쇄(물리 90% 등)는 아직 미검증 → 기존 곱연산 유지.
+            input.TargetCountReduction = targetReduction;
+            reductionMult = 1 - elemReduction / 100.0;
+            return input;
         }
 
         private static readonly System.Collections.Generic.HashSet<string> DealerRoles = new() { "공격형", "마법형", "만능형" };
@@ -897,6 +932,55 @@ namespace GameDamageCalculator.Services.BattleEngine
             LastDummyDebuffSummary = SummarizeDebuff(boss.Effects.GetTotalDebuffs());
             LastDummyBuffSummary = SummarizeBuff(dealer.Effects.GetTotalBuffs());
             return CalcDamageToEnemy(dealer, boss, nukeSkill, state);
+        }
+
+        /// <summary>[진단] 1타 데미지 분해 — 연습전투 실측 대조용. round 라운드의 targetName 적(HP를 targetHpPct%로 설정)에게
+        ///   dealerIndex 아군이 skill 시전 시, activeSkills로 지정한 아군 액티브 스킬의 버프/디버프만 적용(상시 패시브·펫은
+        ///   Initialize·ApplyStandingEnemyDebuffs로 항상 포함). 치명/약점 4조합의 확정 데미지 + 입력 요약을 반환.
+        ///   보스 보호막·링크(받피감)는 ApplyDamage 단계라 여기엔 미반영 = "링크 해제 상태" 데미지.</summary>
+        public HitBreakdown EvaluateHitBreakdown(SiegeBattleConfig config, int dealerIndex, Skill skill, int round,
+            string targetName, double targetHpPct, IEnumerable<(int AllyIndex, SkillType Skill)> activeSkills)
+        {
+            var state = Initialize(config);
+            if (round > 1)
+            {
+                state.CurrentRound = round;
+                state.InitializeRound(round);
+                ApplyStandingEnemyDebuffs(state, config);
+            }
+            foreach (var (ai, st) in activeSkills ?? Enumerable.Empty<(int, SkillType)>())
+            {
+                var a = state.AllyStates[ai];
+                var sk = a.Source.Character.Skills.FirstOrDefault(x => x.SkillType == st);
+                if (sk == null) continue;
+                ApplySkillEffects(state, a, sk, state.Enemies, preDamage: true);
+                ApplySkillEffects(state, a, sk, state.Enemies, preDamage: false);
+            }
+            var dealer = state.AllyStates[dealerIndex];
+            var target = state.Enemies.FirstOrDefault(e => e.Source.Name == targetName) ?? state.Enemies.First();
+            target.CurrentHp = target.MaxHp * targetHpPct / 100.0;
+
+            var input = BuildDamageInputToEnemy(dealer, target, skill, state,
+                out double redMult, out _, out _, out _);
+            var hb = new HitBreakdown
+            {
+                Input = input, ReductionMult = redMult,
+                DealerBuffs = SummarizeBuff(dealer.Effects.GetTotalBuffs()),
+                TargetDebuffs = SummarizeDebuff(target.Effects.GetTotalDebuffs()),
+                TargetDef = target.Source.Stats.Def,
+                Logs = state.TurnLogs.Select(l => $"{l.ActorName}/{l.SkillName}: {l.Description}").ToList(),
+            };
+            input.ExpectedCritWeak = true;
+            hb.Expected = _damageCalc.Calculate(input).FinalDamage * redMult;
+            input.ExpectedCritWeak = false;
+            foreach (var (c, w) in new[] { (true, true), (true, false), (false, true), (false, false) })
+            {
+                input.IsCritical = c; input.IsWeakpoint = w;
+                var dr = _damageCalc.Calculate(input);
+                hb.Combos[(c, w)] = dr.FinalDamage * redMult;
+                if (c && w) hb.Detail = dr;
+            }
+            return hb;
         }
 
         /// <summary>[감사] 마지막 EvaluateDummyNuke에서 보스에 적용된 디버프 / 딜러에 적용된 액티브 버프 요약.</summary>
@@ -1040,7 +1124,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             Log(state, enemy.Source.Name, false, ActionType.SkillAttack, "반격", 0,
                 $"{enemy.Source.Name} 반격 발동 → 아군 {targets.Count}명 (물리 {ca.Ratio:0}%·치명 치피{ca.CritDamage:0}%)");
-            AdvanceTime(state, ca.ActionSeconds);   // 반격 3초 → 전체(아군+적) 쿨 감소
+            AdvanceTime(state, ca.ActionSeconds, "반격");   // 반격 3초 → 전체(아군+적) 쿨 감소
         }
 
         /// <summary>적이 아군을 공격 → 피해 적용. (생존 메카닉: 부활·면역·권능은 후속 단계)</summary>
@@ -1629,6 +1713,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             enemy.Effects.TickTurn();
             // 보호막 지속턴 경과 (소진 전이라도 만료되면 소멸 — 받피감도 함께 소멸)
             if (enemy.ShieldTurns > 0 && --enemy.ShieldTurns <= 0) { enemy.Shield = 0; enemy.ShieldDmgRdc = 0; }
+            if (enemy.LinkTurns > 0 && --enemy.LinkTurns <= 0) enemy.LinkDmgRdc = 0;   // 링크 지속턴 경과
             // 적 진영 버프(챈슬러 분쇄 → 스파이크 치확/치피) 지속턴 경과. 챈슬러가 재시전하면 갱신됨.
             if (enemy.EnemyBuffTurns > 0 && --enemy.EnemyBuffTurns <= 0) enemy.EnemyBuff = null;
             // 피해 면역(화 R3 룩) 지속턴 경과 — 이 적의 행동마다 1턴 차감(per-action). 룩이 재시전하면 갱신됨.
@@ -1674,7 +1759,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>행동 소요시간(초): 평타 2 / 1스킬 3 / 2스킬 4 (실측 프레임 추적 2026-06-08: 1스킬 −3초·2스킬 −4초·평타 −2초·라운드 사망모션 −1초).</summary>
         private double GetActionDuration(Skill skill)
         {
-            if (skill == null) return 2.0;                       // 기본공격
+            if (skill == null) return _activeState?.BasicAttackSeconds ?? 2.0;   // 기본공격 (config.BasicAttackSeconds)
             return skill.SkillType switch
             {
                 SkillType.Normal or SkillType.Normal2 => 2.0,
@@ -1721,9 +1806,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>행동 소요시간만큼 경과 + 전체 유닛(아군+적) 쿨다운 감소 (쿨=실시간 1초당 1).</summary>
-        private void AdvanceTime(SiegeBattleState state, double seconds)
+        private void AdvanceTime(SiegeBattleState state, double seconds, string why = null)
         {
             if (seconds <= 0) return;
+            state.TimeLedger?.Add((state.CurrentTurn, seconds, why ?? "?", state.ElapsedSeconds + seconds));
             state.ElapsedSeconds += seconds;
             foreach (var a in state.AllyStates)
                 foreach (var k in a.SkillCooldowns.Keys.ToList())
@@ -1833,14 +1919,18 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
             state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
 
-            // 시전 소요시간 경과: 다른 쿨다운은 이 시간만큼 감소하되, 방금 시전한 스킬 자신의 쿨은
-            //   "시전 완료 시점부터" 카운트(자기 컷신 시간엔 자기 쿨 안 깎임) → AdvanceTime을 쿨 set보다 먼저.
-            //   (이전 버그: set(105) 후 AdvanceTime(5)이 자기 쿨까지 깎아 105→100 = 자기 시전시간만큼 조기회복.)
-            AdvanceTime(state, GetActionDuration(skill));   // 스킬 소요시간만큼 전체 쿨다운 감소(자기 제외 효과)
+            // 시전 소요시간 경과: 방금 시전한 스킬 자신의 쿨도 "시전 시작 시점부터" 카운트 → 쿨 set 後 AdvanceTime.
+            //   2026-10 월요일 연습전투 실측: 나타 혼천릉파(R1 0턴→R3 16턴)·미호 교만(8턴→24턴)이 인게임에선 시전됐으나
+            //   "완료 시점부터" 모델은 둘 다 쿨 3초 부족(2스킬 시전 4초분) → 시작 시점 모델로 아군 20스텝·적 13회 턴 전부 일치.
+            //   (적 스킬 쿨은 별도 경로 — 기존 "완료 시점부터" 유지, 적 타이밍은 실측과 일치 확인.)
             double cd = skill.GetCooldown(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened);
-            if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd;
+            if (!state.OwnCooldownFromCastStart)   // 실측 기본: 시전 완료 후부터 자기 쿨 카운트 → 시간 먼저 흘리고 쿨 set
+                AdvanceTime(state, GetActionDuration(skill), $"[아군스킬] {ally.Source.Character.Name} {skill.Name}");
+            if (cd > 0) ally.SkillCooldowns[skill.SkillType] = cd + state.AllyCooldownMargin;   // 안전 여유(기본 0)
             // [실행가능성] 방금 시전 → 이 스킬은 쿨 중(준비 전). 다시 0 도달 시점까지 pending(∞) 마킹.
             if (_recordFeasibility && cd > 0) _readySince[(allyIdx, skill.SkillType)] = double.PositiveInfinity;
+            if (state.OwnCooldownFromCastStart)
+                AdvanceTime(state, GetActionDuration(skill), $"[아군스킬] {ally.Source.Character.Name} {skill.Name}");   // 스킬 소요시간만큼 전체 쿨다운 감소(자기 쿨 포함 = 시전 시작부터 카운트)
 
             // 지정 스킬 쿨타임 초기화 (파스칼 어둠의 문 → 파괴의 거인). 자기 쿨 set 後 적용 → 다음 스킬턴 즉시 준비.
             var resetTarget = skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.ResetsCooldownOf;
@@ -1901,7 +1991,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             A(b.Atk_Rate, "공%"); A(b.MagicAtk_Rate, "마공%"); A(b.Def_Rate, "방%"); A(b.Hp_Rate, "체%");
             A(b.Cri, "치확"); A(b.Cri_Dmg, "치피"); A(b.Wek, "약확"); A(b.Wek_Dmg, "약피");
             A(b.Dmg_Dealt, "피증"); A(b.Dmg_Dealt_Type, "타입피증"); A(b.Dmg_Dealt_Bos, "보스피증");
-            A(b.Dmg_Dealt_1to3, "1-3인기"); A(b.Dmg_Dealt_4to5, "4-5인기");
+            A(b.Dmg_Dealt_1to3, "1-3인기"); A(b.Dmg_Dealt_1, "1인기"); A(b.Dmg_Dealt_3, "3인기"); A(b.Dmg_Dealt_4to5, "4-5인기");
             A(b.Arm_Pen, "방관"); A(b.Dmg_Rdc, "받피감"); A(b.Eff_Hit, "효적"); A(b.Eff_Res, "효저");
             A(b.Heal_Bonus, "받회"); A(b.Blk, "막기"); A(b.Blessing, "축복"); A(b.Cooldown_Reduction, "쿨감");
             return string.Join(" ", p);
@@ -2025,11 +2115,13 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 // 보호막 버프 활성(ShieldTurns>0)이면 해제 — 대체HP(루디 9.3만)는 첫 타에 깨져 Shield=0이 돼도
                 //   받피감 버프는 ShieldTurns로 남으므로 Shield>0가 아닌 ShieldTurns>0로 판별해야 -10%까지 제거된다.
-                foreach (var en in hitEnemies.Where(x => x.ShieldTurns > 0 || x.Shield > 0))
+                //   링크도 버프 → 맞은 적 각각의 링크 해제 (실측: 리프어택 1회로 루디·룩·챈슬러 링크 + 루디 보호막 전부 제거).
+                foreach (var en in hitEnemies.Where(x => x.ShieldTurns > 0 || x.Shield > 0 || x.LinkTurns > 0))
                 {
                     Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
-                        $"{en.Source.Name} 보호막{(en.Shield > 0 ? $" {en.Shield:N0}" : "")}{(en.ShieldDmgRdc > 0 ? $"+받피감{en.ShieldDmgRdc:0}%" : "")} 버프해제로 제거");
+                        $"{en.Source.Name}{(en.Shield > 0 || en.ShieldTurns > 0 ? $" 보호막{(en.Shield > 0 ? $" {en.Shield:N0}" : "")}" : "")}{(en.LinkTurns > 0 ? $" 링크(받피감{en.LinkDmgRdc:0}%)" : "")} 버프해제로 제거");
                     en.Shield = 0; en.ShieldTurns = 0; en.ShieldDmgRdc = 0;
+                    en.LinkTurns = 0; en.LinkDmgRdc = 0;
                     _curCastDispelTargets.Add(en.Source.Name);
                 }
                 foreach (var en in state.Enemies.Where(x => x.HasEnemyBuff))
@@ -2426,6 +2518,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ElapsedSeconds = state.ElapsedSeconds,
                 AlliesAlive = state.AllyStates.Count(a => !a.IsDead),
                 TurnLogs = state.TurnLogs,
+                TimeLedger = state.TimeLedger,
                 DecisionPoints = state.DecisionPoints,
                 Feasibility = _feasLog,
                 Deaths = _deaths,
@@ -2458,5 +2551,18 @@ namespace GameDamageCalculator.Services.BattleEngine
         public SiegeEnemyState Enemy;
         public double Spd;
         public int Position;
+    }
+    /// <summary>[진단] EvaluateHitBreakdown 결과.</summary>
+    public class HitBreakdown
+    {
+        public DamageCalculator.DamageInput Input { get; set; }
+        public DamageCalculator.DamageResult Detail { get; set; }   // 치명+약점 조합의 세부 계수
+        public double ReductionMult { get; set; }
+        public double TargetDef { get; set; }
+        public string DealerBuffs { get; set; }
+        public string TargetDebuffs { get; set; }
+        public double Expected { get; set; }                         // 치명·약점 확률 기댓값(시뮬 실제 사용값)
+        public Dictionary<(bool Crit, bool Weak), double> Combos { get; } = new();
+        public List<string> Logs { get; set; }                       // 적용된 버프/디버프 로그(감사용)
     }
 }

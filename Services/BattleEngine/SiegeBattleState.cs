@@ -37,6 +37,12 @@ namespace GameDamageCalculator.Services.BattleEngine
         public List<int> HighestAtkAllyOrder { get; set; }      // "공격력 최고 아군" 순위 강제(AllyParty 인덱스, 앞=1순위). null=DamageWeight 순
         public bool HighestAtkAllyOverrideCdrOnly { get; set; } // 강제를 평타 쿨감에만 적용
         public bool DiagAlliesImmortal { get; set; }            // [진단] 아군 HP 피해 무시(불사)
+        public bool DiagForceCritWeak { get; set; }             // [진단] 아군 치명·약점 항상 발동
+        public double AllyCooldownMargin { get; set; }          // 아군 스킬 쿨 안전 여유(초)
+        public double BasicAttackSeconds { get; set; } = 2.0;   // 평타 1회 소요시간(초)
+        public bool OwnCooldownFromCastStart { get; set; }      // 자기 쿨 카운트 시작: true=시전 시작 / false=시전 완료 후
+        // [진단] 시간 장부: (턴, 초, 사유, 누적경과) — AdvanceTime 호출마다 기록. null이면 미기록.
+        public List<(int Turn, double Sec, string Why, double Elapsed)> TimeLedger { get; set; }
         /// <summary>강제 순위 키(작을수록 우선). 미포함/미지정=int.MaxValue → 기존 DamageWeight 순서로 폴백.</summary>
         public int AtkRankKey(int partyIndex, bool forCdr)
         {
@@ -145,6 +151,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 보호막 버프가 동반하는 받는 피해 감소 %(루디 방어 준비 = 10%). ShieldTurns>0인 동안 이 적이 받는
         //   모든 피해를 곱연산 감소(대체HP 흡수와 별개·점수에 직접 영향). 보호막 소멸(버프해제/만료) 시 0으로.
         public double ShieldDmgRdc { get; set; }
+
+        // 링크 (루디 「방어 준비」 → 보스측 모든 적에게 링크[5턴]). 링크된 적은 받는 피해 LinkDmgRdc% 감소.
+        //   (원문: 링크된 아군의 피해를 균등 분배 + 10% 감소. R3 3인기는 3명을 동시에 맞혀 분배는 점수 무관 → 감소만 모델.)
+        //   2026-10 연습전투 실측: 링크 아이콘이 룩·챈슬러에도 붙고, 비스킷 리프어택이 3명 링크 + 루디 보호막 모두 해제.
+        //   지속턴은 이 적의 행동마다 1 감소(per-action, ShieldTurns와 동일 규칙).
+        public int LinkTurns { get; set; }
+        public double LinkDmgRdc { get; set; }
 
         // 적 처치 시 피해 무효화 잔여 횟수 (델론즈 「죽음의 경계」: 아군 사망 시 4회 부여).
         //   >0이면 아군 직격을 무효(점수 미집계)·1 차감. DoT는 무효지만 차감 안 함.
