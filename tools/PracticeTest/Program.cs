@@ -21,7 +21,7 @@ int petStar = args.Length > 3 ? int.Parse(args[3]) : 6;
 bool runSim = args.Contains("sim");
 double cdMargin = double.Parse(args.FirstOrDefault(a => a.StartsWith("margin="))?.Substring(7) ?? "0");
 double basicSec = double.Parse(args.FirstOrDefault(a => a.StartsWith("basic="))?.Substring(6) ?? "2.0");
-bool ownStart = !args.Contains("ownend");   // 기본 = 시뮬 기본(시전 시작부터). "ownend" = 시전 완료 후부터
+bool ownStart = args.Contains("ownstart");   // 기본 = 시뮬 기본(시전 완료 후부터, 녹화 확정). "ownstart" = 시전 시작부터(옛 모델)
 var team = new List<BattleCharacter>();   // 시트 순서 = 진형번호 오름차순 = 동속공 행동 순서
 using var doc = JsonDocument.Parse(File.ReadAllText(path));
 
@@ -145,7 +145,7 @@ if (runReplay)
     //   2026-10 월요일 연습전투 기록: R1 나타2 / R2 미호2 / R3 18스텝. 실측 11,434,011(약점 2회 미발동) · 최고 12,090,565.
     var userSteps = new (string Hero, SkillType Sk)[]
     {
-        ("나타", SkillType.Skill2), ("미호", SkillType.Skill2),                                   // R1 나타2, R2 미호2(교만) — 0턴 클리어 (유저 정정)
+        ("나타", SkillType.Skill1), ("미호", SkillType.Skill2),                                   // R1 나타1(화첨), R2 미호2(교만) — 0턴 클리어 (유저 정정·녹화 확인)
         ("비스킷", SkillType.Skill1), ("비스킷", SkillType.Skill2), ("미호", SkillType.Skill1), ("리나", SkillType.Skill2),
         ("나타", SkillType.Skill2), ("나타", SkillType.Skill1), ("미호", SkillType.Skill2), ("비스킷", SkillType.Skill2),
         ("미호", SkillType.Skill1), ("비스킷", SkillType.Skill1), ("나타", SkillType.Skill2), ("나타", SkillType.Skill1),
@@ -161,9 +161,19 @@ if (runReplay)
         ("나타", SkillType.Skill1), ("미호", SkillType.Skill1), ("나타", SkillType.Skill2), ("리나", SkillType.Skill2),
         ("미호", SkillType.Skill2), ("나타", SkillType.Skill1), ("미호", SkillType.Skill1), ("나타", SkillType.Skill2),
     };
+    // 녹화 영상(DoT 없음) 실제 진행: R3 턴36 아군 스킬 없음(Hold). "videoplan" 인자 시 재생.
+    var videoSteps = new (string Hero, SkillType Sk)[]
+    {
+        ("나타", SkillType.Skill1), ("미호", SkillType.Skill2),   // 영상: R1은 나타 화첨(1스킬)으로 클리어
+        ("비스킷", SkillType.Skill1), ("비스킷", SkillType.Skill2), ("미호", SkillType.Skill1), ("리나", SkillType.Skill2),
+        ("나타", SkillType.Skill2), ("나타", SkillType.Skill1), ("미호", SkillType.Skill2), ("미호", SkillType.Skill1),
+        ("비스킷", SkillType.Skill2), ("-", SkillType.Normal), ("비스킷", SkillType.Skill1), ("나타", SkillType.Skill2),
+        ("나타", SkillType.Skill1),
+    };
     if (args.Contains("beamplan")) userSteps = beamSteps;
+    if (args.Contains("videoplan")) userSteps = videoSteps;
     int Rx(string n) => team.FindIndex(b => b.Character.Name == n);
-    var uplan = userSteps.Select(x => new RotationDecision { HeroIndex = Rx(x.Hero), Skill = x.Sk }).ToList();
+    var uplan = userSteps.Select(x => x.Hero == "-" ? new RotationDecision { Hold = true } : new RotationDecision { HeroIndex = Rx(x.Hero), Skill = x.Sk }).ToList();
     foreach (bool force in new[] { false, true })
     {
         var rcfg = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],
@@ -191,6 +201,8 @@ if (runReplay)
                 RotationPlan = uplan, AllyDeathPenalty = 1_000_000, DiagTimeLedger = true, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart };
             var lr2 = new SiegeBattleSimulator(777).Simulate(lc2);
             var led = lr2.TimeLedger;
+            File.WriteAllLines(Path.Combine("results", "practice", args.Contains("beamplan") ? "ledger_beam.csv" : args.Contains("videoplan") ? "ledger_video.csv" : "ledger_user.csv"),
+                new[] { "turn,sec,elapsed,why" }.Concat(led.Select(e => $"{e.Turn},{e.Sec},{e.Elapsed},{e.Why.Replace(",", " ")}")));
             int ci = led.FindIndex(e => e.Why.Contains("리나 따뜻한 울림"));
             if (ci >= 0)
             {
