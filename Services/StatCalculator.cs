@@ -619,6 +619,8 @@ namespace GameDamageCalculator.Services
 
                 Blk = characterStats.Blk + transcendStats.Blk + setBonus.Blk
                     + equipmentStats.SubStats.Blk + equipmentStats.MainStats.Blk + accessoryStats.Blk,
+                // 막기 피해 감소율(수문장 4세트 10% 등) — 막기 성공 시 기본 50%에 더해지는 감소분 (아군 피격 계산용)
+                Blk_Red = characterStats.Blk_Red + transcendStats.Blk_Red + setBonus.Blk_Red + accessoryStats.Blk_Red,
 
                 Eff_Hit = characterStats.Eff_Hit + transcendStats.Eff_Hit + setBonus.Eff_Hit
                     + equipmentStats.SubStats.Eff_Hit + equipmentStats.MainStats.Eff_Hit

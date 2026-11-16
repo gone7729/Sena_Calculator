@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
 using GameDamageCalculator.Services;
@@ -214,6 +215,22 @@ if (runReplay)
             continue;
         }
         PrintTimeline(rr);
+        if (args.Contains("dmglog"))
+        {
+            // 아군 딜 진단: (턴, 영웅, 스킬)별 피해 합 — 시드·모델 간 비교용
+            Console.WriteLine("\n  -- [dmglog] 아군 (턴·영웅·스킬)별 피해 --");
+            foreach (var g in rr.TurnLogs.Where(l => l.IsAlly && l.DamageDealt > 0)
+                .GroupBy(l => (l.Turn, l.ActorName, l.SkillName)).OrderBy(g => g.Key.Turn))
+                Console.WriteLine($"    T{g.Key.Turn,2} {g.Key.ActorName}/{g.Key.SkillName}: {g.Sum(l => l.DamageDealt):N0}");
+        }
+        if (args.Contains("hplog"))
+        {
+            // 생존 진단: 적→아군 피격·회복·보호막·권능·사망 전부 (턴 순)
+            Console.WriteLine("\n  -- [hplog] 적→아군 피격 · 회복 · 보호막 · 생존 --");
+            foreach (var l in rr.TurnLogs.Where(l => (!l.IsAlly && l.DamageDealt > 0)
+                || Regex.IsMatch(l.Description ?? "", "회복|보호막|권능|불사|부활|사망|흡혈|면역")))
+                Console.WriteLine($"    T{l.Turn,2} [{(l.IsAlly ? "아" : "적")}] {l.ActorName}/{l.SkillName}: {l.Description}");
+        }
         {
             // 리나 따뜻한 울림 쿨 예측 (평타 쿨감 미수령 → 순수 경과시간): 첫 R3 시전 후 각 스킬턴 시작 시점 잔여 쿨
             var lc2 = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],

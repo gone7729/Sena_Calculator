@@ -1080,8 +1080,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsTargetBoss = false,                   // 아군은 보스 아님
                 SelfMaxHp = enemy.MaxHp,
             };
+            // 아군 막기(기댓값): 막기 성공 시 피해 50% + 막기 피해 감소율(수문장 4세트 10%) 감소.
+            //   (2026-11 수요일 녹화 대조 전까지 아군 피격엔 막기가 아예 없어 막기 98% 라이언 등 탱커가 과잉 사망.)
+            //   아군에 걸린 막기 확률 감소 디버프(DebuffSet.Blk_Red)만큼 확률 차감. DoT 등 별도 경로는 무관.
+            double blkChance = Math.Clamp((ally.DisplayStats?.Blk ?? 0) - allyDebuffs.Blk_Red, 0, 100) / 100.0;
+            double blkCut = Math.Min(1.0, 0.5 + (ally.DisplayStats?.Blk_Red ?? 0) / 100.0);
+            double blockMult = 1 - blkChance * blkCut;
             // 광폭화는 패시브 보유 적(요일 보스)만. 룩·챈슬러 친위대는 보스취급이나 광폭화 없음 → ×1.0.
-            return _damageCalc.Calculate(input).FinalDamage * (e.HasEnrage ? EnrageMultiplier() : 1.0);
+            return _damageCalc.Calculate(input).FinalDamage * blockMult * (e.HasEnrage ? EnrageMultiplier() : 1.0);
         }
 
         /// <summary>
