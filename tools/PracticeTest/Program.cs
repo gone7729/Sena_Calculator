@@ -170,20 +170,34 @@ if (runReplay)
         ("비스킷", SkillType.Skill2), ("-", SkillType.Normal), ("비스킷", SkillType.Skill1), ("나타", SkillType.Skill2),
         ("나타", SkillType.Skill1),
     };
+    // 2026-11-16 수요일(레이첼) 녹화(team_wed.json, 보호진형 나타 후열): 스킬 배너·턴 카운터로 판독.
+    //   R1 미호 교만 / R2 비스킷 리프 / R3 4턴마다 스킬턴(T0~T68), T32만 아군 스킬 없음. 실측 8,147,368 · 사망 0.
+    var wedSteps = new (string Hero, SkillType Sk)[]
+    {
+        ("미호", SkillType.Skill2), ("비스킷", SkillType.Skill2),                                  // R1 교만, R2 리프
+        ("비스킷", SkillType.Skill1), ("리나", SkillType.Skill2), ("미호", SkillType.Skill1), ("나타", SkillType.Skill2),   // T0 T4 T8 T12
+        ("나타", SkillType.Skill1), ("미호", SkillType.Skill2), ("비스킷", SkillType.Skill2), ("나타", SkillType.Skill2),   // T16 T20 T24 T28
+        ("-", SkillType.Normal), ("미호", SkillType.Skill1), ("비스킷", SkillType.Skill1), ("리나", SkillType.Skill2),      // T32(없음) T36 T40 T44
+        ("나타", SkillType.Skill2), ("나타", SkillType.Skill1), ("미호", SkillType.Skill2), ("미호", SkillType.Skill1),     // T48 T52 T56 T60
+        ("비스킷", SkillType.Skill2), ("리나", SkillType.Skill1),                                                       // T64 T68
+    };
     if (args.Contains("beamplan")) userSteps = beamSteps;
     if (args.Contains("videoplan")) userSteps = videoSteps;
+    if (args.Contains("wedplan")) userSteps = wedSteps;
     int Rx(string n) => team.FindIndex(b => b.Character.Name == n);
     var uplan = userSteps.Select(x => x.Hero == "-" ? new RotationDecision { Hold = true } : new RotationDecision { HeroIndex = Rx(x.Hero), Skill = x.Sk }).ToList();
     foreach (bool force in new[] { false, true })
     {
         var rcfg = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],
             AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70,
-            RotationPlan = uplan, AllyDeathPenalty = 1_000_000, RecordFeasibility = true, DiagForceCritWeak = force, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart };
+            RotationPlan = uplan, AllyDeathPenalty = 1_000_000, RecordFeasibility = true, DiagForceCritWeak = force, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart,
+            InGameBuffTargeting = args.Contains("ingame") };
         var rr = new SiegeBattleSimulator(777).Simulate(rcfg);
         Console.WriteLine($"\n\n########## 유저 로테 재생 · {(force ? "치명·약점 항상 발동(상한)" : "치명·약점 기댓값(시뮬 기본)")} ##########");
         double cum = 0;
         Console.WriteLine("  라운드(누적): " + string.Join(" / ", rr.RoundScore.OrderBy(k => k.Key).Select(k => { cum += k.Value; return $"R{k.Key} {cum:N0}"; })));
-        Console.WriteLine($"  총점 {rr.TotalScore:N0} · 사망 {rr.Deaths.Count} · 경과 {rr.ElapsedSeconds:N0}초");
+        Console.WriteLine($"  총점 {rr.TotalScore:N0} · 사망 {rr.Deaths.Count} · 경과 {rr.ElapsedSeconds:N0}초"
+            + (rr.Deaths.Count > 0 ? " (" + string.Join(", ", rr.Deaths.Select(d => $"T{d.Turn} {d.AllyName}←{d.Cause}")) + ")" : ""));
         Console.WriteLine("  영웅별: " + string.Join(" / ", rr.CharacterResults.OrderByDescending(c => c.TotalDamage).Select(c => $"{c.CharacterName} {c.TotalDamage:N0}")));
         if (force)
         {
@@ -201,7 +215,7 @@ if (runReplay)
                 RotationPlan = uplan, AllyDeathPenalty = 1_000_000, DiagTimeLedger = true, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart };
             var lr2 = new SiegeBattleSimulator(777).Simulate(lc2);
             var led = lr2.TimeLedger;
-            File.WriteAllLines(Path.Combine("results", "practice", args.Contains("beamplan") ? "ledger_beam.csv" : args.Contains("videoplan") ? "ledger_video.csv" : "ledger_user.csv"),
+            File.WriteAllLines(Path.Combine("results", "practice", args.Contains("beamplan") ? "ledger_beam.csv" : args.Contains("videoplan") ? "ledger_video.csv" : args.Contains("wedplan") ? "ledger_wed.csv" : "ledger_user.csv"),
                 new[] { "turn,sec,elapsed,why" }.Concat(led.Select(e => $"{e.Turn},{e.Sec},{e.Elapsed},{e.Why.Replace(",", " ")}")));
             int ci = led.FindIndex(e => e.Why.Contains("리나 따뜻한 울림"));
             if (ci >= 0)
@@ -244,15 +258,16 @@ if (runHit)
     var hcfg = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],
         AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70 };
     string dealerName = args.FirstOrDefault(a => a.StartsWith("dealer="))?.Substring(7) ?? "나타";
+    string bossName = args.FirstOrDefault(a => a.StartsWith("boss="))?.Substring(5) ?? (day == "수요일" ? "레이첼" : "루디");
     int di = Ix(dealerName);
     var dealerCh = team[di].Character;
     var calc = new DamageCalculator();
     double ampPct = (dealerCh.ExclusiveWeapon?.Tuning ?? new List<TuningSlot>()).Where(t => t.Option == TuningOption.피해증폭).Sum(t => ExclusiveWeapon.GetTuningValue(t.Option, t.Grade));
-    Console.WriteLine($"\n\n########## 1타 데미지 · {day} R3 루디 · {dealerName} · 액티브: 비스킷 장비강화 / 리나 따뜻한울림 / 미호 살육의춤 · 링크 해제 ##########");
+    Console.WriteLine($"\n\n########## 1타 데미지 · {day} R3 {bossName} · {dealerName} · 액티브: 비스킷 장비강화 / 리나 따뜻한울림 / 미호 살육의춤 · 링크 해제 ##########");
     bool first = true;
     foreach (var sk in dealerCh.Skills.Where(k => k.SkillType is SkillType.Normal or SkillType.Skill1 or SkillType.Skill2))
     {
-        foreach (var (tgt, hp) in new[] { ("루디", 100.0), ("루디", 0.0), ("룩", 0.0), ("챈슬러", 0.0) })
+        foreach (var (tgt, hp) in new[] { (bossName, 100.0), (bossName, 0.0), ("룩", 0.0), ("챈슬러", 0.0) })
         {
             var hb = new SiegeBattleSimulator(777).EvaluateHitBreakdown(hcfg, di, sk, 3, tgt, hp, active);
             if (first)
@@ -270,6 +285,7 @@ if (runHit)
             Console.WriteLine($"     치명+약점 {hb.Combos[(true, true)],10:N0} | 치명만 {hb.Combos[(true, false)],10:N0} | 약점만 {hb.Combos[(false, true)],10:N0} | 둘다X {hb.Combos[(false, false)],10:N0}   (기댓값 {hb.Expected:N0})");
         }
     }
+    if (!runSim) return;   // hit만 요청 시 아래 빔 탐색(수 분) 생략
 }
 
 if (runStart)

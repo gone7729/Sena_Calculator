@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 버프 타게팅 모델 비교: DamageWeight(낙관) vs 인게임(시전 순간 현재 공격력). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GameDamageCalculator</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\DB\**\*.cs" />
+    <Compile Include="..\..\Models\**\*.cs" />
+    <Compile Include="..\..\Services\**\*.cs" />
+  </ItemGroup>
+</Project>

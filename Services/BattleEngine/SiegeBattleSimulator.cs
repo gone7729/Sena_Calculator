@@ -78,7 +78,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             _buffFirstAuto = config.BuffFirstAuto;         // 풀버프 정렬(셋업 버프 우선)
             var state = Initialize(config);
             _activeState = state;   // 광폭화 턴 참조용
-            if (computeWeights)
+            // 인게임 타게팅은 DamageWeight를 쓰지 않으므로 스카우팅 패스 생략(진단 덤프 시만 유지).
+            if (computeWeights && (!config.InGameBuffTargeting || DiagAllyStats))
             {
                 // 2-패스 버프 타게팅: 스카우팅 sim(raw-atk 타게팅)으로 실제 캐릭별 누적딜을 얻어,
                 // 그걸 DamageWeight로 써서 비스킷 버프·라이언 쿨감을 "실제 딜 1위 딜러"에게 배분.
@@ -117,6 +118,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ForceFullBuffUptime = config.ForceFullBuffUptime,
                 HighestAtkAllyOrder = config.HighestAtkAllyOrder,
                 HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
+                InGameBuffTargeting = config.InGameBuffTargeting,
                 DiagAlliesImmortal = config.DiagAlliesImmortal,
                 DiagForceCritWeak = config.DiagForceCritWeak,
                 AllyCooldownMargin = config.AllyCooldownMargin,
@@ -773,6 +775,34 @@ namespace GameDamageCalculator.Services.BattleEngine
             return final;
         }
 
+        /// <summary>아군의 현재 실효 공격력 (자기 공격 속성 기준) — 데미지 계산·인게임 버프 타게팅 공용.
+        ///   ally.FinalAtk = 전투시작 스냅샷(상시 패시브·파티버프 포함, 액티브 스킬버프 제외).
+        ///   전투 중 부여된 공격%버프(예: 클로에 청소시간 마공20%)는 stage-3 곱연산으로 반영(스냅샷과 겹치지 않음).
+        ///   아군에 걸린 공격력 감소 디버프(예: 보스 레이첼 불새 공감24/마공감24)는 실효 공격력에서 차감.</summary>
+        private static double CurrentEffAtk(CharacterBattleState ally, BuffSet midBuffs, out double atkRed)
+        {
+            bool magic = ally.Source.Character.AttackType == AttackType.Magic;
+            var allyDebuffs = ally.Effects.GetTotalDebuffs();
+            atkRed = magic ? allyDebuffs.MagicAtk_Reduction : allyDebuffs.Atk_Reduction;
+            double midAtkRate = magic ? midBuffs.MagicAtk_Rate : midBuffs.Atk_Rate;
+            return ally.FinalAtk * (1 + midAtkRate / 100.0) * System.Math.Max(0, 1 - atkRed / 100.0);
+        }
+
+        private static double CurrentEffAtk(CharacterBattleState ally)
+            => CurrentEffAtk(ally, ally.Effects.GetTotalBuffs(), out _);
+
+        /// <summary>"공격력이 가장 높은 아군" 순위 정렬. 강제 순위(HighestAtkAllyOrder)가 항상 최우선.
+        ///   InGameBuffTargeting=true → 시전 순간 현재 공격력 순(인게임 규칙).
+        ///   false → 스카우팅 누적딜(DamageWeight) 순, 동률은 스냅샷 공격력(기존 낙관 모델).</summary>
+        private static IOrderedEnumerable<CharacterBattleState> OrderByAtkRank(
+            IEnumerable<CharacterBattleState> allies, SiegeBattleState state, bool forCdr)
+        {
+            var o = allies.OrderBy(a => state.AtkRankKey(a.PartyIndex, forCdr));
+            return state.InGameBuffTargeting
+                ? o.ThenByDescending(a => CurrentEffAtk(a)).ThenBy(a => a.PartyIndex)
+                : o.ThenByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk);
+        }
+
         /// <summary>아군→적 DamageInput 구성 (CalcDamageToEnemy·진단 공용). 공성 감쇄(곱연산)는 reductionMult로 반환.</summary>
         private DamageCalculator.DamageInput BuildDamageInputToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill,
             SiegeBattleState state, out double reductionMult, out double elemReduction, out double targetReduction, out double atkRed)
@@ -798,16 +828,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             var ds = ally.DisplayStats ?? new BaseStatSet();
             var midBuffs = ally.Effects.GetTotalBuffs();
 
-            // 아군에 걸린 공격력 감소 디버프(예: 보스 레이첼 불새 공감24/마공감24) → 실효 공격력 차감.
-            var allyDebuffs = ally.Effects.GetTotalDebuffs();
-            atkRed = character.AttackType == AttackType.Magic
-                ? allyDebuffs.MagicAtk_Reduction : allyDebuffs.Atk_Reduction;
-            // 전투 중 부여된 공격%버프(예: 클로에 청소시간 마공20%)를 실효 공격력에 반영.
-            //   ally.FinalAtk = 전투시작 스냅샷(상시 패시브·파티버프 포함, 액티브 스킬버프 제외).
-            //   midBuffs는 전투 중 액티브 버프만 담으므로 스냅샷과 겹치지 않음 → 곱연산으로 stage-3 적용.
-            double midAtkRate = character.AttackType == AttackType.Magic
-                ? midBuffs.MagicAtk_Rate : midBuffs.Atk_Rate;
-            double effAtk = ally.FinalAtk * (1 + midAtkRate / 100.0) * System.Math.Max(0, 1 - atkRed / 100.0);
+            double effAtk = CurrentEffAtk(ally, midBuffs, out atkRed);
 
             var input = new DamageCalculator.DamageInput
             {
@@ -1785,11 +1806,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (e.Target == EffectTarget.SelfAndHighestAtkAlly || e.TargetSelector == TargetSelector.HighestAtkAlly
                     || e.Target == EffectTarget.Party)
                 {
-                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 실효딜 최고 아군 (raw atk 아닌 데미지 가중치)
+                    // "자신과 공격력 최고 아군" = 자신 + 자신 제외 공격력 최고 아군 (순위 기준은 OrderByAtkRank 참조)
                     //   config.HighestAtkAllyOrder 지정 시 그 순위 우선(유저 빌드 재현: 리나 공격세트 → 쿨감 수령).
-                    var top = state.AllyStates.Where(a => !a.IsDead && a != ally)
-                        .OrderBy(a => state.AtkRankKey(a.PartyIndex, forCdr: true))
-                        .ThenByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk).FirstOrDefault();
+                    var top = OrderByAtkRank(state.AllyStates.Where(a => !a.IsDead && a != ally), state, forCdr: true)
+                        .FirstOrDefault();
                     if (top != null) targets.Add(top);
                 }
                 foreach (var t in targets) t.ReduceCooldowns(cdr);
@@ -2269,11 +2289,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (target == EffectTarget.Self || target == EffectTarget.SingleAlly)
                 return new List<CharacterBattleState> { caster };
             if (selector == TargetSelector.HighestAtkAlly)
-                // 실효딜 가중치 상위 N명(딜러 우선). raw FinalAtk가 아니라 대표 스킬 데미지로 랭킹 →
-                // 공%로 atk만 뻥튀기한 캐릭(예: 레이첼)이 버프를 가로채는 문제 방지. 비딜러(=0)는 후순위.
+                // 기본: 실효딜 가중치 상위 N명(딜러 우선) — 공%로 atk만 뻥튀기한 캐릭이 버프를 가로채지 않는 낙관 모델.
+                // InGameBuffTargeting: 시전 순간 현재 공격력 상위 N명(인게임 규칙 — 가로채기·순위 역전도 그대로 발생).
                 //   config.HighestAtkAllyOrder(쿨감 전용이 아닐 때) 지정 시 그 순위 우선.
-                return alive.OrderBy(a => state.AtkRankKey(a.PartyIndex, forCdr: false))
-                    .ThenByDescending(a => a.DamageWeight).ThenByDescending(a => a.FinalAtk)
+                return OrderByAtkRank(alive, state, forCdr: false)
                     .Take(System.Math.Max(1, tgtCount)).ToList();
             if (selector == TargetSelector.BackRowAlly)   // 후열 아군 한정 (지크 물공증, 미호 디버프해제와 동일 패턴)
                 return alive.Where(a => a.Source.IsBackPosition).ToList();

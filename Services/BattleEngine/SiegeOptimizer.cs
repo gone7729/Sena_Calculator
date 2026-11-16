@@ -120,6 +120,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   인덱스는 FixedMembers+Candidates 순서 기준 — 고정팀(Candidates 없음)에서만 의미. null이면 기존 동작.
         public List<int> HighestAtkAllyOrder { get; set; }
         public bool HighestAtkAllyOverrideCdrOnly { get; set; }
+        // [인게임 버프 타게팅] SiegeBattleConfig.InGameBuffTargeting을 탐색 내 모든 시뮬에 전달.
+        public bool InGameBuffTargeting { get; set; }
         // [진단] 아군 불사(SiegeBattleConfig.DiagAlliesImmortal) — 생존 제약 없는 순수 로테 품질 탐색 실험용.
         public bool DiagAlliesImmortal { get; set; }
         // 아군 스킬 쿨 안전 여유(초) — SiegeBattleConfig.AllyCooldownMargin 전달. 0이면 기존 동작.
@@ -930,6 +932,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             AllyDeathPenalty = config.AllyDeathPenalty,   // 생존 우선(전멸 빌드 회피) — 보고 점수 불변, RankScore에만 반영
             HighestAtkAllyOrder = config.HighestAtkAllyOrder,
             HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
+            InGameBuffTargeting = config.InGameBuffTargeting,
             DiagAlliesImmortal = config.DiagAlliesImmortal,
             AllyCooldownMargin = config.AllyCooldownMargin,
         };

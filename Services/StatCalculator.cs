@@ -117,10 +117,14 @@ namespace GameDamageCalculator.Services
             BuffSet partyTimedBuff = input.PartyTimedBuffs ?? new BuffSet();
             BuffSet partyPetBuff = input.PartyPetBuffs ?? new BuffSet();
 
-            // 호환성을 위한 통합 버프 (로그용)
+            // 패시브 자버프의 "실효 기여분" — 아래 스탯 합산에서 totalBuffs(파티 버프)에 더해진다.
+            //   게임 룰: 상시 묶음(자기 패시브 + 다른 파티원 상시 버프) 안에서 같은 종류는 MaxMerge, 턴제 묶음도 동일.
+            //   그래서 자기 몫 = max(자기, 파티) − 파티 (같은 묶음의 파티 값이 이미 totalBuffs에 들어 있으므로).
+            //   예(2026-11 수요일 녹화): 나타 자기 3인기 33 + 라이언 파티 3인기 31 → 인게임 33 (합산 64 아님).
+            //   공%·방%·체%는 아래에서 이미 Math.Max(파티, 자기)로 따로 처리 — 여기 값은 쓰지 않는다.
             BuffSet characterPassiveBuff = new BuffSet();
-            characterPassiveBuff.Add(selfPermanentBuff);
-            characterPassiveBuff.Add(selfTimedBuff);
+            characterPassiveBuff.Add(SelfShareAfterMaxMerge(selfPermanentBuff, partyPermanentBuff));
+            characterPassiveBuff.Add(SelfShareAfterMaxMerge(selfTimedBuff, partyTimedBuff));
 
             // ========== 각종 스탯 소스 ==========
             var potentialStats = GetPotentialStats(input);
@@ -395,6 +399,22 @@ namespace GameDamageCalculator.Services
         {
             if (buff == null) return 0;
             return type == AttackType.Magic ? buff.MagicAtk_Rate : buff.Atk_Rate;
+        }
+
+        /// <summary>
+        /// 같은 묶음 안 MaxMerge 시 자기 패시브가 파티 값 위에 추가로 얹는 몫 = max(자기, 파티) − 파티 (필드별).
+        /// 둘 중 하나라도 0 이하이면(한쪽만 있거나 감소값) 자기 값을 그대로 쓴다.
+        /// </summary>
+        private static BuffSet SelfShareAfterMaxMerge(BuffSet self, BuffSet party)
+        {
+            var r = new BuffSet();
+            foreach (var p in typeof(BuffSet).GetProperties())
+            {
+                if (p.PropertyType != typeof(double) || !p.CanWrite) continue;
+                double s = (double)p.GetValue(self), q = (double)p.GetValue(party);
+                p.SetValue(r, (s > 0 && q > 0) ? Math.Max(s, q) - q : s);
+            }
+            return r;
         }
 
         /// <summary>

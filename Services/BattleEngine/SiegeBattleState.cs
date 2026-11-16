@@ -36,6 +36,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool ForceFullBuffUptime { get; set; }   // [진단] 아군 버프 만료 스킵(풀 uptime 실험)
         public List<int> HighestAtkAllyOrder { get; set; }      // "공격력 최고 아군" 순위 강제(AllyParty 인덱스, 앞=1순위). null=DamageWeight 순
         public bool HighestAtkAllyOverrideCdrOnly { get; set; } // 강제를 평타 쿨감에만 적용
+        public bool InGameBuffTargeting { get; set; }           // true=시전 순간 현재 공격력 순 / false=DamageWeight 순
         public bool DiagAlliesImmortal { get; set; }            // [진단] 아군 HP 피해 무시(불사)
         public bool DiagForceCritWeak { get; set; }             // [진단] 아군 치명·약점 항상 발동
         public double AllyCooldownMargin { get; set; }          // 아군 스킬 쿨 안전 여유(초)

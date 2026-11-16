@@ -66,6 +66,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         // true면 위 강제를 평타 쿨감(ApplyBasicAttackCdReduction)에만 적용하고 장비강화 등 스킬 버프는 기존 타게팅 유지.
         public bool HighestAtkAllyOverrideCdrOnly { get; set; }
 
+        // [인게임 버프 타게팅] true면 "공격력이 가장 높은 아군" 버프·평타 쿨감 대상을 인게임 규칙대로
+        //   시전 순간의 현재 공격력(스냅샷 × 전투 중 공%버프 × (1 - 아군에 걸린 공감 디버프))으로 고른다.
+        //   false(기본) = 스카우팅 누적딜(DamageWeight) 순 — 버프가 항상 이상적인 딜러에게 가는 낙관 모델.
+        //   true여야 "보스 공감 → 후열 디버프 해제로 순위 역전" 같은 공격력 조절 트릭이 시뮬 안에서 성립한다.
+        //   HighestAtkAllyOrder(강제 순위)가 지정되면 그쪽이 여전히 우선.
+        public bool InGameBuffTargeting { get; set; }
+
         // [진단] true면 아군이 HP 피해를 받지 않는다(불사) — "생존을 전제로 한 순수 로테 품질" 비교 실험용. 점수 로직 불변.
         public bool DiagAlliesImmortal { get; set; }
 
