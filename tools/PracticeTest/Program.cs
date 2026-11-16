@@ -20,7 +20,13 @@ var backRow = (args.Length > 2 ? args[2] : "나타").Split(',').ToList();
 int petStar = args.Length > 3 ? int.Parse(args[3]) : 6;
 bool runSim = args.Contains("sim");
 double cdMargin = double.Parse(args.FirstOrDefault(a => a.StartsWith("margin="))?.Substring(7) ?? "0");
-double basicSec = double.Parse(args.FirstOrDefault(a => a.StartsWith("basic="))?.Substring(6) ?? "2.0");
+double basicSec = double.Parse(args.FirstOrDefault(a => a.StartsWith("basic="))?.Substring(6) ?? new SiegeBattleConfig().BasicAttackSeconds.ToString());
+// 스킬 소요시간 오버라이드: a1= a2= (아군 1·2스킬) e1= e2= (적 1·2스킬). 미지정 = SiegeBattleConfig 기본값
+double Arg(string k, double d) => double.TryParse(args.FirstOrDefault(a => a.StartsWith(k + "="))?.Substring(k.Length + 1), out var v) ? v : d;
+var defCfg = new SiegeBattleConfig();
+int seedArg = int.TryParse(args.FirstOrDefault(a => a.StartsWith("seed="))?.Substring(5), out var sd) ? sd : 777;   // 적 타겟 RNG 시드
+bool enemyStart = args.Contains("estart") || (defCfg.EnemySkillReadyAtTurnStart && !args.Contains("eend"));   // 적 스킬 턴시작 판정
+double a1s = Arg("a1", defCfg.AllySkill1Seconds), a2s = Arg("a2", defCfg.AllySkill2Seconds), e1s = Arg("e1", defCfg.EnemySkill1Seconds), e2s = Arg("e2", defCfg.EnemySkill2Seconds);
 bool ownStart = args.Contains("ownstart");   // 기본 = 시뮬 기본(시전 완료 후부터, 녹화 확정). "ownstart" = 시전 시작부터(옛 모델)
 var team = new List<BattleCharacter>();   // 시트 순서 = 진형번호 오름차순 = 동속공 행동 순서
 using var doc = JsonDocument.Parse(File.ReadAllText(path));
@@ -190,9 +196,9 @@ if (runReplay)
     {
         var rcfg = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],
             AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70,
-            RotationPlan = uplan, AllyDeathPenalty = 1_000_000, RecordFeasibility = true, DiagForceCritWeak = force, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart,
+            RotationPlan = uplan, AllyDeathPenalty = 1_000_000, RecordFeasibility = true, DiagForceCritWeak = force, BasicAttackSeconds = basicSec, AllySkill1Seconds = a1s, AllySkill2Seconds = a2s, EnemySkill1Seconds = e1s, EnemySkill2Seconds = e2s, EnemySkillReadyAtTurnStart = enemyStart, OwnCooldownFromCastStart = ownStart,
             InGameBuffTargeting = args.Contains("ingame") };
-        var rr = new SiegeBattleSimulator(777).Simulate(rcfg);
+        var rr = new SiegeBattleSimulator(seedArg).Simulate(rcfg);
         Console.WriteLine($"\n\n########## 유저 로테 재생 · {(force ? "치명·약점 항상 발동(상한)" : "치명·약점 기댓값(시뮬 기본)")} ##########");
         double cum = 0;
         Console.WriteLine("  라운드(누적): " + string.Join(" / ", rr.RoundScore.OrderBy(k => k.Key).Select(k => { cum += k.Value; return $"R{k.Key} {cum:N0}"; })));
@@ -212,8 +218,8 @@ if (runReplay)
             // 리나 따뜻한 울림 쿨 예측 (평타 쿨감 미수령 → 순수 경과시간): 첫 R3 시전 후 각 스킬턴 시작 시점 잔여 쿨
             var lc2 = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],
                 AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70,
-                RotationPlan = uplan, AllyDeathPenalty = 1_000_000, DiagTimeLedger = true, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart };
-            var lr2 = new SiegeBattleSimulator(777).Simulate(lc2);
+                RotationPlan = uplan, AllyDeathPenalty = 1_000_000, DiagTimeLedger = true, BasicAttackSeconds = basicSec, AllySkill1Seconds = a1s, AllySkill2Seconds = a2s, EnemySkill1Seconds = e1s, EnemySkill2Seconds = e2s, EnemySkillReadyAtTurnStart = enemyStart, OwnCooldownFromCastStart = ownStart };
+            var lr2 = new SiegeBattleSimulator(seedArg).Simulate(lc2);
             var led = lr2.TimeLedger;
             File.WriteAllLines(Path.Combine("results", "practice", args.Contains("beamplan") ? "ledger_beam.csv" : args.Contains("videoplan") ? "ledger_video.csv" : args.Contains("wedplan") ? "ledger_wed.csv" : "ledger_user.csv"),
                 new[] { "turn,sec,elapsed,why" }.Concat(led.Select(e => $"{e.Turn},{e.Sec},{e.Elapsed},{e.Why.Replace(",", " ")}")));
@@ -241,6 +247,7 @@ if (runReplay)
             .GroupBy(l => l.Turn).Select(g => $"{g.Key}:{g.First().ActorName}");
         Console.WriteLine("    " + string.Join(" ", basics));
     }
+    if (!runSim && !runHit && !runStart) return;   // replay만 요청 시 아래 빔 탐색(수 분) 생략
 }
 
 if (runHit)
@@ -269,7 +276,7 @@ if (runHit)
     {
         foreach (var (tgt, hp) in new[] { (bossName, 100.0), (bossName, 0.0), ("룩", 0.0), ("챈슬러", 0.0) })
         {
-            var hb = new SiegeBattleSimulator(777).EvaluateHitBreakdown(hcfg, di, sk, 3, tgt, hp, active);
+            var hb = new SiegeBattleSimulator(seedArg).EvaluateHitBreakdown(hcfg, di, sk, 3, tgt, hp, active);
             if (first)
             {
                 var ip = hb.Input;
@@ -321,7 +328,7 @@ SiegeBattleConfig Cfg(List<RotationDecision> plan) => new()
 {
     AllyParty = team, FormationName = FORMATION, SiegeStage = stage,
     AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70,
-    RotationPlan = plan, AllyDeathPenalty = 1_000_000, RecordFeasibility = plan != null, AllyCooldownMargin = cdMargin, BasicAttackSeconds = basicSec, OwnCooldownFromCastStart = ownStart,
+    RotationPlan = plan, AllyDeathPenalty = 1_000_000, RecordFeasibility = plan != null, AllyCooldownMargin = cdMargin, BasicAttackSeconds = basicSec, AllySkill1Seconds = a1s, AllySkill2Seconds = a2s, EnemySkill1Seconds = e1s, EnemySkill2Seconds = e2s, EnemySkillReadyAtTurnStart = enemyStart, OwnCooldownFromCastStart = ownStart,
 };
 
 var opt = new SiegeOptimizer().Optimize(new SiegeOptimizerConfig
@@ -343,16 +350,16 @@ void Report(string label, SiegeBattleResult r)
     Console.WriteLine("  영웅별: " + string.Join(" / ", r.CharacterResults.OrderByDescending(c => c.TotalDamage).Select(c => $"{c.CharacterName} {c.TotalDamage:N0}")));
 }
 
-var auto = new SiegeBattleSimulator(777).Simulate(Cfg(null));
+var auto = new SiegeBattleSimulator(seedArg).Simulate(Cfg(null));
 Report("자동 로테(궁→2→1 우선)", auto);
 
 var plan = opt.BestRotationPlan.Select(x => new RotationDecision { HeroIndex = x.HeroIndex, Skill = x.Skill, Hold = x.Hold }).ToList();
-var best = new SiegeBattleSimulator(777).Simulate(Cfg(plan));
+var best = new SiegeBattleSimulator(seedArg).Simulate(Cfg(plan));
 Report("빔 로테", best);
 PrintTimeline(best);
 {
     var lc = Cfg(plan); lc.DiagTimeLedger = true;
-    var lr = new SiegeBattleSimulator(777).Simulate(lc);
+    var lr = new SiegeBattleSimulator(seedArg).Simulate(lc);
     Console.WriteLine("\n  -- [시간 장부] 빔 로테 턴 5~32 (턴 · +초 · 누적경과 · 사유) --");
     foreach (var e in lr.TimeLedger.Where(e => e.Turn >= 5 && e.Turn <= 32))
         Console.WriteLine($"    턴 {e.Turn,2}  +{e.Sec:0.0}s  → {e.Elapsed,6:0.0}s  {e.Why}");
@@ -363,7 +370,7 @@ PrintTimeline(best);
 Console.WriteLine("\n  -- 빔 로테 스텝별 쿨 여유 (재시전만; 여유 = 시전 시각 − 쿨 완료 시각, 초) --");
 foreach (var f in best.Feasibility.Where(f => f.Reached && !f.Hold && f.CooldownGated))
     Console.WriteLine($"    턴 {f.Turn,2} {f.HeroName} {f.SkillName}: 여유 {f.Slack:0.0}초 (경과 {f.Elapsed:0.0}초)");
-{ var bc2 = Cfg(plan); bc2.DiagForceCritWeak = true; Console.WriteLine($"  (치명·약점 항상 발동 상한: {new SiegeBattleSimulator(777).Simulate(bc2).TotalScore:N0})"); }
+{ var bc2 = Cfg(plan); bc2.DiagForceCritWeak = true; Console.WriteLine($"  (치명·약점 항상 발동 상한: {new SiegeBattleSimulator(seedArg).Simulate(bc2).TotalScore:N0})"); }
 Console.WriteLine("  스킬 순서: " + string.Join(" → ", best.Feasibility.Where(f => f.Reached && !f.Hold && (f.ExecutedAsPlanned || f.IsAuto))
     .Select(f => $"{f.HeroName} {f.SkillName}")));
 

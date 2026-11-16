@@ -40,7 +40,14 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool DiagAlliesImmortal { get; set; }            // [진단] 아군 HP 피해 무시(불사)
         public bool DiagForceCritWeak { get; set; }             // [진단] 아군 치명·약점 항상 발동
         public double AllyCooldownMargin { get; set; }          // 아군 스킬 쿨 안전 여유(초)
-        public double BasicAttackSeconds { get; set; } = 2.0;   // 평타 1회 소요시간(초)
+        public double BasicAttackSeconds { get; set; } = 1.85;  // 평타 1회 소요시간(초) — 값·근거는 SiegeBattleConfig 참조
+        public double AllySkill1Seconds { get; set; } = 3.3;
+        public double AllySkill2Seconds { get; set; } = 4.25;
+        public double EnemySkill1Seconds { get; set; } = 3.1;
+        public double EnemySkill2Seconds { get; set; } = 4.0;
+        public bool EnemySkillReadyAtTurnStart { get; set; }
+        // 턴 시작(평타 前) 시점 적 스킬 쿨 스냅샷 (EnemySkillReadyAtTurnStart용). null = 스냅샷 없음(진입 스킬턴 등).
+        public Dictionary<(int EnemyId, SkillType Skill), double> EnemyCdAtTurnStart { get; set; }
         public bool OwnCooldownFromCastStart { get; set; }      // 자기 쿨 카운트 시작: true=시전 시작 / false=시전 완료 후
         // [진단] 시간 장부: (턴, 초, 사유, 누적경과) — AdvanceTime 호출마다 기록. null이면 미기록.
         public List<(int Turn, double Sec, string Why, double Elapsed)> TimeLedger { get; set; }

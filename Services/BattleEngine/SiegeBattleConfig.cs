@@ -86,8 +86,21 @@ namespace GameDamageCalculator.Services.BattleEngine
         // [진단] true면 시간 장부(SiegeBattleResult.TimeLedger) 기록 — 쿨 타이밍 검증용.
         public bool DiagTimeLedger { get; set; }
 
-        // [시간 모델 보정] 평타 1회 소요시간(초). 기본 2.0 (정수 초 측정). 연습전투 쿨 타이밍 역산 후보 2.1.
-        public double BasicAttackSeconds { get; set; } = 2.0;
+        // [시간 모델] 행동 1회 소요시간(초 = 그동안 흐르는 게임 시간 = 전체 쿨 감소량).
+        //   2026-11-16 수요일 녹화 실측(tools/PracticeTest/video/scan_clock.py + clock_fit.py): 평타 쿨감을 안 받는
+        //   쿨 카운터(보스 1·2스킬, 비스킷·리나)를 이어 붙인 게임 시계로 70턴 전부 측정 → 행동 종류별 최소제곱(58턴, 잔차 0.45s).
+        //   평타 1.85 · 아군 1스킬 3.27 · 아군 2스킬 4.24 · 적 1스킬 3.09 · 적 2스킬 3.9(표본 1 → 컷신 일괄 4 규칙대로 4.0).
+        //   구 모델(2/3/4/3/4)은 수요일 T30까지 +3.8s 누적 → 불새 2회차 T30(인게임 T34)·챈슬러/룩 순서 어긋남.
+        //   신 모델은 누적 오차 ±1.8s(T57까지), 월요일 녹화의 루디 방어준비 T26 불발→T30도 재현. 판마다 ±1~2s 변동은 남는다.
+        public double BasicAttackSeconds { get; set; } = 1.85;
+        public double AllySkill1Seconds { get; set; } = 3.3;
+        public double AllySkill2Seconds { get; set; } = 4.25;
+        public double EnemySkill1Seconds { get; set; } = 3.1;
+        public double EnemySkill2Seconds { get; set; } = 4.0;
+        // [시간 모델] true면 적 스킬턴의 사용 가능 여부를 "그 턴 시작 시점(평타 前)" 쿨로 판정 — 스킬턴 자체는 평타 後.
+        //   2026-11 수요일 녹화: T30 시작(226.3s) 불새 잔여 1.3s → 평타 끝날 땐 준비됐지만 인게임은 T30 미사용, T34 사용.
+        //   T58은 시작 0.3s 전 준비 → 사용. 아군은 해당 없음(나타 T28 혼천은 같은 턴 자기 평타 쿨감 8s 받고 시전됨).
+        public bool EnemySkillReadyAtTurnStart { get; set; } = true;
         // [시간 모델 보정] true면 자기 스킬 쿨이 "시전 시작"부터 카운트(시전시간도 자기 쿨 감소). false면 "시전 완료 후"부터.
         //   2026-10 녹화 영상으로 확정: 완료 후(false). 미호 살육(1스킬) 시전 직후 70→1초 뒤 69, R2 미호 교만(2스킬) 컷신+사망연출
         //   직후 69, 울림 120→119. (이전 "시전 시작" 근거였던 유저 기록 R1 "나타 2스킬"은 실제로 1스킬(화첨)이었음 — 유저 확인.)

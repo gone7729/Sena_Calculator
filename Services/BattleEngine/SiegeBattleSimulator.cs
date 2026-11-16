@@ -123,6 +123,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DiagForceCritWeak = config.DiagForceCritWeak,
                 AllyCooldownMargin = config.AllyCooldownMargin,
                 BasicAttackSeconds = config.BasicAttackSeconds,
+                AllySkill1Seconds = config.AllySkill1Seconds, AllySkill2Seconds = config.AllySkill2Seconds,
+                EnemySkill1Seconds = config.EnemySkill1Seconds, EnemySkill2Seconds = config.EnemySkill2Seconds,
+                EnemySkillReadyAtTurnStart = config.EnemySkillReadyAtTurnStart,
                 OwnCooldownFromCastStart = config.OwnCooldownFromCastStart,
                 TimeLedger = config.DiagTimeLedger ? new List<(int, double, string, double)>() : null,
             };
@@ -180,6 +183,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 // 비트리거 상시 면역(예: 풍연 빙결 면역) 매 턴 갱신 — 시전자 생존 동안 유지
                 ApplyStandingImmunities(state);
 
+                // 적 스킬 사용 판정용 쿨 스냅샷(턴 시작 = 평타 前). 스킬턴 처리 후 해제.
+                state.EnemyCdAtTurnStart = state.EnemySkillReadyAtTurnStart
+                    ? state.Enemies.SelectMany(e => e.SkillCooldowns.Select(kv => (Key: (e.Source.Id, kv.Key), kv.Value)))
+                        .GroupBy(x => x.Key).ToDictionary(g => g.Key, g => g.First().Value)
+                    : null;
+
                 // 기본공격: 양팀 통합 속공순 다음 유닛 (턴 소모)
                 if (order.Count > 0)
                 {
@@ -199,6 +208,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     ProcessSkillTurn(config, state, skillByAlly);
                     state.IsSkillTurn = false;
                 }
+                state.EnemyCdAtTurnStart = null;   // 라운드 진입 스킬턴(EnterRound)은 현재 쿨로 판정
 
                 // 효과 잔여턴/DoT는 각 캐릭터의 행동 직후에 처리(per-character-action 모델).
                 //   글로벌 sim-turn tick이 아니라, 행동자(actor)만 tick — n턴 지속 = "부여받은 캐릭의 n번 행동".
@@ -425,6 +435,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     var enemy = state.Enemies.FirstOrDefault(e => e.Source.Id == pri.EnemyId);
                     if (enemy == null || !enemy.IsSkillReady(pri.SkillType)) continue;
+                    // 턴 시작 판정: 평타 전엔 쿨이 남아 있었으면 이번 스킬턴엔 안 씀 (EnemySkillReadyAtTurnStart)
+                    if (state.EnemyCdAtTurnStart != null
+                        && state.EnemyCdAtTurnStart.TryGetValue((enemy.Source.Id, pri.SkillType), out var cd0) && cd0 > 0) continue;
                     var skill = enemy.Source.Skills?.FirstOrDefault(s => s.SkillType == pri.SkillType);
                     if (skill == null) continue;
 
@@ -523,10 +536,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                     // 상대(보스) 스킬 사용 → 그 스킬 소요시간(1스킬 3초·2스킬 4초)만큼 시간 경과 → 전체(아군+적) 쿨 감소.
                     //   [정정] 이전엔 별도 ReduceCooldowns(5)까지 더해 이중 감소 → 교만 등 쿨이 실시간보다 빨리 회복됐음.
                     //   시간경과(AdvanceTime)만으로 충분(쿨=실시간). 별도 -5초 메커니즘 제거.
-                    double enemyCd = GetActionDuration(skill);
+                    double enemyCd = GetActionDuration(skill, enemy: true);
                     Log(state, enemy.Source.Name, false, ActionType.BuffApplied, "쿨감", 0,
-                        $"적 {skill.Name}({skill.SkillType}) 시전 → 시간경과 {enemyCd:F0}초 → 전체 쿨 -{enemyCd:F0}초 (경과 {state.ElapsedSeconds:F0}초)");
-                    AdvanceTime(state, GetActionDuration(skill), $"[적스킬] {enemy.Source.Name} {skill.Name}");
+                        $"적 {skill.Name}({skill.SkillType}) 시전 → 시간경과 {enemyCd:0.##}초 → 전체 쿨 -{enemyCd:0.##}초 (경과 {state.ElapsedSeconds:F0}초)");
+                    AdvanceTime(state, enemyCd, $"[적스킬] {enemy.Source.Name} {skill.Name}");
                     // 자기 쿨은 시전 완료 시점부터 카운트(자기 컷신 시간엔 자기 쿨 안 깎임) → AdvanceTime 後 set.
                     double cd = skill.GetCooldown(false, 0);
                     if (cd > 0) enemy.SkillCooldowns[pri.SkillType] = cd;
@@ -1777,15 +1790,16 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         #region 시간 / 쿨다운
 
-        /// <summary>행동 소요시간(초): 평타 2 / 1스킬 3 / 2스킬 4 (실측 프레임 추적 2026-06-08: 1스킬 −3초·2스킬 −4초·평타 −2초·라운드 사망모션 −1초).</summary>
-        private double GetActionDuration(Skill skill)
+        /// <summary>행동 소요시간(초): config 값(기본 평타 1.85 / 아군 1스킬 3.3·2스킬 4.25 / 적 1스킬 3.1·2스킬 4.0 — 2026-11 수요일 녹화 게임 시계 실측).</summary>
+        private double GetActionDuration(Skill skill, bool enemy = false)
         {
-            if (skill == null) return _activeState?.BasicAttackSeconds ?? 2.0;   // 기본공격 (config.BasicAttackSeconds)
+            var s = _activeState;
+            if (skill == null) return s?.BasicAttackSeconds ?? 2.0;   // 기본공격 (config.BasicAttackSeconds)
             return skill.SkillType switch
             {
-                SkillType.Normal or SkillType.Normal2 => 2.0,
-                SkillType.Skill1 => 3.0,                          // 1스킬
-                _ => 4.0,                                         // 2스킬(컷신) 등
+                SkillType.Normal or SkillType.Normal2 => s?.BasicAttackSeconds ?? 2.0,
+                SkillType.Skill1 => enemy ? s?.EnemySkill1Seconds ?? 3.0 : s?.AllySkill1Seconds ?? 3.0,   // 1스킬
+                _ => enemy ? s?.EnemySkill2Seconds ?? 4.0 : s?.AllySkill2Seconds ?? 4.0,                  // 2스킬(컷신) 등
             };
         }
 
