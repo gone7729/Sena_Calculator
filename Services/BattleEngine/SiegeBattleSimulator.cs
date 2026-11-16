@@ -569,9 +569,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                         var targets = PickTargets(state, tc, ally);
                         foreach (var target in targets)
                         {
-                            double dmg = CalcDamageToEnemy(ally, target, normal, state);
                             bool pen = normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.IgnoresTurnDamageImmunity ?? false;
-                            ApplyDamage(state, ally, target, dmg, normal.Name, isSkill: false, penetrate: pen);
+                            if (tc <= 1)
+                                ApplySingleTargetHit(state, ally, target, normal, isSkill: false, pen);   // 약점→최저HP / 미발동→무작위(기댓값)
+                            else
+                                ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, normal, state), normal.Name, isSkill: false, penetrate: pen);
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
                             MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
                         }
@@ -627,31 +629,35 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
         private void ApplyDamage(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target,
-            double dmg, string label, bool isSkill, bool penetrate = false)
+            double dmg, string label, bool isSkill, bool penetrate = false, double hitWeight = 1.0, bool spill = false)
         {
             if (dmg <= 0) return;
 
             // R3 시스템 기믹(일요일 룩·챈슬러): 피해 1 고정 — 보스(크리스)에게만 유효타가 들어가도록 시스템이 강제.
             //   패시브/버프 아닌 고정 속성(SiegeDamageCapToOne)이라 버프해제·턴제버프감소로 풀 수 없음.
-            //   약점공격(약확 100%↑) 집중 또는 광역기 외엔 크리스를 직접 못 때려 점수가 안 오른다(PickTargets 참조).
-            if (target.Source?.SiegeDamageCapToOne == true && dmg > 1) dmg = 1;
+            //   단일 타격은 약점 미발동 시 무작위 적 → 확률(1−약확)×2/3로 룩·챈에 빠진다(ApplySingleTargetHit).
+            //   기댓값 분산 타격(hitWeight<1)은 "1 × 가중치".
+            if (target.Source?.SiegeDamageCapToOne == true && dmg > hitWeight) dmg = hitWeight;
 
             // 피해 면역 (화 R3 룩 스킬: 적 전체 [2턴]) — 이 대상이 면역 중이면 피해 0. 단 관통(IgnoresTurnDamageImmunity)이면 면역 무시.
             if (target.ImmunityTurns > 0 && !penetrate)
             {
-                Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
-                    label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
-                ApplyHitCdReduce(state, target);   // 피격 자체는 발생 → 일 쿨감 패시브는 트리거
+                if (!spill)
+                    Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
+                        label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
+                ApplyHitCdReduce(state, target, hitWeight);   // 피격 자체는 발생 → 일 쿨감 패시브는 트리거
                 return;
             }
 
             // 보스 피해 무효화 (델론즈 「죽음의 경계」: 아군 사망 시 부여) — 직격 1회 무효·1 차감, 점수 미집계.
+            //   기댓값 분산분(spill)은 횟수를 소모하지 않고 무효만(근사).
             if (target.NullifyHitsRemaining > 0)
             {
+                if (spill) return;
                 target.NullifyHitsRemaining--;
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 무효 (죽음의 경계, 잔여 {target.NullifyHitsRemaining}회)");
-                ApplyHitCdReduce(state, target);
+                ApplyHitCdReduce(state, target, hitWeight);
                 return;
             }
 
@@ -673,7 +679,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 bool broke = target.Shield <= 0;
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 보호막 흡수 {absorbed:N0}{(broke ? " (보호막 파괴)" : $" (잔여 {target.Shield:N0})")} — 점수 미집계");
-                ApplyHitCdReduce(state, target);
+                ApplyHitCdReduce(state, target, hitWeight);
                 if (dmg <= 0) return;   // 전부 보호막에 흡수 → HP 피해 없음
                 // 파괴 후 잔여 피해는 HP로 (아래 점수 집계). dmg는 이미 적 방어력 반영(post-def, BossDef=enemy.Stats.Def)이라
                 //   보호막 흡수분·HP 잔여분 모두 방어력이 포함된 값이다.
@@ -704,13 +710,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Description = $"{ally.Source.Character.Name} → {target.Source.Name}: {dmg:N0}",
             });
 
-            ApplyHitCdReduce(state, target);   // 피격 시 쿨감 패시브(일요일 몹)
+            ApplyHitCdReduce(state, target, hitWeight);   // 피격 시 쿨감 패시브(일요일 몹) — 분산 타격은 가중치만큼
         }
 
         /// <summary>일요일 몹 패시브: 피격된 적이 쿨감 패시브 보유 시, 공격력 최고 적의 스킬 쿨 N초 감소.</summary>
-        private void ApplyHitCdReduce(SiegeBattleState state, SiegeEnemyState hit)
+        private void ApplyHitCdReduce(SiegeBattleState state, SiegeEnemyState hit, double weight = 1.0)
         {
-            double red = hit.Source?.SiegeHitCdReduce ?? 0;
+            double red = (hit.Source?.SiegeHitCdReduce ?? 0) * weight;
             if (red <= 0) return;
             var top = state.Enemies.OrderByDescending(e => e.FinalAtk).FirstOrDefault();
             if (top == null) return;
@@ -732,17 +738,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 룩/챈슬러(쿨감 패시브 보유 친위대)를 안 때려 보스 쿨타임 감소를 차단. 100% 미만이면 기존 최저HP(룩/챈슬러로 분산).</summary>
         private List<SiegeEnemyState> PickTargets(SiegeBattleState state, int count, CharacterBattleState attacker = null)
         {
-            if (state.CurrentRound >= 3 && attacker != null && count <= 1)
-            {
-                double effWek = (attacker.DisplayStats?.Wek ?? 0) + attacker.Effects.GetTotalBuffs().Wek;
-                if (effWek >= 100)
-                {
-                    // 전열 보스 = 요일 보스(룩/챈슬러 아님), 없으면 자리 2번.
-                    var boss = state.Enemies.FirstOrDefault(e => e.IsBoss && e.Source.Name != "룩" && e.Source.Name != "챈슬러")
-                            ?? state.Enemies.FirstOrDefault(e => e.Position == 2);
-                    if (boss != null) return new List<SiegeEnemyState> { boss };
-                }
-            }
+            // (구 "약확 100%↑면 R3 요일보스 고정" 분기는 제거 — 단일 타격의 약점/무작위 분산은 SingleTargetCandidates +
+            //  ApplySingleTargetHit가 담당. 여기 반환 [0] = 약점 대상(최저 HP) = 부가효과(디버프·DoT·반격) 대상.)
             // R1/R2: 살아있는 적(HP>0)만 타겟 — 죽은 적은 HP 음수로 영원히 "최저HP"라 단일 평타가
             //   시체만 도그파일하고 옆 적이 안 죽어 라운드가 안 깨지던 버그 수정(R2 16턴 → 즉시).
             //   R3 보스는 무사망(HP≤0 허용)이라 IsBoss 필터만(HP 무관) — 보스를 계속 때려 점수 누적.
@@ -754,12 +751,69 @@ namespace GameDamageCalculator.Services.BattleEngine
             return list.OrderBy(e => e.CurrentHp).ThenBy(e => e.Position).Take(System.Math.Max(1, count)).ToList();
         }
 
+        /// <summary>단일 타격이 갈 수 있는 적 후보(PickTargets와 같은 풀): R3=IsBoss 전원, R1/R2=생존 적.</summary>
+        private List<SiegeEnemyState> SingleTargetCandidates(SiegeBattleState state)
+        {
+            var list = (state.CurrentRound >= 3
+                ? state.Enemies.Where(e => e.IsBoss)
+                : state.Enemies.Where(e => e.CurrentHp > 0)).ToList();
+            return list.Count == 0 ? state.Enemies.ToList() : list;
+        }
+
+        /// <summary>약점 발동 확률 = 공격자 약확(표시스탯+전투중 버프+스킬 내장 약확), 0~1.</summary>
+        private static double WeakProb(CharacterBattleState ally, Skill skill)
+        {
+            var ds = ally.DisplayStats ?? new BaseStatSet();
+            double skillWek = skill?.GetTotalBonus(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel)?.Wek ?? 0;
+            return Math.Clamp((ds.Wek + ally.Effects.GetTotalBuffs().Wek + skillWek) / 100.0, 0, 1);
+        }
+
+        /// <summary>
+        /// 단일 타격(타겟 1명) 1회 — 인게임 타게팅 규칙(유저 확정 2026-11-16):
+        ///   약점 발동(확률 pw = 약확) → 최저 HP 적(primary) / 미발동(1−pw) → 후보 중 무작위 1명(primary 포함, 균등).
+        /// 랜덤 대신 기댓값으로 분산: primary는 pw×D(약점) + (1−pw)/n×D(비약점), 나머지는 각 (1−pw)/n×D(비약점).
+        ///   피해 1 고정(일 R3 룩·챈)·피격 쿨감 패시브(일 몹 크리스 쿨−15초)도 가중치만큼 기댓값 적용.
+        ///   (빔서치가 운 좋은 시드에 과적합하지 않도록 결정적 기댓값. 디버프·DoT·반격은 primary에만 — 근사.)
+        /// 약확 100%↑이면 전부 primary(일요일 크리스 집중 기믹), 후보 1명이면 기존과 동일.
+        /// </summary>
+        private void ApplySingleTargetHit(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState primary,
+            Skill skill, bool isSkill, bool pen)
+        {
+            var cands = SingleTargetCandidates(state);
+            if (!cands.Contains(primary)) cands.Add(primary);
+            double pw = WeakProb(ally, skill);
+            if (cands.Count <= 1 || pw >= 1.0)
+            {
+                ApplyDamage(state, ally, primary, CalcDamageToEnemy(ally, primary, skill, state), skill.Name, isSkill, pen);
+                return;
+            }
+            double wRand = (1 - pw) / cands.Count;
+            // 피해를 먼저 전부 계산한 뒤 적용(앞 적용이 뒤 계산의 잃은HP 등에 섞이지 않게).
+            var hits = new List<(SiegeEnemyState T, double Dmg, double W)>();
+            foreach (var t in cands)
+            {
+                double w = wRand, dmg = wRand * CalcDamageToEnemy(ally, t, skill, state, forceWeak: false);
+                if (t == primary && pw > 0)
+                {
+                    dmg += pw * CalcDamageToEnemy(ally, t, skill, state, forceWeak: true);
+                    w += pw;
+                }
+                hits.Add((t, dmg, w));
+            }
+            foreach (var h in hits.OrderBy(h => h.T == primary ? 1 : 0))   // 분산분 먼저, primary 마지막
+                ApplyDamage(state, ally, h.T, h.Dmg, skill.Name, isSkill, pen, hitWeight: h.W, spill: h.T != primary);
+        }
+
         /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영.
         ///   치명·약점은 실제 확률 기댓값(ExpectedCritWeak=true) — 치확/약확 기어 옵션이 딜에 실제로 반영된다.</summary>
-        private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill, SiegeBattleState state = null)
+        private double CalcDamageToEnemy(CharacterBattleState ally, SiegeEnemyState target, Skill skill, SiegeBattleState state = null,
+            bool? forceWeak = null)
         {
             var input = BuildDamageInputToEnemy(ally, target, skill, state,
                 out double reductionMult, out double elemReduction, out double targetReduction, out double atkRed);
+            // 약점 발동/미발동 고정(치명은 기댓값 유지) — 단일 타격 약점·무작위 분산(ApplySingleTargetHit)용. 내부 pw가 0~1로 clamp.
+            if (forceWeak == true) input.WeakChance = 1e6;
+            else if (forceWeak == false) input.WeakChance = -1e6;
             var dr = _damageCalc.Calculate(input);
             double raw = dr.FinalDamage;
             double final = raw * Math.Max(0, reductionMult);
@@ -1946,9 +2000,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplySkillEffects(state, ally, skill, targets, preDamage: true);
             foreach (var target in targets)
             {
-                double dmg = CalcDamageToEnemy(ally, target, skill, state);
                 bool pen = skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.IgnoresTurnDamageImmunity ?? false;
-                ApplyDamage(state, ally, target, dmg, skill.Name, isSkill: true, penetrate: pen);
+                if (tc <= 1)
+                    ApplySingleTargetHit(state, ally, target, skill, isSkill: true, pen);   // 약점→최저HP / 미발동→무작위(기댓값)
+                else
+                    ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, skill, state), skill.Name, isSkill: true, penetrate: pen);
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
                 MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
             }
