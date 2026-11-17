@@ -79,6 +79,7 @@ namespace GameDamageCalculator.Models.Effects
         EnemyDeath,     // 적군 사망 시 (누적 N명 처치 트리거)
         OnHpBelow,      // 자신 생명력이 임계값(TriggerHpThreshold%) 이하가 될 때
         AllySkill,      // 아군(자신 포함) 누구든 스킬 발동 N회 — 패시브 보유자 기준 누적 (동영 황천의 동행자)
+        OnRoundStart,   // 라운드 진입 시 (공성 R1·R2·R3 각각) — 동영 2초월 동일 열 마법형 피해 면역
     }
 
     /// <summary>

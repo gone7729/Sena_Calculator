@@ -702,7 +702,9 @@ namespace GameDamageCalculator.Services
                 if (baseEffect == null) continue;
 
                 double applyChance = CalcStatusEffectChance(input, effectToUse);
-                int atkCount = input.Skill?.GetAtkCount(input.IsSkillEnhanced, input.TranscendLevel) ?? 1;
+                // 부여 횟수 = 툴팁 기준: "각 공격마다"(PerHit)면 타수만큼, 아니면 스킬당 1회 (2026-11-17 유저 확인).
+                int atkCount = effectToUse.PerHit
+                    ? (input.Skill?.GetAtkCount(input.IsSkillEnhanced, input.TranscendLevel) ?? 1) : 1;
                 int maxStacks = baseEffect.MaxStacks > 0 ? baseEffect.MaxStacks : 99;
                 double expectedStacks = CalcExpectedStacks(input, effectToUse, atkCount, maxStacks);
 

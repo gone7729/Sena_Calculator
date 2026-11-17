@@ -295,6 +295,7 @@ namespace GameDamageCalculator.Models
         public int MaxConsume { get; set; } = 0;            // 최대 소모 개수
         public int Duration { get; set; }                   // 지속 턴
         public int Stacks { get; set; } = 1;                // 부여 스택
+        public bool PerHit { get; set; }                    // 툴팁 "각 공격마다" — 타수만큼 개별 롤·개별 인스턴스 (아니면 스킬당 1회)
         public double Chance { get; set; } = 100;           // 부여 확률%
         public string Condition { get; set; }               // 부여 조건
 
@@ -409,6 +410,7 @@ namespace GameDamageCalculator.Models
                             CustomTargetCurrentHpRatio = e.CustomTargetCurrentHpRatio,
                             CustomHpConversionRatio = e.CustomHpConversionRatio,
                             CustomTriggerCount = e.CustomTriggerCount,
+                            PerHit = e.PerHit,
                         });
                     }
                 }
@@ -517,6 +519,7 @@ namespace GameDamageCalculator.Models
                             CustomTargetCurrentHpRatio = e.CustomTargetCurrentHpRatio,
                             CustomHpConversionRatio = e.CustomHpConversionRatio,
                             CustomTriggerCount = e.CustomTriggerCount,
+                            PerHit = e.PerHit,
                         });
                     }
                 }

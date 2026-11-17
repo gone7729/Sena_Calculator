@@ -150,6 +150,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 1라운드 적 생성
             state.InitializeRound(1);
             ApplyStandingEnemyDebuffs(state, config);   // 아군 패시브 방깎·펫 보스취약 등 상시 디버프
+            ApplyRoundStartPassives(state);             // 라운드 진입 패시브 (동영 2초월 동일 열 마법형 피해 면역)
 
             // 선공 결정 (팀 총 속공치, 동률 랜덤)
             double allySpd = state.AllyTotalSpd, enemySpd = state.EnemyTotalSpd;
@@ -267,6 +268,40 @@ namespace GameDamageCalculator.Services.BattleEngine
             state.CurrentRound++;
             state.InitializeRound(state.CurrentRound);
             ApplyStandingEnemyDebuffs(state, config);
+            ApplyRoundStartPassives(state);
+        }
+
+        /// <summary>라운드 진입 시 발동 패시브 (TriggerCondition.OnRoundStart). 현재: 피해 면역(DamageNullification).
+        ///   동영 2초월: 자신과 동일 열 아군(마법형) 모든 피해 면역[1턴] — 매 라운드 진입마다. 보유자 생존 시에만.</summary>
+        private void ApplyRoundStartPassives(SiegeBattleState state)
+        {
+            foreach (var owner in state.AllyStates.Where(a => !a.IsDead).ToList())
+            {
+                var passive = owner.Source.Character.Passive;
+                if (passive == null) continue;
+                foreach (var e in GetPassiveEffects(passive, owner))
+                {
+                    if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnRoundStart) continue;
+                    if (e.Type != PersistentEffectType.DamageNullification || e.DamageNullification == null) continue;
+                    IEnumerable<CharacterBattleState> targets = e.Target == EffectTarget.Self
+                        ? new[] { owner }
+                        : state.AllyStates.Where(a => !a.IsDead);
+                    if (e.SameRowOnly) targets = targets.Where(a => a.Source.IsBackPosition == owner.Source.IsBackPosition);
+                    if (e.TargetClasses != null && e.TargetClasses.Length > 0)
+                        targets = targets.Where(a => e.TargetClasses.Contains(a.Source.Character.Type));
+                    var n = e.DamageNullification;
+                    var list = targets.ToList();
+                    foreach (var t in list)
+                    {
+                        if (n.Duration > 0) t.NullifyTurnsRemaining = Math.Max(t.NullifyTurnsRemaining, n.Duration);
+                        if (n.HitCount > 0) t.NullifyHitsRemaining = Math.Max(t.NullifyHitsRemaining, n.HitCount);
+                        t.NullifyType = n.Type;
+                    }
+                    if (list.Count > 0)
+                        Log(state, owner.Source.Character.Name, true, ActionType.BuffApplied, passive.Name, 0,
+                            $"R{state.CurrentRound} 진입: {string.Join(",", list.Select(t => t.Source.Character.Name))} {n.Type} 피해 면역 [{(n.Duration > 0 ? n.Duration + "턴" : n.HitCount + "회")}]");
+                }
+            }
         }
 
         /// <summary>선공(속공 빠른 쪽) 결정 — 현재 라운드 적 총 속공 기준. 동률 랜덤.</summary>
@@ -817,6 +852,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             else if (forceWeak == false) input.WeakChance = -1e6;
             var dr = _damageCalc.Calculate(input);
             double raw = dr.FinalDamage;
+            // 조건이 확률적(대상 상태이상이 기댓값 DoT로만 걸려 있음)이면 충족/미충족 피해를 확률 가중 — 예: 샤오 출혈 조건.
+            double pCond = SkillConditionEvaluator.MetProbability(
+                skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.Condition, ally, target, state);
+            if (pCond > 0 && pCond < 1)
+            {
+                input.IsSkillConditionMet = false;
+                double rawUnmet = _damageCalc.Calculate(input).FinalDamage;
+                input.IsSkillConditionMet = true;
+                raw = pCond * raw + (1 - pCond) * rawUnmet;
+            }
             double final = raw * Math.Max(0, reductionMult);
 
             // [진단] 추적 스킬 타격 시 입력 구성요소 덤프
@@ -1024,7 +1069,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (ef.Type != PersistentEffectType.Debuff || ef.Debuff == null) continue;
                     if (ef.Target != EffectTarget.Enemy && ef.Target != EffectTarget.AllEnemies) continue;
                     AddEnemyDebuff(boss, ScaleDebuff(ef.Debuff, ef.MaxStacks), 99,
-                        $"dummy_stack:{ally.PartyIndex}:{ef.StatusType}", EffectCategory.PassiveDebuff);
+                        $"dummy_stack:{ally.PartyIndex}:{ef.StatusType}", EffectCategory.StackDebuff);
                 }
             }
 
@@ -1813,13 +1858,23 @@ namespace GameDamageCalculator.Services.BattleEngine
                 double tick = raw * Math.Max(0, 1 - elemReduction / 100.0);
                 int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
 
-                target.ActiveDots.Add(new SiegeDot
-                {
-                    Type = se.Type,
-                    TickDamage = tick,
-                    RemainingTurns = dur,
-                    SourceName = ally.Source.Character.Name,
-                });
+                // 세나 규칙(2026-11-17 유저 확인): 상태이상은 갱신형이 아니다 — 부여될 때마다 자기 지속 턴을 가진 새 인스턴스 추가.
+                //   부여 횟수 = 툴팁: "각 공격마다"(PerHit)면 타수만큼 개별 롤, 아니면 스킬당 1회. × Stacks.
+                //   확률은 기댓값: 인스턴스 틱 × p (p = 확률 × (1 + 효과적중/100), 적 효과저항 0 가정 — 공성 적 효저 데이터 없음).
+                int hits = se.PerHit ? Math.Max(1, skill.GetAtkCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened)) : 1;
+                int count = hits * Math.Max(1, se.Stacks);
+                double effHit = (ally.DisplayStats?.Eff_Hit ?? 0) + ally.Effects.GetTotalBuffs().Eff_Hit;
+                double p = Math.Clamp(se.Chance / 100.0 * (1 + effHit / 100.0), 0, 1);
+                if (p <= 0) continue;
+                for (int k = 0; k < count; k++)
+                    target.ActiveDots.Add(new SiegeDot
+                    {
+                        Type = se.Type,
+                        TickDamage = tick * p,
+                        RemainingTurns = dur,
+                        SourceName = ally.Source.Character.Name,
+                        Probability = p,
+                    });
             }
         }
 
@@ -2492,7 +2547,8 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                     var scaled = ScaleDebuff(perStack, newStacks);
                     // 타카 EagleClaw 등 스택형 취약은 스택 시 상시 적용 → PassiveDebuff(턴제 레이첼 취약과 다른 카테고리=Add).
-                    AddEnemyDebuff(en, scaled, 99, skey, EffectCategory.PassiveDebuff);   // 같은 key 갱신(스택 증가분 반영)
+                    // 타카 EagleClaw 등 스택형 = 중첩형 카테고리(상시·턴제와 별도 합산 — 2026-11-17 유저 확인. 이전엔 상시로 분류).
+                    AddEnemyDebuff(en, scaled, 99, skey, EffectCategory.StackDebuff);   // 같은 key 갱신(스택 증가분 반영)
                     Log(state, ally.Source.Character.Name, true, ActionType.DebuffApplied,
                         StatusEffectDb.Get(effect.StatusType)?.Name ?? effect.StatusType.ToString(), 0,
                         $"{en.Source.Name} {effect.StatusType} {newStacks}스택: {SummarizeDebuff(scaled)}");

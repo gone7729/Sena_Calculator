@@ -14,6 +14,7 @@ namespace GameDamageCalculator.Models.Effects
         // Character.Type 문자열 매칭 (예: "공격형", "만능형", "마법형", "지원형", "방어형")
         public string[] TargetClasses { get; set; }
         public TargetSelector? TargetSelector { get; set; }  // 대상 선정 기준 (공격력 높은 아군·생명력 낮은 아군 등). null이면 기본
+        public bool SameRowOnly { get; set; }                // Party 대상 중 패시브 보유자와 같은 열(전/후열)만 ("자신과 동일 열 아군")
 
         // === 유형 ===
         public PersistentEffectType Type { get; set; }

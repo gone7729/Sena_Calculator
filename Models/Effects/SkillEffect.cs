@@ -41,8 +41,10 @@ namespace GameDamageCalculator.Models.Effects
         public int TriggerCount { get; set; } = 1;              // 트리거에 필요한 횟수
         public int StacksPerTrigger { get; set; } = 1;          // 트리거당 부여 스택 수
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
-        // 중첩형 디버프(Type=Debuff, MaxStacks>0): 타수마다 StacksPerTrigger씩 쌓임 (아일린 "각 공격마다 방깎 8% 1중첩[최대 4]").
-        //   공성 시뮬은 EffectCategory.StackDebuff로 적용 — 상시·턴제 디버프와 별개 묶음이라 합산된다.
+        // 툴팁 "각 공격마다": 타수만큼 적용.
+        //   - 중첩형 디버프(Type=Debuff, MaxStacks>0): 타수마다 StacksPerTrigger씩 (아일린 방깎 8% 1중첩[최대 4]) — StackDebuff 카테고리.
+        //   - 상태이상(DoT): 타수마다 확률 롤 → 성공마다 독립 인스턴스(각자 지속 턴). false면 스킬당 1회 롤.
+        //     세나 규칙(유저 확인): 상태이상은 갱신형이 아니라 부여될 때마다 새 인스턴스가 추가된다.
         public bool PerHit { get; set; }
         // 중첩 풀 식별자 — 같은 키면 다른 스킬이 쌓은 중첩과 공유 (예: 전광석화·청천벽력·진의 "방어력 감소(중첩)"). null이면 스킬별.
         public string StackKey { get; set; }

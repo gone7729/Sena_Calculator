@@ -1379,7 +1379,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { 
                                         Target = EffectTarget.Enemy, 
-                                        Type = SkillEffectType.StatusAilment, 
+                                        Type = SkillEffectType.StatusAilment, PerHit = true, 
                                         StatusType = StatusEffectType.Bleeding,
                                         Stacks = 1,
                                         Chance = 55, Duration = 3 }
@@ -1395,7 +1395,7 @@ namespace GameDamageCalculator.Database
                                 {
                                     new SkillEffect { 
                                         Target = EffectTarget.Enemy, 
-                                        Type = SkillEffectType.StatusAilment, 
+                                        Type = SkillEffectType.StatusAilment, PerHit = true, 
                                         StatusType = StatusEffectType.Bleeding,
                                         Stacks = 1,
                                         Chance = 60, Duration = 3 }
@@ -1408,7 +1408,7 @@ namespace GameDamageCalculator.Database
                                 Cooldown = 55,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Chance = 100, Duration = 3, RequiresStatusType = StatusEffectType.Bleeding }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Bleeding, Chance = 100, Duration = 3, RequiresStatusType = StatusEffectType.Bleeding }
                                 },
                                 Effect = "쿨 55초 변경, 상대 출혈 시 출혈(100%)[3턴]" } }
                         }
@@ -3433,7 +3433,7 @@ namespace GameDamageCalculator.Database
                                 OnKillRecast = new OnKillRecast { RatioPercent = 100 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 30, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 30, Duration = 2 }
                                 },
                                 Effect = "3회 관통(피해 면역 무시), 각 공격마다 출혈 [30%] [2턴], 직접 피해로 처치 시 100% 위력 연속 발동"
                                 } },
@@ -3446,7 +3446,7 @@ namespace GameDamageCalculator.Database
                                 OnKillRecast = new OnKillRecast { RatioPercent = 100 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 35, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 35, Duration = 2 }
                                 },
                                 Effect = "3회 관통(피해 면역 무시), 각 공격마다 출혈 [35%] [2턴], 직접 피해로 처치 시 100% 위력 연속 발동"
                                 } }
@@ -3697,7 +3697,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 57,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 60, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 60, Duration = 2 }
                                 },
                                 Effect = "모든 적군, 각 공격마다 화상 [60%] [2턴]"
                                 } },
@@ -3708,7 +3708,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 57,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 70, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 70, Duration = 2 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 3, Chance = 100, Debuff = new DebuffSet { Def_Reduction = 29 } }
                                 },
                                 Effect = "모든 적군, 각 공격마다 화상 [70%] [2턴], 방어력 감소 29% [100%] [3턴]"
@@ -4057,7 +4057,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
                                 },
                                 Effect = "방어 무시 40%, 각 공격마다 화상 [55% 확률] [2턴], 대상 보유 버프 1개당 각 공격마다 물리 공격력 9% 추가 피해[최대 8개] (미모델)"
                                 } },
@@ -4069,7 +4069,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
                                 },
                                 Effect = "방어 무시 40%, 각 공격마다 화상 [55% 확률] [2턴], 대상 보유 버프 1개당 각 공격마다 물리 공격력 9% 추가 피해[최대 8개] (미모델)"
                                 } },
@@ -4081,7 +4081,7 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
                                 },
                                 Effect = "방어 무시 40%, 각 공격마다 화상 [55% 확률] [2턴], 대상 보유 버프 1개당 각 공격마다 물리 공격력 9% 추가 피해[최대 8개] (미모델)"
                                 } }
@@ -4105,7 +4105,7 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 3, PreDamage = true, Debuff = new DebuffSet { Blk_Red = 27 } },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.PerEnemyDebuffDmgBonus, PercentPerDebuff = 4, MaxDebuffStacks = 8 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 30, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 30, Duration = 2 }
                                 },
                                 Effect = "막기 확률 감소 27% [100%] [3턴], 버프 해제 2개 [100%], 대상 보유 디버프 1개당 각 공격마다 물리 공격력 4% 추가 피해[최대 8개], 각 공격마다 화상 [30% 확률] [2턴]. 자신: 적군 사망 시 스킬 쿨타임 초기화 (미모델)"
                                 } },
@@ -4120,7 +4120,7 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 3, PreDamage = true, Debuff = new DebuffSet { Blk_Red = 27 } },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.PerEnemyDebuffDmgBonus, PercentPerDebuff = 4, MaxDebuffStacks = 8 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 30, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 30, Duration = 2 }
                                 },
                                 Effect = "막기 확률 감소 27% [100%] [3턴], 버프 해제 2개 [100%], 대상 보유 디버프 1개당 각 공격마다 물리 공격력 4% 추가 피해[최대 8개], 각 공격마다 화상 [30% 확률] [2턴]. 자신: 적군 사망 시 스킬 쿨타임 초기화 (미모델)"
                                 } },
@@ -4135,7 +4135,7 @@ namespace GameDamageCalculator.Database
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 3, PreDamage = true, Debuff = new DebuffSet { Blk_Red = 27 } },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, PreDamage = true, DispelBuffCount = 2, Chance = 100 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.PerEnemyDebuffDmgBonus, PercentPerDebuff = 4, MaxDebuffStacks = 8 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 30, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 30, Duration = 2 }
                                 },
                                 Effect = "막기 확률 감소 27% [100%] [3턴], 버프 해제 2개 [100%], 대상 보유 디버프 1개당 각 공격마다 물리 공격력 4% 추가 피해[최대 8개], 각 공격마다 화상 [30% 확률] [2턴]. 자신: 적군 사망 시 스킬 쿨타임 초기화 (미모델)"
                                 } }
@@ -4994,7 +4994,12 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend {
-                            Effect = "2초월: [자신과 동일 열 아군(마법형)] 모든 피해 면역[1턴] (미모델)"
+                            // 라운드 진입 시 자신과 동일 열 아군(마법형, 자신 포함) 모든 피해 면역[1턴] (유저 확인: 패시브 = 라운드 진입 발동)
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, TargetClasses = new[] { "마법형" }, SameRowOnly = true, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRoundStart, DamageNullification = new DamageNullification { Duration = 1, Type = DamageNullType.All } }
+                            },
+                            Effect = "2초월: [자신과 동일 열 아군(마법형)] 라운드 진입 시 모든 피해 면역[1턴]"
                         }},
                         { 6, new PassiveTranscend {
                             // 아군 스킬 2회 발동 효과에 마법 취약 20%[2턴] 추가 — 트리거 시전 전체를 최종값으로 재선언(base를 대체)
@@ -8789,7 +8794,7 @@ namespace GameDamageCalculator.Database
                                 TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 25, Duration = 3, CustomTargetMaxHpRatio = 30, CustomAtkCap = 150 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 25, Duration = 3, CustomTargetMaxHpRatio = 30, CustomAtkCap = 150 }
                                 },
                                 Effect = "적군 1명(전열 우선), 버프 차단 [100%] [3턴] (미모델), 관통, 대상 현재 생명력 비례 최대 50% 피해량 증가, 각 공격마다 극독 [25% 확률] [3턴] (매 턴 대상 최대 생명력 30%, 시전자 공격력 150% 제한, 중독 취급)"
                                 } },
@@ -8803,7 +8808,7 @@ namespace GameDamageCalculator.Database
                                 TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 25, Duration = 3, CustomTargetMaxHpRatio = 30, CustomAtkCap = 150 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 25, Duration = 3, CustomTargetMaxHpRatio = 30, CustomAtkCap = 150 }
                                 },
                                 Effect = "적군 1명(전열 우선), 버프 차단 [100%] [3턴] (미모델), 관통, 대상 현재 생명력 비례 최대 50% 피해량 증가, 각 공격마다 극독 [25% 확률] [3턴] (매 턴 대상 최대 생명력 30%, 시전자 공격력 150% 제한, 중독 취급)"
                                 } },
@@ -8817,7 +8822,7 @@ namespace GameDamageCalculator.Database
                                 TargetSelector = TargetSelector.FrontRowEnemy,  // 전열 우선
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 25, Duration = 3, CustomTargetMaxHpRatio = 30, CustomAtkCap = 150 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 25, Duration = 3, CustomTargetMaxHpRatio = 30, CustomAtkCap = 150 }
                                 },
                                 Effect = "적군 1명(전열 우선), 버프 차단 [100%] [3턴] (미모델), 관통, 대상 현재 생명력 비례 최대 50% 피해량 증가, 각 공격마다 극독 [25% 확률] [3턴] (매 턴 대상 최대 생명력 30%, 시전자 공격력 150% 제한, 중독 취급)"
                                 } }
@@ -11874,7 +11879,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35, Duration = 2 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 3 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 3 }
                                 },
                                 Effect = "각성기[각성 게이지 120]: 모든 적군 물리 72% 2회, 각 공격마다 감전 35%[2턴], 각 공격마다 화상 55%[3턴]"
                                 } },
@@ -11885,7 +11890,7 @@ namespace GameDamageCalculator.Database
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35, Duration = 2 },
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 3 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 3 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
                                 },
                                 Effect = "각성기 강화[각성 게이지 120]: 모든 적군 물리 72% 2회, 각 공격마다 감전 35%[2턴], 각 공격마다 화상 55%[3턴], 턴제 버프 감소 2턴[100%]"
@@ -12684,7 +12689,7 @@ namespace GameDamageCalculator.Database
                                 DmgBonusPerMissingTarget = 8,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 }
                                 },
                                 Effect = "관통(피해 면역 무시), 각 공격마다 화상[2턴], 피해 대상 1명 줄어들 때마다 피해량 8% 증가"
                                 } },
@@ -12697,7 +12702,7 @@ namespace GameDamageCalculator.Database
                                 DmgBonusPerMissingTarget = 8,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 55, Duration = 2 }
                                 },
                                 Effect = "관통(피해 면역 무시), 각 공격마다 화상[2턴], 피해 대상 1명 줄어들 때마다 피해량 8% 증가"
                                 } }
@@ -14797,7 +14802,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 90,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 60, Duration = 3 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 60, Duration = 3 }
                                 },
                                 Effect = "각 공격마다 중독[60%,3턴]"
                                 }},
@@ -14808,7 +14813,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 110,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 60, Duration = 3 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 60, Duration = 3 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Stacks = 1, Chance = 100, Duration = 4 }
                                 },
                                 Effect = "각 공격마다 중독[60%,3턴], 강화: 회복불가[100%,4턴]"
@@ -14834,7 +14839,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 80,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 60, Duration = 3 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 60, Duration = 3 }
                                 },
                                 Effect = "각 공격마다 출혈[60%,3턴], 모든 아군 디버프 해제 1개 (아군 디버프 해제는 모델 미지원)"
                                 }},
@@ -14845,7 +14850,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 110,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 60, Duration = 3 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Bleeding, Stacks = 1, Chance = 60, Duration = 3 }
                                 },
                                 Effect = "각 공격마다 출혈[60%,3턴], 모든 아군 디버프 해제 1개 (아군 디버프 해제는 모델 미지원)"
                                 }}
@@ -15847,7 +15852,7 @@ namespace GameDamageCalculator.Database
                                 IgnoresTurnDamageImmunity = true,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 3, Debuff = new DebuffSet { Cri_Reduction = 19, Wek_Reduction = 22 } }
                                 },
                                 Effect = "관통, 각 공격마다 화상[40%,2턴], 치명타 확률 감소 19%[100%][3턴], 약점 공격 확률 감소 22%[100%][3턴]"
@@ -15861,7 +15866,7 @@ namespace GameDamageCalculator.Database
                                 IgnoresTurnDamageImmunity = true,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Burn, Stacks = 1, Chance = 40, Duration = 2 },
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, Duration = 3, Debuff = new DebuffSet { Cri_Reduction = 25, Wek_Reduction = 30 } }
                                 },
                                 Effect = "관통, 각 공격마다 화상[40%,2턴], 치명타 확률 감소 25%[100%][3턴], 약점 공격 확률 감소 30%[100%][3턴]"
@@ -16189,7 +16194,7 @@ namespace GameDamageCalculator.Database
                         {
                             { 2, new SkillTranscend { Effects = new List<SkillEffect>
                             {
-                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Duration = 2, Chance = 55 }
+                                new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Duration = 2, Chance = 55 }
                             }, Effect = "2초월: 각 공격마다 중독[55%][2턴]" }}
                         }
                     }
@@ -16924,7 +16929,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 135,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Duration = 3, Chance = 70 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Duration = 3, Chance = 70 }
                                 },
                                 Effect = "단일 적군 2회. 각 공격마다 중독[70%][3턴]"
                                 } },
@@ -16935,7 +16940,7 @@ namespace GameDamageCalculator.Database
                                 Ratio = 162,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Duration = 3, Chance = 85 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, PerHit = true, StatusType = StatusEffectType.Poison, Duration = 3, Chance = 85 }
                                 },
                                 Effect = "강화: 162%, 중독 확률 85%. 각 공격마다 중독[3턴]"
                                 } }

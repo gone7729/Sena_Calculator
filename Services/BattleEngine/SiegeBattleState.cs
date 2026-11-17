@@ -216,5 +216,6 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double TickDamage { get; set; }    // 매 턴 가하는 피해 (등록 시 계산: 시전자 atk × 배율 × 감쇄)
         public int RemainingTurns { get; set; }
         public string SourceName { get; set; }    // 시전 아군 (캐릭별 기여 집계용)
+        public double Probability { get; set; } = 1.0;   // 부여 확률(기댓값 모델) — TickDamage에 이미 곱해짐. 조건 판정용
     }
 }

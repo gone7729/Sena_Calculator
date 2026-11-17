@@ -82,6 +82,22 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>대상 잔여 생명력%. 공성 R3 보스는 HP가 음수까지 내려가므로 0으로 클램프.</summary>
+        /// <summary>조건 충족 확률 — TargetHasStatus는 기댓값 DoT 인스턴스들의 "하나라도 걸려 있을" 확률 1−Π(1−p).
+        ///   그 외 조건은 IsMet 결과(0/1).</summary>
+        public static double MetProbability(SkillCondition cond, CharacterBattleState attacker, SiegeEnemyState target,
+            SiegeBattleState state = null)
+        {
+            if (cond == null || cond.Type != SkillConditionType.TargetHasStatus)
+                return IsMet(cond, attacker, target, state) ? 1.0 : 0.0;
+            if (target == null || cond.Status == StatusEffectType.None) return 0;
+            if (target.Effects != null && target.Effects.GetTotalStacks(cond.Status) > 0) return 1.0;
+            double none = 1.0;
+            if (target.ActiveDots != null)
+                foreach (var d in target.ActiveDots)
+                    if (d.Type == cond.Status && d.RemainingTurns > 0) none *= 1 - System.Math.Clamp(d.Probability, 0, 1);
+            return 1 - none;
+        }
+
         private static double HpPct(SiegeEnemyState target)
         {
             if (target == null || target.MaxHp <= 0) return 0;
