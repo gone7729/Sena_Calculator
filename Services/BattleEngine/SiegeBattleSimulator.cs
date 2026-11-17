@@ -271,7 +271,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplyRoundStartPassives(state);
         }
 
-        /// <summary>라운드 진입 시 발동 패시브 (TriggerCondition.OnRoundStart). 현재: 피해 면역(DamageNullification).
+        /// <summary>라운드 진입 시 발동 패시브: 패시브 상시 보호막(전투 시작/라운드당) + TriggerCondition.OnRoundStart 피해 면역.
         ///   동영 2초월: 자신과 동일 열 아군(마법형) 모든 피해 면역[1턴] — 매 라운드 진입마다. 보유자 생존 시에만.</summary>
         private void ApplyRoundStartPassives(SiegeBattleState state)
         {
@@ -281,6 +281,20 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (passive == null) continue;
                 foreach (var e in GetPassiveEffects(passive, owner))
                 {
+                    // 패시브 상시 보호막 (트리거 없는 Self 보호막 버프) — 전투 시작 1회(R1 진입) 또는 매 라운드(RefreshEachRound).
+                    //   예) 크리스·니아·이브·젠이츠·윤건·쥬다스 = 전투 시작, 리나·엘리시아·녹스 각성·메이 2초월 = 라운드당 1회.
+                    //   IsConditional(노호 "스킬 발동 시" 등)은 제외. 지속 턴 미입력은 위키 표기 3턴.
+                    if (e.Type == PersistentEffectType.Buff && e.Buff != null && e.ApplyMode != ApplyMode.Triggered
+                        && e.Target == EffectTarget.Self && (e.RefreshEachRound || (!e.IsConditional && state.CurrentRound == 1))
+                        && (e.Buff.Shield_AtkRatio > 0 || e.Buff.Shield_HpRatio > 0))
+                    {
+                        double shield = owner.FinalAtk * e.Buff.Shield_AtkRatio / 100.0 + owner.MaxHp * e.Buff.Shield_HpRatio / 100.0;
+                        int sd = e.Duration > 0 ? e.Duration : 3;
+                        if (shield > owner.Shield) { owner.Shield = shield; owner.ShieldTurns = Math.Max(owner.ShieldTurns, sd); }
+                        Log(state, owner.Source.Character.Name, true, ActionType.BuffApplied, "보호막", 0,
+                            $"R{state.CurrentRound} {(e.RefreshEachRound ? "라운드 진입" : "전투 시작")}: {owner.Source.Character.Name} 보호막 {shield:N0} [{sd}턴]");
+                        continue;
+                    }
                     if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnRoundStart) continue;
                     if (e.Type != PersistentEffectType.DamageNullification || e.DamageNullification == null) continue;
                     IEnumerable<CharacterBattleState> targets = e.Target == EffectTarget.Self

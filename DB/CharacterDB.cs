@@ -9849,7 +9849,7 @@ namespace GameDamageCalculator.Database
                             Effect = "효과 저항 28% 증가[상시], 자신 보호막 최대체력 39%[3턴, 라운드당 1회]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 39 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, RefreshEachRound = true, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 39 } },
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Res = 28 } }
                             }
                         }},
@@ -9857,7 +9857,7 @@ namespace GameDamageCalculator.Database
                             Effect = "효과 저항 34% 증가[상시], 자신 보호막 최대체력 45%[3턴, 라운드당 1회]",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 45 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, RefreshEachRound = true, IsConditional = true, Duration = 3, Buff = new BuffSet { Shield_HpRatio = 45 } },
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Res = 34 } }
                             }
                         }}
@@ -12360,7 +12360,7 @@ namespace GameDamageCalculator.Database
                             {
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 20 } },
                                 // 자신: 물공 160% 보호막 [3턴] (라운드당 1회)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Shield_AtkRatio = 160 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, RefreshEachRound = true, Buff = new BuffSet { Shield_AtkRatio = 160 } },
                                 // 생명력 50% 이하 시 모든 피해 면역 [2턴] (전투당 1회)
                                 new PersistentEffect {
                                     Target = EffectTarget.Self,
@@ -12384,7 +12384,7 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Enemy, Type = PersistentEffectType.Debuff, Debuff = new DebuffSet { Def_Reduction = 24 } },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Shield_AtkRatio = 160 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, RefreshEachRound = true, Buff = new BuffSet { Shield_AtkRatio = 160 } },
                                 new PersistentEffect {
                                     Target = EffectTarget.Self,
                                     Type = PersistentEffectType.DamageNullification,
@@ -15537,7 +15537,7 @@ namespace GameDamageCalculator.Database
                         { 2, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Shield_HpRatio = 45 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, RefreshEachRound = true, Buff = new BuffSet { Shield_HpRatio = 45 } }
                             },
                             Effect = "각성(심연의 저주): 모든 아군 즉사 효과 적용 확률 +25% (상시), 자신 최대생명력 45% 보호막[3턴](라운드당 1회), 적 사망 시 각성 게이지 증가 10(미모델)"
                         }}
@@ -16351,7 +16351,7 @@ namespace GameDamageCalculator.Database
                                 // 강화: 물리 피해량 증가 15%
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 15 } },
                                 // 2초월: 자신 물리 공격력 160% 보호막 [3턴] (라운드당 1회)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Duration = 3, Buff = new BuffSet { Shield_AtkRatio = 160 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, RefreshEachRound = true, Duration = 3, Buff = new BuffSet { Shield_AtkRatio = 160 } }
                             },
                             Effect = "강화: 모든 아군 물리 피해량 +15%. 2초월: 자신 물리 공격력 160% 보호막[3턴](라운드당 1회)"
                         }}

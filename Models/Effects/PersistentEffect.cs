@@ -15,6 +15,8 @@ namespace GameDamageCalculator.Models.Effects
         public string[] TargetClasses { get; set; }
         public TargetSelector? TargetSelector { get; set; }  // 대상 선정 기준 (공격력 높은 아군·생명력 낮은 아군 등). null이면 기본
         public bool SameRowOnly { get; set; }                // Party 대상 중 패시브 보유자와 같은 열(전/후열)만 ("자신과 동일 열 아군")
+        // 패시브 상시 보호막(트리거 없음)의 발동 시점: false = 전투 시작 1회, true = 매 라운드 진입 ("(라운드당 1회 발동)" — 리나·엘리시아·녹스 각성·메이)
+        public bool RefreshEachRound { get; set; }
 
         // === 유형 ===
         public PersistentEffectType Type { get; set; }
