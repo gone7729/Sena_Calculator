@@ -110,6 +110,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   2026-11-17 일요일 실험: 미호(11/16시드 사망)·샤오·소교 모두 "생존 옵션으로 기대 점수 안 오름" → 채택 없음,
         //   탐색 +80분. 페널티 0(일요일 최고점 정책)에선 저기여 영웅 사망의 기대 손실이 딜 옵션 손실보다 작다는 뜻.
         public bool EnableSurvivalGear { get; set; } = false;
+        // [스크리닝] 기어를 프록시(솔로 데미지) 1순위 세트 후보로만 — 풀시뮬 세트 비교·메인부옵 재최적화 생략.
+        //   영웅 DB 탐색(tools/SiegeHeroExplore)의 대량 교체 평가용. 기본 OFF(정식 탐색 무영향).
+        public bool QuickGear { get; set; } = false;
         // [실험] 생존반지 후보를 첫 시드 사망자가 아니라 "평가 시드 중 한 번이라도 죽는 영웅"으로 넓힘. 기본 OFF.
         public bool SurvivalAllSeedGating { get; set; } = false;
 
@@ -701,6 +704,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
                 var list = cands[bc];
                 var chosenSet = list.Count > 0 ? list[0].Set : null;
+                if (config.QuickGear) { log.Add(FormatGear(bc)); continue; }   // 스크리닝: 프록시 1순위 그대로
                 if (list.Count > 1)
                 {
                     EquipmentLoadout bestLo = bc.Equipment; double bestScore = -1;
