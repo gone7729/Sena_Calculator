@@ -259,6 +259,9 @@ foreach (var (day, ids) in DAYS)
 
     // [실험] 인자 "기어자유" — 딜러 기어 역할 제약(허용 세트·메인·부옵) 해제 → 옵티마이저가 스스로 잘 찾는지 확인. 기본 OFF.
     if (args.Contains("기어자유")) cfg.UnconstrainedGear = true;
+    // [실험] 인자 "생존장비" — 생존 장비 후처리(ApplySurvivalGear) 켜기 / "전시드반지" — 생존반지 후보를 전 시드 사망자로. 기본 OFF.
+    if (args.Contains("생존장비")) cfg.EnableSurvivalGear = true;
+    if (args.Contains("전시드반지")) cfg.SurvivalAllSeedGating = true;
 
     // [탐색예산 override] 천장진단용 — 인자 "빔폭N"/"빔깊이N"으로 로테 빔 넓이·깊이 키워 탐색 부족 여부 판별.
     //   점수가 크게 오르면 탐색 부족(빔 협소), 거의 안 오르면 모델 천장(uptime 등). 미지정이면 기본(10/36).

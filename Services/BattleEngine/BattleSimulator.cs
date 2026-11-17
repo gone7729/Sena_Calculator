@@ -778,7 +778,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 var character = state.AllyStates[i].Source.Character;
                 var availableSkills = character.Skills?
-                    .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
+                    .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2 && (!s.IsAwakenOnly || state.AllyStates[i].Source.IsAwakened))
                     .OrderByDescending(s => s.SkillType) // Ultimate > Skill4 > Skill3 > Skill2 > Skill1
                     .Select(s => s.SkillType)
                     .ToList() ?? new List<SkillType>();

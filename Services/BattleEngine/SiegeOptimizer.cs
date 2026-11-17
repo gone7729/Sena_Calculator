@@ -104,6 +104,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   6초월 실측 프로필처럼 권능반지를 끼지 않는 계정 가정 탐색에 사용.
         public bool EnableSurvivalRings { get; set; } = true;
 
+        // [실험] 생존 장비 후처리(ApplySurvivalGear). 기본 OFF. 최종 config(진형·자리·로테 고정)에서 평가 시드 중 한 번이라도
+        //   죽는 자동장착 영웅에게 생존 옵션(수문장·성기사 세트, 생명력%/방어력%/받피감% 메인, 생존 부옵)을 열어
+        //   재탐색하고, 채택 기준(N시드 평균 RankScore)이 오를 때만 채택한다. 타입 무관(딜러 타입 미호도 대상).
+        //   2026-11-17 일요일 실험: 미호(11/16시드 사망)·샤오·소교 모두 "생존 옵션으로 기대 점수 안 오름" → 채택 없음,
+        //   탐색 +80분. 페널티 0(일요일 최고점 정책)에선 저기여 영웅 사망의 기대 손실이 딜 옵션 손실보다 작다는 뜻.
+        public bool EnableSurvivalGear { get; set; } = false;
+        // [실험] 생존반지 후보를 첫 시드 사망자가 아니라 "평가 시드 중 한 번이라도 죽는 영웅"으로 넓힘. 기본 OFF.
+        public bool SurvivalAllSeedGating { get; set; } = false;
+
         // 좌표상승(기어↔로테/진형) 2패스 탐색. 기본 OFF(기존 1패스 동작·무회귀).
         //   ON이면 1패스(기어=프록시 레짐)로 진형·자리·빔로테를 찾은 뒤, 그 최종 레짐을 GearEval*에 피드백해
         //   기어를 재최적화하고 다시 탐색 → 기어 선정 레짐 = 최종 평가 레짐 정합(2단계 근사 함정 교정).
@@ -174,6 +183,19 @@ namespace GameDamageCalculator.Services.BattleEngine
         ///   무회귀(IsBetterPick)로 더 나은 패스 채택. 공유 BattleCharacter 객체라 1패스 기어를 스냅샷해 복원한다.
         /// </summary>
         public SiegeOptimizerResult Optimize(SiegeOptimizerConfig config)
+        {
+            // 자동장착 대상(시작 시점 장비 미지정) — 생존 장비 후처리는 이 영웅들만 건드린다(유저 지정 장비 보존).
+            var autoEquipped = config.AutoEquip
+                ? config.FixedMembers.Concat(config.Candidates ?? new List<BattleCharacter>())
+                    .Where(bc => bc != null && bc.Equipment == null).ToHashSet()
+                : new HashSet<BattleCharacter>();
+            var res = OptimizeCore(config);
+            if (config.AutoEquip && config.EnableSurvivalGear && res?.BestParty != null && res.BestParty.Count > 0)
+                ApplySurvivalGear(config, res, autoEquipped);
+            return res;
+        }
+
+        private SiegeOptimizerResult OptimizeCore(SiegeOptimizerConfig config)
         {
             // 좌표상승 적용 대상 = 시작 시점 장비 미지정(자동장착) 영웅. 조합탐색 시엔 로테 HeroIndex 정합이 깨져 제외.
             bool canAscend = config.CoordinateAscentGear && config.AutoEquip
@@ -270,7 +292,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         double bd = -1;
                         foreach (var sk in team[i].Character?.Skills ?? Enumerable.Empty<Skill>())
                         {
-                            if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                            if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2 || (sk.IsAwakenOnly && !team[i].IsAwakened)) continue;
                             double d = dsim.EvaluateDummyNuke(dcfg, i, sk);
                             if (d > bd) bd = d;
                         }
@@ -635,7 +657,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Skill nuke = null; double best = -1;
                 foreach (var sk in b.Character.Skills ?? Enumerable.Empty<Skill>())
                 {
-                    if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                    if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2 || (sk.IsAwakenOnly && !b.IsAwakened)) continue;
                     double d = DummyScore(b, sk);
                     if (d > best) { best = d; nuke = sk; }
                 }
@@ -749,7 +771,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             for (int guard = 0; guard < 5; guard++)
             {
                 var cur = SimBest();
-                var dyers = cur.CharacterResults.Where(c => c.Died).Select(c => c.CharacterName).ToHashSet();
+                // 반지 후보 = 첫 시드(777) 사망자. (전 시드 사망자로 넓히는 DyingHeroes 게이팅은 2026-11-17 일요일 실험에서
+                //   좌표상승 경로가 바뀌어 9.40M→9.26M·사망 0.56→2.25로 악화 — 기본 미적용. 실험 플래그로만.)
+                var dyers = config.SurvivalAllSeedGating ? DyingHeroes(cur)
+                    : cur.CharacterResults.Where(c => c.Died).Select(c => c.CharacterName).ToHashSet();
                 if (dyers.Count == 0) break;
 
                 // 채택 기준 생존(RankScore) 우선(동률 시 raw) — 사망을 막으면 rank +20만이라 raw를 약간
@@ -785,6 +810,117 @@ namespace GameDamageCalculator.Services.BattleEngine
                 best.BestResult = final;
             }
             return ringed.Count > 0;
+        }
+
+        /// <summary>
+        /// 생존 장비 후처리 — 최종 config(진형·자리·로테 고정)에서 평가 시드 중 한 번이라도 죽는 자동장착 영웅에게
+        /// 생존 옵션을 연 장비를 재탐색해, 채택 기준(ScoreOnPlan: N시드 평균·사망 페널티)이 오를 때만 채택한다.
+        ///
+        /// 왜 후처리인가: 기어 선정(EquipCandidates.FullScore)은 단일 시드·TotalScore라 "다른 시드에서 죽는다"를
+        /// 못 보고, GetGearConstraints는 딜러 타입(공·마·만능)에 생존 옵션 후보 자체를 주지 않는다. 그래서 실질
+        /// 서포터인 딜러 타입(일요일 미호: 기여 5%)이 유리몸 딜 세팅으로 죽어도 고칠 방법이 없었다.
+        /// 여기선 타입을 보지 않고 "죽는가 + 살리면 기대 점수가 오르는가"만 본다(사망 없으면 no-op).
+        ///
+        /// 탐색: 세트 {현재, 수문장4, 현재무기세트2+수문장2, 현재무기세트2+성기사2} × 무기메인 {현재, 생명력%}
+        ///       × 방어구메인 {현재, 생명력%, 방어력%, 받피감%} × 부옵(기존 허용 + 생명력%·방어력%·막기확률%) 그리디.
+        ///       장신구는 고정(약확 메인·권능 반지 보존).
+        /// </summary>
+        private void ApplySurvivalGear(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            var boss = ResolveBoss(config.SiegeStage);
+            if (boss == null || autoEquipped.Count == 0) return;
+            for (int i = 0; i < best.BestParty.Count; i++)
+                best.BestParty[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+
+            SiegeBattleResult SimBest() =>
+                ScoreOnPlan(config, best.BestParty, best.BestFormation, best.BestRotationPlan);
+
+            var optimizer = new EquipmentOptimizer();
+            var tried = new HashSet<BattleCharacter>();
+            bool adopted = false;
+            for (int guard = 0; guard < 4; guard++)
+            {
+                var cur = SimBest();
+                // 가장 자주 죽는 영웅부터 (캐스케이드: 한 명 살리면 다른 영웅이 대신 죽을 수 있어 반복).
+                var bc = best.BestParty
+                    .Where(p => p.Character != null && p.Equipment != null && autoEquipped.Contains(p) && !tried.Contains(p))
+                    .Select(p => (P: p, N: DeathSeeds(cur, p.Character.Name)))
+                    .Where(x => x.N > 0).OrderByDescending(x => x.N).Select(x => x.P).FirstOrDefault();
+                if (bc == null) break;
+                tried.Add(bc);
+
+                var orig = bc.Equipment;
+                var eqs = orig.GetEquipments().ToList();
+                string wSet = eqs.FirstOrDefault(e => e.Slot == "무기")?.SetName;
+                string aSet = eqs.FirstOrDefault(e => e.Slot == "방어구")?.SetName;
+                string wMain = eqs.FirstOrDefault(e => e.Slot == "무기")?.MainStatName ?? "공격력%";
+                string aMain = eqs.FirstOrDefault(e => e.Slot == "방어구")?.MainStatName ?? "공격력%";
+                if (wSet == null || aSet == null) continue;
+
+                var sets = new List<EquipSetConfig>
+                {
+                    new() { WeaponSetName = wSet, ArmorSetName = aSet, Is4Set = wSet == aSet, Description = wSet == aSet ? $"{wSet} 4세트" : $"{wSet} 2 + {aSet} 2" },
+                };
+                void AddSet(string w, string a)
+                {
+                    if (sets.Any(x => x.WeaponSetName == w && x.ArmorSetName == a)) return;
+                    sets.Add(new EquipSetConfig { WeaponSetName = w, ArmorSetName = a, Is4Set = w == a, Description = w == a ? $"{w} 4세트" : $"{w} 2 + {a} 2" });
+                }
+                AddSet("수문장", "수문장");
+                AddSet(wSet, "수문장");
+                AddSet(wSet, "성기사");
+
+                var baseGc = GetGearConstraints(bc, config.SiegeStage, config.UnconstrainedGear);
+                var gc = new GearConstraints
+                {
+                    WeaponMains = new[] { wMain, "생명력%" }.Distinct().ToArray(),
+                    ArmorMains = new[] { aMain, "생명력%", "방어력%", "받피감%" }.Distinct().ToArray(),
+                    SubOptions = (baseGc?.SubOptions ?? new string[0]).Concat(new[] { "생명력%", "방어력%", "막기확률%" }).Distinct().ToArray(),
+                };
+
+                // 스코어러 = 채택 기준과 같은 N시드 평균 RankScore (사망의 딜 손실·페널티가 그대로 반영).
+                int evals = 0;
+                double Score(EquipmentLoadout lo)
+                {
+                    evals++;
+                    bc.Equipment = lo;
+                    return SimBest().RankScore;
+                }
+
+                EquipmentLoadout pick = null; string pickSet = null;
+                double pickRank = cur.RankScore, pickTotal = cur.TotalScore;
+                var solo = SoloConfig(config, boss, bc);
+                foreach (var set in sets)
+                {
+                    var lo = optimizer.OptimizeMainsSubsFixedAccessory(bc, solo, 0, set, gc, Score, orig.Accessory);
+                    if (lo == null) continue;
+                    bc.Equipment = lo;
+                    var r = SimBest();
+                    if (IsBetterPick(r.TotalScore, r.RankScore, pickTotal, pickRank))
+                    { pickRank = r.RankScore; pickTotal = r.TotalScore; pick = lo; pickSet = set.Description; }
+                }
+                bc.Equipment = pick ?? orig;
+
+                int beforeN = DeathSeeds(cur, bc.Character.Name);
+                if (pick == null)
+                {
+                    best.GearLog.Add($"[{bc.Character.Name}] 생존장비 후처리: 채택 없음 — {cur.EvalSeedCount}시드 중 {beforeN}시드 사망이지만 생존 옵션으로 기대 점수가 오르지 않음 (평가 {evals:N0}회)");
+                    continue;
+                }
+                var after = SimBest();
+                adopted = true;
+                best.GearLog.Add($"[{bc.Character.Name}] 생존장비 채택: {pickSet} (사망 {beforeN}→{DeathSeeds(after, bc.Character.Name)}/{after.EvalSeedCount}시드, 팀점수 {cur.TotalScore:N0}→{after.TotalScore:N0}, 평가 {evals:N0}회) — 아래가 최종 장비");
+                best.GearLog.Add(FormatGear(bc));
+            }
+
+            if (!adopted) return;
+            var final = SimBest();
+            best.BestScore = final.TotalScore;
+            best.BestRankScore = final.RankScore;
+            best.BestResult = final;
+            // 생존으로 열린 로테 재탐색(무회귀) — 자기 플랜도 후보라 퇴보 없음.
+            if (config.OptimizeRotation)
+                ReoptimizeRotationAfterRings(config, best, new List<List<RotationDecision>>());
         }
 
         /// <summary>
@@ -905,16 +1041,31 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (n <= 1) return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
             double sumT = 0, sumR = 0;
             SiegeBattleResult first = null;
+            var deathSeeds = new Dictionary<string, int>();
             for (int s = 0; s < n; s++)
             {
                 var r = new SiegeBattleSimulator(GearCompareSeed + s).Simulate(sc);
                 sumT += r.TotalScore; sumR += r.RankScore;
+                foreach (var c in r.CharacterResults)
+                    if (c.Died) deathSeeds[c.CharacterName] = deathSeeds.GetValueOrDefault(c.CharacterName) + 1;
                 first ??= r;
             }
             first.TotalScore = sumT / n;
             first.RankScore = sumR / n;
+            first.DeathSeedCounts = deathSeeds;
+            first.EvalSeedCount = n;
             return first;
         }
+
+        /// <summary>평가 시드 중 한 번이라도 죽는 영웅 이름 (N시드 평가면 DeathSeedCounts, 단일 시드면 Died).</summary>
+        private static HashSet<string> DyingHeroes(SiegeBattleResult r) =>
+            r.DeathSeedCounts != null
+                ? r.DeathSeedCounts.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToHashSet()
+                : r.CharacterResults.Where(c => c.Died).Select(c => c.CharacterName).ToHashSet();
+
+        private static int DeathSeeds(SiegeBattleResult r, string name) =>
+            r.DeathSeedCounts != null ? r.DeathSeedCounts.GetValueOrDefault(name)
+                : (r.CharacterResults.Any(c => c.CharacterName == name && c.Died) ? 1 : 0);
 
         /// <summary>공성전 풀시뮬 SiegeBattleConfig 구성.</summary>
         private static SiegeBattleConfig BuildSimConfig(SiegeOptimizerConfig config, List<BattleCharacter> team, string formation) => new()

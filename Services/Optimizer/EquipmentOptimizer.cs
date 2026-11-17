@@ -213,6 +213,35 @@ namespace GameDamageCalculator.Services.Optimizer
             return best;
         }
 
+        /// <summary>
+        /// 고정 세트·고정 장신구에서 메인옵×부옵만 외부 스코어러로 조인트 최적화 (생존 장비 후처리용).
+        /// OptimizeForSetFull과 달리 장신구를 건드리지 않는다 — 부옵 그리디가 실제 장신구(약확 메인·권능 반지 등)를
+        /// 낀 상태로 평가되고, 생존반지가 덮어써지지 않는다.
+        /// </summary>
+        public EquipmentLoadout OptimizeMainsSubsFixedAccessory(BattleCharacter battleChar, BattleConfig config, int charIndex,
+            EquipSetConfig setConfig, GearConstraints gc, Func<EquipmentLoadout, double> scorer, Accessory accessory)
+        {
+            if (setConfig == null || scorer == null) return null;
+            var weaponAvail = EquipmentDb.MainStatDb.AvailableOptions["무기"];
+            var armorAvail = EquipmentDb.MainStatDb.AvailableOptions["방어구"];
+            string[] weaponMains = (gc?.WeaponMains ?? new[] { "공격력%" }).Where(weaponAvail.Contains).Distinct().ToArray();
+            string[] armorMains = (gc?.ArmorMains ?? new[] { "공격력%" }).Where(armorAvail.Contains).Distinct().ToArray();
+            if (weaponMains.Length == 0) weaponMains = new[] { "공격력%" };
+            if (armorMains.Length == 0) armorMains = new[] { "공격력%" };
+
+            EquipmentLoadout best = null; double bestScore = double.NegativeInfinity;
+            foreach (var wm in weaponMains)
+                foreach (var am in armorMains)
+                {
+                    var lo = BuildLoadout(setConfig, wm, wm, am, am);
+                    lo.Accessory = accessory;
+                    OptimizeSubOptions(lo, battleChar, config, charIndex, gc?.SubOptions, scorer);
+                    double s = scorer(lo);
+                    if (s > bestScore) { bestScore = s; best = lo; }
+                }
+            return best;
+        }
+
         /// <summary>허용 세트 이름 목록으로 4세트 + 2+2세트(허용끼리) 조합 생성.</summary>
         public static List<EquipSetConfig> BuildSetCombos(string[] allowed)
         {
@@ -368,7 +397,7 @@ namespace GameDamageCalculator.Services.Optimizer
             // 대표(최고 배율) 스킬의 내장 치확/약확(예: 파스칼 파괴의거인 확정치명 Cri=100). 캡 판정에 합산해
             //   이미 확정인 치확/약확 부옵을 낭비 배분하지 않게 한다. (데미지 평가는 DamageCalculator가 직접 반영)
             var capSkill = battleChar.Character?.Skills?
-                .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
+                .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2 && (!s.IsAwakenOnly || battleChar.IsAwakened))
                 .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced, battleChar.IsAwakened)?.Ratio ?? 0)
                 .FirstOrDefault();
             var capBonus = capSkill?.GetTotalBonus(battleChar.IsSkillEnhanced, battleChar.TranscendLevel) ?? new BuffSet();
@@ -657,7 +686,7 @@ namespace GameDamageCalculator.Services.Optimizer
                 double ratio = 0;
                 foreach (var s in bc.Character.Skills ?? System.Linq.Enumerable.Empty<Skill>())
                 {
-                    if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
+                    if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2 || (s.IsAwakenOnly && !bc.IsAwakened)) continue;
                     double r = s.GetLevelData(bc.IsSkillEnhanced, bc.IsAwakened)?.Ratio ?? 0;
                     if (r > ratio) ratio = r;
                 }
@@ -731,7 +760,7 @@ namespace GameDamageCalculator.Services.Optimizer
 
             // 대표 스킬: 가장 높은 배율의 스킬 선택
             var bestSkill = character.Skills?
-                .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
+                .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2 && (!s.IsAwakenOnly || battleChar.IsAwakened))
                 .OrderByDescending(s => s.GetLevelData(battleChar.IsSkillEnhanced, battleChar.IsAwakened)?.Ratio ?? 0)
                 .FirstOrDefault();
 

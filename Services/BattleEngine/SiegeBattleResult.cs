@@ -38,6 +38,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 아군 사망 이벤트 (턴/경과초/이름/사인). 사망 로그용.
         public List<SiegeDeathEvent> Deaths { get; set; } = new();
 
+        // [N시드 평가] SiegeOptimizer.ScoreOnPlan이 채움: 영웅 이름 → 그 영웅이 사망한 시드 수 / 평가 시드 수.
+        //   CharacterResults.Died는 첫 시드만 보므로, 다른 시드에서만 죽는 영웅(일요일 미호)은 여기로 판별.
+        public Dictionary<string, int> DeathSeedCounts { get; set; }
+        public int EvalSeedCount { get; set; } = 1;
+
         // [진단] 시간 장부 (config.DiagTimeLedger=true일 때만): 턴·경과초·사유
         public List<(int Turn, double Sec, string Why, double Elapsed)> TimeLedger { get; set; }
     }

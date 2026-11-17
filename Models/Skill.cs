@@ -72,7 +72,9 @@ namespace GameDamageCalculator.Models
         {
             if (isAwakened && LevelData.TryGetValue(2, out var awaken)) return awaken;
             int key = isEnhanced ? 1 : 0;
-            return LevelData.TryGetValue(key, out var data) ? data : new SkillLevelData();
+            if (LevelData.TryGetValue(key, out var data)) return data;
+            // 강화 티어 미입력(각성기 key 0만 있는 스킬 등)이면 기본 티어로 폴백 — 빈 데이터(피해 0) 방지.
+            return LevelData.TryGetValue(0, out var baseData) ? baseData : new SkillLevelData();
         }
 
         public SkillTranscend GetTranscendBonus(int level)

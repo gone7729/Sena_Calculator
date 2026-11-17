@@ -405,7 +405,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (a.IsDead || a.Effects.HasActionBlockingCC()) continue;
                         foreach (var s in a.Source.Character.Skills ?? Enumerable.Empty<Skill>())
                         {
-                            if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
+                            if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2 || (s.IsAwakenOnly && !a.Source.IsAwakened)) continue;
                             if (!a.IsSkillReady(s.SkillType) || !IsPartyBuffSetup(s, a.Source.IsSkillEnhanced)) continue;
                             double cd = s.GetCooldown(a.Source.IsSkillEnhanced, a.Source.TranscendLevel, a.Source.IsAwakened);
                             if (cd > bestSetup.cd) bestSetup = (idx, s, cd);
@@ -982,7 +982,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var ally in state.AllyStates)
                 foreach (var sk in ally.Source.Character.Skills ?? Enumerable.Empty<Skill>())
                 {
-                    if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2) continue;
+                    if (sk.SkillType == SkillType.Normal || sk.SkillType == SkillType.Normal2 || (sk.IsAwakenOnly && !ally.Source.IsAwakened)) continue;
                     ApplySkillEffects(state, ally, sk, state.Enemies, preDamage: true);
                     ApplySkillEffects(state, ally, sk, state.Enemies, preDamage: false);
                 }
