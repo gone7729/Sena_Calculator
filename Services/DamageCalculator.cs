@@ -87,6 +87,8 @@ namespace GameDamageCalculator.Services
             // ===== 모드 =====
             public BattleMode Mode { get; set; } = BattleMode.Boss;
             public bool IsTargetBoss { get; set; } = true;
+            // 대상이 "최대 생명력이 가장 높은 적군"인가 (HighestMaxHpExtraDmg 판정). 단일 보스 계산은 항상 true, 공성은 시뮬이 판정.
+            public bool IsTargetHighestMaxHp { get; set; } = true;
 
             // ===== 스택소모 스킬용 =====
             // 자버프 타입피증 (스택소모 시에만 적용, 스킬피해에는 미적용)
@@ -282,6 +284,13 @@ namespace GameDamageCalculator.Services
             // 17. 최종 데미지
             double vulnerabilityTotal = Math.Max(0, 1 + (input.Vulnerability + input.BossVulnerability + input.DmgTakenIncrease - input.TargetCountReduction) / 100);
             result.SkillDamage = result.DamagePerHit * result.AtkCount;
+            // 조건부 추가 고정 피해 (공격력 N%, 대상당 1회) — 방어·치명·피증 미적용, 최종 취약계수만 (동영 황천의 숨결 중독 대상)
+            if (input.IsSkillConditionMet && levelData?.ConditionalFixedDmgAtkRatio > 0)
+            {
+                double fx = result.FinalAtk * levelData.ConditionalFixedDmgAtkRatio / 100.0;
+                result.SkillDamage += fx;
+                result.DebugLog.AppendLine($"    조건부 고정피해: {fx:N0} ({levelData.ConditionalFixedDmgAtkRatio}%)");
+            }
             result.StatusDamage = result.BonusDamage * result.AtkCount;
             double ampMult = 1 + input.DmgAmp / 100.0;   // 피해증폭 최종 곱
             result.FinalDamage = (result.SkillDamage + result.HpRatioDamage + result.ConsumeExtraDmg) * vulnerabilityTotal * ampMult;
@@ -524,10 +533,19 @@ namespace GameDamageCalculator.Services
                 result.DebugLog.AppendLine($"    [피증비교] 전체:{result.DamageMultiplier:F4} 스킬:{result.SkillDmgMultiplier:F4} 추가:{result.ExtraDmgMultiplier:F4}");
 
                 double extraDmg = atkOverDef * extraRatio * result.SkillDmgMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
-                if (levelData.ConditionalExtraDmgPerHit) extraDmg *= result.AtkCount;
+                // ExtraDamage는 1타당 값(DamagePerHit에 합산 후 × 타수). ConditionalExtraDmgPerHit("각 공격마다")는 이 기본 동작과 같다.
+                //   (2026-11-17 수정: 예전엔 여기서 × 타수를 한 번 더 해 타수²배였음 — 쥬다스·란드그리드·린·성진우.)
                 result.ExtraDamage = extraDmg;
                 result.DebugLog.AppendLine($"    조건부: 공/방{atkOverDef:N2} × 배율{extraRatio:F2} × 피증{result.SkillDmgMultiplier:F4} × 치명{result.CritMultiplier:F4} × 약점{result.WeakpointMultiplier:F4}");
                 result.DebugLog.AppendLine($"           = {result.ExtraDamage:N0}");
+            }
+
+            // 최대 생명력이 가장 높은 적군 대상 각 공격마다 추가 피해 (쥬다스 최후의 권좌 171%) — 1타당, 조건부 추가피해와 같은 계수.
+            if (input.IsTargetHighestMaxHp && levelData?.HighestMaxHpExtraDmg > 0)
+            {
+                double hmx = atkOverDef * (levelData.HighestMaxHpExtraDmg / 100.0) * result.SkillDmgMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                result.ExtraDamage += hmx;
+                result.DebugLog.AppendLine($"    최대HP 대상 추가: {hmx:N0} ({levelData.HighestMaxHpExtraDmg}%)");
             }
 
             if (levelData?.ConditionalExtraDmgSelfHpRatio > 0)

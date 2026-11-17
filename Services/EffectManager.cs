@@ -105,6 +105,8 @@ namespace GameDamageCalculator.Services
             total.Add(permanent);
             total.Add(timed);
             total.Add(pet);
+            // 중첩형 = StackBuff (공성 시뮬 런타임 중첩 — 쥬다스 물공 중첩). 상시·턴제와 별개 묶음.
+            total.Add(AggregateBuffsByCategories(EffectCategory.StackBuff));
             return total;
         }
 
@@ -147,10 +149,14 @@ namespace GameDamageCalculator.Services
             // 펫 = PetDebuff (별개 카테고리)
             var pet = AggregateDebuffsByCategories(EffectCategory.PetDebuff);
 
+            // 중첩형 = StackDebuff (타수마다 쌓이는 디버프 — 상시·턴제와 별개, 아일린 방깎 중첩)
+            var stacked = AggregateDebuffsByCategories(EffectCategory.StackDebuff);
+
             var total = new DebuffSet();
             total.Add(permanent);
             total.Add(timed);
             total.Add(pet);
+            total.Add(stacked);
             return total;
         }
 

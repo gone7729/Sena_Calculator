@@ -33,6 +33,8 @@ namespace GameDamageCalculator.Models.Effects
         public int MaxStacks { get; set; }                      // 최대 스택 (0이면 무제한)
         public bool IsPerStack { get; set; }                    // true면 Buff/Debuff가 "스택당" 값 (런타임에서 현재 스택수만큼 배수 적용). 사냥술·레벨업·신성 등
         public int Duration { get; set; }                       // 부여 효과 지속 턴 (트리거 디버프/버프, 0이면 무기한)
+        // 전투 시작 시 추가 중첩 = 자신 제외 아군 중 이 직업군(Character.Type) 수 (쥬다스 "아군 만능형 영웅 숫자만큼 추가 중첩")
+        public string InitialStacksPerAllyClass { get; set; }
 
         // === 버프/디버프 스탯 (Type = Buff 또는 Debuff일 때) ===
         public BuffSet Buff { get; set; }
@@ -229,7 +231,7 @@ namespace GameDamageCalculator.Models.Effects
     /// 본래 스킬과 별개 취급: 쿨타임을 공유하지 않으며, 본래 스킬의 강화로 오른 공격력 보너스를
     /// 물려받지 않는다. 단, 패시브를 강화하면 본래 스킬 강화와 같은 수치(배율 등)를 갖는다 →
     /// 이를 위해 base/enhanced PassiveLevelData에 각각 해당 티어 수치로 선언한다.
-    /// 런타임 동작(트리거 카운트·스킬 시전·쿨타임 분리)은 추후 구현.
+    /// 공성 시뮬 런타임: TriggerOn = AllySkill(동영, 아군 스킬 N회마다)·OnRevival(아일린, 부활 시) 구현. EnemyDeath(태오)는 미구현.
     /// </summary>
     public class TriggeredSkillCast
     {
@@ -240,6 +242,8 @@ namespace GameDamageCalculator.Models.Effects
         public int AtkCount { get; set; } = 1;             // 타수
         public int TargetCount { get; set; } = 1;          // 대상 수
         public List<SkillEffect> Effects { get; set; }     // 시전 스킬의 부가 효과 (턴제 버프 감소 등)
+        public bool IgnoresTurnDamageImmunity { get; set; } // 관통 (대상 피해 면역 무시)
+        public string Name { get; set; }                   // 로그용 시전 스킬명 (null이면 패시브명)
     }
 
     /// <summary>

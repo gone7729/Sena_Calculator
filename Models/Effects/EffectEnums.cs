@@ -27,6 +27,7 @@ namespace GameDamageCalculator.Models.Effects
         ActiveSelfBuff,         // 스킬 자버프 (턴제)
         ActivePartyBuff,        // 스킬 파티버프 (턴제)
         PetBuff,                // 펫 버프 (항상 합산)
+        StackBuff,              // 중첩형 버프 (N회 공격마다 1중첩 등) — 상시·턴제·펫과 별개 묶음, 카테고리 간 Add (쥬다스 물공 중첩)
         SkillBonus,             // 스킬 보너스 (해당 스킬 계산에만 적용)
 
         // === 디버프 ===
@@ -34,6 +35,7 @@ namespace GameDamageCalculator.Models.Effects
         ConditionalDebuff,      // 조건부 패시브 디버프 (턴제)
         ActiveDebuff,           // 스킬 디버프 (턴제)
         PetDebuff,              // 펫 디버프 (항상 합산)
+        StackDebuff,            // 중첩형 디버프 (타수마다 1중첩 등) — 상시·턴제·펫과 별개 묶음, 카테고리 간 Add (아일린 방깎 중첩)
 
         // === 상태이상 ===
         CrowdControl,           // CC (기절, 빙결 등)
@@ -76,6 +78,7 @@ namespace GameDamageCalculator.Models.Effects
         OnRevival,      // 불굴/부활 발동 시 (부활 직후 연계 효과)
         EnemyDeath,     // 적군 사망 시 (누적 N명 처치 트리거)
         OnHpBelow,      // 자신 생명력이 임계값(TriggerHpThreshold%) 이하가 될 때
+        AllySkill,      // 아군(자신 포함) 누구든 스킬 발동 N회 — 패시브 보유자 기준 누적 (동영 황천의 동행자)
     }
 
     /// <summary>

@@ -144,6 +144,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             };
             for (int i = 0; i < config.AllyParty.Count; i++)
                 state.AllyStates.Add(_baseSim.InitializeCharacterState(tempConfig, config.AllyParty[i], i));
+            ApplyInitialPassiveStacks(state);   // 전투 시작 추가 중첩 (쥬다스: 자신 제외 아군 만능형 수만큼 물공 중첩)
             // DamageWeight는 Simulate의 2-패스에서 설정 (스카우팅 누적딜 기반). 스카우팅 패스에선 0(raw-atk 타게팅).
 
             // 1라운드 적 생성
@@ -569,7 +570,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         var targets = PickTargets(state, tc, ally);
                         foreach (var target in targets)
                         {
-                            bool pen = normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.IgnoresTurnDamageImmunity ?? false;
+                            bool pen = normal.PiercesImmunity(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened);
                             if (tc <= 1)
                                 ApplySingleTargetHit(state, ally, target, normal, isSkill: false, pen);   // 약점→최저HP / 미발동→무작위(기댓값)
                             else
@@ -943,6 +944,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 LostHpActualRemainingPct = target.MaxHp > 0 ? target.CurrentHp / target.MaxHp * 100.0 : 0,
                 Mode = BattleMode.Boss,
                 IsTargetBoss = target.IsBoss,
+                IsTargetHighestMaxHp = IsHighestMaxHpEnemy(state, target),
                 SelfMaxHp = ally.MaxHp,
             };
             if (state?.DiagForceCritWeak == true) input.ExpectedCritWeak = false;   // [진단] 치명·약점 항상 발동
@@ -953,6 +955,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             input.TargetCountReduction = targetReduction;
             reductionMult = 1 - elemReduction / 100.0;
             return input;
+        }
+
+        /// <summary>대상이 "최대 생명력이 가장 높은 적군"인가 — 생존 적(현재HP>0, 대상 자신은 항상 포함) 중 최대HP 최고.
+        ///   쥬다스 최후의 권좌 171% 추가 피해 판정. state 없으면(단발 평가) true.</summary>
+        private static bool IsHighestMaxHpEnemy(SiegeBattleState state, SiegeEnemyState target)
+        {
+            if (state?.Enemies == null || target == null) return true;
+            foreach (var e in state.Enemies)
+                if (e != target && e.CurrentHp > 0 && e.MaxHp > target.MaxHp) return false;
+            return true;
         }
 
         private static readonly System.Collections.Generic.HashSet<string> DealerRoles = new() { "공격형", "마법형", "만능형" };
@@ -1269,6 +1281,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var r = SurvivalResolver.ResolveLethal(ally);
                 if (ally.IsDead) ally.CurrentHp = 0;
                 outcome = $" ({r.Label})";
+                if (r.Survived && r.Label == "부활") OnAllyRevived(state, ally);   // 부활 연계 (아일린 청천벽력·진 발동·피해 면역)
             }
 
             state.TurnLogs.Add(new BattleTurnLog
@@ -1562,6 +1575,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         private void ApplyPartyOnSkillCastPassives(SiegeBattleState state, CharacterBattleState caster)
         {
             caster.SkillCastCount++;
+            FireAllySkillTriggeredCasts(state);   // 아군 스킬 N회마다 패시브 시전 (동영)
             foreach (var owner in state.AllyStates.Where(a => !a.IsDead))
             {
                 var passive = owner.Source.Character.Passive;
@@ -1779,12 +1793,24 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var baseEffect = StatusEffectDb.Get(se.Type);
                 if (baseEffect == null) continue;
                 double atkRatio = (se.CustomAtkRatio ?? baseEffect.AtkRatio) / 100.0;
-                if (atkRatio <= 0) continue;   // 공격력 비례 DoT만 (HP비례는 후속)
+                // 대상 최대HP 비례 DoT(중독 6%·동영 극독 30%) — 시전자 공격력 AtkCap% 상한. 보스는 HP가 커서 대개 상한 적용.
+                //   중독만 매 턴 DoT. 빙결·마력역류·사슬피해의 최대HP%는 피격/공격 시 발동이라 여기서 제외.
+                double maxHpRatio = se.Type == StatusEffectType.Poison
+                    ? (se.CustomTargetMaxHpRatio ?? baseEffect.TargetMaxHpRatio) / 100.0 : 0;
+                if (atkRatio <= 0 && maxHpRatio <= 0) continue;
 
                 double elemReduction = ally.Source.Character.AttackType == AttackType.Magic
                     ? target.Source.MagicReduction
                     : target.Source.PhysicalReduction;
-                double tick = ally.FinalAtk * atkRatio * Math.Max(0, 1 - elemReduction / 100.0);
+                double raw = ally.FinalAtk * atkRatio;
+                if (maxHpRatio > 0)
+                {
+                    double hpDmg = target.MaxHp * maxHpRatio;
+                    double cap = (se.CustomAtkCap ?? baseEffect.AtkCap) / 100.0;
+                    if (cap > 0) hpDmg = Math.Min(hpDmg, ally.FinalAtk * cap);
+                    raw += hpDmg;
+                }
+                double tick = raw * Math.Max(0, 1 - elemReduction / 100.0);
                 int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
 
                 target.ActiveDots.Add(new SiegeDot
@@ -2000,7 +2026,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             ApplySkillEffects(state, ally, skill, targets, preDamage: true);
             foreach (var target in targets)
             {
-                bool pen = skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.IgnoresTurnDamageImmunity ?? false;
+                bool pen = skill.PiercesImmunity(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened);   // 레벨 or 초월 관통
                 if (tc <= 1)
                     ApplySingleTargetHit(state, ally, target, skill, isSkill: true, pen);   // 약점→최저HP / 미발동→무작위(기댓값)
                 else
@@ -2173,6 +2199,31 @@ namespace GameDamageCalculator.Services.BattleEngine
                         $"디버프 [{string.Join(",", targets.Select(en => en.Source.Name))}]: {s} [{d}턴]");
             }
 
+            // 중첩형 디버프 (아일린 "각 공격마다 방어력 감소 8% 1중첩[최대 4중첩]").
+            //   타수(PerHit)마다 StacksPerTrigger씩 쌓여 MaxStacks 상한. StackDebuff 카테고리 = 상시·턴제와 별개 묶음(합산).
+            //   중첩 풀은 (시전자, StackKey)별 — 같은 키를 쓰는 다른 스킬과 공유. 라운드가 바뀌면(새 적) 자연 소멸.
+            //   근사: 스킬 피해 後에 일괄 적용(같은 스킬의 뒤쪽 타격이 앞 타격 중첩의 이득을 보는 부분은 미반영 — 보수적).
+            void ApplyStackDebuff(SkillEffect e)
+            {
+                int hits = e.PerHit ? System.Math.Max(1, skill.GetAtkCount(enh, ally.Source.TranscendLevel, ally.Source.IsAwakened)) : 1;
+                int add = hits * System.Math.Max(1, e.StacksPerTrigger);
+                string key = e.StackKey ?? skill.Name;
+                var targets = e.Target == EffectTarget.AllEnemies ? state.Enemies : hitEnemies;
+                int dur = e.Duration > 0 ? e.Duration : 99;
+                foreach (var en in targets)
+                {
+                    string skey = $"siege_stackdebuff:{ally.PartyIndex}:{key}:R{state.CurrentRound}:{en.Position}";
+                    ally.CurrentStacks.TryGetValue(skey, out int st);
+                    int ns = System.Math.Min(st + add, e.MaxStacks);
+                    ally.CurrentStacks[skey] = ns;
+                    AddEnemyDebuff(en, ScaleDebuff(e.Debuff, ns), dur, skey, EffectCategory.StackDebuff);
+                }
+                _curCastDebuffTargets.AddRange(targets.Select(en => en.Source.Name));
+                if (targets.Count > 0)
+                    Log(state, actor, true, ActionType.DebuffApplied, skill.Name, 0,
+                        $"중첩 디버프 [{string.Join(",", targets.Select(en => en.Source.Name))}] +{add}중첩(최대 {e.MaxStacks}): {SummarizeDebuff(e.Debuff)}/중첩");
+            }
+
             // 초월 보너스 (대상수 변경 등). 6초월 비스킷 장비강화 = 버프 대상 2명 등.
             var tr = skill.GetTranscendBonus(ally.Source.TranscendLevel);
             int? buffTgtOverride = tr?.TargetCountOverride;   // HighestAtkAlly 버프 대상 수 오버라이드
@@ -2246,6 +2297,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                             ApplyBuff(e.Target, e.TargetSelector, tc, e.Buff, e.Duration);
                             break;
                         }
+                        case SkillEffectType.Debuff when e.Debuff != null && e.MaxStacks > 0:
+                            ApplyStackDebuff(e);
+                            break;
                         case SkillEffectType.Debuff when e.Debuff != null:
                             ApplyDebuff(e.Debuff, e.Duration, e.Target);
                             break;
@@ -2481,6 +2535,33 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
 
                 int dur = effect.Duration > 0 ? effect.Duration : 99;
+
+                // 중첩형 자기 버프 (쥬다스 "모든 공격 2회 발동 시 물공 증가 1중첩[최대 15]", 중첩당 값 × 현재 중첩).
+                if (effect.IsPerStack && effect.MaxStacks > 0 && effect.Target == EffectTarget.Self)
+                {
+                    string sk = $"siege_buffstack:{ally.PartyIndex}:{ei}";
+                    ally.CurrentStacks.TryGetValue(sk, out int st);
+                    int ns = System.Math.Min(st + System.Math.Max(1, effect.StacksPerTrigger), effect.MaxStacks);
+                    ally.CurrentStacks[sk] = ns;
+                    ApplyStackBuff(ally, sk, effect.Buff, ns, effect.Duration);
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, passive.Name, 0,
+                        $"{ally.Source.Character.Name} {SummarizeBuff(effect.Buff)} {ns}중첩");
+                    continue;
+                }
+
+                // 공격 발동형 보호막 (쥬다스 "모든 공격 2회 발동 시 시전자 물공 110% 보호막[2턴]").
+                //   스킬 시전 트리거(SkillOnly: 나타·소교)는 ApplyPartyOnSkillCastPassives가 처리 → 여기선 제외(이중 부여 방지).
+                if (effect.Buff.Shield_AtkRatio > 0 && effect.TriggerCondition != TriggerCondition.SkillOnly)
+                {
+                    double shield = ally.FinalAtk * effect.Buff.Shield_AtkRatio / 100.0;
+                    int sd = effect.Duration > 0 ? effect.Duration : 2;
+                    foreach (var t in ResolveAllyBuffTargets(state, ally, effect.Target, effect.TargetSelector, state.AllyStates.Count))
+                        if (shield > t.Shield) { t.Shield = shield; t.ShieldTurns = Math.Max(t.ShieldTurns, sd); }
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "보호막", 0,
+                        $"{ally.Source.Character.Name} 보호막 {shield:N0} [{sd}턴]");
+                    continue;
+                }
+
                 var targets = ResolveAllyBuffTargets(state, ally, effect.Target, effect.TargetSelector, state.AllyStates.Count);
                 foreach (var t in targets)
                 {
@@ -2500,6 +2581,133 @@ namespace GameDamageCalculator.Services.BattleEngine
                     Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, passive.Name, 0,
                         $"{string.Join(",", targets.Select(t => t.Source.Character.Name))} {SummarizeBuff(effect.Buff)} [{dur}턴]");
             }
+        }
+
+        /// <summary>중첩형 버프 적용 (StackBuff 카테고리 — 상시·턴제와 별개 묶음). 같은 키 갱신.</summary>
+        private static void ApplyStackBuff(CharacterBattleState ally, string key, BuffSet perStack, int stacks, int duration)
+        {
+            var total = new BuffSet();
+            for (int i = 0; i < System.Math.Max(0, stacks); i++) total.Add(perStack);
+            ally.Effects.RemoveBySource(key);
+            ally.Effects.AddEffect(new BattleEffect
+            {
+                Id = key, SourceName = key,
+                Category = EffectCategory.StackBuff,
+                Target = EffectTarget.Self,
+                MergeStrategy = MergeStrategy.MaxMerge,
+                IsPermanent = duration <= 0,
+                RemainingTurns = duration > 0 ? duration : 99,
+                BuffValues = total,
+            });
+        }
+
+        /// <summary>전투 시작 시 추가 중첩 — InitialStacksPerAllyClass(자신 제외 아군 중 해당 직업군 수).
+        ///   쥬다스: 아군 만능형 1명당 물공 중첩 +1. 키는 ProcessAttackBuffs와 동일(이후 트리거 중첩이 이어서 쌓임).</summary>
+        private void ApplyInitialPassiveStacks(SiegeBattleState state)
+        {
+            foreach (var ally in state.AllyStates)
+            {
+                var passive = ally.Source.Character.Passive;
+                var lvl = passive?.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened);
+                if (lvl?.Effects == null) continue;
+                for (int ei = 0; ei < lvl.Effects.Count; ei++)
+                {
+                    var e = lvl.Effects[ei];
+                    if (string.IsNullOrEmpty(e.InitialStacksPerAllyClass) || !e.IsPerStack || e.MaxStacks <= 0 || e.Buff == null) continue;
+                    int n = state.AllyStates.Count(a => a != ally && a.Source.Character.Type == e.InitialStacksPerAllyClass);
+                    if (n <= 0) continue;
+                    string sk = $"siege_buffstack:{ally.PartyIndex}:{ei}";
+                    int ns = System.Math.Min(n, e.MaxStacks);
+                    ally.CurrentStacks[sk] = ns;
+                    ApplyStackBuff(ally, sk, e.Buff, ns, e.Duration);
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, passive.Name, 0,
+                        $"전투 시작: 아군 {e.InitialStacksPerAllyClass} {n}명 → {SummarizeBuff(e.Buff)} {ns}중첩");
+                }
+            }
+        }
+
+        /// <summary>트리거 스킬 시전 효과 선택 — base·초월에 같은 TriggerOn이 있으면 마지막(높은 초월)이 이김(최종값 컨벤션).</summary>
+        private TriggeredSkillCast GetTriggeredCast(CharacterBattleState owner, TriggerCondition on)
+        {
+            var passive = owner.Source.Character.Passive;
+            if (passive == null) return null;
+            return GetPassiveEffects(passive, owner)
+                .Where(e => e.Type == PersistentEffectType.TriggeredSkillCast && e.TriggeredSkillCast != null
+                            && e.TriggeredSkillCast.TriggerOn == on)
+                .Select(e => e.TriggeredSkillCast).LastOrDefault();
+        }
+
+        /// <summary>아군 스킬 시전 N회마다 발동하는 패시브 시전 (동영 「황천의 동행자」: 아군 스킬 2회 → 모든 적 마법 50% + 극독 등).
+        ///   카운터는 패시브 보유자별·전투 누적(라운드 무관). 보유자가 사망 중이면 누적·발동 안 함.
+        ///   트리거 시전 자체는 "스킬 발동"으로 세지 않는다(연쇄 없음).</summary>
+        private void FireAllySkillTriggeredCasts(SiegeBattleState state)
+        {
+            foreach (var owner in state.AllyStates.Where(a => !a.IsDead).ToList())
+            {
+                var tsc = GetTriggeredCast(owner, TriggerCondition.AllySkill);
+                if (tsc == null) continue;
+                string ck = $"siege_tsc_allyskill:{owner.PartyIndex}";
+                owner.StackTriggerCounters.TryGetValue(ck, out int c);
+                c++;
+                if (c < System.Math.Max(1, tsc.TriggerCount)) { owner.StackTriggerCounters[ck] = c; continue; }
+                owner.StackTriggerCounters[ck] = 0;
+                ExecuteTriggeredCast(state, owner, tsc);
+            }
+        }
+
+        /// <summary>아군 부활 직후 연계: TriggeredSkillCast(OnRevival) 시전 + 부활 시 피해 면역(DamageNullification, OnRevival).
+        ///   아일린 각성 「불꽃의 화신」: 부활 시 [청천벽력·진] 발동(본래 스킬과 별개) + 모든 피해 면역[3턴].</summary>
+        private void OnAllyRevived(SiegeBattleState state, CharacterBattleState ally)
+        {
+            var passive = ally.Source.Character.Passive;
+            if (passive == null) return;
+            foreach (var e in GetPassiveEffects(passive, ally))
+            {
+                if (e.Type != PersistentEffectType.DamageNullification || e.DamageNullification == null) continue;
+                if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.OnRevival) continue;
+                var n = e.DamageNullification;
+                if (n.Duration > 0) ally.NullifyTurnsRemaining = Math.Max(ally.NullifyTurnsRemaining, n.Duration);
+                if (n.HitCount > 0) ally.NullifyHitsRemaining = Math.Max(ally.NullifyHitsRemaining, n.HitCount);
+                ally.NullifyType = n.Type;
+                Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, passive.Name, 0,
+                    $"부활 → {ally.Source.Character.Name} {n.Type} 피해 면역 [{(n.Duration > 0 ? n.Duration + "턴" : n.HitCount + "회")}]");
+            }
+            var tsc = GetTriggeredCast(ally, TriggerCondition.OnRevival);
+            if (tsc != null) ExecuteTriggeredCast(state, ally, tsc);
+        }
+
+        /// <summary>패시브 트리거 시전 실행 — 쿨타임·시간 경과·스킬 시전 카운트 없이 피해 + 부가효과만.
+        ///   피해 계산은 일반 스킬과 동일(DamageCalculator, 대상수 감쇄 포함), 공격력은 보유자 현재 버프 기준.</summary>
+        private void ExecuteTriggeredCast(SiegeBattleState state, CharacterBattleState owner, TriggeredSkillCast tsc)
+        {
+            if (owner.IsDead) return;
+            var lvl = new SkillLevelData
+            {
+                Ratio = tsc.Ratio,
+                AtkCount = System.Math.Max(1, tsc.AtkCount),
+                TargetCount = System.Math.Max(1, tsc.TargetCount),
+                Effects = tsc.Effects,
+                IgnoresTurnDamageImmunity = tsc.IgnoresTurnDamageImmunity,
+            };
+            var sk = new Skill
+            {
+                Name = tsc.Name ?? (owner.Source.Character.Passive?.Name + "(발동)"),
+                SkillType = SkillType.Skill1,
+                LevelData = new Dictionary<int, SkillLevelData> { [0] = lvl },
+            };
+            var targets = PickTargets(state, lvl.TargetCount, owner);
+            if (targets.Count == 0) return;
+            Log(state, owner.Source.Character.Name, true, ActionType.SkillAttack, sk.Name, 0,
+                $"패시브 발동 → 적{targets.Count} 공격력 {tsc.Ratio:0}% {lvl.AtkCount}회");
+            ApplySkillEffects(state, owner, sk, targets, preDamage: true);
+            foreach (var t in targets)
+            {
+                if (tsc.Ratio > 0)
+                    ApplyDamage(state, owner, t, CalcDamageToEnemy(owner, t, sk, state), sk.Name, isSkill: true,
+                        penetrate: tsc.IgnoresTurnDamageImmunity);
+                RegisterDotToEnemy(state, owner, t, sk);
+            }
+            ApplySkillEffects(state, owner, sk, targets, preDamage: false);
         }
 
         /// <summary>디버프를 스택 수만큼 합산 (스택당 효과).</summary>

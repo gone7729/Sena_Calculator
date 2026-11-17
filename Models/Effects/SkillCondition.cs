@@ -32,6 +32,9 @@ namespace GameDamageCalculator.Models.Effects
 
         /// <summary>살아있는 적이 1명뿐 ("단일 적군")</summary>
         SingleEnemy,
+
+        /// <summary>대상이 공격력 상위 Threshold명 안 (쥬다스 [칠흑의 낙인] = 공격력이 가장 높은 적군 3명)</summary>
+        TargetTopAtkEnemy,
     }
 
     /// <summary>

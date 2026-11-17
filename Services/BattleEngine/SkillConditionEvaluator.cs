@@ -35,8 +35,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                         && attacker.CurrentHp / attacker.MaxHp * 100.0 <= cond.Threshold;
 
                 case SkillConditionType.TargetHasStatus:
-                    return target?.Effects != null && cond.Status != StatusEffectType.None
-                        && target.Effects.GetTotalStacks(cond.Status) > 0;
+                    if (target == null || cond.Status == StatusEffectType.None) return false;
+                    // 공성 시뮬의 적 DoT(화상·출혈·중독)는 Effects가 아니라 ActiveDots에 등록된다 → 둘 다 확인.
+                    //   (2026-11-17 수정: 예전엔 Effects만 봐서 샤오 출혈 조건·동영 중독 조건이 공성에서 항상 미충족)
+                    if (target.ActiveDots != null)
+                        foreach (var d in target.ActiveDots)
+                            if (d.Type == cond.Status && d.RemainingTurns > 0) return true;
+                    return target.Effects != null && target.Effects.GetTotalStacks(cond.Status) > 0;
 
                 case SkillConditionType.SelfHasStatus:
                     return attacker?.Effects != null && cond.Status != StatusEffectType.None
@@ -50,6 +55,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (target == null) return false;
                     if (target.HasEnemyBuff && target.EnemyBuff?.Def_Rate > 0) return true;
                     return target.Source != null && target.Source.DefenseIncrease > 0;
+
+                case SkillConditionType.TargetTopAtkEnemy:
+                {
+                    // 대상이 생존 적 중 공격력 상위 N명 안 (쥬다스 칠흑의 낙인 = 상위 3명). 적이 N명 이하면 항상 충족.
+                    if (target == null) return false;
+                    if (state?.Enemies == null) return true;
+                    int n = cond.Threshold > 0 ? (int)cond.Threshold : 3;
+                    int higher = 0;
+                    foreach (var e in state.Enemies)
+                        if (e != null && e != target && e.FinalAtk > target.FinalAtk) higher++;
+                    return higher < n;
+                }
 
                 case SkillConditionType.SingleEnemy:
                     // 살아있는(HP>0) 적이 1명뿐. 상태를 모르면 판정 불가 → 미발동으로 안전하게.

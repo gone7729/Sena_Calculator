@@ -232,7 +232,7 @@ namespace GameDamageCalculator.Database
                         }}
                     }
                 },
-                TranscendType = TranscendType.AtkCri
+                TranscendType = TranscendType.AtkCriDmg
             },
 
             // 오르카
@@ -4829,33 +4829,39 @@ namespace GameDamageCalculator.Database
                                 AtkCount = 1,
                                 Cooldown = 120,
                                 Ratio = 60,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
+                                ConditionalFixedDmgAtkRatio = 19,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 55 } }
                                 },
-                                Effect = "대상 [중독] 상태 시 마법 공격력 19% 추가 고정 피해 (미모델). [모든 아군] 시전자 마법 공격력 55% 보호막[2턴]"
+                                Effect = "대상 [중독] 상태 시 마법 공격력 19% 추가 고정 피해. [모든 아군] 시전자 마법 공격력 55% 보호막[2턴]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 120,
                                 Ratio = 70,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
+                                ConditionalFixedDmgAtkRatio = 22,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 55 } }
                                 },
-                                Effect = "강화: 마법 70%, 대상 [중독] 상태 시 마법 공격력 22% 추가 고정 피해 (미모델). [모든 아군] 시전자 마법 공격력 55% 보호막[2턴]"
+                                Effect = "강화: 마법 70%, 대상 [중독] 상태 시 마법 공격력 22% 추가 고정 피해. [모든 아군] 시전자 마법 공격력 55% 보호막[2턴]"
                                 } },
                             { 2, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Cooldown = 120,
                                 Ratio = 70,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
+                                ConditionalFixedDmgAtkRatio = 22,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Party, Type = SkillEffectType.Buff, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 65 } }
                                 },
-                                Effect = "각성: 마법 70% 1회(5인), 대상 [중독] 상태 시 마법 공격력 22% 추가 고정 피해 (미모델). [모든 아군] 시전자 마법 공격력 65% 보호막[2턴]"
+                                Effect = "각성: 마법 70% 1회(5인), 대상 [중독] 상태 시 마법 공격력 22% 추가 고정 피해. [모든 아군] 시전자 마법 공격력 65% 보호막[2턴]"
                                 } }
                         }
                     },
@@ -4918,21 +4924,25 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Ratio = 145,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
+                                ConditionalFixedDmgAtkRatio = 23,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
                                 },
-                                Effect = "각성기[각성 게이지 155]: 마법 145% 1회(5인), 대상 [중독] 상태 시 마법 공격력 23% 추가 고정 피해 (미모델), 턴제 버프 2턴 감소[100%]"
+                                Effect = "각성기[각성 게이지 155]: 마법 145% 1회(5인), 대상 [중독] 상태 시 마법 공격력 23% 추가 고정 피해, 턴제 버프 2턴 감소[100%]"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 1,
                                 Ratio = 160,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetHasStatus, Status = StatusEffectType.Poison, Desc = "대상 [중독] 상태" },
+                                ConditionalFixedDmgAtkRatio = 26,
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
                                 },
-                                Effect = "각성기 강화[각성 게이지 155]: 마법 160% 1회(5인), 대상 [중독] 상태 시 마법 공격력 26% 추가 고정 피해 (미모델), 턴제 버프 2턴 감소[100%]"
+                                Effect = "각성기 강화[각성 게이지 155]: 마법 160% 1회(5인), 대상 [중독] 상태 시 마법 공격력 26% 추가 고정 피해, 턴제 버프 2턴 감소[100%]"
                                 } }
                         }
                     }
@@ -4950,9 +4960,11 @@ namespace GameDamageCalculator.Database
                                 // 불굴: 사망 시 생명력 1로 부활, 피격 8회까지 사망 무효 (전투당 1회). 적군 사망 시 잔여 피격 횟수 +1 (8 상한)
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { HitCount = 8, ReviveHp = 1, OncePerBattle = true, HitCountGainOnEnemyDeath = 1, MaxHitCount = 8 } },
                                 // 불굴 발동 시 모든 아군: 시전자 마법 공격력 55% 회복
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredHealAtkRatio = 55 }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredHealAtkRatio = 55 },
+                                // 아군(자신 포함) 스킬 2회 발동마다: 모든 적군 마법 50% 1회 + 극독[100%][2턴] + 받는 회복량 감소 20% 1중첩(최대 3)
+                                new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.TriggeredSkillCast, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllySkill, TriggeredSkillCast = new TriggeredSkillCast { Name = "황천의 동행자(아군 스킬 2회)", TriggerOn = TriggerCondition.AllySkill, TriggerCount = 2, OncePerRound = false, Ratio = 50, AtkCount = 1, TargetCount = 5, Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 100, Duration = 2, CustomTargetMaxHpRatio = 30 }, new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, MaxStacks = 3, StackKey = "동영 받회감", Debuff = new DebuffSet { Heal_Reduction = 20 } } } } }
                             },
-                            Effect = "[자신] 공격력 300마다 효과 적중 5% 증가(최대 45%)[상시] (미모델), 사망 시 불굴[피격 8회] 부활(전투당 1회, 적군 사망 시 피격 횟수 1 증가·최대 8). [모든 아군] 마법 피해량 증가 17%[상시], 불굴 발동 시 시전자 마법 공격력 55% 회복. [모든 적군] 아군의 스킬 2회 발동 시 마법 50% 1회 피해 + 극독[100%][2턴] + 받는 회복량 감소 20%[100%] 1중첩(최대 3중첩) (미모델)"
+                            Effect = "[자신] 공격력 300마다 효과 적중 5% 증가(최대 45%)[상시] (미모델), 사망 시 불굴[피격 8회] 부활(전투당 1회, 적군 사망 시 피격 횟수 1 증가·최대 8). [모든 아군] 마법 피해량 증가 17%[상시], 불굴 발동 시 시전자 마법 공격력 55% 회복. [모든 적군] 아군의 스킬 2회 발동 시 마법 50% 1회 피해 + 극독[100%][2턴] + 받는 회복량 감소 20%[100%] 1중첩(최대 3중첩)"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
@@ -4960,9 +4972,11 @@ namespace GameDamageCalculator.Database
                                 // 강화: 마법 피해량 증가 20%
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { HitCount = 8, ReviveHp = 1, OncePerBattle = true, HitCountGainOnEnemyDeath = 1, MaxHitCount = 8 } },
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredHealAtkRatio = 55 }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredHealAtkRatio = 55 },
+                                // 아군(자신 포함) 스킬 2회 발동마다: 모든 적군 마법 50% 1회 + 극독[100%][2턴] + 받는 회복량 감소 20% 1중첩(최대 3)
+                                new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.TriggeredSkillCast, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllySkill, TriggeredSkillCast = new TriggeredSkillCast { Name = "황천의 동행자(아군 스킬 2회)", TriggerOn = TriggerCondition.AllySkill, TriggerCount = 2, OncePerRound = false, Ratio = 50, AtkCount = 1, TargetCount = 5, Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 100, Duration = 2, CustomTargetMaxHpRatio = 30 }, new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, MaxStacks = 3, StackKey = "동영 받회감", Debuff = new DebuffSet { Heal_Reduction = 20 } } } } }
                             },
-                            Effect = "강화: [모든 아군] 마법 피해량 증가 20%[상시], 불굴 발동 시 시전자 마법 공격력 55% 회복. [자신] 공격력 300마다 효과 적중 5% 증가(최대 45%)[상시] (미모델), 사망 시 불굴[피격 8회] 부활(전투당 1회, 적군 사망 시 피격 횟수 1 증가·최대 8). [모든 적군] 아군의 스킬 2회 발동 시 마법 50% 1회 피해 + 극독[100%][2턴] + 받는 회복량 감소 20%[100%] 1중첩(최대 3중첩) (미모델)"
+                            Effect = "강화: [모든 아군] 마법 피해량 증가 20%[상시], 불굴 발동 시 시전자 마법 공격력 55% 회복. [자신] 공격력 300마다 효과 적중 5% 증가(최대 45%)[상시] (미모델), 사망 시 불굴[피격 8회] 부활(전투당 1회, 적군 사망 시 피격 횟수 1 증가·최대 8). [모든 적군] 아군의 스킬 2회 발동 시 마법 50% 1회 피해 + 극독[100%][2턴] + 받는 회복량 감소 20%[100%] 1중첩(최대 3중첩)"
                         }},
                         { 2, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
@@ -4970,9 +4984,11 @@ namespace GameDamageCalculator.Database
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Revival, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.SelfDeath, Revival = new Revival { HitCount = 8, ReviveHp = 1, OncePerBattle = true, HitCountGainOnEnemyDeath = 1, MaxHitCount = 8 } },
                                 // 각성: 불굴 발동 시 회복 65%
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredHealAtkRatio = 65 }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.TriggeredHeal, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredHealAtkRatio = 65 },
+                                // 아군(자신 포함) 스킬 2회 발동마다: 모든 적군 마법 50% 1회 + 극독[100%][2턴] + 받는 회복량 감소 20% 1중첩(최대 3)
+                                new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.TriggeredSkillCast, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllySkill, TriggeredSkillCast = new TriggeredSkillCast { Name = "황천의 동행자(아군 스킬 2회)", TriggerOn = TriggerCondition.AllySkill, TriggerCount = 2, OncePerRound = false, Ratio = 50, AtkCount = 1, TargetCount = 5, Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 100, Duration = 2, CustomTargetMaxHpRatio = 30 }, new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, MaxStacks = 3, StackKey = "동영 받회감", Debuff = new DebuffSet { Heal_Reduction = 20 } } } } }
                             },
-                            Effect = "각성: [자신] 공격력 300마다 효과 적중 5% 증가(최대 45%)[상시] (미모델), 사망 시 불굴[피격 8회] 부활(전투당 1회, 적군 사망 시 피격 횟수 1 증가·최대 8), 불굴 발동 시 각성 게이지 +40 (미모델). [모든 아군] 마법 피해량 증가 20%[상시], 불굴 발동 시 시전자 마법 공격력 65% 회복. [모든 적군] 아군의 스킬 2회 발동 시 마법 50% 1회 피해 + 극독[100%][2턴] + 받는 회복량 감소 20%[100%] 1중첩(최대 3중첩) (미모델)"
+                            Effect = "각성: [자신] 공격력 300마다 효과 적중 5% 증가(최대 45%)[상시] (미모델), 사망 시 불굴[피격 8회] 부활(전투당 1회, 적군 사망 시 피격 횟수 1 증가·최대 8), 불굴 발동 시 각성 게이지 +40 (미모델). [모든 아군] 마법 피해량 증가 20%[상시], 불굴 발동 시 시전자 마법 공격력 65% 회복. [모든 적군] 아군의 스킬 2회 발동 시 마법 50% 1회 피해 + 극독[100%][2턴] + 받는 회복량 감소 20%[100%] 1중첩(최대 3중첩)"
                         }}
                     },
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
@@ -4981,7 +4997,12 @@ namespace GameDamageCalculator.Database
                             Effect = "2초월: [자신과 동일 열 아군(마법형)] 모든 피해 면역[1턴] (미모델)"
                         }},
                         { 6, new PassiveTranscend {
-                            Effect = "6초월: [자신] 아군 사망 시 불굴 피격 횟수 1회 증가 (미모델). [모든 적군] 마법 취약 20%[100%][2턴] (미모델)"
+                            // 아군 스킬 2회 발동 효과에 마법 취약 20%[2턴] 추가 — 트리거 시전 전체를 최종값으로 재선언(base를 대체)
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.TriggeredSkillCast, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllySkill, TriggeredSkillCast = new TriggeredSkillCast { Name = "황천의 동행자(아군 스킬 2회)", TriggerOn = TriggerCondition.AllySkill, TriggerCount = 2, OncePerRound = false, Ratio = 50, AtkCount = 1, TargetCount = 5, Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Poison, Stacks = 1, Chance = 100, Duration = 2, CustomTargetMaxHpRatio = 30 }, new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, MaxStacks = 3, StackKey = "동영 받회감", Debuff = new DebuffSet { Heal_Reduction = 20 } }, new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Duration = 2, Chance = 100, Debuff = new DebuffSet { Mag_Dmg_Taken_Increase = 20 } } } } }
+                            },
+                            Effect = "6초월: [자신] 아군 사망 시 불굴 피격 횟수 1회 증가 (미모델). [모든 적군] 아군 스킬 2회 발동 시 마법 취약 20%[100%][2턴]"
                         }}
                     }
                 },
@@ -5206,7 +5227,7 @@ namespace GameDamageCalculator.Database
                     }
                 },
                 // 4초월 스탯이 원문에 없어 기본값(AtkCri) 사용 — 확인 필요
-                TranscendType = TranscendType.AtkCri
+                TranscendType = TranscendType.AtkCriDmg
             },
 
             // 스쿨드
@@ -8904,7 +8925,7 @@ namespace GameDamageCalculator.Database
                         }}
                     }
                 },
-                TranscendType = TranscendType.AtkCri
+                TranscendType = TranscendType.AtkWek
             },
 
             #endregion
@@ -10772,7 +10793,7 @@ namespace GameDamageCalculator.Database
                         }}
                     }
                 },
-                TranscendType = TranscendType.AtkCri
+                TranscendType = TranscendType.AtkEff
             },
 
             #endregion
@@ -11077,8 +11098,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 ConditionalExtraDmg = 60,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 60% 추가 피해",
-                                Effect = "단일 적군(칠흑의 낙인 보유 우선) 물리 120% 1회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 60% 추가 피해(낙인 대상 한정 게이팅 미모델). 자신 감쇄(받는 피해량 8% 감소)[피격 3회] (미모델)"
+                                Effect = "단일 적군(칠흑의 낙인 보유 우선) 물리 120% 1회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 60% 추가 피해(낙인 = 공격력 상위 3명). 자신 감쇄(받는 피해량 8% 감소)[피격 3회] (미모델)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 1,
@@ -11086,8 +11108,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 ConditionalExtraDmg = 60,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 60% 추가 피해",
-                                Effect = "단일 적군(칠흑의 낙인 보유 우선) 물리 120% 1회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 60% 추가 피해(낙인 대상 한정 게이팅 미모델). 자신 감쇄(받는 피해량 8% 감소)[피격 3회] (미모델)"
+                                Effect = "단일 적군(칠흑의 낙인 보유 우선) 물리 120% 1회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 60% 추가 피해(낙인 = 공격력 상위 3명). 자신 감쇄(받는 피해량 8% 감소)[피격 3회] (미모델)"
                                 } },
                             { 2, new SkillLevelData {
                                 TargetCount = 1,
@@ -11095,8 +11118,9 @@ namespace GameDamageCalculator.Database
                                 Ratio = 120,
                                 ConditionalExtraDmg = 60,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 60% 추가 피해",
-                                Effect = "단일 적군(칠흑의 낙인 보유 우선) 물리 120% 1회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 60% 추가 피해(낙인 대상 한정 게이팅 미모델). 자신 감쇄(받는 피해량 8% 감소)[피격 3회] (미모델)"
+                                Effect = "단일 적군(칠흑의 낙인 보유 우선) 물리 120% 1회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 60% 추가 피해(낙인 = 공격력 상위 3명). 자신 감쇄(받는 피해량 8% 감소)[피격 3회] (미모델)"
                                 } }
                         }
                     },
@@ -11114,13 +11138,14 @@ namespace GameDamageCalculator.Database
                                 Ratio = 47,
                                 ConditionalExtraDmg = 85,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 85% 추가 피해",
                                 OnKillRecast = new OnKillRecast { RatioPercent = 100 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
                                 },
-                                Effect = "모든 적군 물리 47% 2회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 85% 추가 피해(낙인 대상 한정 게이팅 미모델). 대상의 턴제 버프 2턴 감소[100%]. 처치 시 100% 위력으로 최대 1회 연속 발동"
+                                Effect = "모든 적군 물리 47% 2회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 85% 추가 피해(낙인 = 공격력 상위 3명). 대상의 턴제 버프 2턴 감소[100%]. 처치 시 100% 위력으로 최대 1회 연속 발동"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
@@ -11129,13 +11154,14 @@ namespace GameDamageCalculator.Database
                                 Ratio = 47,
                                 ConditionalExtraDmg = 85,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 85% 추가 피해",
                                 OnKillRecast = new OnKillRecast { RatioPercent = 100 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
                                 },
-                                Effect = "모든 적군 물리 47% 2회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 85% 추가 피해(낙인 대상 한정 게이팅 미모델). 대상의 턴제 버프 2턴 감소[100%]. 처치 시 100% 위력으로 최대 1회 연속 발동"
+                                Effect = "모든 적군 물리 47% 2회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 85% 추가 피해(낙인 = 공격력 상위 3명). 대상의 턴제 버프 2턴 감소[100%]. 처치 시 100% 위력으로 최대 1회 연속 발동"
                                 } },
                             { 2, new SkillLevelData {
                                 TargetCount = 5,
@@ -11144,18 +11170,19 @@ namespace GameDamageCalculator.Database
                                 Ratio = 47,
                                 ConditionalExtraDmg = 85,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 85% 추가 피해",
                                 OnKillRecast = new OnKillRecast { RatioPercent = 100 },
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffTurnReduction, Chance = 100, TurnReduction = 2 }
                                 },
-                                Effect = "모든 적군 물리 47% 2회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 85% 추가 피해(낙인 대상 한정 게이팅 미모델). 대상의 턴제 버프 2턴 감소[100%]. 처치 시 100% 위력으로 최대 1회 연속 발동"
+                                Effect = "모든 적군 물리 47% 2회. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 85% 추가 피해(낙인 = 공격력 상위 3명). 대상의 턴제 버프 2턴 감소[100%]. 처치 시 100% 위력으로 최대 1회 연속 발동"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Effect = "6초월: 효과 추가 — 관통(대상 피해 면역 무시) (미모델)" } }
+                            { 6, new SkillTranscend { IgnoresTurnDamageImmunity = true, Effect = "6초월: 효과 추가 — 관통(대상 피해 면역 무시)" } }
                         }
                     },
                     new Skill
@@ -11169,54 +11196,60 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 3,
                                 Cooldown = 119,
+                                HighestMaxHpExtraDmg = 171,
                                 Ratio = 31,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 56,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 56% 방어 무시 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, TargetCount = 1, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 18 },
                                     new SkillEffect { Target = EffectTarget.Enemy, TargetCount = 1, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "최대 생명력이 가장 높은 적군: 생명력 전환 18%, 회복 불가[100%][3턴] (대상 선정 미모델). 모든 적군 물리 31% 3회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 56% 방어 무시 추가 피해(낙인 대상 한정 게이팅 미모델). 최대 생명력이 가장 높은 적군일 경우 각 공격마다 물리 171% 방어 무시 추가 피해 (미모델)"
+                                Effect = "최대 생명력이 가장 높은 적군: 생명력 전환 18%, 회복 불가[100%][3턴] (대상 선정 미모델). 모든 적군 물리 31% 3회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 56% 방어 무시 추가 피해(낙인 = 공격력 상위 3명). 최대 생명력이 가장 높은 적군일 경우 각 공격마다 물리 171% 방어 무시 추가 피해"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 3,
                                 Cooldown = 119,
+                                HighestMaxHpExtraDmg = 171,
                                 Ratio = 31,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 56,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 56% 방어 무시 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, TargetCount = 1, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 18 },
                                     new SkillEffect { Target = EffectTarget.Enemy, TargetCount = 1, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "최대 생명력이 가장 높은 적군: 생명력 전환 18%, 회복 불가[100%][3턴] (대상 선정 미모델). 모든 적군 물리 31% 3회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 56% 방어 무시 추가 피해(낙인 대상 한정 게이팅 미모델). 최대 생명력이 가장 높은 적군일 경우 각 공격마다 물리 171% 방어 무시 추가 피해 (미모델)"
+                                Effect = "최대 생명력이 가장 높은 적군: 생명력 전환 18%, 회복 불가[100%][3턴] (대상 선정 미모델). 모든 적군 물리 31% 3회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 56% 방어 무시 추가 피해(낙인 = 공격력 상위 3명). 최대 생명력이 가장 높은 적군일 경우 각 공격마다 물리 171% 방어 무시 추가 피해"
                                 } },
                             { 2, new SkillLevelData {
                                 TargetCount = 5,
                                 AtkCount = 3,
                                 Cooldown = 119,
+                                HighestMaxHpExtraDmg = 171,
                                 Ratio = 31,
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 56,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 56% 방어 무시 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, TargetCount = 1, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HpConversion, Stacks = 1, Chance = 100, CustomHpConversionRatio = 18 },
                                     new SkillEffect { Target = EffectTarget.Enemy, TargetCount = 1, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.HealBlock, Stacks = 1, Chance = 100, Duration = 3 }
                                 },
-                                Effect = "최대 생명력이 가장 높은 적군: 생명력 전환 18%, 회복 불가[100%][3턴] (대상 선정 미모델). 모든 적군 물리 31% 3회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 56% 방어 무시 추가 피해(낙인 대상 한정 게이팅 미모델). 최대 생명력이 가장 높은 적군일 경우 각 공격마다 물리 171% 방어 무시 추가 피해 (미모델)"
+                                Effect = "최대 생명력이 가장 높은 적군: 생명력 전환 18%, 회복 불가[100%][3턴] (대상 선정 미모델). 모든 적군 물리 31% 3회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 56% 방어 무시 추가 피해(낙인 = 공격력 상위 3명). 최대 생명력이 가장 높은 적군일 경우 각 공격마다 물리 171% 방어 무시 추가 피해"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Effect = "6초월: 효과 추가 — 관통(대상 피해 면역 무시) (미모델)" } }
+                            { 6, new SkillTranscend { IgnoresTurnDamageImmunity = true, Effect = "6초월: 효과 추가 — 관통(대상 피해 면역 무시)" } }
                         }
                     },
                     new Skill
@@ -11233,8 +11266,9 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 90,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 90% 방어 무시 추가 피해",
-                                Effect = "각성기[각성 게이지 155]: 적군 4명(칠흑의 낙인 보유 우선) 물리 60% 2회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 90% 방어 무시 추가 피해(낙인 대상 한정 게이팅 미모델)"
+                                Effect = "각성기[각성 게이지 155]: 적군 4명(칠흑의 낙인 보유 우선) 물리 60% 2회 방어 무시 40%. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 90% 방어 무시 추가 피해(낙인 = 공격력 상위 3명)"
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 4,
@@ -11243,17 +11277,18 @@ namespace GameDamageCalculator.Database
                                 Bonus = new BuffSet { Arm_Pen = 40 },
                                 ConditionalExtraDmg = 90,
                                 ConditionalExtraDmgPerHit = true,
+                                Condition = new SkillCondition { Type = SkillConditionType.TargetTopAtkEnemy, Threshold = 3, Desc = "대상 [칠흑의 낙인] (공격력 상위 3명 고정)" },
                                 ConditionalDesc = "대상이 [칠흑의 낙인] 상태일 경우 각 공격마다 물리 공격력 90% 방어 무시 추가 피해",
                                 Effects = new List<SkillEffect>
                                 {
                                     new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.BuffDispel, DispelBuffCount = 2, Chance = 100 }
                                 },
-                                Effect = "각성기 강화[각성 게이지 155]: 적군 4명(칠흑의 낙인 보유 우선) 물리 60% 2회 방어 무시 40%, 버프 해제 2개[100%]. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 90% 방어 무시 추가 피해(낙인 대상 한정 게이팅 미모델)"
+                                Effect = "각성기 강화[각성 게이지 155]: 적군 4명(칠흑의 낙인 보유 우선) 물리 60% 2회 방어 무시 40%, 버프 해제 2개[100%]. 대상 [칠흑의 낙인] 상태 시 각 공격마다 물리 90% 방어 무시 추가 피해(낙인 = 공격력 상위 3명)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 6, new SkillTranscend { Effect = "6초월: 효과 추가 — 관통(대상 피해 면역 무시) (미모델)" } }
+                            { 6, new SkillTranscend { IgnoresTurnDamageImmunity = true, Effect = "6초월: 효과 추가 — 관통(대상 피해 면역 무시)" } }
                         }
                     }
                 },
@@ -11270,7 +11305,7 @@ namespace GameDamageCalculator.Database
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 25 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 160 } },
                                 // 자신의 모든 공격 2회 발동 시 물리 공격력 증가 1중첩 (중첩당 10%, 최대 15중첩)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, StacksPerTrigger = 1, MaxStacks = 15, IsPerStack = true, Buff = new BuffSet { Atk_Rate = 10 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, StacksPerTrigger = 1, MaxStacks = 15, IsPerStack = true, InitialStacksPerAllyClass = "만능형", Buff = new BuffSet { Atk_Rate = 10 } },
                                 // 자신의 모든 공격 2회 발동 시 시전자 물리 공격력 110% 보호막 [2턴]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 110 } },
                                 // 아군 사망 시 스킬 쿨타임 감소 17초
@@ -11285,7 +11320,7 @@ namespace GameDamageCalculator.Database
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 25 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 160 } },
                                 // 자신의 모든 공격 2회 발동 시 물리 공격력 증가 1중첩 (중첩당 10%, 최대 15중첩)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, StacksPerTrigger = 1, MaxStacks = 15, IsPerStack = true, Buff = new BuffSet { Atk_Rate = 10 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, StacksPerTrigger = 1, MaxStacks = 15, IsPerStack = true, InitialStacksPerAllyClass = "만능형", Buff = new BuffSet { Atk_Rate = 10 } },
                                 // 자신의 모든 공격 2회 발동 시 시전자 물리 공격력 110% 보호막 [2턴]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 110 } },
                                 // 아군 사망 시 스킬 쿨타임 감소 17초
@@ -11300,7 +11335,7 @@ namespace GameDamageCalculator.Database
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Blessing = 25 } },
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 160 } },
                                 // 자신의 모든 공격 2회 발동 시 물리 공격력 증가 1중첩 (중첩당 10%, 최대 15중첩)
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, StacksPerTrigger = 1, MaxStacks = 15, IsPerStack = true, Buff = new BuffSet { Atk_Rate = 10 } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, StacksPerTrigger = 1, MaxStacks = 15, IsPerStack = true, InitialStacksPerAllyClass = "만능형", Buff = new BuffSet { Atk_Rate = 10 } },
                                 // 자신의 모든 공격 2회 발동 시 시전자 물리 공격력 110% 보호막 [2턴]
                                 new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.AllAttack, TriggerCount = 2, Duration = 2, Buff = new BuffSet { Shield_AtkRatio = 110 } },
                                 // 아군 사망 시 스킬 쿨타임 감소 17초
@@ -11758,14 +11793,16 @@ namespace GameDamageCalculator.Database
                                 Ratio = 61,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 30, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 30, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, PerHit = true, MaxStacks = 4, StackKey = "아일린 방깎 중첩", Debuff = new DebuffSet { Def_Reduction = 8 } }
                                 },
-                                Effect = "각성(전광석화): 적군 3명 물리 61% 3회, 각 공격마다 감전 30%[2턴], 각 공격마다 방어력 감소 8%[100%] 1중첩[최대 4중첩](중첩 방깎 미모델)"
+                                Effect = "각성(전광석화): 적군 3명 물리 61% 3회, 각 공격마다 감전 30%[2턴], 각 공격마다 방어력 감소 8%[100%] 1중첩[최대 4중첩](중첩형 디버프 — 상시·턴제 방깎과 합산)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
                             { 2, new SkillTranscend {
+                                IgnoresTurnDamageImmunity = true,
                                 Effect = "효과 추가: 관통(대상 피해 면역 무시)"
                             }}
                         }
@@ -11806,14 +11843,15 @@ namespace GameDamageCalculator.Database
                                 Ratio = 75,
                                 Effects = new List<SkillEffect>
                                 {
-                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35, Duration = 2 }
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35, Duration = 2 },
+                                    new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, PerHit = true, MaxStacks = 4, StackKey = "아일린 방깎 중첩", Debuff = new DebuffSet { Def_Reduction = 8 } }
                                 },
-                                Effect = "각성(청천벽력·진): 모든 적군 물리 75% 2회, 각 공격마다 감전 35%[2턴], 각 공격마다 방어력 감소 8%[100%] 1중첩[최대 4중첩](중첩 방깎 미모델)"
+                                Effect = "각성(청천벽력·진): 모든 적군 물리 75% 2회, 각 공격마다 감전 35%[2턴], 각 공격마다 방어력 감소 8%[100%] 1중첩[최대 4중첩](중첩형 디버프 — 상시·턴제 방깎과 합산)"
                                 } }
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            { 2, new SkillTranscend { Effect = "효과 추가: 관통(대상 피해 면역 무시)" } },
+                            { 2, new SkillTranscend { IgnoresTurnDamageImmunity = true, Effect = "효과 추가: 관통(대상 피해 면역 무시)" } },
                             // 6초월: 감전 확률 40%로 상승 (기본 30 → 최종 40)
                             { 6, new SkillTranscend {
                                 Effects = new List<SkillEffect>
@@ -11887,7 +11925,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 2, new PassiveLevelData {
-                            Effect = "각성(불꽃의 화신): [모든 아군] 물리 공격력 25%[상시], 감전 효과 적용 확률 +30%[상시](미모델). [자신] 모든 피해 무효화[피격 4회], 사망 시 생명력 100% 부활(전투당 1회), 부활 시 모든 피해 면역[3턴](전투당 1회)(미모델), 공격력 비례 효과 적중 증가[상시](공격력 300당 5%, 최대 45%)(미모델). 자신 부활 시 [청천벽력·진] 발동 — 모든 적군 물리 75% 2회 + 각 공격마다 감전 35%[2턴] + 방어력 감소 8% 1중첩[최대 4중첩], 본래 스킬과 별개 취급(미모델)",
+                            Effect = "각성(불꽃의 화신): [모든 아군] 물리 공격력 25%[상시], 감전 효과 적용 확률 +30%[상시](미모델). [자신] 모든 피해 무효화[피격 4회], 사망 시 생명력 100% 부활(전투당 1회), 부활 시 모든 피해 면역[3턴](전투당 1회), 공격력 비례 효과 적중 증가[상시](공격력 300당 5%, 최대 45%)(미모델). 자신 부활 시 [청천벽력·진] 발동 — 모든 적군 물리 75% 2회 + 각 공격마다 감전 35%[2턴] + 방어력 감소 8% 1중첩[최대 4중첩], 본래 스킬과 별개 취급",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Atk_Rate = 25 } },
@@ -11897,7 +11935,11 @@ namespace GameDamageCalculator.Database
                                     Type = PersistentEffectType.Revival,
                                     ApplyMode = ApplyMode.Triggered,
                                     TriggerCondition = TriggerCondition.SelfDeath,
-                                    Revival = new Revival { ReviveHpPercent = 100, OncePerBattle = true } }
+                                    Revival = new Revival { ReviveHpPercent = 100, OncePerBattle = true } },
+                                // 자신 부활 시 모든 피해 면역[3턴] (전투당 1회 — 부활 자체가 1회)
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, DamageNullification = new DamageNullification { Duration = 3, Type = DamageNullType.All } },
+                                // 자신 부활 시 [청천벽력·진] 발동 (본래 스킬과 별개 — 쿨 공유 없음). 관통은 2초월 효과(12초월 기준 포함)
+                                new PersistentEffect { Target = EffectTarget.AllEnemies, Type = PersistentEffectType.TriggeredSkillCast, ApplyMode = ApplyMode.Triggered, TriggerCondition = TriggerCondition.OnRevival, TriggeredSkillCast = new TriggeredSkillCast { Name = "청천벽력·진(부활 발동)", TriggerOn = TriggerCondition.OnRevival, TriggerCount = 1, OncePerRound = false, Ratio = 75, AtkCount = 2, TargetCount = 5, IgnoresTurnDamageImmunity = true, Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Shock, Stacks = 1, Chance = 35, Duration = 2 }, new SkillEffect { Target = EffectTarget.Enemy, Type = SkillEffectType.Debuff, Chance = 100, PerHit = true, MaxStacks = 4, StackKey = "아일린 방깎 중첩", Debuff = new DebuffSet { Def_Reduction = 8 } } } } }
                             }
                         }}
                     }
@@ -13937,7 +13979,7 @@ namespace GameDamageCalculator.Database
                         }}
                     }
                 },
-                TranscendType = TranscendType.AtkCri
+                TranscendType = TranscendType.AtkDmgRdc
             },
 
             #endregion

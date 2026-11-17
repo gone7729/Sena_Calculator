@@ -77,6 +77,11 @@ namespace GameDamageCalculator.Models
             return LevelData.TryGetValue(0, out var baseData) ? baseData : new SkillLevelData();
         }
 
+        /// <summary>관통(대상 피해 면역 무시) 여부 — 레벨 데이터 또는 도달한 초월의 효과 추가.</summary>
+        public bool PiercesImmunity(bool isEnhanced, int transcendLevel, bool isAwakened = false)
+            => (GetLevelData(isEnhanced, isAwakened)?.IgnoresTurnDamageImmunity ?? false)
+               || (GetTranscendBonus(transcendLevel)?.IgnoresTurnDamageImmunity ?? false);
+
         public SkillTranscend GetTranscendBonus(int level)
 {
     var result = new SkillTranscend();
@@ -96,6 +101,9 @@ namespace GameDamageCalculator.Models
 
         if (kvp.Value.Cooldown > 0)
             result.Cooldown = kvp.Value.Cooldown;
+
+        if (kvp.Value.IgnoresTurnDamageImmunity)
+            result.IgnoresTurnDamageImmunity = true;
 
         result.Effect = kvp.Value.Effect;
         
@@ -170,6 +178,7 @@ namespace GameDamageCalculator.Models
             DispelBuffCount = e.DispelBuffCount, DispelDebuffCount = e.DispelDebuffCount,
             ApplyMode = e.ApplyMode, TriggerCondition = e.TriggerCondition, TriggerCount = e.TriggerCount,
             StacksPerTrigger = e.StacksPerTrigger, MaxStacks = e.MaxStacks, RequiresStatusType = e.RequiresStatusType,
+            PerHit = e.PerHit, StackKey = e.StackKey,
             Buff = e.Buff?.Clone(), Debuff = e.Debuff?.Clone(),
             StatusType = e.StatusType, Stacks = e.Stacks,
             CustomAtkRatio = e.CustomAtkRatio, CustomHpRatio = e.CustomHpRatio, CustomAtkCap = e.CustomAtkCap,
@@ -329,6 +338,12 @@ namespace GameDamageCalculator.Models
         public string ConditionalDesc { get; set; }
         public bool ConditionalExtraDmgPerHit { get; set; }
         public double ConditionalDmgBonus { get; set; }
+        // 조건 충족 시 "공격력 N% 추가 고정 피해" — 방어·치명·약점·피증 미적용, FixedDamage와 같은 경로(최종 취약계수만 적용).
+        //   예) 동영 황천의 숨결 "대상 [중독] 상태일 경우 마법 공격력 19% 추가 고정 피해" (대상당 1회)
+        public double ConditionalFixedDmgAtkRatio { get; set; }
+        // 대상이 "최대 생명력이 가장 높은 적군"일 때 각 공격마다 공격력 N% 추가 피해 (Condition과 별개 판정).
+        //   예) 쥬다스 최후의 권좌 171%. 단일 보스 계산기는 대상=보스라 항상 충족, 공성은 생존 적 중 최대HP 판정.
+        public double HighestMaxHpExtraDmg { get; set; }
 
         // ===== 스킬 자체 보너스 (해당 스킬 계산에만 적용) =====
         public BuffSet Bonus { get; set; } = new BuffSet();
@@ -465,6 +480,7 @@ namespace GameDamageCalculator.Models
         // 초월 시 배율 변경 (선언값 = 최종값). 예: 에반 연속공격 2초월 "물리 170% / 방어 200%"
         public double? RatioOverride { get; set; }      // 공격력 비례 배율
         public double? DefRatioOverride { get; set; }   // 방어력 비례 배율
+        public bool IgnoresTurnDamageImmunity { get; set; } // 초월 효과 추가: 관통 (예: 쥬다스·아일린 관통 초월)
 
         // 쿨타임 (초월 시 변경, 0이면 강화 레벨 쿨타임 유지)
         public double Cooldown { get; set; }
