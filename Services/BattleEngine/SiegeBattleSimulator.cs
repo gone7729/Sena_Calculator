@@ -501,7 +501,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         bool wasAlive = !target.IsDead;
                         double dmg = CalcDamageToAlly(enemy, target, skill);
                         ApplyDamageToAlly(state, enemy, target, dmg, skill.Name);
-                        ApplyEnemyStatusToAlly(state, target, skill);
+                        ApplyEnemyStatusToAlly(state, target, skill, enemy);
 
                         // OnKillRecast: 직접 피해로 아군 처치 시 RatioPercent% 위력으로 1회 재시전(연쇄 1회 한도).
                         if (recast != null && recast.RatioPercent > 0 && wasAlive && target.IsDead)
@@ -511,7 +511,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             {
                                 double rdmg = CalcDamageToAlly(enemy, rt, skill) * recast.RatioPercent / 100.0;
                                 ApplyDamageToAlly(state, enemy, rt, rdmg, skill.Name + "(처치 재시전)");
-                                ApplyEnemyStatusToAlly(state, rt, skill);
+                                ApplyEnemyStatusToAlly(state, rt, skill, enemy);
                             }
                         }
                     }
@@ -535,7 +535,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         {
                             double dmg = CalcDamageToAlly(enemy, t, extraSkill);
                             ApplyDamageToAlly(state, enemy, t, dmg, extraSkill.Name);
-                            ApplyEnemyStatusToAlly(state, t, skill);   // 동일 열 빙결[3턴] (풍연 면역이 차단)
+                            ApplyEnemyStatusToAlly(state, t, skill, enemy);   // 동일 열 빙결[3턴] (풍연 면역이 차단)
                         }
                     }
 
@@ -623,7 +623,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             if (tc <= 1)
                                 ApplySingleTargetHit(state, ally, target, normal, isSkill: false, pen);   // 약점→최저HP / 미발동→무작위(기댓값)
                             else
-                                ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, normal, state), normal.Name, isSkill: false, penetrate: pen);
+                                ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, normal, state), normal.Name, isSkill: false, penetrate: pen, hitCount: HitCountOf(ally, normal));
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
                             MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
                         }
@@ -660,7 +660,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         double dmg = CalcDamageToAlly(enemy, target, normal);
                         ApplyDamageToAlly(state, enemy, target, dmg, normal.Name);
-                        ApplyEnemyStatusToAlly(state, target, normal);
+                        ApplyEnemyStatusToAlly(state, target, normal, enemy);
                     }
                 }
             }
@@ -747,7 +747,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 foreach (var t in targets)
                 {
                     if (tc <= 1) ApplySingleTargetHit(state, ally, t, sk, isSkill: true, pen: false);
-                    else ApplyDamage(state, ally, t, CalcDamageToEnemy(ally, t, sk, state), sk.Name, isSkill: true);
+                    else ApplyDamage(state, ally, t, CalcDamageToEnemy(ally, t, sk, state), sk.Name, isSkill: true, hitCount: HitCountOf(ally, sk));
                 }
             }
         }
@@ -826,15 +826,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Log(state, owner.Source.Character.Name, true, ActionType.SkillAttack, sk.Name, 0,
                     $"협공 (확률 {p * 100:0}% 기댓값) ← {attacker.Source.Character.Name} 평타, 적{hits.Count}");
                 foreach (var h in hits.OrderBy(h => h.T == primary ? 1 : 0))
-                    ApplyDamage(state, owner, h.T, h.Dmg, sk.Name, isSkill: true, hitWeight: h.W, spill: h.T != primary);
+                    ApplyDamage(state, owner, h.T, h.Dmg, sk.Name, isSkill: true, hitWeight: h.W, spill: h.T != primary, hitCount: HitCountOf(owner, sk));
             }
         }
 
         /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
         private void ApplyDamage(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target,
-            double dmg, string label, bool isSkill, bool penetrate = false, double hitWeight = 1.0, bool spill = false)
+            double dmg, string label, bool isSkill, bool penetrate = false, double hitWeight = 1.0, bool spill = false,
+            int hitCount = 1)
         {
             if (dmg <= 0) return;
+
+            // 피격 시 상태이상 부여 패시브(레이첼 「화염의 힘」) — 면역·무효·보호막과 무관하게 "적중" 자체로 발동.
+            ApplyEnemyOnHitStatus(state, target, hitCount * hitWeight);
 
             // R3 시스템 기믹(일요일 룩·챈슬러): 피해 1 고정 — 보스(크리스)에게만 유효타가 들어가도록 시스템이 강제.
             //   패시브/버프 아닌 고정 속성(SiegeDamageCapToOne)이라 버프해제·턴제버프감소로 풀 수 없음.
@@ -987,7 +991,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             double pw = WeakProb(ally, skill);
             if (cands.Count <= 1 || pw >= 1.0)
             {
-                ApplyDamage(state, ally, primary, CalcDamageToEnemy(ally, primary, skill, state), skill.Name, isSkill, pen);
+                ApplyDamage(state, ally, primary, CalcDamageToEnemy(ally, primary, skill, state), skill.Name, isSkill, pen, hitCount: HitCountOf(ally, skill));
                 return;
             }
             double wRand = (1 - pw) / cands.Count;
@@ -1004,7 +1008,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 hits.Add((t, dmg, w));
             }
             foreach (var h in hits.OrderBy(h => h.T == primary ? 1 : 0))   // 분산분 먼저, primary 마지막
-                ApplyDamage(state, ally, h.T, h.Dmg, skill.Name, isSkill, pen, hitWeight: h.W, spill: h.T != primary);
+                ApplyDamage(state, ally, h.T, h.Dmg, skill.Name, isSkill, pen, hitWeight: h.W, spill: h.T != primary, hitCount: HitCountOf(ally, skill));
         }
 
         /// <summary>아군 → 적 데미지 (DamageCalculator). 공성전 감쇄(물/마·타겟수)·디버프 반영.
@@ -1427,7 +1431,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// 반격 1회 발동 — 무작위 아군 TargetCount명(도발 시 도발자 우선)에게 물리 Ratio%[강제치명·치피 CritDamage].
         /// 실명 중이면 빗나감(0뎀·시간 미소모; 실명 턴은 기본공격만 소모). 발동 시 ActionSeconds초 경과(전체 쿨 감소).
         /// 라이언 물리면역(도발+면역) / 보호막 / 생존판정은 ApplyDamageToAlly가 자동 처리.
-        /// (용염=아군 화상 DoT는 아군 DoT 데미지 모델 후속 — 현재 직격만. 화상면역은 라이언 패시브로 이미 적용.)
+        /// 반격 대상에 용염(화상, 매 턴 공격력 120%)[2턴] 부여 — 틱 피해는 ProcessEnemyDotsOnAlly. 화상 면역이면 무효.
         /// </summary>
         private void ExecuteEnemyCounter(SiegeBattleState state, SiegeEnemyState enemy, Models.SiegeCounterattack ca)
         {
@@ -1448,6 +1452,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 double dmg = CalcDamageToAlly(enemy, t, counterSkill, forceCrit: true, critDmgOverride: ca.CritDamage);
                 ApplyDamageToAlly(state, enemy, t, dmg, "반격");
+                if (ca.Status.HasValue)   // 용염[100%/2턴] — 화상 면역이면 무효
+                    AddEnemyStatusToAlly(state, enemy, t, ca.Status.Value, ca.StatusDuration, 1, ca.StatusAtkRatio);
             }
             Log(state, enemy.Source.Name, false, ActionType.SkillAttack, "반격", 0,
                 $"{enemy.Source.Name} 반격 발동 → 아군 {targets.Count}명 (물리 {ca.Ratio:0}%·치명 치피{ca.CritDamage:0}%)");
@@ -1455,23 +1461,29 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>적이 아군을 공격 → 피해 적용. (생존 메카닉: 부활·면역·권능은 후속 단계)</summary>
+        /// <param name="dotSource">null이 아니면 DoT 틱(화상·용염) — 직격이 아니라서 물리/마법 한정 면역은 못 막고(모든 피해 무효만),
+        ///   피격 횟수형 무효화도 차감하지 않는다(적 쪽 델론즈 무효화와 같은 규칙). enemy는 null 가능.</param>
         private void ApplyDamageToAlly(SiegeBattleState state, SiegeEnemyState enemy, CharacterBattleState ally,
-            double dmg, string label)
+            double dmg, string label, string dotSource = null)
         {
             if (dmg <= 0 || ally.IsDead) return;
             if (state.DiagAlliesImmortal) return;   // [진단] 불사 실험 — 피격 자체를 무시
+            bool isDot = dotSource != null;
+            string srcName = isDot ? dotSource : enemy.Source.Name;
 
             // 피해 무효화 (피격 N회 / N턴) — 피해 자체를 0으로. 타입 한정(물리/마법) 면역은 적 공격 타입과 일치할 때만.
-            var incomingType = enemy.Source.AttackType == AttackType.Magic ? DamageNullType.Magic : DamageNullType.Physical;
-            if ((ally.NullifyHitsRemaining > 0 || ally.NullifyTurnsRemaining > 0)
-                && (ally.NullifyType == DamageNullType.All || ally.NullifyType == incomingType))
+            bool nullMatch = ally.NullifyType == DamageNullType.All
+                || (!isDot && ally.NullifyType == (enemy.Source.AttackType == AttackType.Magic ? DamageNullType.Magic : DamageNullType.Physical));
+            if ((ally.NullifyHitsRemaining > 0 || ally.NullifyTurnsRemaining > 0) && nullMatch)
             {
-                if (ally.NullifyHitsRemaining > 0) ally.NullifyHitsRemaining--;
+                if (!isDot && ally.NullifyHitsRemaining > 0) ally.NullifyHitsRemaining--;
                 state.TurnLogs.Add(new BattleTurnLog
                 {
-                    Turn = state.CurrentTurn, ActorName = enemy.Source.Name, IsAlly = false,
+                    Turn = state.CurrentTurn, ActorName = srcName, IsAlly = false,
                     ActionType = ActionType.BuffApplied, SkillName = "피해 무효화", DamageDealt = 0,
-                    Description = $"{ally.Source.Character.Name} 피격 무효화 (잔여 {ally.NullifyHitsRemaining}회)",
+                    Description = isDot
+                        ? $"{ally.Source.Character.Name} {label} 틱 무효화"
+                        : $"{ally.Source.Character.Name} 피격 무효화 (잔여 {ally.NullifyHitsRemaining}회)",
                 });
                 return;
             }
@@ -1486,7 +1498,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     state.TurnLogs.Add(new BattleTurnLog
                     {
-                        Turn = state.CurrentTurn, ActorName = enemy.Source.Name, IsAlly = false,
+                        Turn = state.CurrentTurn, ActorName = srcName, IsAlly = false,
                         ActionType = ActionType.BuffApplied, SkillName = "보호막", DamageDealt = 0,
                         Description = $"{ally.Source.Character.Name} 보호막 흡수 {absorbed:N0} (잔여 {ally.Shield:N0})",
                     });
@@ -1508,12 +1520,14 @@ namespace GameDamageCalculator.Services.BattleEngine
             state.TurnLogs.Add(new BattleTurnLog
             {
                 Turn = state.CurrentTurn,
-                ActorName = enemy.Source.Name,
+                ActorName = srcName,
                 IsAlly = false,
-                ActionType = state.IsSkillTurn ? ActionType.SkillAttack : ActionType.NormalAttack,
+                ActionType = isDot ? ActionType.DoTDamage : state.IsSkillTurn ? ActionType.SkillAttack : ActionType.NormalAttack,
                 SkillName = label,
                 DamageDealt = dmg,
-                Description = $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
+                Description = isDot
+                    ? $"[DoT] {label}({srcName}) → {ally.Source.Character.Name}: {dmg:N0}{outcome} (HP {Math.Max(0, ally.CurrentHp):N0}/{ally.MaxHp:N0})"
+                    : $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
             });
 
             // 사망 이벤트 기록 (사망 로그용): 이번 피격으로 처음 사망(부활 못 함). 권능=생존이라 미기록.
@@ -1521,7 +1535,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 _deaths.Add(new SiegeDeathEvent
                 {
                     Turn = state.CurrentTurn, Elapsed = state.ElapsedSeconds,
-                    AllyName = ally.Source.Character.Name, Cause = $"{enemy.Source.Name} {label}",
+                    AllyName = ally.Source.Character.Name, Cause = $"{srcName} {label}",
                 });
 
             // 아군 사망 → 「죽음의 경계」 보유 보스(델론즈)에 피해무효화[N회] 부여 (이후 아군 직격 N회 무효).
@@ -1595,38 +1609,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>적 스킬/평타의 상태이상을 아군에 부여 (면역 보유 타입은 무효).</summary>
-        private void ApplyEnemyStatusToAlly(SiegeBattleState state, CharacterBattleState ally, Skill enemySkill)
+        private void ApplyEnemyStatusToAlly(SiegeBattleState state, CharacterBattleState ally, Skill enemySkill,
+            SiegeEnemyState enemy = null)
         {
             if (ally.IsDead) return;
             var statuses = enemySkill.GetLevelData(false)?.StatusEffects;   // 적 스킬은 단일 티어
             if (statuses == null) return;
             foreach (var se in statuses)
             {
-                var baseEffect = StatusEffectDb.Get(se.Type);
-                string stName = baseEffect?.Name ?? se.Type.ToString();
-                if (ally.StatusImmunityTurns.GetValueOrDefault(se.Type) > 0)
-                {
-                    // 면역 → 무효 (로그로 표기)
-                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "면역", 0,
-                        $"{stName} 무효 (면역)");
-                    continue;
-                }
-                if (baseEffect == null) continue;
-                int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
-                int stacks = Math.Max(1, se.Stacks);
-                ally.Effects.AddEffect(new BattleEffect
-                {
-                    Id = $"siege_cc:{ally.PartyIndex}:{se.Type}",
-                    SourceName = $"siege_cc:{ally.PartyIndex}:{se.Type}",
-                    StatusType = se.Type,
-                    StatusData = StatusEffectData.FromDbEffect(baseEffect),
-                    RemainingTurns = dur,
-                    Stacks = stacks,
-                    IsPermanent = false,
-                    MergeStrategy = MergeStrategy.Stack,
-                });
-                Log(state, "적", false, ActionType.DebuffApplied, stName, 0,
-                    $"{ally.Source.Character.Name} {stName} 부여 [{dur}턴]{(stacks > 1 ? $" ×{stacks}중첩" : "")}");
+                if (!AddEnemyStatusToAlly(state, enemy, ally, se.Type, se.Duration, se.Stacks, se.CustomAtkRatio)) continue;
 
                 // 즉사 2중첩 시 즉시 사망 (크리스 어둠의 일격 Stacks=2 또는 누적 2회). 면역은 위에서 이미 차단됨.
                 if (se.Type == StatusEffectType.InstantDeath && !ally.IsDead
@@ -1660,6 +1651,110 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
+        /// <summary>적→아군 DoT 스냅샷 공격력 = 적 공격력 × (1 − 공격력 감소 디버프). 광폭화(직격 피해 증폭)는 미적용.</summary>
+        private static double EnemyDotAtk(SiegeEnemyState enemy)
+            => enemy.FinalAtk * Math.Max(0, 1 - enemy.Effects.GetTotalDebuffs().Atk_Reduction / 100.0);
+
+        private static int HitCountOf(CharacterBattleState ally, Skill skill)
+            => Math.Max(1, skill.GetAtkCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened));
+
+        /// <summary>
+        /// 적이 아군 한 명에게 상태이상 1건 부여 (면역 보유 타입은 무효 → false).
+        /// 공격력 비례 DoT(화상 80%·용염 120%)면 부여 시점 적 공격력으로 틱 피해를 계산해 효과에 담는다(BattleEffect.TickDamage)
+        ///   → 그 아군의 기본공격(턴) 직후마다 ProcessEnemyDotsOnAlly가 차감. 갱신형 아님: 부여마다 자기 지속 턴을 가진 새 인스턴스.
+        /// weight ≠ 1 = 기댓값 분산 부여(피격 화상: 확률 × 타수 × 대상으로 뽑힐 확률) — 같은 잔여 턴 인스턴스에 틱 피해를 합산.
+        /// </summary>
+        private bool AddEnemyStatusToAlly(SiegeBattleState state, SiegeEnemyState enemy, CharacterBattleState ally,
+            StatusEffectType type, int duration, int stacks, double? customAtkRatio, double weight = 1.0, bool log = true)
+        {
+            if (ally.IsDead || weight <= 0) return false;
+            var baseEffect = StatusEffectDb.Get(type);
+            string stName = baseEffect?.Name ?? type.ToString();
+            if (ally.StatusImmunityTurns.GetValueOrDefault(type) > 0)
+            {
+                // 면역 → 무효 (로그로 표기)
+                if (log)
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "면역", 0,
+                        $"{stName} 무효 (면역)");
+                return false;
+            }
+            if (baseEffect == null) return false;
+            int dur = duration > 0 ? duration : baseEffect.Duration;
+            stacks = Math.Max(1, stacks);
+            double atkRatio = customAtkRatio ?? baseEffect.AtkRatio;
+            double tick = enemy != null && atkRatio > 0 ? EnemyDotAtk(enemy) * atkRatio / 100.0 * stacks * weight : 0;
+            bool ev = weight != 1.0;
+            string id = $"siege_cc:{ally.PartyIndex}:{type}{(ev ? ":ev" : "")}";
+            if (ev)
+            {
+                if (tick <= 0) return false;   // 기댓값 분산은 DoT만 (CC를 확률로 쪼갤 수 없음)
+                var same = ally.Effects.GetAllEffects().FirstOrDefault(e => e.Id == id && !e.IsExpired && e.RemainingTurns == dur);
+                if (same != null) { same.TickDamage += tick; return true; }
+            }
+            var data = StatusEffectData.FromDbEffect(baseEffect);
+            if (customAtkRatio.HasValue) data.AtkRatio = customAtkRatio.Value;
+            ally.Effects.AddEffect(new BattleEffect
+            {
+                Id = id,
+                SourceName = id,
+                StatusType = type,
+                StatusData = data,
+                RemainingTurns = dur,
+                Stacks = stacks,
+                IsPermanent = false,
+                MergeStrategy = MergeStrategy.Stack,
+                TickDamage = tick,
+                TickSourceName = enemy?.Source.Name,
+            });
+            if (log)
+                Log(state, enemy?.Source.Name ?? "적", false, ActionType.DebuffApplied, stName, 0,
+                    $"{ally.Source.Character.Name} {stName} 부여 [{dur}턴]{(stacks > 1 ? $" ×{stacks}중첩" : "")}"
+                    + (tick > 0 ? $" (틱 {tick:N0})" : ""));
+            return true;
+        }
+
+        /// <summary>
+        /// 피격 시 상태이상 부여 패시브 — 레이첼 「화염의 힘」: 적의 공격 1회 적중당할 시 적군 3명 화상[100%/2턴].
+        /// hits = 이 적이 맞은 타수(기댓값 분산 타격은 가중치 포함). 무작위 3명 대신 기댓값: 생존 아군 각자 min(1, 3/N) 확률로 부여
+        ///   → 틱 피해에 확률 × 타수를 곱해 한 인스턴스로 합산(빔 평가가 RNG에 의존하지 않도록 결정적). 화상 면역 아군은 제외.
+        /// </summary>
+        private void ApplyEnemyOnHitStatus(SiegeBattleState state, SiegeEnemyState hitEnemy, double hits)
+        {
+            var oh = hitEnemy.Source?.OnHitStatus;
+            if (oh == null || hits <= 0) return;
+            var alive = state.AllyStates.Where(a => !a.IsDead).ToList();
+            if (alive.Count == 0) return;
+            double p = Math.Min(1.0, oh.TargetCount / (double)alive.Count) * Math.Clamp(oh.Chance / 100.0, 0, 1);
+            int applied = 0;
+            foreach (var a in alive)
+                if (AddEnemyStatusToAlly(state, hitEnemy, a, oh.Type, oh.Duration, 1, oh.AtkRatio, weight: p * hits, log: false))
+                    applied++;
+            string stName = StatusEffectDb.Get(oh.Type)?.Name ?? oh.Type.ToString();
+            if (applied > 0)
+                Log(state, hitEnemy.Source.Name, false, ActionType.DebuffApplied, stName, 0,
+                    $"{hitEnemy.Source.Name} 피격 {hits:0.##}회 → 아군 {applied}명 {stName} [{oh.Duration}턴] (1인당 기댓값 ×{p * hits:0.##}"
+                    + (applied < alive.Count ? $", 면역 {alive.Count - applied}명" : "") + ")");
+        }
+
+        /// <summary>
+        /// 아군에게 걸린 적 DoT(화상·용염) 틱 — TickAllyAfterAction에서만 호출 = 그 아군의 기본공격(턴 소모) 직후 1회.
+        /// 인스턴스별 틱 피해 합(부여 시점 스냅샷)을 한 번에 차감. 방어력·받피감·막기 무관, 보호막은 흡수,
+        ///   모든 피해 무효화 중이면 무효(횟수 미차감). 치사량이면 생존 판정(불사/권능/부활) 후 사망 기록.
+        /// </summary>
+        private void ProcessEnemyDotsOnAlly(SiegeBattleState state, CharacterBattleState ally)
+        {
+            var dots = ally.Effects.GetAllEffects().Where(e => e.TickDamage > 0 && !e.IsExpired).ToList();
+            if (dots.Count == 0) return;
+            foreach (var g in dots.GroupBy(e => (e.StatusType, e.TickSourceName)))
+            {
+                if (ally.IsDead) return;
+                var first = g.First();
+                string stName = first.StatusData?.AtkRatio == 120 && first.StatusType == StatusEffectType.Burn ? "용염"
+                    : StatusEffectDb.Get(first.StatusType ?? StatusEffectType.None)?.Name ?? "DoT";
+                ApplyDamageToAlly(state, null, ally, g.Sum(e => e.TickDamage), stName, dotSource: first.TickSourceName ?? "적");
+            }
+        }
+
         /// <summary>
         /// 기본공격(턴 소모) 직후 호출 — 행동한 아군 한 명의 효과/잔여턴/재생/보호막을 한 번씩 tick.
         /// 게임 규칙(2-3): "n턴 지속" = 부여받은 캐릭이 <b>기본공격</b>을 n번 하는 동안 유효.
@@ -1670,6 +1765,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (ally.IsDead) return;
             ProcessInstantDeathOnAlly(state, ally);   // 즉사 DoT(현재HP%) + 마지막 턴 사망 (일요일 크리스)
+            if (ally.IsDead) return;
+            ProcessEnemyDotsOnAlly(state, ally);      // 화상·용염 틱 (수 레이첼 / 금 제이브·챈슬러)
             if (ally.IsDead) return;
             if (!state.ForceFullBuffUptime) ally.Effects.TickTurn();   // [진단] 풀uptime이면 아군 버프 만료 스킵
             foreach (var k in ally.StatusImmunityTurns.Keys.ToList())
@@ -2261,7 +2358,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 if (tc <= 1)
                     ApplySingleTargetHit(state, ally, target, skill, isSkill: true, pen);   // 약점→최저HP / 미발동→무작위(기댓값)
                 else
-                    ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, skill, state), skill.Name, isSkill: true, penetrate: pen);
+                    ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, skill, state), skill.Name, isSkill: true, penetrate: pen, hitCount: HitCountOf(ally, skill));
                 RegisterDotToEnemy(state, ally, target, skill);   // 스킬의 DoT(화상·출혈 등) 등록
                 MaybeEnemyCounter(state, target, skill.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
             }
@@ -2937,7 +3034,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 if (tsc.Ratio > 0)
                     ApplyDamage(state, owner, t, CalcDamageToEnemy(owner, t, sk, state), sk.Name, isSkill: true,
-                        penetrate: tsc.IgnoresTurnDamageImmunity);
+                        penetrate: tsc.IgnoresTurnDamageImmunity, hitCount: HitCountOf(owner, sk));
                 RegisterDotToEnemy(state, owner, t, sk);
             }
             ApplySkillEffects(state, owner, sk, targets, preDamage: false);

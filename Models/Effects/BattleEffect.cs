@@ -43,6 +43,11 @@ namespace GameDamageCalculator.Models.Effects
         public int MaxStacks { get; set; } = 1;
         public double ApplyChance { get; set; } = 100;
 
+        // === 공성: 적→아군 DoT (화상·용염) ===
+        // 틱당 피해 — 부여 시점의 적 공격력 × 배율 × 기댓값 가중치(확률·타수). 0이면 DoT 아님.
+        public double TickDamage { get; set; }
+        public string TickSourceName { get; set; }   // DoT를 건 적 이름 (로그·사망 원인)
+
         // === 헬퍼 ===
         public bool IsStatBuff => BuffValues != null;
         public bool IsStatDebuff => DebuffValues != null;
@@ -73,6 +78,8 @@ namespace GameDamageCalculator.Models.Effects
                 BuffValues = BuffValues?.Clone(),
                 DebuffValues = DebuffValues?.Clone(),
                 StatusType = StatusType,
+                TickDamage = TickDamage,
+                TickSourceName = TickSourceName,
                 StatusData = StatusData, // immutable snapshot
                 Stacks = Stacks,
                 MaxStacks = MaxStacks,

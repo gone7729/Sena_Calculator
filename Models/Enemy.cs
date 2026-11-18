@@ -64,6 +64,9 @@ namespace GameDamageCalculator.Models
         // 공성전: 보스 반격 (제이브 「복수의 갑옷」). null이면 없음. 아군 피격 hit당 확률 발동.
         public SiegeCounterattack Counterattack { get; set; }
 
+        // 공성전: 피격 시 상태이상 부여 패시브 (레이첼 「화염의 힘」: 적의 공격 1회 적중당할 시 적군 3명 화상[100%/2턴]). null이면 없음.
+        public SiegeOnHitStatus OnHitStatus { get; set; }
+
         // ===== 하위호환 속성 (Phase 3 전환 완료 전까지 유지) =====
         public double PhysicalReduction
         {
@@ -186,6 +189,23 @@ namespace GameDamageCalculator.Models
         public int TargetCount { get; set; } = 3;     // 피격 아군 수
         public double ActionSeconds { get; set; } = 3;// 반격 소요시간(초) — 발동 시 전체 쿨 감소
         public double CritDamage { get; set; } = 650; // 강제 치명 치피 % (base 150 + 500)
+        // 반격 피격 대상에 부여하는 상태이상 (제이브: 용염[100%/2턴] = 화상, 매 턴 공격력 120%). null이면 없음.
+        public StatusEffectType? Status { get; set; }
+        public int StatusDuration { get; set; } = 2;
+        public double? StatusAtkRatio { get; set; }   // DoT 배율 % 오버라이드 (용염 120)
+    }
+
+    /// <summary>
+    /// 공성전 보스 피격 시 상태이상 부여 패시브 (레이첼 「화염의 힘」).
+    /// 보스가 공격 1회 적중당할 때마다 무작위 아군 TargetCount명에게 상태이상 — 시뮬은 기댓값(생존 아군 각자 TargetCount/N)으로 분산.
+    /// </summary>
+    public class SiegeOnHitStatus
+    {
+        public StatusEffectType Type { get; set; }
+        public int TargetCount { get; set; } = 3;
+        public double Chance { get; set; } = 100;     // 부여 확률 %
+        public int Duration { get; set; } = 2;
+        public double? AtkRatio { get; set; }         // DoT 배율 % 오버라이드 (null = 상태이상 기본값, 화상 80)
     }
 
     /// <summary>
