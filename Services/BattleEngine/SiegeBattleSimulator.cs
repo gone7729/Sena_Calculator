@@ -631,6 +631,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         {
                             ProcessAttackStacks(state, ally, isSkill: false);   // 공격 발동형 스택 — 평타 2회마다 1회
                             ProcessAttackBuffs(state, ally, isSkill: false);    // 공격 발동형 아군 버프(지크 물공증) — 평타 2회마다
+                            ProcessTriggeredFixedDamage(state, ally, isSkill: false);   // N회 공격마다 추가 피해(세인·여포·발리스타 등)
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                             ApplyBasicAttackCdReduction(state, ally, normal);   // 평타 쿨감(예: 라이언 자신+최고공격력 아군 9초)
                             ApplySkillHeal(state, ally, normal);   // 평타 회복(예: 리나 강화평타 최저HP 아군 7%)
@@ -676,6 +677,79 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TickAllyAfterAction(state, actor.Ally);
             else if (!actor.IsAlly && actor.Enemy != null)
                 TickEnemyAfterAction(state, actor.Enemy);
+        }
+
+        /// <summary>적에게 걸린 디버프 종류 수 — 스탯 디버프(필드별 1개) + 상태이상 종류.
+        ///   공성 DoT(화상·출혈·중독)는 ActiveDots에 따로 있어 종류별로 더한다(기댓값 DoT는 걸려 있을 확률 50%↑만).
+        ///   실명도 1개로 센다.</summary>
+        private static int CountEnemyDebuffs(SiegeEnemyState target)
+        {
+            int n = target.Effects.GetActiveDebuffCount();
+            foreach (var g in target.ActiveDots.Where(d => d.RemainingTurns > 0).GroupBy(d => d.Type))
+            {
+                double none = 1.0;
+                foreach (var d in g) none *= 1 - Math.Clamp(d.Probability, 0, 1);
+                if (1 - none >= 0.5) n++;
+            }
+            if (target.BlindTurnsRemaining > 0) n++;
+            return n;
+        }
+
+        /// <summary>
+        /// N회 공격마다 추가 피해(TriggeredFixedDamage) — 세인(모든 공격 3회마다 물공 100%)·여포·발리스타·윤건·카일·플라튼·겔리두스.
+        ///   단일보스 시뮬(BattleSimulator.ProcessTriggeredFixedDamage)과 같은 규칙: 평타 1회·스킬 1회를 각각 공격 1회로 센다(타수 무관).
+        ///   합성 스킬로 일반 피해 경로(방어·치명/약점 기댓값·피증·공성 감쇄)를 탄다. 카운터는 라운드를 넘어 유지.
+        ///   발동 공격의 버프 해제(플라튼 30%)는 미구현. 협공·패시브 발동 시전은 공격 횟수에 넣지 않는다.
+        /// </summary>
+        private void ProcessTriggeredFixedDamage(SiegeBattleState state, CharacterBattleState ally, bool isSkill)
+        {
+            var passive = ally.Source.Character.Passive;
+            if (passive == null || ally.IsDead) return;
+            // 같은 트리거가 base/초월 양쪽에 있으면 뒤(높은 초월) 값이 이김
+            var byTrigger = new Dictionary<TriggerCondition, TriggeredFixedDamage>();
+            foreach (var e in GetPassiveEffects(passive, ally))
+                if (e.Type == PersistentEffectType.TriggeredFixedDamage && e.TriggeredFixedDamage != null)
+                    byTrigger[e.TriggeredFixedDamage.TriggerOn] = e.TriggeredFixedDamage;
+            foreach (var tfd in byTrigger.Values)
+            {
+                bool matches = tfd.TriggerOn switch
+                {
+                    TriggerCondition.AllAttack => true,
+                    TriggerCondition.SkillOnly => isSkill,
+                    TriggerCondition.NormalOnly => !isSkill,
+                    _ => false,
+                };
+                if (!matches) continue;
+                string key = $"siege_tfd:{ally.PartyIndex}:{tfd.TriggerOn}";
+                ally.StackTriggerCounters.TryGetValue(key, out int cnt);
+                cnt++;
+                if (cnt < Math.Max(1, tfd.TriggerCount)) { ally.StackTriggerCounters[key] = cnt; continue; }
+                ally.StackTriggerCounters[key] = 0;
+
+                int tc = Math.Max(1, tfd.TargetCount);
+                var sk = new Skill
+                {
+                    Name = (passive.Name ?? "패시브") + "(추가공격)",
+                    SkillType = SkillType.Skill1,
+                    LevelData = new Dictionary<int, SkillLevelData>
+                    {
+                        [0] = new SkillLevelData
+                        {
+                            Ratio = tfd.AtkRatio, DefRatio = tfd.DefRatio, FixedDamage = tfd.FixedDamage,
+                            TargetCount = tc, AtkCount = Math.Max(1, tfd.HitCount),
+                        }
+                    },
+                };
+                var targets = PickTargets(state, tc, ally);
+                if (targets.Count == 0) continue;
+                Log(state, ally.Source.Character.Name, true, ActionType.SkillAttack, sk.Name, 0,
+                    $"공격 {Math.Max(1, tfd.TriggerCount)}회 누적 → 추가 피해 (적{targets.Count})");
+                foreach (var t in targets)
+                {
+                    if (tc <= 1) ApplySingleTargetHit(state, ally, t, sk, isSkill: true, pen: false);
+                    else ApplyDamage(state, ally, t, CalcDamageToEnemy(ally, t, sk, state), sk.Name, isSkill: true);
+                }
+            }
         }
 
         /// <summary>
@@ -965,7 +1039,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 int diagRound = state?.CurrentRound ?? -1;
                 DiagLog.AppendLine($"───────── T{diagTurn,2} R{diagRound} {ally.Source.Character.Name} {skill.Name} → {target.Source.Name}(보스={target.IsBoss}, HP {target.CurrentHp:N0}/{target.MaxHp:N0}) ─────────");
                 DiagLog.AppendLine($"  FinalAtk(공감반영후)={input.FinalAtk:N0} (공감={atkRed:F0}%, 스냅FinalAtk={ally.FinalAtk:N0}) 치피={input.CritDamage} 약피={input.WeakpointDmg}");
-                DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}");
+                DiagLog.AppendLine($"  [아군버프] 피증={input.DmgDealt} 타입피증={input.DmgDealtType} 보스피증={input.DmgDealtBoss} 3인기={input.Dmg1to3} 방관={input.ArmorPen}"
+                    + (input.PerDebuffBonusPercent > 0 ? $" 디버프당={input.PerDebuffBonusPercent}%×{System.Math.Min(input.TargetDebuffCount, input.PerDebuffBonusMaxStacks)}개(적 디버프 {input.TargetDebuffCount})" : ""));
                 DiagLog.AppendLine($"  [적디버프] 방깎={input.DefReduction} 취약={input.Vulnerability} 받피증={input.DmgTakenIncrease} 보스취약={input.BossVulnerability}");
                 DiagLog.AppendLine($"  [조건] 조건충족={input.IsSkillConditionMet}(현HP%={(input.TargetHp>0?input.TargetCurrentHp/input.TargetHp*100:0):F0}) 방무(스킬초월포함)→ 방어계수={dr.DefCoefficient:F3} 치명계수={dr.CritMultiplier:F3} 약점계수={dr.WeakpointMultiplier:F3}");
                 string lostHpFlag = dr.LostHpMultiplier > 1 ? "적용" : "미발동/0";
@@ -1085,6 +1160,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 IsTargetHighestMaxHp = IsHighestMaxHpEnemy(state, target),
                 SelfMaxHp = ally.MaxHp,
             };
+            // 적 디버프 1개당 피해량 증가 (세인 2초월 20%×최대4, 레긴레이프·탄지로) — 단일보스 시뮬과 같은 집계.
+            var perDebuff = PerDebuffBonusExtractor.From(character, skill, battleChar.IsSkillEnhanced, battleChar.TranscendLevel);
+            if (perDebuff.IsActive)
+            {
+                input.TargetDebuffCount = CountEnemyDebuffs(target);
+                input.PerDebuffBonusPercent = perDebuff.PercentPerDebuff;
+                input.PerDebuffBonusMaxStacks = perDebuff.MaxStacks;
+            }
             if (state?.DiagForceCritWeak == true) input.ExpectedCritWeak = false;   // [진단] 치명·약점 항상 발동
             // 공성전 감쇄 = 곱연산 (받는 물/마 피해 N% 감소 × 타겟수별 감소). 합연산 시 180%↑ 차감으로 음수가 되므로.
             // 대상수 감쇄(1인 70%·5인 90% 등)는 별도 곱이 아니라 "받는 피해 증가"(취약·보스취약·받피증)와 합산
@@ -2184,6 +2267,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
             ProcessAttackBuffs(state, ally, isSkill: true);    // 공격 발동형 아군 버프(지크 물공증) — 스킬 발동 시 1회
+            ProcessTriggeredFixedDamage(state, ally, isSkill: true);   // N회 공격마다 추가 피해(세인·여포·발리스타 등)
             ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
             ApplySkillHeal(state, ally, skill);   // 스킬 직접 회복(HealHpRatio, 예: 리나 행진가 전체회복 24%)
             ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
