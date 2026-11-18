@@ -634,6 +634,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                             ApplyBasicAttackCdReduction(state, ally, normal);   // 평타 쿨감(예: 라이언 자신+최고공격력 아군 9초)
                             ApplySkillHeal(state, ally, normal);   // 평타 회복(예: 리나 강화평타 최저HP 아군 7%)
+                            ProcessCoopAttacks(state, ally, normal, targets[0], tc);   // 다른 아군의 협공(발리스타·쥬리)
                         }
                     }
                 }
@@ -675,6 +676,84 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TickAllyAfterAction(state, actor.Ally);
             else if (!actor.IsAlly && actor.Enemy != null)
                 TickEnemyAfterAction(state, actor.Enemy);
+        }
+
+        /// <summary>
+        /// 협공(CoopAttack) — 유저 확정 규칙(2026-11-18): **아군 평타에만**, 평타 1회당 판정 1번.
+        ///   대상 = 그 평타가 공격한 적. 대상 수 N(쥬리 3)이면 공격받은 적 1 + 나머지 중 무작위 N−1.
+        ///   확률 = TriggerChance + 초월 CoopChanceBonus + 협공확률 버프(Coop_Chance). 랜덤 대신 기댓값(피해 × 확률 × 피격확률).
+        ///   피해 = 계산기 모델(SYSTEM 5.4): 공/방계수 × 배율 + 대상최대HP비례(공격력 상한), 피증·받피증·공성 감쇄 적용, 치명·약점 미적용.
+        ///   단일 평타의 "공격받은 적"은 ApplySingleTargetHit과 같은 분포(약점→최저HP, 미발동→무작위).
+        ///   자기 평타에는 자기 협공 미발동(가정). 협공 보유자가 사망·행동불가면 미발동.
+        /// </summary>
+        private void ProcessCoopAttacks(SiegeBattleState state, CharacterBattleState attacker, Skill normal,
+            SiegeEnemyState primary, int basicTargetCount)
+        {
+            foreach (var owner in state.AllyStates.ToList())
+            {
+                if (owner == attacker || owner.IsDead || owner.Effects.HasActionBlockingCC()) continue;
+                var passive = owner.Source.Character.Passive;
+                if (passive == null) continue;
+                var coop = GetPassiveEffects(passive, owner)
+                    .FirstOrDefault(e => e.Type == PersistentEffectType.CoopAttack && e.CoopAttack != null)?.CoopAttack;
+                if (coop == null) continue;
+
+                double chance = coop.TriggerChance + owner.Effects.GetTotalBuffs().Coop_Chance;
+                double ratioBonus = 0, hpBonus = 0;
+                if (passive.TranscendBonuses != null)
+                    foreach (var kv in passive.TranscendBonuses.Where(t => t.Key <= owner.Source.TranscendLevel))
+                    {
+                        chance += kv.Value.CoopChanceBonus;
+                        ratioBonus += kv.Value.CoopRatioBonus;
+                        hpBonus += kv.Value.CoopHpRatioBonus;
+                    }
+                double p = Math.Clamp(chance / 100.0, 0, 1);
+                if (p <= 0) continue;
+
+                // 평타가 공격한 적의 분포
+                var cands = SingleTargetCandidates(state);
+                if (!cands.Contains(primary)) cands.Add(primary);
+                int n = cands.Count;
+                double pw = basicTargetCount <= 1 ? WeakProb(attacker, normal) : 1.0;
+                if (n <= 1) pw = 1.0;
+                // 협공 추가 대상(무작위 N−1)에 뽑힐 확률
+                int tcCoop = Math.Max(1, coop.TargetCount);
+                double q = n > 1 ? Math.Min(1.0, (tcCoop - 1) / (double)(n - 1)) : 0;
+
+                var sk = new Skill
+                {
+                    Name = (passive.Name ?? "패시브") + "(협공)",
+                    SkillType = SkillType.Skill1,
+                    LevelData = new Dictionary<int, SkillLevelData>
+                    {
+                        [0] = new SkillLevelData
+                        {
+                            Ratio = coop.Ratio + ratioBonus,
+                            AtkCount = Math.Max(1, coop.AtkCount),
+                            TargetCount = Math.Min(tcCoop, Math.Max(1, n)),
+                            TargetMaxHpRatio = coop.TargetMaxHpRatio > 0 ? coop.TargetMaxHpRatio + hpBonus : 0,
+                            AtkCap = coop.AtkCap,
+                        }
+                    },
+                };
+
+                var hits = new List<(SiegeEnemyState T, double Dmg, double W)>();
+                foreach (var t in cands)
+                {
+                    double wAtk = t == primary ? pw + (1 - pw) / n : (1 - pw) / n;   // 이 적이 평타 대상일 확률
+                    double w = p * (wAtk + (1 - wAtk) * q);
+                    if (w <= 0) continue;
+                    var input = BuildDamageInputToEnemy(owner, t, sk, state, out double redMult, out _, out _, out _);
+                    input.CritChance = -1e6; input.WeakChance = -1e6;   // 협공은 치명·약점 미적용
+                    double dmg = _damageCalc.Calculate(input).FinalDamage * Math.Max(0, redMult);
+                    hits.Add((t, w * dmg, w));
+                }
+                if (hits.Count == 0) continue;
+                Log(state, owner.Source.Character.Name, true, ActionType.SkillAttack, sk.Name, 0,
+                    $"협공 (확률 {p * 100:0}% 기댓값) ← {attacker.Source.Character.Name} 평타, 적{hits.Count}");
+                foreach (var h in hits.OrderBy(h => h.T == primary ? 1 : 0))
+                    ApplyDamage(state, owner, h.T, h.Dmg, sk.Name, isSkill: true, hitWeight: h.W, spill: h.T != primary);
+            }
         }
 
         /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
