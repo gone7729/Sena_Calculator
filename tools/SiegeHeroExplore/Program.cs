@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using GameDamageCalculator.Database;
 using GameDamageCalculator.Models;
+using GameDamageCalculator.Models.Effects;
 using GameDamageCalculator.Services.BattleEngine;
 
 // ============================================================================
@@ -16,7 +17,9 @@ using GameDamageCalculator.Services.BattleEngine;
 //   [B] 상위 교체들을 서로 다른 자리끼리 2명 교체로 조합해 같은 방식으로 재평가.
 //   [C] 상위 팀만 배치와 같은 정식 탐색(전원 기어·진형·자리·빔·좌표상승) — "정식N" 인자로 개수 지정.
 //   각성 보유 영웅은 각성 상태(IsAwakened)로 평가 (고스펙 가정).
-// 사용: dotnet run -c Release -- 화요일 [limitN] [정식N]
+//   후보 필터(기본 ON, "전체" 인자로 끔): 요일 감쇄 90%↑ 공격 속성의 딜러 타입(공격형·마법형·만능형)은 후보에서 제외.
+//     단 그 요일 적 상태이상의 파티 면역 보유자(월 지크·수 라이언 등)는 유지. 지원형·방어형은 딜이 본업이 아니라 유지(목~토 비스킷).
+// 사용: dotnet run -c Release -- 화요일 [limitN] [정식N] [전체]
 // ============================================================================
 Console.OutputEncoding = Encoding.UTF8;
 string day = args.FirstOrDefault(a => a.EndsWith("요일")) ?? "화요일";
@@ -125,7 +128,40 @@ Out($"[기준·스크리닝] {baseScreen:N0} ({t0.Elapsed.TotalSeconds:F0}s)");
 
 // ---- [A] 1자리 교체
 var inTeam = new HashSet<int>(baseIds);
-var pool = CharacterDb.Characters.Where(c => !inTeam.Contains(c.Id)).Select(c => c.Id).ToList();
+// 후보 필터: 요일 감쇄 속성 딜러 제외 (그 요일 상태이상 파티 면역 보유자는 유지)
+var dayStatuses = new HashSet<StatusEffectType>();
+double physRed = 0, magRed = 0;
+foreach (var w in stage.Waves)
+    foreach (var se in w.Enemies)
+    {
+        var en = EnemyDb.AllEnemies.FirstOrDefault(e => e.Id == se.EnemyId);
+        if (en == null) continue;
+        physRed = Math.Max(physRed, en.PhysicalReduction); magRed = Math.Max(magRed, en.MagicReduction);
+        foreach (var sk in en.Skills ?? new())
+            foreach (var st in sk.GetLevelData(false)?.StatusEffects ?? new())
+                dayStatuses.Add(st.Type);
+    }
+AttackType? reducedType = physRed >= 90 ? AttackType.Physical : magRed >= 90 ? AttackType.Magic : (AttackType?)null;
+bool GrantsDayImmunity(Character c)
+{
+    if (c.Passive == null) return false;
+    var effs = c.Passive.LevelData.Values.SelectMany(l => l.Effects ?? new())
+        .Concat((c.Passive.TranscendBonuses ?? new()).Values.SelectMany(t => t.Effects ?? new()));
+    return effs.Any(e => e.Type == PersistentEffectType.Immunity && e.Target == EffectTarget.Party
+        && e.StatusImmunity?.Types != null && e.StatusImmunity.Types.Any(dayStatuses.Contains));
+}
+var dealerTypes = new HashSet<string> { "공격형", "마법형", "만능형" };
+bool filterOn = !args.Contains("전체") && reducedType != null;
+var others = CharacterDb.Characters.Where(c => !inTeam.Contains(c.Id)).ToList();
+var kept = others.Where(c => !filterOn || c.AttackType != reducedType || !dealerTypes.Contains(c.Type) || GrantsDayImmunity(c)).ToList();
+var pool = kept.Select(c => c.Id).ToList();
+if (filterOn)
+{
+    var exempt = others.Where(c => c.AttackType == reducedType && dealerTypes.Contains(c.Type) && GrantsDayImmunity(c)).Select(c => c.Name).ToList();
+    Out($"[후보 필터] {(reducedType == AttackType.Physical ? "물리" : "마법")} 감쇄 90% 요일 — 해당 속성 딜러 {others.Count - kept.Count}명 제외, 후보 {kept.Count}명"
+        + $" (적 상태이상 {string.Join("·", dayStatuses)} 면역이라 유지: {(exempt.Count > 0 ? string.Join(", ", exempt) : "없음")})");
+}
+else Out($"[후보 필터] 없음 — 후보 {kept.Count}명");
 // [A1] 전 영웅 × 전 자리 — 자동 로테 점수(빔 없음)로 1차 거름. [A2] 자리별 상위 TOP_AUTO명만 짧은 빔으로 재평가.
 const int TOP_AUTO = 12;
 double baseAuto = Screen(baseParty.Select(Clone).ToList(), baseBack, out _, beam: false);
