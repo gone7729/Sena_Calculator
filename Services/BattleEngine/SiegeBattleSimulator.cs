@@ -151,6 +151,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             state.InitializeRound(1);
             ApplyStandingEnemyDebuffs(state, config);   // 아군 패시브 방깎·펫 보스취약 등 상시 디버프
             ApplyRoundStartPassives(state);             // 라운드 진입 패시브 (동영 2초월 동일 열 마법형 피해 면역)
+            ApplyEntryImmunities(state);                // 상태이상 면역 패시브: 전투 진입 시 [2턴] 부여 (이후 보유자 평타마다 갱신)
 
             // 선공 결정 (팀 총 속공치, 동률 랜덤)
             double allySpd = state.AllyTotalSpd, enemySpd = state.EnemyTotalSpd;
@@ -181,9 +182,6 @@ namespace GameDamageCalculator.Services.BattleEngine
                 roundTurn++;
                 state.CurrentTurn = t;
                 LogEnrageTransition(state);   // 광폭화 단계 진입 시 1회 로그
-
-                // 비트리거 상시 면역(예: 풍연 빙결 면역) 매 턴 갱신 — 시전자 생존 동안 유지
-                ApplyStandingImmunities(state);
 
                 // 적 스킬 사용 판정용 쿨 스냅샷(턴 시작 = 평타 前). 스킬턴 처리 후 해제.
                 state.EnemyCdAtTurnStart = state.EnemySkillReadyAtTurnStart
@@ -1315,7 +1313,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>적 → 아군 데미지 (적 공격력 vs 아군 방어/받피감). 적은 치확·약확 0이라 비치명·비약점 기본.
         /// forceCrit/critDmgOverride: 반격 등 강제 치명(제이브 반격 치확100·치피650)용.</summary>
         private double CalcDamageToAlly(SiegeEnemyState enemy, CharacterBattleState ally, Skill enemySkill,
-            bool forceCrit = false, double critDmgOverride = -1)
+            bool forceCrit = false, double critDmgOverride = -1, bool noCrit = false)
         {
             var e = enemy.Source;
             // 아군 받피감(자버프) + 아군에게 걸린 받피증/취약(적 디버프)
@@ -1341,7 +1339,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 적 진영 버프(챈슬러 분쇄 → 스파이크 치확100·치피+500). 미해제 시 치명타 학살.
             double buffCri = enemy.HasEnemyBuff ? enemy.EnemyBuff.Cri : 0;
             double buffCriDmg = enemy.HasEnemyBuff ? enemy.EnemyBuff.Cri_Dmg : 0;
-            bool enemyCrit = forceCrit || (e.Stats.Cri + buffCri) >= 100;   // 적 치확(보통 0; 반격·버프는 강제)
+            bool enemyCrit = !noCrit && (forceCrit || (e.Stats.Cri + buffCri) >= 100);   // 적 치확(보통 0; 반격·버프는 강제). DoT 틱은 치명 없음
             double critDmg = critDmgOverride >= 0 ? critDmgOverride : (e.Stats.Cri_Dmg + buffCriDmg);
             // 탄성(전용무기): 치명타 공격 피격 시 받는 피해 % 감소. 받피감과 동일 채널로 합산.
             double tanseong = enemyCrit ? (ally.DisplayStats?.CritDmg_Taken_Reduction ?? 0) : 0;
@@ -1582,7 +1580,9 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         #region 상태이상 / 면역 (CC)
 
-        /// <summary>면역 패시브(기본공격 트리거) 발동 — 대상에 상태이상 면역 턴제버프 갱신.</summary>
+        /// <summary>면역 패시브 보유자의 기본공격 → 대상의 상태이상 면역 턴제버프 갱신.
+        /// (인게임 규칙·유저 확인 2026-11-18: 면역 패시브는 전투 진입 시 [2턴] 부여되고 보유자가 평타를 칠 때마다 갱신.
+        ///  DB의 ApplyMode 표기(Triggered/상시)와 무관하게 모든 면역 패시브가 같은 방식.)</summary>
         private void TriggerAllyImmunity(SiegeBattleState state, CharacterBattleState ally)
         {
             var passive = ally.Source.Character.Passive;
@@ -1590,7 +1590,6 @@ namespace GameDamageCalculator.Services.BattleEngine
             foreach (var e in GetPassiveEffects(passive, ally))
             {
                 if (e.Type != PersistentEffectType.Immunity) continue;
-                if (e.ApplyMode != ApplyMode.Triggered || e.TriggerCondition != TriggerCondition.NormalOnly) continue;
                 if (e.StatusImmunity?.Types == null) continue;
 
                 IEnumerable<CharacterBattleState> targets = e.Target == EffectTarget.Party
@@ -1604,7 +1603,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var names = string.Join("·", e.StatusImmunity.Types.Select(t => StatusEffectDb.Get(t)?.Name ?? t.ToString()));
                 string scope = e.Target == EffectTarget.Party ? "전체 아군" : ally.Source.Character.Name;
                 Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "면역", 0,
-                    $"{scope} {names} 면역 [{e.StatusImmunity.Duration}턴] (평타 트리거)");
+                    $"{scope} {names} 면역 [{e.StatusImmunity.Duration}턴] (평타 갱신)");
             }
         }
 
@@ -1651,18 +1650,31 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>적→아군 DoT 스냅샷 공격력 = 적 공격력 × (1 − 공격력 감소 디버프). 광폭화(직격 피해 증폭)는 미적용.</summary>
-        private static double EnemyDotAtk(SiegeEnemyState enemy)
-            => enemy.FinalAtk * Math.Max(0, 1 - enemy.Effects.GetTotalDebuffs().Atk_Reduction / 100.0);
+        /// <summary>
+        /// 적→아군 DoT 1틱 피해(가중치 1 기준) — 직격과 같은 식(CalcDamageToAlly)에 배율만 화상 80% / 용염 120%.
+        /// 유저 확인(2026-11-18): 화상 피해에도 방어력·받피감 등이 모두 적용된다 → 방어계수·받피감(공용+물/마)·받피증·취약·막기·광폭화 반영.
+        /// 치명은 없음(noCrit). 틱 시점의 아군 방어 상태·적 공격력 감소 디버프로 계산한다(스냅샷 아님).
+        /// </summary>
+        private double EnemyDotTick(SiegeEnemyState enemy, CharacterBattleState ally, double atkRatio)
+        {
+            if (enemy == null || atkRatio <= 0) return 0;
+            var dotSkill = new Skill
+            {
+                Name = "DoT", SkillType = SkillType.Skill1,
+                LevelData = new Dictionary<int, SkillLevelData>
+                { [0] = new SkillLevelData { Ratio = atkRatio, AtkCount = 1, TargetCount = 1 } },
+            };
+            return CalcDamageToAlly(enemy, ally, dotSkill, noCrit: true);
+        }
 
         private static int HitCountOf(CharacterBattleState ally, Skill skill)
             => Math.Max(1, skill.GetAtkCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened));
 
         /// <summary>
         /// 적이 아군 한 명에게 상태이상 1건 부여 (면역 보유 타입은 무효 → false).
-        /// 공격력 비례 DoT(화상 80%·용염 120%)면 부여 시점 적 공격력으로 틱 피해를 계산해 효과에 담는다(BattleEffect.TickDamage)
-        ///   → 그 아군의 기본공격(턴) 직후마다 ProcessEnemyDotsOnAlly가 차감. 갱신형 아님: 부여마다 자기 지속 턴을 가진 새 인스턴스.
-        /// weight ≠ 1 = 기댓값 분산 부여(피격 화상: 확률 × 타수 × 대상으로 뽑힐 확률) — 같은 잔여 턴 인스턴스에 틱 피해를 합산.
+        /// 공격력 비례 DoT(화상 80%·용염 120%)면 건 적(TickSource)과 가중치(TickWeight = 중첩 × weight)를 효과에 담는다
+        ///   → 그 아군의 기본공격(턴) 직후마다 ProcessEnemyDotsOnAlly가 틱 피해를 계산해 차감. 갱신형 아님: 부여마다 자기 지속 턴을 가진 새 인스턴스.
+        /// weight ≠ 1 = 기댓값 분산 부여(피격 화상: 확률 × 타수 × 대상으로 뽑힐 확률) — 같은 적·같은 잔여 턴 인스턴스에 가중치를 합산.
         /// </summary>
         private bool AddEnemyStatusToAlly(SiegeBattleState state, SiegeEnemyState enemy, CharacterBattleState ally,
             StatusEffectType type, int duration, int stacks, double? customAtkRatio, double weight = 1.0, bool log = true)
@@ -1682,14 +1694,17 @@ namespace GameDamageCalculator.Services.BattleEngine
             int dur = duration > 0 ? duration : baseEffect.Duration;
             stacks = Math.Max(1, stacks);
             double atkRatio = customAtkRatio ?? baseEffect.AtkRatio;
-            double tick = enemy != null && atkRatio > 0 ? EnemyDotAtk(enemy) * atkRatio / 100.0 * stacks * weight : 0;
+            bool isDot = enemy != null && atkRatio > 0;
+            double tickW = isDot ? stacks * weight : 0;
+            double tick = isDot ? EnemyDotTick(enemy, ally, atkRatio) * tickW : 0;   // 로그용 추정치(실제 차감은 틱 시점 재계산)
             bool ev = weight != 1.0;
-            string id = $"siege_cc:{ally.PartyIndex}:{type}{(ev ? ":ev" : "")}";
+            string id = $"siege_cc:{ally.PartyIndex}:{type}{(ev ? $":ev:{enemy?.Source.Id}:{atkRatio:0}" : "")}";
             if (ev)
             {
-                if (tick <= 0) return false;   // 기댓값 분산은 DoT만 (CC를 확률로 쪼갤 수 없음)
-                var same = ally.Effects.GetAllEffects().FirstOrDefault(e => e.Id == id && !e.IsExpired && e.RemainingTurns == dur);
-                if (same != null) { same.TickDamage += tick; return true; }
+                if (!isDot) return false;   // 기댓값 분산은 DoT만 (CC를 확률로 쪼갤 수 없음)
+                var same = ally.Effects.GetAllEffects().FirstOrDefault(e => e.Id == id && !e.IsExpired && e.RemainingTurns == dur
+                    && ReferenceEquals(e.TickSource, enemy));
+                if (same != null) { same.TickWeight += tickW; return true; }
             }
             var data = StatusEffectData.FromDbEffect(baseEffect);
             if (customAtkRatio.HasValue) data.AtkRatio = customAtkRatio.Value;
@@ -1703,7 +1718,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 Stacks = stacks,
                 IsPermanent = false,
                 MergeStrategy = MergeStrategy.Stack,
-                TickDamage = tick,
+                TickWeight = tickW,
+                TickSource = isDot ? enemy : null,
                 TickSourceName = enemy?.Source.Name,
             });
             if (log)
@@ -1738,20 +1754,24 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>
         /// 아군에게 걸린 적 DoT(화상·용염) 틱 — TickAllyAfterAction에서만 호출 = 그 아군의 기본공격(턴 소모) 직후 1회.
-        /// 인스턴스별 틱 피해 합(부여 시점 스냅샷)을 한 번에 차감. 방어력·받피감·막기 무관, 보호막은 흡수,
+        /// 인스턴스별 틱 피해(EnemyDotTick × 가중치)를 건 적별로 합쳐 한 번에 차감. 방어력·받피감·막기·광폭화 적용, 보호막은 흡수,
         ///   모든 피해 무효화 중이면 무효(횟수 미차감). 치사량이면 생존 판정(불사/권능/부활) 후 사망 기록.
         /// </summary>
         private void ProcessEnemyDotsOnAlly(SiegeBattleState state, CharacterBattleState ally)
         {
-            var dots = ally.Effects.GetAllEffects().Where(e => e.TickDamage > 0 && !e.IsExpired).ToList();
+            var dots = ally.Effects.GetAllEffects()
+                .Where(e => e.TickWeight > 0 && !e.IsExpired && e.TickSource is SiegeEnemyState).ToList();
             if (dots.Count == 0) return;
-            foreach (var g in dots.GroupBy(e => (e.StatusType, e.TickSourceName)))
+            foreach (var g in dots.GroupBy(e => (e.StatusType, e.TickSource)))
             {
                 if (ally.IsDead) return;
                 var first = g.First();
                 string stName = first.StatusData?.AtkRatio == 120 && first.StatusType == StatusEffectType.Burn ? "용염"
                     : StatusEffectDb.Get(first.StatusType ?? StatusEffectType.None)?.Name ?? "DoT";
-                ApplyDamageToAlly(state, null, ally, g.Sum(e => e.TickDamage), stName, dotSource: first.TickSourceName ?? "적");
+                var src = (SiegeEnemyState)first.TickSource;
+                double dmg = g.GroupBy(e => e.StatusData?.AtkRatio ?? 0)
+                    .Sum(r => EnemyDotTick(src, ally, r.Key) * r.Sum(e => e.TickWeight));
+                ApplyDamageToAlly(state, null, ally, dmg, stName, dotSource: first.TickSourceName ?? "적");
             }
         }
 
@@ -2071,8 +2091,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
-        /// <summary>비트리거 패시브 면역(예: 풍연 빙결 면역[상시])을 매 턴 갱신 — 시전자 생존 동안 유지.</summary>
-        private void ApplyStandingImmunities(SiegeBattleState state)
+        /// <summary>전투 진입 시 면역 패시브 부여 — 모든 상태이상 면역 패시브가 진입 즉시 [지속턴]만큼 걸린다.
+        /// 이후 갱신은 보유자 기본공격(TriggerAllyImmunity)뿐 → 보유자가 죽거나 행동불가면 지속턴 뒤 소멸.</summary>
+        private void ApplyEntryImmunities(SiegeBattleState state)
         {
             foreach (var ally in state.AllyStates.Where(a => !a.IsDead))
             {
@@ -2081,7 +2102,6 @@ namespace GameDamageCalculator.Services.BattleEngine
                 foreach (var e in GetPassiveEffects(passive, ally))
                 {
                     if (e.Type != PersistentEffectType.Immunity || e.StatusImmunity?.Types == null) continue;
-                    if (e.ApplyMode == ApplyMode.Triggered) continue;   // 평타 트리거형은 TriggerAllyImmunity가 처리
                     IEnumerable<CharacterBattleState> targets =
                         e.Target == EffectTarget.Party ? state.AllyStates : new[] { ally };
                     foreach (var tgt in targets)
@@ -2089,6 +2109,10 @@ namespace GameDamageCalculator.Services.BattleEngine
                             tgt.StatusImmunityTurns[type] = Math.Max(
                                 tgt.StatusImmunityTurns.GetValueOrDefault(type),
                                 Math.Max(1, e.StatusImmunity.Duration));
+                    var names = string.Join("·", e.StatusImmunity.Types.Select(t => StatusEffectDb.Get(t)?.Name ?? t.ToString()));
+                    string scope = e.Target == EffectTarget.Party ? "전체 아군" : ally.Source.Character.Name;
+                    Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "면역", 0,
+                        $"{scope} {names} 면역 [{Math.Max(1, e.StatusImmunity.Duration)}턴] (전투 진입)");
                 }
             }
         }

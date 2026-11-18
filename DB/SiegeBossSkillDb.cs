@@ -22,8 +22,8 @@ namespace GameDamageCalculator.Database
     /// - 적군 사망 시 모든 피해 무효화[피격 4회](델론즈): OnAllyDeathNullifyHits + NullifyHitsRemaining. [구현]
     /// - 자기 보호막(루디 방어 준비, 방어력 10000%): SelfShieldDefRatio → enemy.Shield. [구현]
     ///     + 보호막 버프 받는 피해 감소 10%(SelfShieldDmgReduction → enemy.ShieldDmgRdc): 지속 동안 -10%, 버프해제/만료 시 소멸. [구현]
-    /// - 적→아군 DoT(화상 80%·용염 120%): 부여 시점 적 공격력 스냅샷 → 그 아군 기본공격 직후마다 틱
-    ///     (SiegeBattleSimulator.AddEnemyStatusToAlly / ProcessEnemyDotsOnAlly). [구현]
+    /// - 적→아군 DoT(화상 80%·용염 120%): 직격과 같은 식(방어력·받피감·막기·광폭화 적용, 치명 없음)에 배율만 다름
+    ///     → 그 아군 기본공격 직후마다 틱 (SiegeBattleSimulator.AddEnemyStatusToAlly / EnemyDotTick / ProcessEnemyDotsOnAlly). [구현]
     /// - 피격 시 화상(레이첼 「화염의 힘」: 공격 1회 적중당할 시 적군 3명 화상[100%/2턴]): Enemy.OnHitStatus + ApplyEnemyOnHitStatus. [구현]
     /// - 반격 용염(제이브): SiegeCounterattack.Status. [구현]
     /// </summary>
