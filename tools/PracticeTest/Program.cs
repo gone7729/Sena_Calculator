@@ -368,6 +368,7 @@ SiegeBattleConfig Cfg(List<RotationDecision> plan) => new()
     AllyParty = team, FormationName = FORMATION, SiegeStage = stage,
     AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70,
     RotationPlan = plan, AllyDeathPenalty = 1_000_000, RecordFeasibility = plan != null, AllyCooldownMargin = cdMargin, BasicAttackSeconds = basicSec, AllySkill1Seconds = a1s, AllySkill2Seconds = a2s, EnemySkill1Seconds = e1s, EnemySkill2Seconds = e2s, EnemySkillReadyAtTurnStart = enemyStart, OwnCooldownFromCastStart = ownStart,
+    InGameBuffTargeting = args.Contains("ingame"),
 };
 
 var opt = new SiegeOptimizer().Optimize(new SiegeOptimizerConfig
@@ -375,8 +376,9 @@ var opt = new SiegeOptimizer().Optimize(new SiegeOptimizerConfig
     FixedMembers = team, Candidates = new List<BattleCharacter>(), SiegeStage = stage, MaxTurns = 70,
     AutoEquip = false, AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk,
     ForcedFormation = FORMATION, ForcedBackRow = backRow, DummyBackRow = false,
-    OptimizeRotation = true, RotationBeamWidth = 10, RotationMaxDepth = 36,
+    OptimizeRotation = true, RotationBeamWidth = (int)Arg("beam", 10), RotationMaxDepth = 36,
     AllyDeathPenalty = 1_000_000, EnableSurvivalRings = false, SearchExclusiveWeapon = false, AllyCooldownMargin = cdMargin,
+    InGameBuffTargeting = args.Contains("ingame"),
 });
 // 옵티마이저가 자리 플래그를 덮어쓸 수 있으니 재확정
 foreach (var b in team) b.IsBackPosition = backRow.Contains(b.Character.Name);

@@ -116,6 +116,30 @@ namespace GameDamageCalculator.Services.BattleEngine
         // [실험] 생존반지 후보를 첫 시드 사망자가 아니라 "평가 시드 중 한 번이라도 죽는 영웅"으로 넓힘. 기본 OFF.
         public bool SurvivalAllSeedGating { get; set; } = false;
 
+        // 속공 선행 탐색(후처리). 기본 OFF. 자동장착 영웅마다 "속공 부옵으로 아군 중 가장 먼저 행동"하게 만든 뒤
+        //   로테를 재탐색해 랭크 점수가 오를 때만 채택한다. 행동 순서는 라운드 클리어 턴·스킬턴 정렬·쿨 여유를 바꾸는데
+        //   부옵 그리디는 문턱(다른 아군 속공 초과)을 넘기 전까지 이득을 못 봐 스스로 찾지 못한다.
+        //   2026-11-19 수요일 쥬리 편성: 비스킷 속공 19→31(부옵 3티어)이면 1턴에 R1 클리어 → 같은 장비 10.0M → 12.0M.
+        public bool SearchSpeedLead { get; set; }
+
+        // 행동 순서(진형 번호) 탐색(후처리). 기본 OFF. 같은 속공이면 진형 번호 1번부터 행동한다(유저 확인 2026-11-19):
+        //   기본 전열 1·2 / 후열 3·4·5, 밸런스 전열 1·2·3 / 후열 4·5, 공격 전열 1 / 후열 2~5, 보호 전열 1~4 / 후열 5.
+        //   전열끼리·후열끼리 번호를 바꿔 가며(전열이 항상 앞 번호) 순서마다 로테를 재탐색해 랭크 점수가 오르면 채택.
+        //   순서에 따라 평타 쿨감(라이언 9초 등)이 스킬턴 직전에 들어오느냐가 갈려 딜러 스킬 횟수가 달라진다.
+        public bool SearchActionOrder { get; set; }
+
+        // 로테 다듬기(언덕 오르기). 기본 OFF. 빔이 찾은 플랜에서 스킬턴 한 칸의 선택을 다른 (영웅·스킬)로 바꾸거나
+        //   가까운 두 칸을 맞바꿔 보며 랭크 점수가 오르는 동안 반복한다. 빔은 장비가 조금만 달라도 결과가 크게 흔들린다
+        //   (2026-11-19 수요일 쥬리 편성: 1타 기댓값이 같은 두 장비에서 12.04M vs 10.43M — 같은 로테를 넣으면 12.41M / 12.48M).
+        public bool PolishRotation { get; set; }
+
+        // 공격 로테 + 생존 보강 트랙(후처리). 기본 OFF. 사망 페널티가 있으면 빔은 "아무도 안 죽는" 로테를 고르느라
+        //   토템 영웅(라이언 등)의 스킬로 딜러 스킬턴을 메운다. 이 트랙은 (1) 페널티 없이 최대 딜 로테를 찾고
+        //   (2) 그 로테에서 죽는 영웅에게 생존 반지·생존 장비를 입힌 뒤 (3) 페널티를 되살려 다시 다듬어,
+        //   기존 결과보다 랭크 점수가 높을 때만 채택한다(무회귀).
+        //   2026-11-19 수요일 쥬리 편성: 라이언 수문장 + 비스킷 권능 반지면 같은 딜러 장비로 11.0M → 12.6M.
+        public bool SearchAggressiveSurvival { get; set; }
+
         // 좌표상승(기어↔로테/진형) 2패스 탐색. 기본 OFF(기존 1패스 동작·무회귀).
         //   ON이면 1패스(기어=프록시 레짐)로 진형·자리·빔로테를 찾은 뒤, 그 최종 레짐을 GearEval*에 피드백해
         //   기어를 재최적화하고 다시 탐색 → 기어 선정 레짐 = 최종 평가 레짐 정합(2단계 근사 함정 교정).
@@ -197,7 +221,372 @@ namespace GameDamageCalculator.Services.BattleEngine
             var res = OptimizeCore(config);
             if (config.AutoEquip && config.EnableSurvivalGear && res?.BestParty != null && res.BestParty.Count > 0)
                 ApplySurvivalGear(config, res, autoEquipped);
+            bool hasRes = res?.BestParty != null && res.BestParty.Count > 0;
+            if (config.PolishRotation && config.OptimizeRotation && hasRes && res.BestRotationPlan != null && res.BestRotationPlan.Count > 0)
+            {
+                for (int i = 0; i < res.BestParty.Count; i++)
+                    res.BestParty[i].IsBackPosition = (res.BestMask & (1 << i)) != 0;
+                var cur0 = ScoreOnPlan(config, res.BestParty, res.BestFormation, res.BestRotationPlan);
+                var (pr, pp) = PolishPlan(config, res.BestParty, res.BestFormation, cur0, res.BestRotationPlan);
+                if (IsBetterPick(pr.TotalScore, pr.RankScore, res.BestScore, res.BestRankScore))
+                {
+                    res.GearLog.Add($"[로테 다듬기] {res.BestScore:N0} → {pr.TotalScore:N0}");
+                    res.BestScore = pr.TotalScore; res.BestRankScore = pr.RankScore; res.BestResult = pr; res.BestRotationPlan = pp;
+                }
+            }
+            if (config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation && hasRes)
+                ApplyAggressiveSurvival(config, res, autoEquipped);
+            bool changed = false;
+            if (config.SearchActionOrder && config.OptimizeRotation && hasRes)
+                changed |= ApplyActionOrder(config, res);
+            if (config.AutoEquip && config.SearchSpeedLead && config.OptimizeRotation && hasRes)
+                changed |= ApplySpeedLead(config, res, autoEquipped);   // 선행 영웅 × 나머지 순서를 함께 탐색
+            if (changed && config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation)
+                ApplyAggressiveSurvival(config, res, autoEquipped);     // 순서가 바뀌면 죽는 영웅도 달라진다
             return res;
+        }
+
+        /// <summary>
+        /// 공격 로테 + 생존 보강 트랙 — SiegeOptimizerConfig.SearchAggressiveSurvival 설명 참조.
+        /// </summary>
+        private bool ApplyAggressiveSurvival(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            if (config.AllyDeathPenalty <= 0) return false;
+            var party = best.BestParty;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+
+            // (1) 페널티 없이 최대 딜 로테
+            double pen = config.AllyDeathPenalty;
+            config.AllyDeathPenalty = 0;
+            List<RotationDecision> rawPlan;
+            try { (_, rawPlan) = SearchRotationFor(config, party, best.BestFormation, config.RotationBeamWidth, new[] { best.BestRotationPlan }); }
+            finally { config.AllyDeathPenalty = pen; }
+            if (rawPlan == null || rawPlan.Count == 0) return false;
+            var withPen = ScoreOnPlan(config, party, best.BestFormation, rawPlan);
+
+            // (2) 그 로테를 기준으로 생존 보강 (장비·반지는 공유 객체라 스냅샷 후 실패 시 복원)
+            var eqSnap = party.Select(b => b.Equipment).ToList();
+            var accSnap = party.Select(b => b.Equipment?.Accessory).ToList();
+            var saved = (Score: best.BestScore, Rank: best.BestRankScore, Res: best.BestResult, Plan: best.BestRotationPlan, Ringed: best.RingedAcc);
+            int logMark = best.GearLog.Count;
+            best.BestRotationPlan = rawPlan; best.BestScore = withPen.TotalScore; best.BestRankScore = withPen.RankScore; best.BestResult = withPen;
+            if (withPen.Deaths != null && withPen.Deaths.Count > 0)
+            {
+                if (config.EnableSurvivalRings) ApplySurvivalRings(config, best);
+                ApplySurvivalGear(config, best, autoEquipped);
+            }
+            // (3) 페널티를 되살려 다시 탐색·다듬기
+            var (fr, fp) = SearchRotationFor(config, party, best.BestFormation, config.RotationBeamWidth,
+                new[] { best.BestRotationPlan, rawPlan, saved.Plan });
+            if (fr != null && IsBetterPick(fr.TotalScore, fr.RankScore, best.BestScore, best.BestRankScore))
+            { best.BestScore = fr.TotalScore; best.BestRankScore = fr.RankScore; best.BestResult = fr; best.BestRotationPlan = fp; }
+
+            if (IsBetterPick(best.BestScore, best.BestRankScore, saved.Score, saved.Rank))
+            {
+                best.RingedAcc = party.Select(b => b.Equipment?.Accessory).ToList();
+                best.GearLog.Add($"[공격 로테+생존 보강] 채택: {saved.Score:N0}(랭크 {saved.Rank:N0}) → {best.BestScore:N0}(랭크 {best.BestRankScore:N0})"
+                    + $" — 페널티 없는 로테 {withPen.TotalScore:N0}·사망 {withPen.Deaths?.Count ?? 0}에서 출발");
+                return true;
+            }
+            for (int i = 0; i < party.Count; i++)
+            {
+                party[i].Equipment = eqSnap[i];
+                if (party[i].Equipment != null) party[i].Equipment.Accessory = accSnap[i];
+            }
+            if (best.GearLog.Count > logMark) best.GearLog.RemoveRange(logMark, best.GearLog.Count - logMark);
+            best.GearLog.Add($"[공격 로테+생존 보강] 미채택: 시도 결과 {best.BestScore:N0}(랭크 {best.BestRankScore:N0}) ≤ 현재 {saved.Score:N0}(랭크 {saved.Rank:N0})");
+            best.BestScore = saved.Score; best.BestRankScore = saved.Rank; best.BestResult = saved.Res; best.BestRotationPlan = saved.Plan; best.RingedAcc = saved.Ringed;
+            return false;
+        }
+
+        /// <summary>로테 빔 재탐색 + 후보 플랜 평가 → (최고 결과, 그 플랜). team 순서 = 진형 번호 순.</summary>
+        private (SiegeBattleResult R, List<RotationDecision> Plan) SearchRotationFor(SiegeOptimizerConfig config,
+            List<BattleCharacter> team, string formation, int beamWidth, IEnumerable<List<RotationDecision>> extraPlans)
+        {
+            var beam = new RotationBeamSearch(GearCompareSeed).Search(
+                BuildSimConfig(config, team, formation), beamWidth, config.RotationMaxDepth, config.CounterattackSearchSeeds);
+            var plans = new List<List<RotationDecision>>();
+            if (beam.Plan != null && beam.Plan.Count > 0) plans.Add(beam.Plan);
+            if (beam.RankPlan != null && beam.RankPlan.Count > 0) plans.Add(beam.RankPlan);
+            if (extraPlans != null) plans.AddRange(extraPlans.Where(p => p != null && p.Count > 0));
+            SiegeBattleResult pick = null; List<RotationDecision> pickPlan = null;
+            foreach (var plan in plans)
+            {
+                var r = ScoreOnPlan(config, team, formation, plan);
+                if (pick == null || IsBetterPick(r.TotalScore, r.RankScore, pick.TotalScore, pick.RankScore)) { pick = r; pickPlan = plan; }
+            }
+            if (config.PolishRotation && pick != null)
+                (pick, pickPlan) = PolishPlan(config, team, formation, pick, pickPlan);
+            return (pick, pickPlan);
+        }
+
+        /// <summary>
+        /// 로테 다듬기 — 플랜의 각 스킬턴 칸에서 (가) 다른 영웅·스킬로 교체, (나) 3칸 이내의 칸과 맞바꾸기를 시도해
+        /// 랭크 점수가 가장 많이 오르는 수를 적용하고, 한 바퀴 동안 개선이 없을 때까지 반복한다(최대 6바퀴, 무회귀).
+        /// </summary>
+        private static (SiegeBattleResult R, List<RotationDecision> Plan) PolishPlan(SiegeOptimizerConfig config,
+            List<BattleCharacter> team, string formation, SiegeBattleResult start, List<RotationDecision> startPlan)
+        {
+            var plan = startPlan.Select(d => new RotationDecision { HeroIndex = d.HeroIndex, Skill = d.Skill, Hold = d.Hold }).ToList();
+            var cur = start;
+            var skills = new[] { SkillType.Skill1, SkillType.Skill2 };
+            for (int pass = 0; pass < 6; pass++)
+            {
+                bool improved = false;
+                for (int i = 0; i < plan.Count; i++)
+                {
+                    SiegeBattleResult bestR = null; Action bestApply = null;
+                    void Consider(Action apply, Action undo)
+                    {
+                        apply();
+                        var r = ScoreOnPlan(config, team, formation, plan);
+                        undo();
+                        if (IsBetterPick(r.TotalScore, r.RankScore, cur.TotalScore, cur.RankScore)
+                            && (bestR == null || IsBetterPick(r.TotalScore, r.RankScore, bestR.TotalScore, bestR.RankScore)))
+                        { bestR = r; bestApply = apply; }
+                    }
+                    var orig = plan[i];
+                    for (int h = 0; h < team.Count; h++)
+                        foreach (var sk in skills)
+                        {
+                            if (!orig.Hold && orig.HeroIndex == h && orig.Skill == sk) continue;
+                            var cand = new RotationDecision { HeroIndex = h, Skill = sk };
+                            int idx = i;
+                            Consider(() => plan[idx] = cand, () => plan[idx] = orig);
+                        }
+                    for (int j = i + 1; j < plan.Count && j <= i + 3; j++)
+                    {
+                        int a = i, b = j;
+                        Consider(() => (plan[a], plan[b]) = (plan[b], plan[a]), () => (plan[a], plan[b]) = (plan[b], plan[a]));
+                    }
+                    if (bestApply != null) { bestApply(); cur = bestR; improved = true; }
+                }
+                if (!improved) break;
+            }
+            return (cur, plan);
+        }
+
+        private static IEnumerable<List<T>> Permutations<T>(List<T> items)
+        {
+            if (items.Count <= 1) { yield return new List<T>(items); yield break; }
+            for (int i = 0; i < items.Count; i++)
+            {
+                var rest = new List<T>(items); rest.RemoveAt(i);
+                foreach (var p in Permutations(rest)) { p.Insert(0, items[i]); yield return p; }
+            }
+        }
+
+        /// <summary>현재 장비 기준 아군 속공(진형 보너스·펫 포함).</summary>
+        private static Dictionary<BattleCharacter, double> AllySpeeds(SiegeOptimizerConfig config, SiegeOptimizerResult best,
+            List<BattleCharacter> party)
+        {
+            var bcfg = new BattleConfig
+            {
+                AllyParty = party, AllyPet = config.AllyPet, PetStar = config.PetStar, PetEnhance = config.PetEnhance,
+                PetOptionAtkRate = config.PetOptionAtkRate, FormationName = best.BestFormation,
+            };
+            var bsim = new BattleSimulator();
+            return party.ToDictionary(b => b, b => bsim.InitializeCharacterState(bcfg, b, party.IndexOf(b)).FinalSpd);
+        }
+
+        /// <summary>
+        /// 진형 번호 순서 후보를 좁은 빔으로 훑는다 — 전열끼리·후열끼리 번호를 바꾼 모든 순서(전열이 앞 번호).
+        /// 실제 행동 순서(속공 내림차순 → 번호)가 같은 것은 한 번만 본다. includeCurrent=false면 현재 순서는 제외.
+        /// 반환 team 순서 = 진형 번호 순, Plan의 HeroIndex는 그 team 기준.
+        /// </summary>
+        private List<(List<BattleCharacter> Team, SiegeBattleResult R, List<RotationDecision> Plan)> ScreenOrders(
+            SiegeOptimizerConfig config, SiegeOptimizerResult best, bool includeCurrent)
+        {
+            var party = best.BestParty;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            var front = party.Where(b => !b.IsBackPosition).ToList();
+            var back = party.Where(b => b.IsBackPosition).ToList();
+            var spd = AllySpeeds(config, best, party);
+            string Key(List<BattleCharacter> team) => string.Join(">", team.Select((b, i) => (b, i))
+                .OrderByDescending(x => spd[x.b]).ThenBy(x => x.i).Select(x => x.b.Character?.Name));
+
+            var seen = new HashSet<string>();
+            if (!includeCurrent) seen.Add(Key(party));
+            int wScreen = config.PolishRotation ? Math.Max(4, config.RotationBeamWidth * 2 / 5) : Math.Max(6, config.RotationBeamWidth * 2 / 3);   // 폭 3은 좋은 순서를 놓친다(영상 장비: 폭3 10.77M / 폭6 12.04M)
+            var cands = new List<(List<BattleCharacter> Team, SiegeBattleResult R, List<RotationDecision> Plan)>();
+            var orders = new List<List<BattleCharacter>> { party };
+            foreach (var fp in Permutations(front))
+                foreach (var bp in Permutations(back))
+                    orders.Add(fp.Concat(bp).ToList());
+            foreach (var team in orders)
+            {
+                if (!seen.Add(Key(team))) continue;
+                var (r, plan) = SearchRotationFor(config, team, best.BestFormation, wScreen,
+                    new[] { RemapPlan(best.BestRotationPlan, party, team) });
+                if (r != null) cands.Add((team, r, plan));
+            }
+            for (int i = 0; i < party.Count; i++) party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            return cands;
+        }
+
+        private static List<RotationDecision> RemapPlan(List<RotationDecision> plan, List<BattleCharacter> from, List<BattleCharacter> to) =>
+            plan?.Select(d => d.Hold ? new RotationDecision { Hold = true }
+                                     : new RotationDecision { HeroIndex = to.IndexOf(from[d.HeroIndex]), Skill = d.Skill }).ToList();
+
+        /// <summary>새 진형 번호 순서(team)와 그 결과를 best에 반영 — BestParty 순서·후열 마스크·반지 목록을 함께 옮긴다.</summary>
+        private static void AdoptOrder(SiegeOptimizerResult best, List<BattleCharacter> team, SiegeBattleResult r, List<RotationDecision> plan)
+        {
+            var party = best.BestParty;
+            var backSet = party.Where((b, i) => (best.BestMask & (1 << i)) != 0).ToHashSet();
+            if (best.RingedAcc != null && best.RingedAcc.Count == party.Count)
+                best.RingedAcc = team.Select(b => best.RingedAcc[party.IndexOf(b)]).ToList();
+            int mask = 0;
+            for (int i = 0; i < team.Count; i++) if (backSet.Contains(team[i])) mask |= 1 << i;
+            best.BestParty = team; best.BestMask = mask;
+            for (int i = 0; i < team.Count; i++) team[i].IsBackPosition = (mask & (1 << i)) != 0;
+            best.BestScore = r.TotalScore; best.BestRankScore = r.RankScore;
+            best.BestResult = r; best.BestRotationPlan = plan;
+        }
+
+        private static string OrderNames(List<BattleCharacter> t) => string.Join("·", t.Select(b => b.Character?.Name));
+
+        /// <summary>
+        /// 행동 순서(진형 번호) 후처리 — 순서 후보를 좁은 빔으로 훑고 상위 2개를 정식 빔으로 재탐색해
+        /// 랭크 점수가 오르면 채택한다(무회귀). 채택 시 BestParty 순서 = 진형 번호 순.
+        /// </summary>
+        private bool ApplyActionOrder(SiegeOptimizerConfig config, SiegeOptimizerResult best)
+        {
+            var party = best.BestParty;
+            var cands = ScreenOrders(config, best, includeCurrent: false);
+            if (cands.Count == 0) return false;
+
+            (List<BattleCharacter> Team, SiegeBattleResult R, List<RotationDecision> Plan) pick = default;
+            foreach (var c in cands.OrderByDescending(c => c.R.RankScore).ThenByDescending(c => c.R.TotalScore).Take(2))
+            {
+                var (r, plan) = SearchRotationFor(config, c.Team, best.BestFormation, config.RotationBeamWidth,
+                    new[] { c.Plan, RemapPlan(best.BestRotationPlan, party, c.Team) });
+                if (r != null && (pick.R == null || IsBetterPick(r.TotalScore, r.RankScore, pick.R.TotalScore, pick.R.RankScore)))
+                    pick = (c.Team, r, plan);
+            }
+            if (pick.R == null || !IsBetterPick(pick.R.TotalScore, pick.R.RankScore, best.BestScore, best.BestRankScore))
+            {
+                best.GearLog.Add($"[행동 순서] 유지: {OrderNames(party)} ({best.BestScore:N0}) — 다른 순서 {cands.Count}개 중 최고 {cands.Max(c => c.R.TotalScore):N0}");
+                return false;
+            }
+            best.GearLog.Add($"[행동 순서] 채택: {OrderNames(party)} → {OrderNames(pick.Team)} (진형 번호 순), 팀점수 {best.BestScore:N0} → {pick.R.TotalScore:N0}");
+            AdoptOrder(best, pick.Team, pick.R, pick.Plan);
+            return true;
+        }
+
+        /// <summary>
+        /// 속공 선행 후처리 — 자동장착 영웅 한 명씩 "아군 중 속공 1위"가 되도록 속공 부옵(1티어 = 4)을 넣어 보고,
+        /// 그 상태에서 나머지 진형 번호 순서까지 함께 훑는다(선행 영웅 × 순서). 전체 후보 중 상위 2개를 정식 빔으로
+        /// 재탐색해 랭크 점수가 오르면 채택한다(무회귀, 한 명만). 부옵은 장비 규칙을 지킨다: 부위당 4슬롯·합 9티어·슬롯 최대 6티어.
+        /// 속공 1티어를 얻는 수 = (가) 속공 슬롯이 있으면 같은 부위의 다른 슬롯에서 1티어 이동, (나) 없으면 1티어짜리
+        /// 슬롯 하나를 속공으로 교체. 수마다 현재 로테 점수 손실이 가장 작은 것을 고른다.
+        /// </summary>
+        private bool ApplySpeedLead(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            const string SPD = "속공";
+            const double SpdPerTier = 4;
+            const int MaxTier = 6, MaxNeed = 8;
+            var party = best.BestParty;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+
+            static List<List<(string Stat, int Tier)>> Snap(BattleCharacter bc) =>
+                bc.Equipment.GetEquipments().Select(e => e.SubSlots.Select(x => (x.StatName, x.Tier)).ToList()).ToList();
+            static void Put(BattleCharacter bc, List<List<(string Stat, int Tier)>> snap)
+            {
+                var eq = bc.Equipment.GetEquipments().ToList();
+                for (int e = 0; e < eq.Count; e++)
+                    for (int x = 0; x < eq[e].SubSlots.Count; x++)
+                    { eq[e].SubSlots[x].StatName = snap[e][x].Stat; eq[e].SubSlots[x].Tier = snap[e][x].Tier; }
+            }
+            SiegeBattleResult SimPlan(List<RotationDecision> plan) => ScoreOnPlan(config, party, best.BestFormation, plan);
+
+            var trials = new List<(BattleCharacter Hero, List<List<(string Stat, int Tier)>> Subs, double From, double To, int Need,
+                List<BattleCharacter> Team, SiegeBattleResult R, List<RotationDecision> Plan)>();
+            foreach (var bc in party.Where(autoEquipped.Contains).ToList())
+            {
+                if (bc.Equipment == null) continue;
+                var spd0 = AllySpeeds(config, best, party);
+                double mine = spd0[bc];
+                double maxOther = party.Where(o => o != bc).Select(o => spd0[o]).DefaultIfEmpty(0).Max();
+                if (mine > maxOther) continue;                                   // 이미 선행
+                int need = (int)Math.Floor((maxOther - mine) / SpdPerTier) + 1;  // 초과에 필요한 속공 티어 수
+                if (need > MaxNeed) continue;
+
+                var orig = Snap(bc);
+                var equips = bc.Equipment.GetEquipments().ToList();
+                bool ok = true;
+                for (int t = 0; t < need && ok; t++)
+                {
+                    Action bestDo = null; double bestRank = double.NegativeInfinity, bestTot = double.NegativeInfinity;
+                    void Try(Action apply, Action undo)
+                    {
+                        apply();
+                        var r = SimPlan(best.BestRotationPlan);
+                        undo();
+                        if (bestDo == null || IsBetterPick(r.TotalScore, r.RankScore, bestTot, bestRank))
+                        { bestDo = apply; bestRank = r.RankScore; bestTot = r.TotalScore; }
+                    }
+                    foreach (var e in equips)
+                    {
+                        var spdSlot = e.SubSlots.FirstOrDefault(x => x.StatName == SPD);
+                        if (spdSlot != null)
+                        {
+                            if (spdSlot.Tier >= MaxTier) continue;
+                            foreach (var from in e.SubSlots.Where(x => x != spdSlot && !string.IsNullOrEmpty(x.StatName) && x.Tier > 1).ToList())
+                                Try(() => { from.Tier--; spdSlot.Tier++; }, () => { from.Tier++; spdSlot.Tier--; });
+                        }
+                        else
+                        {
+                            foreach (var slot in e.SubSlots.Where(x => !string.IsNullOrEmpty(x.StatName) && x.Tier == 1).ToList())
+                            {
+                                string old = slot.StatName;
+                                Try(() => slot.StatName = SPD, () => slot.StatName = old);
+                            }
+                        }
+                    }
+                    if (bestDo == null) ok = false; else bestDo();
+                }
+                double to = ok ? AllySpeeds(config, best, party)[bc] : mine;
+                if (ok && to > maxOther)
+                {
+                    var subs = Snap(bc);
+                    foreach (var c in ScreenOrders(config, best, includeCurrent: true))
+                        trials.Add((bc, subs, mine, to, need, c.Team, c.R, c.Plan));
+                }
+                Put(bc, orig);
+            }
+            if (trials.Count == 0) return false;
+
+            // 영웅별 최고 후보를 로그로 남기고, 전체 상위 2개만 정식 빔으로 재탐색.
+            foreach (var g in trials.GroupBy(t => t.Hero))
+            {
+                var top = g.OrderByDescending(t => t.R.RankScore).ThenByDescending(t => t.R.TotalScore).First();
+                best.GearLog.Add($"[{g.Key.Character.Name}] 속공 선행 후보: 속공 {top.From:0}→{top.To:0} (부옵 {top.Need}티어), 최고 순서 {OrderNames(top.Team)} = {top.R.TotalScore:N0} (현재 {best.BestScore:N0})");
+            }
+            (BattleCharacter Hero, List<List<(string Stat, int Tier)>> Subs, double From, double To, int Need,
+                List<BattleCharacter> Team, SiegeBattleResult R, List<RotationDecision> Plan) pick = default;
+            foreach (var t in trials.OrderByDescending(t => t.R.RankScore).ThenByDescending(t => t.R.TotalScore).Take(2))
+            {
+                var orig = Snap(t.Hero);
+                Put(t.Hero, t.Subs);
+                var (r, plan) = SearchRotationFor(config, t.Team, best.BestFormation, config.RotationBeamWidth, new[] { t.Plan });
+                Put(t.Hero, orig);
+                if (r != null && (pick.R == null || IsBetterPick(r.TotalScore, r.RankScore, pick.R.TotalScore, pick.R.RankScore)))
+                    pick = (t.Hero, t.Subs, t.From, t.To, t.Need, t.Team, r, plan);
+            }
+            for (int i = 0; i < party.Count; i++) party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            if (pick.R == null || !IsBetterPick(pick.R.TotalScore, pick.R.RankScore, best.BestScore, best.BestRankScore))
+            {
+                best.GearLog.Add($"[속공 선행] 미채택 — 최고 후보 {(pick.R != null ? pick.R.TotalScore.ToString("N0") : "-")} (현재 {best.BestScore:N0})");
+                return false;
+            }
+            Put(pick.Hero, pick.Subs);
+            best.GearLog.Add($"[{pick.Hero.Character.Name}] 속공 선행 채택: 속공 {pick.From:0}→{pick.To:0} (부옵 {pick.Need}티어), 진형 번호 순 {OrderNames(pick.Team)}, 팀점수 {best.BestScore:N0} → {pick.R.TotalScore:N0}");
+            best.GearLog.Add(FormatGear(pick.Hero));
+            AdoptOrder(best, pick.Team, pick.R, pick.Plan);
+            return true;
         }
 
         private SiegeOptimizerResult OptimizeCore(SiegeOptimizerConfig config)
@@ -229,7 +618,17 @@ namespace GameDamageCalculator.Services.BattleEngine
             var r2 = OptimizeOnce(config);
 
             // 무회귀: 2패스가 더 나으면 채택, 아니면 1패스 기어·자리를 공유객체에 복원해 반환.
-            if (r2?.BestParty != null && IsBetterPick(r2.BestScore, r2.BestRankScore, r1.BestScore, r1.BestRankScore))
+            bool adopt2 = r2?.BestParty != null && IsBetterPick(r2.BestScore, r2.BestRankScore, r1.BestScore, r1.BestRankScore);
+            // 진단 로그: 두 패스 점수와 미채택 패스의 세트 선택 내역을 채택 결과의 GearLog에 남긴다.
+            {
+                var kept = adopt2 ? r2 : r1; var dropped = adopt2 ? r1 : r2;
+                kept.GearLog.Add($"[좌표상승] 1패스 {r1.BestScore:N0}(랭크 {r1.BestRankScore:N0}) / 2패스 "
+                    + (r2?.BestParty != null ? $"{r2.BestScore:N0}(랭크 {r2.BestRankScore:N0})" : "실패") + $" → {(adopt2 ? 2 : 1)}패스 채택");
+                if (dropped?.GearLog != null)
+                    foreach (var l in dropped.GearLog.Where(l => l.Contains("세트 선택")))
+                        kept.GearLog.Add($"  (미채택 {(adopt2 ? 1 : 2)}패스) {l}");
+            }
+            if (adopt2)
                 return r2;
             for (int i = 0; i < autoTargets.Count; i++)
             {
@@ -707,23 +1106,37 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var list = cands[bc];
                 var chosenSet = list.Count > 0 ? list[0].Set : null;
                 if (config.QuickGear) { log.Add(FormatGear(bc)); continue; }   // 스크리닝: 프록시 1순위 그대로
+                // [인게임 버프 타게팅 + 정렬 로테 평가(2패스)] 4세트 후보는 메인·부옵·장신구를 풀시뮬로 다시 맞춘 뒤 비교한다.
+                //   세트 후보마다 프록시 부옵이 달라 공격력이 몇십 차이 나는데, "공격력 최고 아군" 버프(비스킷 장비 강화)는
+                //   그 차이로 수령자가 바뀐다 → 세트 효과가 아니라 공격력 순서 사고로 점수가 갈렸다
+                //   (2026-11-19 수요일 쥬리 편성: 나타 복수자 6.37M vs 추적자 8.96M — 실제론 복수자가 +1.7M).
+                bool refineEachSet = config.InGameBuffTargeting
+                    && config.GearEvalRotation != null && config.GearEvalRotation.Count > 0;
+                bool chosenRefined = false;
                 if (list.Count > 1)
                 {
                     EquipmentLoadout bestLo = bc.Equipment; double bestScore = -1;
                     var perSet = new List<string>();
                     foreach (var (setCombo, lo) in list)
                     {
-                        bc.Equipment = lo;
+                        var cand = lo; bool refined = false;
+                        if (refineEachSet && (setCombo.Description ?? "").Contains("4세트"))
+                        {
+                            var r = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, setCombo,
+                                GcForChar(bc), l => { bc.Equipment = l; return FullScore(); }, Floor(bc));
+                            if (r != null) { cand = r; refined = true; }
+                        }
+                        bc.Equipment = cand;
                         double sc = FullScore();
-                        perSet.Add($"{setCombo.Description}={sc:N0}");
-                        if (sc > bestScore) { bestScore = sc; bestLo = lo; chosenSet = setCombo; }
+                        perSet.Add($"{setCombo.Description}={sc:N0}{(refined ? "*" : "")}");
+                        if (sc > bestScore) { bestScore = sc; bestLo = cand; chosenSet = setCombo; chosenRefined = refined; }
                     }
                     bc.Equipment = bestLo;
-                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬): {chosenSet?.Description}  ← {string.Join(" / ", perSet)}");
+                    log.Add($"[{bc.Character.Name}] 세트 선택(풀시뮬{(refineEachSet ? ", *=부옵 재최적화 후" : "")}): {chosenSet?.Description}  ← {string.Join(" / ", perSet)}");
                 }
 
                 // 메인·부옵·장신구도 풀시뮬 점수로 재최적화 (선택된 세트 안에서, 강제 옵션 반영)
-                if (chosenSet != null)
+                if (chosenSet != null && !chosenRefined)
                 {
                     var refined = optimizer.OptimizeForSetFull(bc, SoloConfig(config, boss, bc), 0, chosenSet,
                         GcForChar(bc), lo => { bc.Equipment = lo; return FullScore(); }, Floor(bc));
