@@ -77,6 +77,12 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 데미지 계산 시 여기서 읽는다. 전투 중 스킬 버프는 Effects에 추가되어 델타로 합산됨.
         public BaseStatSet DisplayStats { get; set; } = new BaseStatSet();
 
+        // 스탯창 받는 피해 감소 중 버프가 아닌 부분(장비 메인옵 받피감·초월 등) — 적→아군 피해에 적용 (StatCalculationResult.StatDmgRdc).
+        public double StatDmgRdc { get; set; }
+
+        // 전투 시작 스냅샷(FinalAtk)에 들어간 3단계 공격력 버프 합(%) — 공격력 감소 디버프를 같은 합에서 빼기 위해 보관.
+        public double Stage3AtkRate { get; set; }
+
         // 패시브 스택 트리거 카운터
         // Key: 효과 ID, Value: 현재 누적 공격 횟수
         public Dictionary<string, int> StackTriggerCounters { get; set; } = new();

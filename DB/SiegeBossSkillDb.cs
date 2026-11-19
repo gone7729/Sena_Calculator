@@ -172,7 +172,8 @@ namespace GameDamageCalculator.Database
                     {
                         [0] = new SkillLevelData
                         {
-                            Ratio = 160, TargetCount = 5, AtkCount = 1, Cooldown = 80,
+                            // 배율 120%: 2026-11-19 영상 실측(미호 878·나타 836·비스킷 581·라이언 172 = 계산 876·835·580·172). 이전 160은 33% 과다.
+                            Ratio = 120, TargetCount = 5, AtkCount = 1, Cooldown = 80,
                             Effects = new()
                             {
                                 // 방어력 감소 36% [5턴]

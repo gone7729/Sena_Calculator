@@ -245,6 +245,9 @@ namespace GameDamageCalculator.Models
         // 최대 스택 (0이면 Passive.MaxStacks 폴백)
         public int MaxStacks { get; set; }
 
+        // 자신의 모든 공격 N회 발동 시 자신의 턴제 버프 +1턴 (본래 턴 초과 불가). 0 = 없음. (쥬리 「신의 저울」 3)
+        public int TimedBuffExtendEveryAttacks { get; set; }
+
         // 버프·디버프·상태이상은 전부 Effects(PersistentEffect) 리스트로 표현한다.
         //   대상(Self/Party/Enemy)·조건부 여부(IsConditional)를 항목마다 명시하는 방식.
         //   ※ 옛 전용 필드(SelfBuff/PartyBuff/Debuff/Conditional*/StatusEffects)는 제거됨 —
@@ -340,6 +343,7 @@ namespace GameDamageCalculator.Models
         public double Ratio { get; set; }               // 공격력 배율%
         public double TargetMaxHpRatio { get; set; }    // 대상 최대 HP%
         public double AtkCap { get; set; }              // 공격력 제한%
+        public double CurrentHpBonusDmgMax { get; set; } // 대상 현재 생명력 100%일 때 최대 피증% (쥬리 50)
     }
 
     /// <summary>

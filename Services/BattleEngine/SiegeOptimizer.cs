@@ -134,6 +134,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool HighestAtkAllyOverrideCdrOnly { get; set; }
         // [인게임 버프 타게팅] SiegeBattleConfig.InGameBuffTargeting을 탐색 내 모든 시뮬에 전달.
         public bool InGameBuffTargeting { get; set; }
+        // [실험] SiegeBattleConfig.HighestAtkBuffGate를 탐색 내 모든 시뮬에 전달.
+        public System.Func<int, string, string, System.Collections.Generic.IReadOnlyList<string>, bool> HighestAtkBuffGate { get; set; }
         // [진단] 아군 불사(SiegeBattleConfig.DiagAlliesImmortal) — 생존 제약 없는 순수 로테 품질 탐색 실험용.
         public bool DiagAlliesImmortal { get; set; }
         // 아군 스킬 쿨 안전 여유(초) — SiegeBattleConfig.AllyCooldownMargin 전달. 0이면 기존 동작.
@@ -1088,6 +1090,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             HighestAtkAllyOrder = config.HighestAtkAllyOrder,
             HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
             InGameBuffTargeting = config.InGameBuffTargeting,
+            HighestAtkBuffGate = config.HighestAtkBuffGate,
             DiagAlliesImmortal = config.DiagAlliesImmortal,
             AllyCooldownMargin = config.AllyCooldownMargin,
         };

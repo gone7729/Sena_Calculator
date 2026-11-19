@@ -5772,7 +5772,8 @@ namespace GameDamageCalculator.Database
                         },
                         TranscendBonuses = new Dictionary<int, SkillTranscend>
                         {
-                            // 2초월: 아군 후열 디버프 해제 2개
+                            // 2초월: 아군 후열 디버프 해제 2개 — 피해 後 적용.
+                            //   2026-11-19 영상: 불새 직후 9·33·57턴 살육의 춤은 공감이 걸린 값(80,692)으로 들어가고, 그 뒤 교만은 공감 없는 값.
                             { 2, new SkillTranscend {
                                 Effect = "2초월: 아군 후열 디버프 해제 2개",
                                 Effects = new List<SkillEffect>
@@ -6022,12 +6023,16 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 2,
                                 AtkCount = 1,
                                 Ratio = 55,
+                                TargetMaxHpRatio = 7,   // 대상 최대 생명력 7% (시전자 공격력 150% 제한)
+                                AtkCap = 150,
                                 Effect = ""
                                 } },
                             { 1, new SkillLevelData {
                                 TargetCount = 2,
                                 AtkCount = 1,
                                 Ratio = 70,
+                                TargetMaxHpRatio = 8,   // 대상 최대 생명력 8% (시전자 공격력 150% 제한)
+                                AtkCap = 150,
                                 Effect = ""
                                 } }
                         }
@@ -6075,7 +6080,7 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 2,
                                 Cooldown = 96,
-                                Ratio = 70,
+                                Ratio = 75,
                                 Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.AllEnemies, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Annihilation, Chance = 60, Duration = 2 } },
                                 Effect = "영멸 [60% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동"
                                 } },
@@ -6083,7 +6088,7 @@ namespace GameDamageCalculator.Database
                                 TargetCount = 5,
                                 AtkCount = 2,
                                 Cooldown = 96,
-                                Ratio = 80,
+                                Ratio = 87,
                                 Effects = new List<SkillEffect> { new SkillEffect { Target = EffectTarget.AllEnemies, Type = SkillEffectType.StatusAilment, StatusType = StatusEffectType.Annihilation, Chance = 70, Duration = 2 } },
                                 Effect = "영멸 [70% 확률] [2턴]: 보유 상태로 사망 시 부활/불사/불굴 효과 미발동"
                                 } }
@@ -6096,6 +6101,7 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            TimedBuffExtendEveryAttacks = 3,   // 자신의 모든 공격 3회 발동 시 턴제 버프 +1턴(본래 턴 초과 불가)
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -6108,12 +6114,15 @@ namespace GameDamageCalculator.Database
                                         TargetCount = 3,
                                         AtkCount = 1,
                                         Ratio = 40,
-                                        TargetMaxHpRatio = 7,
-                                        AtkCap = 300
+                                        TargetMaxHpRatio = 8,
+                                        AtkCap = 300,
+                                        CurrentHpBonusDmgMax = 50
                                     }
                                 },
                                 // 자신 모든 피해 무효화 [피격 2회]
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 2, Type = DamageNullType.All } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 3, Type = DamageNullType.All } },
+                                // 효과 저항 49% 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Res = 49 } },
                                 // 사망 시 불사 상태로 부활 [2턴] (전투당 1회)
                                 new PersistentEffect {
                                     Target = EffectTarget.Self,
@@ -6124,6 +6133,7 @@ namespace GameDamageCalculator.Database
                             }
                         }},
                         { 1, new PassiveLevelData {
+                            TimedBuffExtendEveryAttacks = 3,   // 자신의 모든 공격 3회 발동 시 턴제 버프 +1턴(본래 턴 초과 불가)
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -6136,11 +6146,14 @@ namespace GameDamageCalculator.Database
                                         TargetCount = 3,
                                         AtkCount = 1,
                                         Ratio = 50,
-                                        TargetMaxHpRatio = 9,
-                                        AtkCap = 300
+                                        TargetMaxHpRatio = 10,
+                                        AtkCap = 300,
+                                        CurrentHpBonusDmgMax = 50
                                     }
                                 },
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 2, Type = DamageNullType.All } },
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.DamageNullification, DamageNullification = new DamageNullification { HitCount = 3, Type = DamageNullType.All } },
+                                // 효과 저항 49% 증가 [상시]
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Eff_Res = 49 } },
                                 // 강화: 불사 지속 3턴
                                 new PersistentEffect {
                                     Target = EffectTarget.Self,

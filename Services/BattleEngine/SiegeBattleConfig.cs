@@ -73,6 +73,12 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   HighestAtkAllyOrder(강제 순위)가 지정되면 그쪽이 여전히 우선.
         public bool InGameBuffTargeting { get; set; }
 
+        // [실험] "공격력이 가장 높은 아군" 버프 스킬(비스킷 장비 강화 등) 시전 게이트. null이면 미사용(기존 동작).
+        //   (현재 라운드, 시전자 이름, 스킬 이름, 지금 시전하면 뽑힐 수령자 이름들) → false면 그 스킬은 이번 스킬턴에 시전 불가로 취급
+        //   (플랜·자동 로테·빔 후보 모두). "R1~2엔 나타·쥬리, R3엔 나타·미호가 받을 때만 시전" 같은 공격력 조절 빌드를
+        //   로테 탐색이 그 조건 안에서 최적화하게 한다.
+        public System.Func<int, string, string, System.Collections.Generic.IReadOnlyList<string>, bool> HighestAtkBuffGate { get; set; }
+
         // [진단] true면 아군이 HP 피해를 받지 않는다(불사) — "생존을 전제로 한 순수 로테 품질" 비교 실험용. 점수 로직 불변.
         public bool DiagAlliesImmortal { get; set; }
 
@@ -93,6 +99,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   구 모델(2/3/4/3/4)은 수요일 T30까지 +3.8s 누적 → 불새 2회차 T30(인게임 T34)·챈슬러/룩 순서 어긋남.
         //   신 모델은 누적 오차 ±1.8s(T57까지), 월요일 녹화의 루디 방어준비 T26 불발→T30도 재현. 판마다 ±1~2s 변동은 남는다.
         public double BasicAttackSeconds { get; set; } = 1.85;
+        // 협공 1회 연출 시간(초) — 발동 확률만큼 기댓값으로 누적. 2026-11-19 쥬리 영상: 협공 시간이 없으면
+        //   나타 혼천릉파(16턴 주기)가 37턴에 3.4초 모자라 불발(영상은 시전). 협공이 낀 평타 간격이 약 0.7초(2배속 화면) 더 김.
+        public double CoopAttackSeconds { get; set; } = 1.5;
         public double AllySkill1Seconds { get; set; } = 3.3;
         public double AllySkill2Seconds { get; set; } = 4.25;
         public double EnemySkill1Seconds { get; set; } = 3.1;

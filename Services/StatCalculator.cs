@@ -80,6 +80,14 @@ namespace GameDamageCalculator.Services
         // 기타 스탯
         public BaseStatSet DisplayStats { get; set; } = new BaseStatSet();
 
+        // 스탯창 "받는 피해 감소" 중 버프가 아닌 부분(영웅 기본 + 초월 + 세트 + 장비 메인옵 + 스탯 비례 패시브).
+        //   DisplayStats.Dmg_Rdc에는 전투 시작 시점의 파티·패시브 버프도 섞여 있어, 전투 중 Effects 버프와 합치면 이중 계산된다.
+        public double StatDmgRdc { get; set; }
+
+        // 3단계 공격력 버프 합(%) = 상시 + 턴제 + 펫. FinalAtk = (버프 前 공격력) × (1 + 이 값/100).
+        //   공격력 감소 디버프가 이 합에서 빼는 방식이라(공성 영상 확인) 전투 중 재계산용으로 보관.
+        public double Stage3AtkRate { get; set; }
+
         // 디버프 (UI 표시용)
         public DebuffSet CurrentDebuffs { get; set; }
 
@@ -358,6 +366,7 @@ namespace GameDamageCalculator.Services
             // ========== 최종 스탯 (버프 적용 후 - 곱연산) ==========
             // 공식: 최종공격력 = (스탯공격력 + 펫깡공 + 기초공 * (진형 + 펫잠재%)) * (1+지속%) * (1+턴제%) * (1+펫%)
             result.FinalAtk = preBuffAtk * atkMultiplier;
+            result.Stage3AtkRate = totalBuffAtkRate;
             result.FinalDef = preBuffDef * defMultiplier;
             result.FinalHp  = baseStatHp * hpMultiplier;
             result.FinalSpd = totalSpd;
@@ -381,6 +390,8 @@ namespace GameDamageCalculator.Services
                 totalAtkRate, scalingBonus.Cri, scalingBonus.DmgRdc,
                 permanentAtkRate, timedAtkRate, petAtkRate
             );
+            result.StatDmgRdc = characterStats.Dmg_Rdc + transcendStats.Dmg_Rdc + setBonus.Dmg_Rdc
+                + equipmentStats.MainStats.Dmg_Rdc + scalingBonus.DmgRdc;
 
             // 디버그 출력 (파일)
             System.Diagnostics.Debug.WriteLine(result.DebugLog.ToString());

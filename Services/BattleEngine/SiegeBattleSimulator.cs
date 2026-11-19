@@ -44,6 +44,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         private readonly List<BuildStepFeasibility> _feasLog = new();
         // 직전 아군 스킬 1회 시전이 부여한 아군 버프 수령자 이름(스킬 순서 로그의 [대상] 표기용). ExecuteAllySkill마다 초기화.
         private readonly List<string> _curCastAllyBuffTargets = new();
+        private Func<int, string, string, IReadOnlyList<string>, bool> _buffGate;   // [실험] SiegeBattleConfig.HighestAtkBuffGate
+        private readonly Dictionary<int, double> _atkForBuffExtend = new();   // 아군별 공격 횟수 누적(턴제 버프 증가 패시브용)
         // 직전 시전이 적에 부여한 디버프 대상(예: 레이첼 불새 → [스파이크,룩,챈슬러]) / 버프해제한 적(예: 리프어택 → [스파이크]).
         private readonly List<string> _curCastDebuffTargets = new();
         private readonly List<string> _curCastDispelTargets = new();
@@ -76,6 +78,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             _counterChanceOverride = config.CounterattackChanceOverride;   // 반격 확률 오버라이드(빔=0, 최종=null)
             _allyDeathPenalty = config.AllyDeathPenalty;   // 사망 페널티(RankScore용)
             _buffFirstAuto = config.BuffFirstAuto;         // 풀버프 정렬(셋업 버프 우선)
+            _buffGate = config.HighestAtkBuffGate;         // [실험] 공격력 최고 아군 버프 시전 게이트
             var state = Initialize(config);
             _activeState = state;   // 광폭화 턴 참조용
             // 인게임 타게팅은 DamageWeight를 쓰지 않으므로 스카우팅 패스 생략(진단 덤프 시만 유지).
@@ -111,6 +114,7 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         private SiegeBattleState Initialize(SiegeBattleConfig config)
         {
+            _atkForBuffExtend.Clear();
             var state = new SiegeBattleState
             {
                 SiegeStage = config.SiegeStage,
@@ -123,6 +127,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DiagForceCritWeak = config.DiagForceCritWeak,
                 AllyCooldownMargin = config.AllyCooldownMargin,
                 BasicAttackSeconds = config.BasicAttackSeconds,
+                CoopAttackSeconds = config.CoopAttackSeconds,
                 AllySkill1Seconds = config.AllySkill1Seconds, AllySkill2Seconds = config.AllySkill2Seconds,
                 EnemySkill1Seconds = config.EnemySkill1Seconds, EnemySkill2Seconds = config.EnemySkill2Seconds,
                 EnemySkillReadyAtTurnStart = config.EnemySkillReadyAtTurnStart,
@@ -396,7 +401,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         var a = state.AllyStates[dec.HeroIndex];
                         var sk = a.Source.Character.Skills?.FirstOrDefault(s => s.SkillType == dec.Skill);
-                        bool ready = sk != null && a.IsSkillReady(dec.Skill);
+                        bool ready = sk != null && a.IsSkillReady(dec.Skill) && PassesBuffGate(state, a, sk);
                         // 전원 풀피 시 회복 스킬은 발동 불가 → 플랜 무시하고 자동(다음 스킬)으로 폴백(예약 다음 순번 발동).
                         //   (빔은 풀피 회복을 후보에서 제외하므로 보통 비발동; 시드/HP변동 대비 방어 게이트.)
                         bool healGated = sk != null && IsHealSkill(sk, a.Source.IsSkillEnhanced) && AllAlliesFullHp(state);
@@ -455,6 +460,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         {
                             if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2 || (s.IsAwakenOnly && !a.Source.IsAwakened)) continue;
                             if (!a.IsSkillReady(s.SkillType) || !IsPartyBuffSetup(s, a.Source.IsSkillEnhanced)) continue;
+                            if (!PassesBuffGate(state, a, s)) continue;
                             double cd = s.GetCooldown(a.Source.IsSkillEnhanced, a.Source.TranscendLevel, a.Source.IsAwakened);
                             if (cd > bestSetup.cd) bestSetup = (idx, s, cd);
                         }
@@ -630,6 +636,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             ProcessAttackStacks(state, ally, isSkill: false);   // 공격 발동형 스택 — 평타 2회마다 1회
                             ProcessAttackBuffs(state, ally, isSkill: false);    // 공격 발동형 아군 버프(지크 물공증) — 평타 2회마다
                             ProcessTriggeredFixedDamage(state, ally, isSkill: false);   // N회 공격마다 추가 피해(세인·여포·발리스타 등)
+                            CountAttackForBuffExtend(state, ally);   // 공격 N회마다 자신의 턴제 버프 +1턴(쥬리)
                             TriggerAllyImmunity(state, ally);   // 기본공격 발동 → 면역 패시브 트리거(턴제 면역 갱신)
                             ApplyBasicAttackCdReduction(state, ally, normal);   // 평타 쿨감(예: 라이언 자신+최고공격력 아군 9초)
                             ApplySkillHeal(state, ally, normal);   // 평타 회복(예: 리나 강화평타 최저HP 아군 7%)
@@ -816,8 +823,15 @@ namespace GameDamageCalculator.Services.BattleEngine
                     double w = p * (wAtk + (1 - wAtk) * q);
                     if (w <= 0) continue;
                     var input = BuildDamageInputToEnemy(owner, t, sk, state, out double redMult, out _, out _, out _);
-                    input.CritChance = -1e6; input.WeakChance = -1e6;   // 협공은 치명·약점 미적용
+                    // 협공도 치명·약점 적용 (2026-11-19 영상: 치명·약점 아이콘 + 약점 배율 1.53 확인).
                     double dmg = _damageCalc.Calculate(input).FinalDamage * Math.Max(0, redMult);
+                    if (coop.CurrentHpBonusDmgMax > 0 && t.MaxHp > 0)   // 대상 현재 생명력 비례 최대 N% 피증(쥬리 50) — 협공 피해 전체에 곱
+                    {
+                        // R3 불멸 적은 생명력이 바닥나지 않는다: 영상 역산으로 보스 20.0%, 친위대(룩·챈슬러) 24.4%에서 고정
+                        //   (6턴 이후 협공이 69턴까지 같은 값 — 레이첼 ×1.1000, 룩·챈슬러 ×1.1218). 친위대 값이 20%가 아닌 이유는 미확인.
+                        double hpFloor = state.CurrentRound >= 3 ? (t.Source.HasEnrage ? 0.20 : 0.2437) : 0;
+                        dmg *= 1 + coop.CurrentHpBonusDmgMax / 100.0 * Math.Clamp(t.CurrentHp / t.MaxHp, hpFloor, 1);
+                    }
                     hits.Add((t, w * dmg, w));
                 }
                 if (hits.Count == 0) continue;
@@ -825,7 +839,35 @@ namespace GameDamageCalculator.Services.BattleEngine
                     $"협공 (확률 {p * 100:0}% 기댓값) ← {attacker.Source.Character.Name} 평타, 적{hits.Count}");
                 foreach (var h in hits.OrderBy(h => h.T == primary ? 1 : 0))
                     ApplyDamage(state, owner, h.T, h.Dmg, sk.Name, isSkill: true, hitWeight: h.W, spill: h.T != primary, hitCount: HitCountOf(owner, sk));
+                CountAttackForBuffExtend(state, owner, p);   // 협공도 "모든 공격"에 포함(기댓값 가중)
+                AdvanceTime(state, p * state.CoopAttackSeconds, $"[협공] {owner.Source.Character.Name}");   // 협공 연출 시간(기댓값)
             }
+        }
+
+        /// <summary>
+        /// 「자신의 모든 공격 N회 발동 시 턴제 버프 +1턴(본래 턴 초과 불가)」 — 쥬리 신의 저울.
+        /// 평타·스킬·협공을 각각 공격 1회로 센다(협공은 발동 확률만큼 가중). 스탯 버프(BuffValues)만 대상.
+        /// </summary>
+        private void CountAttackForBuffExtend(SiegeBattleState state, CharacterBattleState ally, double weight = 1.0)
+        {
+            if (ally == null || ally.IsDead || weight <= 0) return;
+            int n = ally.Source.Character.Passive?.GetLevelData(ally.Source.IsSkillEnhanced)?.TimedBuffExtendEveryAttacks ?? 0;
+            if (n <= 0) return;
+            _atkForBuffExtend.TryGetValue(ally.PartyIndex, out double c);
+            c += weight;
+            while (c >= n - 1e-9)
+            {
+                c -= n;
+                int ext = 0;
+                foreach (var e in ally.Effects.GetAllEffects())
+                    if (!e.IsPermanent && e.BuffValues != null && e.MaxDuration > 0
+                        && e.RemainingTurns > 0 && e.RemainingTurns < e.MaxDuration)
+                    { e.RemainingTurns++; ext++; }
+                if (ext > 0)
+                    Log(state, ally.Source.Character.Name, true, ActionType.SkillAttack, "턴제 버프 증가", 0,
+                        $"공격 {n}회 → 자신의 턴제 버프 {ext}개 +1턴");
+            }
+            _atkForBuffExtend[ally.PartyIndex] = c;
         }
 
         /// <summary>아군이 적에게 데미지 적용 + 점수·로그.</summary>
@@ -1068,7 +1110,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             var allyDebuffs = ally.Effects.GetTotalDebuffs();
             atkRed = magic ? allyDebuffs.MagicAtk_Reduction : allyDebuffs.Atk_Reduction;
             double midAtkRate = magic ? midBuffs.MagicAtk_Rate : midBuffs.Atk_Rate;
-            return ally.FinalAtk * (1 + midAtkRate / 100.0) * System.Math.Max(0, 1 - atkRed / 100.0);
+            // 공격력 감소는 별도 곱(×0.76)이 아니라 3단계 공격력 버프 합에서 뺀다: (1 + 버프합 − 감소) / (1 + 버프합).
+            //   2026-11-19 영상: 불새 공감 24% 상태의 미호 살육의 춤 80,692 = 공감 없는 값 101,975 × (1.15 − 0.24)/1.15 (윈디 15%).
+            //   ×0.76이면 77,501로 4.1% 낮다.
+            double s3 = 1 + ally.Stage3AtkRate / 100.0;
+            double redMult = s3 > 0 ? System.Math.Max(0, s3 - atkRed / 100.0) / s3 : System.Math.Max(0, 1 - atkRed / 100.0);
+            return ally.FinalAtk * (1 + midAtkRate / 100.0) * redMult;
         }
 
         private static double CurrentEffAtk(CharacterBattleState ally)
@@ -1319,6 +1366,9 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 아군 받피감(자버프) + 아군에게 걸린 받피증/취약(적 디버프)
             var (perm, timed, pet) = ally.Effects.GetSeparatedBuffs();
             double allyDmgRdc = perm.Dmg_Rdc + timed.Dmg_Rdc + pet.Dmg_Rdc;
+            // 영웅 자신의 받는 피해 감소 스탯(장비 메인옵 받피감·초월 등). 그간 버프만 합산해 장비 받피감이 통째로 빠져 있었음.
+            //   2026-11-19 영상(불새): 비스킷 10% → 581(계산 580), 라이언 32%+막기 → 172(계산 171.6).
+            allyDmgRdc += ally.StatDmgRdc;
             // 물리/마법 받피감(타입별) — 적 공격 속성에 맞는 것만 적용. (그간 누락돼 탱킹/유틸 패시브의
             //   물리감소·마법감소가 무시됨 → 전열 탱킹 가치 저평가로 자리 배치 왜곡됐음.)
             bool enemyMagic = e.AttackType == AttackType.Magic;
@@ -2344,6 +2394,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 .Where(s => s.SkillType != SkillType.Normal && s.SkillType != SkillType.Normal2)
                 .Where(s => !s.IsAwakenOnly || ally.Source.IsAwakened)   // 각성 전용 스킬은 각성 상태에서만
                 .Where(s => ally.IsSkillReady(s.SkillType))
+                .Where(s => PassesBuffGate(state, ally, s))
                 .ToList();
             if (ready == null || ready.Count == 0) return null;
             // 전원 풀피면 회복 스킬은 발동되지 않고 다음 예약(여기선 다음 우선) 스킬이 나간다(게임 규칙).
@@ -2389,6 +2440,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             ProcessAttackStacks(state, ally, isSkill: true);   // 공격 발동형 스택(타카 EagleClaw) — 스킬 발동 시 1회
             ProcessAttackBuffs(state, ally, isSkill: true);    // 공격 발동형 아군 버프(지크 물공증) — 스킬 발동 시 1회
             ProcessTriggeredFixedDamage(state, ally, isSkill: true);   // N회 공격마다 추가 피해(세인·여포·발리스타 등)
+            CountAttackForBuffExtend(state, ally);   // 공격 N회마다 자신의 턴제 버프 +1턴(쥬리)
             ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
             ApplySkillHeal(state, ally, skill);   // 스킬 직접 회복(HealHpRatio, 예: 리나 행진가 전체회복 24%)
             ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
@@ -2439,6 +2491,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;
                     if (s.IsAwakenOnly && !a.Source.IsAwakened) continue;   // 각성 전용 스킬은 각성 상태에서만
                     if (!a.IsSkillReady(s.SkillType)) continue;
+                    if (!PassesBuffGate(state, a, s)) continue;
                     if (allFull && IsHealSkill(s, a.Source.IsSkillEnhanced)) continue;   // 풀피 → 회복 스킬 미발동
                     choices.Add(new RotationDecision { HeroIndex = ai, Skill = s.SkillType });
                 }
@@ -2518,6 +2571,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         MergeStrategy = MergeStrategy.MaxMerge,
                         IsPermanent = false,
                         RemainingTurns = d,
+                        MaxDuration = d,
                         BuffValues = b.Clone(),
                     });
                     // 보호막(Shield_HpRatio) → 흡수 풀 생성 (대상 최대HP 비례). 더 큰 값으로만 갱신.
@@ -2764,6 +2818,20 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
         }
 
+        /// <summary>[실험] 공격력 최고 아군 버프 게이트(config.HighestAtkBuffGate) — 이 스킬에 HighestAtkAlly 버프가 있으면
+        /// 지금 시전할 때 뽑힐 수령자를 미리 계산해 게이트에 묻는다. 게이트 미지정·해당 버프 없음이면 항상 통과.</summary>
+        private bool PassesBuffGate(SiegeBattleState state, CharacterBattleState a, Skill sk)
+        {
+            if (_buffGate == null || sk == null) return true;
+            var eff = sk.GetLevelData(a.Source.IsSkillEnhanced)?.Effects?.FirstOrDefault(e =>
+                e.Type == SkillEffectType.Buff && e.Buff != null && e.TargetSelector == TargetSelector.HighestAtkAlly);
+            if (eff == null) return true;
+            int tc = sk.GetTranscendBonus(a.Source.TranscendLevel)?.TargetCountOverride ?? eff.TargetCount;
+            var targets = ResolveAllyBuffTargets(state, a, eff.Target, eff.TargetSelector, tc)
+                .Select(t => t.Source.Character.Name).ToList();
+            return _buffGate(state.CurrentRound, a.Source.Character.Name, sk.Name, targets);
+        }
+
         /// <summary>버프 대상 아군 선정 (Self / Party / 공격력 상위 N명).</summary>
         private List<CharacterBattleState> ResolveAllyBuffTargets(SiegeBattleState state, CharacterBattleState caster,
             EffectTarget target, TargetSelector? selector, int tgtCount)
@@ -2928,6 +2996,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         MergeStrategy = MergeStrategy.MaxMerge,
                         IsPermanent = false,
                         RemainingTurns = dur,
+                        MaxDuration = dur,
                         BuffValues = effect.Buff.Clone(),
                     });
                 }

@@ -144,7 +144,7 @@ var petEl = doc.RootElement.GetProperty("pet");
 var pet = PetDb.GetByName(petEl.GetProperty("name").GetString());
 int petEnh = petEl.GetProperty("enhance").GetInt32();
 double petAtk = petEl.GetProperty("potentialAtkRate").GetDouble();
-const string FORMATION = "보호 진형";
+string FORMATION = args.FirstOrDefault(a => a.StartsWith("form="))?.Substring(5) ?? "보호 진형";   // 예: "form=밸런스 진형"
 
 if (runReplay)
 {
@@ -190,7 +190,19 @@ if (runReplay)
     };
     if (args.Contains("beamplan")) userSteps = beamSteps;
     if (args.Contains("videoplan")) userSteps = videoSteps;
+    // 2026-11-19 유튜브 가이드 영상(team_juri.json, 밸런스 진형·후열 미호,나타): 자막 "최종빌드 정리" 그대로.
+    //   아래=1스킬 / 위=2스킬. R1 비스킷 장비 강화 → 평타·협공으로 클리어 / R2 비스킷 리프 / R3 1턴부터 4턴마다. 실측 13,094,718 · 사망 0.
+    var juriSteps = new (string Hero, SkillType Sk)[]
+    {
+        ("비스킷", SkillType.Skill1), ("비스킷", SkillType.Skill2),                                                      // R1 장비 강화, R2 리프
+        ("쥬리", SkillType.Skill1), ("나타", SkillType.Skill2), ("미호", SkillType.Skill1), ("나타", SkillType.Skill1),     // 1 5 9 13
+        ("미호", SkillType.Skill2), ("나타", SkillType.Skill2), ("쥬리", SkillType.Skill1), ("나타", SkillType.Skill1),     // 17 21 25 29
+        ("미호", SkillType.Skill1), ("나타", SkillType.Skill2), ("비스킷", SkillType.Skill1), ("나타", SkillType.Skill1),   // 33 37 41 45
+        ("쥬리", SkillType.Skill1), ("나타", SkillType.Skill2), ("미호", SkillType.Skill1), ("나타", SkillType.Skill1),     // 49 53 57 61
+        ("미호", SkillType.Skill2), ("나타", SkillType.Skill2),                                                          // 65 69
+    };
     if (args.Contains("wedplan")) userSteps = wedSteps;
+    if (args.Contains("juriplan")) userSteps = juriSteps;
     int Rx(string n) => team.FindIndex(b => b.Character.Name == n);
     var uplan = userSteps.Select(x => x.Hero == "-" ? new RotationDecision { Hold = true } : new RotationDecision { HeroIndex = Rx(x.Hero), Skill = x.Sk }).ToList();
     foreach (bool force in new[] { false, true })
@@ -258,6 +270,16 @@ if (runReplay)
         Console.WriteLine("\n  -- 유저 로테 스텝별 쿨 여유 (재시전만, 초) --");
         foreach (var f in rr.Feasibility.Where(f => f.Reached && !f.Hold && f.CooldownGated))
             Console.WriteLine($"    턴 {f.Turn,2} {f.HeroName} {f.SkillName}: 여유 {f.Slack:0.0}초 (경과 {f.Elapsed:0.0}초)");
+        // 버프 수령자("공격력 최고 아군" 버프가 누구에게 갔는지) + 아군에 걸린 디버프·해제 시점 ("bufflog" 인자)
+        Console.WriteLine("\n  -- 버프 수령자 --");
+        foreach (var f in rr.Feasibility.Where(f => f.Reached && !f.Hold && f.BuffTargets != null))
+            Console.WriteLine($"    턴 {f.Turn,2} {f.HeroName} {f.SkillName} → [{string.Join(",", f.BuffTargets)}]");
+        if (args.Contains("bufflog"))
+        {
+            Console.WriteLine("\n  -- [bufflog] 버프·디버프·해제 --");
+            foreach (var l in rr.TurnLogs.Where(l => Regex.IsMatch(l.Description ?? "", "디버프|해제|턴제 버프|버프 ")))
+                Console.WriteLine($"    T{l.Turn,2} [{(l.IsAlly ? "아" : "적")}] {l.ActorName}/{l.SkillName}: {l.Description}");
+        }
         // 턴별 평타 행동자 (버프 지속 = 보유자 평타마다 1턴 감소 → 셈으로 유지 여부 확인)
         Console.WriteLine("\n  -- 턴별 평타 행동자 --");
         var basics = rr.TurnLogs.Where(l => l.DamageDealt > 0 && (l.SkillName == "평타" || l.SkillName == "기본 공격"))

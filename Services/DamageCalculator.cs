@@ -634,20 +634,25 @@ namespace GameDamageCalculator.Services
 
         #region HP 비례 피해 계산
 
+        // HP비례 피해는 공격력×배율과 같은 줄에 더해져 방어계수로 나뉜다:
+        //   (공격력 × 배율% + 대상 HP × n%) ÷ 방어계수 × 피증 × 치명 × 약점 (× 취약·피해증폭은 최종 단계).
+        //   2026-11-19 영상(쥬리 평타 = 70% + 대상 최대HP 8%, 공성 수요일 3턴): 계산 룩 41,043 / 레이첼 50,500 = 실측 41,042 / 50,498.
+        //   (이전 식은 방어계수로 나누지 않아 HP비례 항이 2.7~3.9배 과다였다.) 공격력 상한(AtkCap)은 나누기 前 값에 적용.
         private double CalcHpRatioDamage(DamageInput input, SkillLevelData levelData, DamageResult result)
         {
             if (levelData == null) return 0;
-            
+
             result.DebugLog.AppendLine($"\n[12] HP비례:");
             double totalHpDamage = 0;
+            double defCoef = result.DefCoefficient > 0 ? result.DefCoefficient : 1.0;
 
             if (levelData.TargetMaxHpRatio > 0 && input.TargetHp > 0)
             {
                 double rawDamage = input.TargetHp * (levelData.TargetMaxHpRatio / 100.0);
                 if (levelData.AtkCap > 0)
                     rawDamage = Math.Min(rawDamage, input.FinalAtk * (levelData.AtkCap / 100.0));
-                totalHpDamage += rawDamage * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
-                result.DebugLog.AppendLine($"    최대HP: {input.TargetHp:N0} × {levelData.TargetMaxHpRatio}% = {totalHpDamage:N0}");
+                totalHpDamage += rawDamage / defCoef * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                result.DebugLog.AppendLine($"    최대HP: {input.TargetHp:N0} × {levelData.TargetMaxHpRatio}% ÷ 방어계수 {defCoef:F4} = {totalHpDamage:N0}");
             }
 
             if (levelData.TargetCurrentHpRatio > 0 && input.TargetCurrentHp > 0)
@@ -655,7 +660,7 @@ namespace GameDamageCalculator.Services
                 double rawDamage = input.TargetCurrentHp * (levelData.TargetCurrentHpRatio / 100.0);
                 if (levelData.AtkCap > 0)
                     rawDamage = Math.Min(rawDamage, input.FinalAtk * (levelData.AtkCap / 100.0));
-                totalHpDamage += rawDamage * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
+                totalHpDamage += rawDamage / defCoef * result.DamageMultiplier * result.CritMultiplier * result.WeakpointMultiplier;
             }
 
             return totalHpDamage;

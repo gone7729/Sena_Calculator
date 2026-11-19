@@ -55,6 +55,18 @@ namespace GameDamageCalculator.Models
                 }
             }
 
+            // 반지 고유효과 중 "전투 시작 시 피해량 상승"류(토벌·공성·섬멸·복수) — 메인옵 자리를 대신하는 피증 스탯으로 합산.
+            //   2026-11-19 영상 실측(토벌의 반지 6성 = 보스 대상 피해 12%): 미반영 시 나타 혼천릉파가 4.7% 낮게 나옴
+            //   → 보피증 버킷에 12 가산하면 타격값 일치. 생존·보호막·상태이상 반지는 SurvivalResolver 등이 따로 소비.
+            foreach (var eff in GetEffects())
+            {
+                if (eff.Type != Effects.PersistentEffectType.Buff || eff.Target != Effects.EffectTarget.Self || eff.Buff == null) continue;
+                stats.Dmg_Dealt += eff.Buff.Dmg_Dealt;
+                stats.Dmg_Dealt_Bos += eff.Buff.Dmg_Dealt_Bos;
+                stats.Dmg_Dealt_1to3 += eff.Buff.Dmg_Dealt_1to3;
+                stats.Dmg_Dealt_4to5 += eff.Buff.Dmg_Dealt_4to5;
+            }
+
             return stats;
         }
 

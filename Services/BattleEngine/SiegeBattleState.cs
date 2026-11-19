@@ -41,6 +41,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool DiagForceCritWeak { get; set; }             // [진단] 아군 치명·약점 항상 발동
         public double AllyCooldownMargin { get; set; }          // 아군 스킬 쿨 안전 여유(초)
         public double BasicAttackSeconds { get; set; } = 1.85;  // 평타 1회 소요시간(초) — 값·근거는 SiegeBattleConfig 참조
+        public double CoopAttackSeconds { get; set; } = 1.5;    // 협공 1회 연출 시간(초) — SiegeBattleConfig 참조
         public double AllySkill1Seconds { get; set; } = 3.3;
         public double AllySkill2Seconds { get; set; } = 4.25;
         public double EnemySkill1Seconds { get; set; } = 3.1;
