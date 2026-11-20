@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 요일·팀 지정 정밀 탐색(후처리 전부 ON) → 빌드 저장(results/siege/build_*.json) / 불러와 재생. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GameDamageCalculator</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\DB\**\*.cs" />
+    <Compile Include="..\..\Models\**\*.cs" />
+    <Compile Include="..\..\Services\**\*.cs" />
+  </ItemGroup>
+</Project>

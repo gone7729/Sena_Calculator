@@ -140,6 +140,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   2026-11-19 수요일 쥬리 편성: 라이언 수문장 + 비스킷 권능 반지면 같은 딜러 장비로 11.0M → 12.6M.
         public bool SearchAggressiveSurvival { get; set; }
 
+        // 공격력 순위 탐색(후처리). 기본 OFF. InGameBuffTargeting 전용.
+        //   "공격력이 가장 높은 아군" 효과(비스킷 장비 강화·라이언 평타 쿨감 등)는 공격력 순위로 수령자가 갈린다.
+        //   누가 1·2순위여야 하는지는 버프 가치·쿨감 누수·행동 순서가 얽혀 장비 그리디가 스스로 찾지 못한다
+        //   (순위가 뒤집히는 문턱 전까지는 손해만 보인다). 이 트랙은
+        //   (1) 순위를 강제(HighestAtkAllyOrder)한 채 로테를 재탐색해 "누가 1순위(·2순위)일 때 가장 높은가"를 훑고
+        //   (2) 현재보다 높은 후보를 실제 장비로 실현한다 — 올릴 영웅은 공격력 쪽으로, 내릴 영웅은 공격력에서 빼는
+        //       부옵 1티어 이동·부옵 교체·메인옵 교체 중 "순위 격차 1당 점수 손실"이 가장 작은 수를 반복
+        //   (3) 강제를 풀고 정식 빔으로 재탐색해 랭크 점수가 오를 때만 채택한다(무회귀). 속공 부옵은 건드리지 않는다.
+        public bool SearchAtkRank { get; set; }
+
         // 좌표상승(기어↔로테/진형) 2패스 탐색. 기본 OFF(기존 1패스 동작·무회귀).
         //   ON이면 1패스(기어=프록시 레짐)로 진형·자리·빔로테를 찾은 뒤, 그 최종 레짐을 GearEval*에 피드백해
         //   기어를 재최적화하고 다시 탐색 → 기어 선정 레짐 = 최종 평가 레짐 정합(2단계 근사 함정 교정).
@@ -237,10 +247,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation && hasRes)
                 ApplyAggressiveSurvival(config, res, autoEquipped);
             bool changed = false;
+            bool rankOn = config.SearchAtkRank && config.AutoEquip && config.OptimizeRotation && hasRes;
+            if (rankOn) changed |= ApplyAtkRank(config, res, autoEquipped);   // 순서 탐색 전에 — 쿨감 수령자가 맞아야 순서가 의미 있다
+            bool orderChanged = false;
             if (config.SearchActionOrder && config.OptimizeRotation && hasRes)
-                changed |= ApplyActionOrder(config, res);
+                orderChanged |= ApplyActionOrder(config, res);
             if (config.AutoEquip && config.SearchSpeedLead && config.OptimizeRotation && hasRes)
-                changed |= ApplySpeedLead(config, res, autoEquipped);   // 선행 영웅 × 나머지 순서를 함께 탐색
+                orderChanged |= ApplySpeedLead(config, res, autoEquipped);   // 선행 영웅 × 나머지 순서를 함께 탐색
+            if (rankOn && orderChanged) changed |= ApplyAtkRank(config, res, autoEquipped);   // 순서가 바뀌면 1순위여야 할 영웅도 달라질 수 있다
+            changed |= orderChanged;
             if (changed && config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation)
                 ApplyAggressiveSurvival(config, res, autoEquipped);     // 순서가 바뀌면 죽는 영웅도 달라진다
             return res;
@@ -298,6 +313,270 @@ namespace GameDamageCalculator.Services.BattleEngine
             best.GearLog.Add($"[공격 로테+생존 보강] 미채택: 시도 결과 {best.BestScore:N0}(랭크 {best.BestRankScore:N0}) ≤ 현재 {saved.Score:N0}(랭크 {saved.Rank:N0})");
             best.BestScore = saved.Score; best.BestRankScore = saved.Rank; best.BestResult = saved.Res; best.BestRotationPlan = saved.Plan; best.RingedAcc = saved.Ringed;
             return false;
+        }
+
+        /// <summary>파티에 "공격력 최고 아군" 대상 효과가 있으면 그 최대 대상 수(쿨감형 = 1), 없으면 0.</summary>
+        private static int AtkRankTargetCount(List<BattleCharacter> party)
+        {
+            int n = 0;
+            foreach (var bc in party)
+                foreach (var sk in bc.Character?.Skills ?? Enumerable.Empty<Skill>())
+                {
+                    if (sk.IsAwakenOnly && !bc.IsAwakened) continue;
+                    var effs = sk.GetLevelData(bc.IsSkillEnhanced, bc.IsAwakened)?.Effects;
+                    if (effs == null) continue;
+                    foreach (var e in effs)
+                    {
+                        if (e.TargetSelector == Models.Effects.TargetSelector.HighestAtkAlly)
+                            n = Math.Max(n, Math.Max(1, sk.GetTranscendBonus(bc.TranscendLevel)?.TargetCountOverride ?? e.TargetCount));
+                        else if (e.Target == Models.Effects.EffectTarget.SelfAndHighestAtkAlly)
+                            n = Math.Max(n, 1);
+                    }
+                }
+            return n;
+        }
+
+        /// <summary>현재 장비 기준 아군 스탯 공격력(진형 보너스·펫 포함) — 인게임 "공격력 최고 아군" 순위의 바탕값.</summary>
+        private static Dictionary<BattleCharacter, double> AllyAtks(SiegeOptimizerConfig config, SiegeOptimizerResult best,
+            List<BattleCharacter> party)
+        {
+            var bcfg = new BattleConfig
+            {
+                AllyParty = party, AllyPet = config.AllyPet, PetStar = config.PetStar, PetEnhance = config.PetEnhance,
+                PetOptionAtkRate = config.PetOptionAtkRate, FormationName = best.BestFormation,
+            };
+            var bsim = new BattleSimulator();
+            return party.ToDictionary(b => b, b => bsim.InitializeCharacterState(bcfg, b, party.IndexOf(b)).FinalAtk);
+        }
+
+        /// <summary>공격력 순위 탐색 — SiegeOptimizerConfig.SearchAtkRank 설명 참조.</summary>
+        private bool ApplyAtkRank(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            if (!config.InGameBuffTargeting || config.HighestAtkAllyOrder != null) return false;
+            var party = best.BestParty;
+            int buffTargets = AtkRankTargetCount(party);
+            if (buffTargets <= 0) return false;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            string formation = best.BestFormation;
+            int wScreen = config.PolishRotation ? Math.Max(4, config.RotationBeamWidth * 2 / 5) : Math.Max(6, config.RotationBeamWidth * 2 / 3);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            const string SPD = "속공";
+            string[] atkStats = { "공격력%", "공격력" };
+
+            string Nm(int i) => party[i].Character?.Name;
+            string OrderStr(List<int> o) => string.Join(">", o.Select(Nm));
+            string AtkStr(Dictionary<BattleCharacter, double> a) =>
+                string.Join(" > ", party.OrderByDescending(b => a[b]).Select(b => $"{b.Character?.Name} {a[b]:N0}"));
+            (SiegeBattleResult R, List<RotationDecision> Plan) ForcedSearch(List<int> order, int width, IEnumerable<List<RotationDecision>> extra)
+            {
+                config.HighestAtkAllyOrder = order;
+                try { return SearchRotationFor(config, party, formation, width, extra); }
+                finally { config.HighestAtkAllyOrder = null; }
+            }
+            SiegeBattleResult ForcedScore(List<int> order, List<RotationDecision> plan)
+            {
+                config.HighestAtkAllyOrder = order;
+                try { return ScoreOnPlan(config, party, formation, plan); }
+                finally { config.HighestAtkAllyOrder = null; }
+            }
+
+            // (1) 순위 강제 탐색: 1순위 후보 5명 → 상위 2명에 대해 2순위까지(대상 2명 이상인 버프가 있을 때만).
+            var cands = new List<(List<int> Order, SiegeBattleResult R, List<RotationDecision> Plan)>();
+            for (int a = 0; a < party.Count; a++)
+            {
+                var o = new List<int> { a };
+                var (r, p) = ForcedSearch(o, wScreen, new[] { best.BestRotationPlan });
+                if (r != null) cands.Add((o, r, p));
+            }
+            if (buffTargets >= 2)
+                foreach (var top in cands.OrderByDescending(c => c.R.RankScore).ThenByDescending(c => c.R.TotalScore).Take(2).ToList())
+                    for (int b = 0; b < party.Count; b++)
+                    {
+                        if (b == top.Order[0]) continue;
+                        var o = new List<int> { top.Order[0], b };
+                        var (r, p) = ForcedSearch(o, wScreen, new[] { best.BestRotationPlan, top.Plan });
+                        if (r != null) cands.Add((o, r, p));
+                    }
+            var atk0 = AllyAtks(config, best, party);
+            best.GearLog.Add($"[공격력 순위] 현재 {AtkStr(atk0)} (팀점수 {best.BestScore:N0}) — 순위 강제 시: "
+                + string.Join(" / ", cands.OrderByDescending(c => c.R.RankScore).Select(c => $"{OrderStr(c.Order)} {c.R.TotalScore:N0}")));
+
+            // (2) 현재보다 높은 후보를 장비로 실현.
+            var movable = party.Where(b => autoEquipped.Contains(b) && b.Equipment != null).ToList();
+            static List<(string Main, List<(string Stat, int Tier)> Subs)> SnapGear(BattleCharacter bc) =>
+                bc.Equipment.GetEquipments().Select(e => (e.MainStatName, e.SubSlots.Select(x => (x.StatName, x.Tier)).ToList())).ToList();
+            static void PutGear(BattleCharacter bc, List<(string Main, List<(string Stat, int Tier)> Subs)> snap)
+            {
+                var eq = bc.Equipment.GetEquipments().ToList();
+                for (int e = 0; e < eq.Count; e++)
+                {
+                    eq[e].MainStatName = snap[e].Main;
+                    for (int x = 0; x < eq[e].SubSlots.Count; x++)
+                    { eq[e].SubSlots[x].StatName = snap[e].Subs[x].Stat; eq[e].SubSlots[x].Tier = snap[e].Subs[x].Tier; }
+                }
+            }
+            var origGear = movable.ToDictionary(b => b, SnapGear);
+            void RestoreAll() { foreach (var b in movable) PutGear(b, origGear[b]); }
+
+            // 순위 위반량(부족분 합): 강제 순서의 마지막 영웅은 나머지 전원보다, 그 앞 영웅은 "뒤 영웅이 도달해야 할 값"보다
+            //   m 이상 높아야 한다. 뒤 영웅의 목표치를 기준으로 삼아야 동률(예: 1순위 후보 = 순서 밖 영웅)에서 막히지 않는다 —
+            //   인접 쌍의 현재 차이만 보면 "2순위를 올리면 1순위를 넘고, 1순위만 올리는 수는 위반이 안 줄어" 한 수씩으로는 못 푼다.
+            double Viol(Dictionary<BattleCharacter, double> a, List<int> order, double m)
+            {
+                double v = 0, floor = double.NegativeInfinity;
+                double lastAtk = a[party[order[order.Count - 1]]];
+                for (int i = 0; i < party.Count; i++)
+                    if (!order.Contains(i))
+                    {
+                        v += Math.Max(0, a[party[i]] + m - lastAtk);
+                        floor = Math.Max(floor, a[party[i]]);
+                    }
+                double need = Math.Max(lastAtk, floor + m) + m;   // 마지막 영웅이 조건을 채웠을 때의 값 + m
+                for (int i = order.Count - 2; i >= 0; i--)
+                {
+                    double cur = a[party[order[i]]];
+                    v += Math.Max(0, need - cur);
+                    need = Math.Max(cur, need) + m;
+                }
+                return v;
+            }
+            // 한 영웅의 공격력을 올리는(dir>0)/내리는(dir<0) 장비 수 — 효과가 같은 수는 Key로 한 번만.
+            IEnumerable<(string Key, string Desc, Action Do, Action Undo)> Moves(BattleCharacter b, int dir)
+            {
+                var gc = GetGearConstraints(b, config.SiegeStage, config.UnconstrainedGear);
+                string hero = b.Character.Name;
+                foreach (var e in b.Equipment.GetEquipments())
+                {
+                    string m0 = e.MainStatName;
+                    var avail = EquipmentDb.MainStatDb.AvailableOptions.TryGetValue(e.Slot ?? "", out var av) ? av : new string[0];
+                    var mains = ((e.Slot == "무기" ? gc?.WeaponMains : gc?.ArmorMains) ?? new string[0]).Where(avail.Contains).ToArray();
+                    if (dir < 0 && m0 == "공격력%")
+                        foreach (var alt in mains.Where(x => !atkStats.Contains(x)))
+                            yield return ($"{hero}|main|{e.Slot}|{alt}", $"{hero} {e.Name} 메인 공격력%→{alt}", () => e.MainStatName = alt, () => e.MainStatName = m0);
+                    if (dir > 0 && m0 != "공격력%" && mains.Contains("공격력%"))
+                        yield return ($"{hero}|main|{e.Slot}|{m0}→공", $"{hero} {e.Name} 메인 {m0}→공격력%", () => e.MainStatName = "공격력%", () => e.MainStatName = m0);
+
+                    var slots = e.SubSlots.Where(x => !string.IsNullOrEmpty(x.StatName) && x.StatName != SPD).ToList();
+                    var names = e.SubSlots.Select(x => x.StatName).ToHashSet();
+                    foreach (var a in slots.Where(x => atkStats.Contains(x.StatName)))
+                        foreach (var n in slots.Where(x => !atkStats.Contains(x.StatName)))
+                        {
+                            if (dir < 0 && a.Tier > 1 && n.Tier < 6)
+                                yield return ($"{hero}|sub|{a.StatName}→{n.StatName}", $"{hero} {e.Name} 부옵 {a.StatName}→{n.StatName} 1티어",
+                                    () => { a.Tier--; n.Tier++; }, () => { a.Tier++; n.Tier--; });
+                            if (dir > 0 && n.Tier > 1 && a.Tier < 6)
+                                yield return ($"{hero}|sub|{n.StatName}→{a.StatName}", $"{hero} {e.Name} 부옵 {n.StatName}→{a.StatName} 1티어",
+                                    () => { n.Tier--; a.Tier++; }, () => { n.Tier++; a.Tier--; });
+                        }
+                    if (dir < 0)
+                        foreach (var a in slots.Where(x => atkStats.Contains(x.StatName)))
+                            foreach (var nn in (gc?.SubOptions ?? new string[0]).Concat(new[] { "생명력%", "방어력%" }).Distinct()
+                                         .Where(x => !atkStats.Contains(x) && x != SPD && !names.Contains(x)))
+                            {
+                                string old = a.StatName;
+                                yield return ($"{hero}|ren|{old}{a.Tier}→{nn}", $"{hero} {e.Name} 부옵 {old}({a.Tier}티어)→{nn}", () => a.StatName = nn, () => a.StatName = old);
+                            }
+                    if (dir > 0)
+                        foreach (var n in slots.Where(x => !atkStats.Contains(x.StatName)))
+                            foreach (var nn in atkStats.Where(x => !names.Contains(x)))
+                            {
+                                string old = n.StatName;
+                                yield return ($"{hero}|ren|{old}{n.Tier}→{nn}", $"{hero} {e.Name} 부옵 {old}({n.Tier}티어)→{nn}", () => n.StatName = nn, () => n.StatName = old);
+                            }
+                }
+            }
+
+            var trials = new List<(List<int> Order, Dictionary<BattleCharacter, List<(string Main, List<(string Stat, int Tier)> Subs)>> Gear,
+                List<string> Steps, SiegeBattleResult R, List<RotationDecision> Plan)>();
+            int attempted = 0;
+            foreach (var c in cands.Where(c => IsBetterPick(c.R.TotalScore, c.R.RankScore, best.BestScore, best.BestRankScore))
+                                   .OrderByDescending(c => c.R.RankScore).ThenByDescending(c => c.R.TotalScore))
+            {
+                if (attempted >= 4 || trials.Count >= 2) break;
+                attempted++;
+                var steps = new List<string>();
+                bool ok = true, realized = false;
+                // 여유 단계별 (장비, 수 개수, 강제 없는 점수) — 강제 때 점수가 안 나와도 그중 가장 높은 단계를 쓴다.
+                var stages = new List<(Dictionary<BattleCharacter, List<(string Main, List<(string Stat, int Tier)> Subs)>> Gear, int StepCount, double Free, double Margin)>();
+                // 여유(공격력)를 넓혀 가며: 스탯 순위가 맞아도 전투 중 공격력 감소·버프로 순위가 뒤집힐 수 있다.
+                foreach (double margin in new[] { 1.0, 60.0, 150.0 })
+                {
+                    for (int step = 0; step < 20; step++)
+                    {
+                        var a = AllyAtks(config, best, party);
+                        double v0 = Viol(a, c.Order, margin);
+                        if (v0 <= 0) break;
+                        double s0 = ForcedScore(c.Order, c.Plan).RankScore;
+                        (string Key, string Desc, Action Do, Action Undo) pick = default;
+                        double pickEff = double.PositiveInfinity, pickV = v0;
+                        var seen = new HashSet<string>();
+                        var moves = new List<(string Key, string Desc, Action Do, Action Undo)>();
+                        foreach (var b in movable)
+                        {
+                            int idx = party.IndexOf(b);
+                            if (c.Order.Contains(idx)) moves.AddRange(Moves(b, +1));
+                            if (idx != c.Order[0]) moves.AddRange(Moves(b, -1));
+                        }
+                        foreach (var mv in moves)
+                        {
+                            if (!seen.Add(mv.Key)) continue;
+                            mv.Do();
+                            double v = Viol(AllyAtks(config, best, party), c.Order, margin);
+                            if (v < v0 - 0.5)
+                            {
+                                double s = ForcedScore(c.Order, c.Plan).RankScore;
+                                double eff = (s0 - s) / (v0 - v);   // 순위 격차 1을 줄이는 데 드는 점수 손실 (음수 = 이득)
+                                if (eff < pickEff) { pickEff = eff; pick = mv; pickV = v; }
+                            }
+                            mv.Undo();
+                        }
+                        if (pick.Do == null) { ok = false; break; }
+                        pick.Do();
+                        steps.Add($"{pick.Desc} (격차 {v0:N0}→{pickV:N0})");
+                    }
+                    if (!ok || Viol(AllyAtks(config, best, party), c.Order, margin) > 0) { ok = false; break; }
+                    // 강제 없이 같은 로테를 돌려 강제 때와 같은 점수가 나오면 순위가 실제로 실현된 것.
+                    double forced = ForcedScore(c.Order, c.Plan).RankScore;
+                    double free = Math.Max(ScoreOnPlan(config, party, formation, c.Plan).RankScore,
+                                           ScoreOnPlan(config, party, formation, best.BestRotationPlan).RankScore);
+                    stages.Add((movable.ToDictionary(b => b, SnapGear), steps.Count, free, margin));
+                    if (free >= forced * 0.985) { realized = true; break; }
+                }
+                if (stages.Count == 0)
+                {
+                    var af = AllyAtks(config, best, party);
+                    best.GearLog.Add($"[공격력 순위] {OrderStr(c.Order)} — 장비 조정으로 실현 불가(자동장착 영웅의 부옵·메인옵으로 격차를 못 메움): "
+                        + $"{steps.Count}수 후 남은 격차 {Viol(af, c.Order, 1):N0}, {AtkStr(af)}");
+                    RestoreAll();
+                    continue;
+                }
+                var stage = stages.OrderByDescending(x => x.Free).ThenBy(x => x.StepCount).First();
+                foreach (var b in movable) PutGear(b, stage.Gear[b]);
+                steps = steps.Take(stage.StepCount).ToList();
+                var (fr, fp) = SearchRotationFor(config, party, formation, config.RotationBeamWidth, new[] { c.Plan, best.BestRotationPlan });
+                if (fr != null)
+                {
+                    trials.Add((c.Order, movable.ToDictionary(b => b, SnapGear), steps, fr, fp));
+                    best.GearLog.Add($"[공격력 순위] {OrderStr(c.Order)} 시도: 강제 {c.R.TotalScore:N0} → 장비 조정 {steps.Count}수(여유 {stage.Margin:0}) 후 {fr.TotalScore:N0}"
+                        + $"{(realized ? "" : " (강제 때와 수령자가 다름)")} — {AtkStr(AllyAtks(config, best, party))}");
+                }
+                RestoreAll();
+            }
+
+            var win = trials.OrderByDescending(t => t.R.RankScore).ThenByDescending(t => t.R.TotalScore).FirstOrDefault();
+            if (win.R == null || !IsBetterPick(win.R.TotalScore, win.R.RankScore, best.BestScore, best.BestRankScore))
+            {
+                best.GearLog.Add($"[공격력 순위] 유지 — 현재 {best.BestScore:N0}"
+                    + (win.R != null ? $", 최고 시도 {OrderStr(win.Order)} {win.R.TotalScore:N0}" : ", 현재보다 높은 순위 후보 없음")
+                    + $" ({clock.Elapsed.TotalMinutes:F1}분)");
+                return false;
+            }
+            foreach (var b in movable) PutGear(b, win.Gear[b]);
+            best.GearLog.Add($"[공격력 순위] 채택: {OrderStr(win.Order)} 우선 — 팀점수 {best.BestScore:N0} → {win.R.TotalScore:N0}, {AtkStr(AllyAtks(config, best, party))} ({clock.Elapsed.TotalMinutes:F1}분)");
+            foreach (var s in win.Steps) best.GearLog.Add($"  [공격력 순위] {s}");
+            best.BestScore = win.R.TotalScore; best.BestRankScore = win.R.RankScore; best.BestResult = win.R; best.BestRotationPlan = win.Plan;
+            return true;
         }
 
         /// <summary>로테 빔 재탐색 + 후보 플랜 평가 → (최고 결과, 그 플랜). team 순서 = 진형 번호 순.</summary>
@@ -981,6 +1260,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (rank < bestRank - eps) return false;
             return total > bestTotal;   // rank 동률 → raw(보고 점수) 높은 쪽
         }
+
+        /// <summary>저장된 빌드(SiegeBuildStore) 재평가용 — 탐색과 같은 조건(시드 수·사망 페널티·타게팅)으로 한 빌드를 점수 낸다.
+        ///   party는 진형 번호 순, IsBackPosition이 맞춰져 있어야 한다.</summary>
+        public static SiegeBattleResult EvaluateBuild(SiegeOptimizerConfig config, List<BattleCharacter> party,
+            string formation, List<RotationDecision> plan) => ScoreOnPlan(config, party, formation, plan);
+
+        /// <summary>두 빌드 비교(탐색의 채택 기준과 동일: 랭크 점수 우선, 동률이면 실제 점수).</summary>
+        public static bool IsBetterBuild(double total, double rank, double bestTotal, double bestRank)
+            => IsBetterPick(total, rank, bestTotal, bestRank);
 
         /// <summary>
         /// 장비 미지정 영웅에게 최적 장비 장착. 영웅별로 허용 세트마다 후보(메인·부옵 프록시 최적)를 만들고,
