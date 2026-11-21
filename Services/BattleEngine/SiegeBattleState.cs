@@ -25,6 +25,13 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 라운드 (1~3)
         public int CurrentRound { get; set; } = 1;
 
+        // 협공 운 집계 — 시뮬은 협공을 기댓값(피해 × 확률)으로 넣으므로, 실제 판정이 얼마나 흔들릴 수 있는지 따로 센다.
+        //   판정 1회: 확률 p로 피해 D → 기댓값 pD, 분산 p(1−p)D². (SiegeBattleResult.Coop* 로 전달)
+        public int CoopJudgments { get; set; }
+        public double CoopExpectedProcs { get; set; }
+        public double CoopExpectedDamage { get; set; }
+        public double CoopVariance { get; set; }
+
         // 누적 턴 (0~70, 라운드 넘어가도 이어짐)
         public int CurrentTurn { get; set; }
 

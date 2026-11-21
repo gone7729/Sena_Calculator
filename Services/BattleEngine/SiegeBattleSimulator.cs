@@ -835,6 +835,11 @@ namespace GameDamageCalculator.Services.BattleEngine
                     hits.Add((t, w * dmg, w));
                 }
                 if (hits.Count == 0) continue;
+                {
+                    double eDmg = hits.Sum(h => h.Dmg);   // 이 판정의 기댓값 pD → 분산 p(1−p)D² = (pD)²(1−p)/p
+                    state.CoopJudgments++; state.CoopExpectedProcs += p; state.CoopExpectedDamage += eDmg;
+                    state.CoopVariance += eDmg * eDmg * (1 - p) / p;
+                }
                 Log(state, owner.Source.Character.Name, true, ActionType.SkillAttack, sk.Name, 0,
                     $"협공 (확률 {p * 100:0}% 기댓값) ← {attacker.Source.Character.Name} 평타, 적{hits.Count}");
                 foreach (var h in hits.OrderBy(h => h.T == primary ? 1 : 0))
@@ -859,13 +864,14 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 c -= n;
                 int ext = 0;
+                var extNames = new List<string>();
                 foreach (var e in ally.Effects.GetAllEffects())
                     if (!e.IsPermanent && e.BuffValues != null && e.MaxDuration > 0
                         && e.RemainingTurns > 0 && e.RemainingTurns < e.MaxDuration)
-                    { e.RemainingTurns++; ext++; }
+                    { e.RemainingTurns++; ext++; extNames.Add($"{e.SourceName ?? "?"} {e.RemainingTurns}/{e.MaxDuration}턴"); }
                 if (ext > 0)
                     Log(state, ally.Source.Character.Name, true, ActionType.SkillAttack, "턴제 버프 증가", 0,
-                        $"공격 {n}회 → 자신의 턴제 버프 {ext}개 +1턴");
+                        $"공격 {n}회 → 자신의 턴제 버프 {ext}개 +1턴 [{string.Join(", ", extNames)}]");
             }
             _atkForBuffExtend[ally.PartyIndex] = c;
         }
@@ -3242,6 +3248,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                 TotalTurns = state.CurrentTurn,
                 RoundsCleared = state.CurrentRound - 1,
                 ElapsedSeconds = state.ElapsedSeconds,
+                CoopJudgments = state.CoopJudgments, CoopExpectedProcs = state.CoopExpectedProcs,
+                CoopExpectedDamage = state.CoopExpectedDamage, CoopStdDev = Math.Sqrt(state.CoopVariance),
                 AlliesAlive = state.AllyStates.Count(a => !a.IsDead),
                 TurnLogs = state.TurnLogs,
                 TimeLedger = state.TimeLedger,

@@ -17,6 +17,15 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 라운드별 점수
         public Dictionary<int, double> RoundScore { get; set; } = new();
 
+        // 협공 운(확률 판정) 집계 — 점수는 기댓값이고, 실제 한 판은 협공 발동 횟수에 따라 흔들린다.
+        //   CoopJudgments = 판정 횟수(아군 평타 수), CoopExpectedProcs = 기대 발동 횟수(Σp),
+        //   CoopExpectedDamage = 점수에 들어간 협공 기댓값(ΣpD), CoopStdDev = 그 표준편차 √Σp(1−p)D².
+        //   근사: 판정끼리 독립, 발동 횟수가 달라져 생기는 시간·버프 연장 변화는 무시, R1·R2 초과 피해 미보정.
+        public int CoopJudgments { get; set; }
+        public double CoopExpectedProcs { get; set; }
+        public double CoopExpectedDamage { get; set; }
+        public double CoopStdDev { get; set; }
+
         // 도달 턴 / 클리어한 라운드 수 (R1·R2 클리어 개수)
         public int TotalTurns { get; set; }
         public int RoundsCleared { get; set; }

@@ -35,6 +35,31 @@ namespace GameDamageCalculator.Services.BattleEngine
         public PetDto Pet { get; set; }
         public List<StepDto> Rotation { get; set; } = new();
         public List<string> Log { get; set; } = new();   // 옵티마이저 장비·후처리 로그
+        public string Route { get; set; }                // 탐색 경로: "고점" / "정석" (SiegeSearchRoute)
+        public double? TargetScore { get; set; }         // 고점 경로: 유저가 입력한 인게임 최고점(추격 목표)
+        public List<StageDto> Stages { get; set; } = new();     // 이 빌드를 찾은 탐색의 단계별 점수(정석 → 고점 사다리)
+        public List<RunDto> History { get; set; } = new();      // 이 팀·경로로 돌린 탐색 기록(출발 순서별 결과)
+
+        public class StageDto
+        {
+            public string Name { get; set; }
+            public double Score { get; set; }
+            public double RankScore { get; set; }
+            public int Deaths { get; set; }
+            public string Order { get; set; }            // 그 시점 진형 번호 순
+            public bool Standard { get; set; }           // 정석 경로에 속하는 단계(이후 단계는 고점 경로 전용)
+        }
+        public class RunDto
+        {
+            public string StartOrder { get; set; }
+            public string FinalOrder { get; set; }
+            public double Score { get; set; }
+            public double RankScore { get; set; }
+            public int Deaths { get; set; }
+            public double Minutes { get; set; }
+            public string At { get; set; }
+            public string EngineHash { get; set; }
+        }
 
         public class HeroDto
         {

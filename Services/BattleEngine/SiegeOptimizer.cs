@@ -150,6 +150,26 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   (3) 강제를 풀고 정식 빔으로 재탐색해 랭크 점수가 오를 때만 채택한다(무회귀). 속공 부옵은 건드리지 않는다.
         public bool SearchAtkRank { get; set; }
 
+        // ── 탐색 경로 (2026-11-20 유저 방침) ──
+        //   정석(Standard): 기본 탐색 + 로테 다듬기 + 공격 로테·생존 보강. 속공 순서·공격력 순위처럼 "템 옵션을 따로 손봐야"
+        //                   성립하는 수(SearchAtkRank / SearchActionOrder / SearchSpeedLead)는 쓰지 않는다 — 따라 하기 쉬운 빌드.
+        //   고점(Peak):     정석 + 공격력 순위 → 행동 순서 → 속공 선행 → (순서가 바뀌면) 순위·생존 재탐색. 유저 최고점 추격용.
+        //   고점 파이프라인의 앞부분이 곧 정석이므로, 고점 탐색 한 번이면 OnStage(StandardStage) 시점의 결과가 정석 빌드다.
+        public void ApplyRoute(SiegeSearchRoute route)
+        {
+            bool peak = route == SiegeSearchRoute.Peak;
+            PolishRotation = true;
+            SearchAggressiveSurvival = true;
+            SearchAtkRank = peak;
+            SearchActionOrder = peak;
+            SearchSpeedLead = peak;
+        }
+
+        // 단계 콜백 — 후처리 단계가 하나 끝날 때마다 (단계 이름, 그 시점 결과)를 알린다. 결과 객체는 이후 단계가 계속 고쳐 쓰므로
+        //   받는 쪽이 그 자리에서 필요한 값을 복사해야 한다(SiegeBuildStore.Capture). StandardStage = 정석 경로가 끝난 시점.
+        public System.Action<string, SiegeOptimizerResult> OnStage { get; set; }
+        public const string StandardStage = "정석";
+
         // 좌표상승(기어↔로테/진형) 2패스 탐색. 기본 OFF(기존 1패스 동작·무회귀).
         //   ON이면 1패스(기어=프록시 레짐)로 진형·자리·빔로테를 찾은 뒤, 그 최종 레짐을 GearEval*에 피드백해
         //   기어를 재최적화하고 다시 탐색 → 기어 선정 레짐 = 최종 평가 레짐 정합(2단계 근사 함정 교정).
@@ -175,6 +195,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 아군 스킬 쿨 안전 여유(초) — SiegeBattleConfig.AllyCooldownMargin 전달. 0이면 기존 동작.
         public double AllyCooldownMargin { get; set; }
     }
+
+    /// <summary>탐색 경로 — SiegeOptimizerConfig.ApplyRoute 설명 참조.</summary>
+    public enum SiegeSearchRoute { Standard, Peak }
 
     /// <summary>공성전 탐색 결과 (최고딜 팀 + 진형).</summary>
     public class SiegeOptimizerResult
@@ -232,6 +255,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (config.AutoEquip && config.EnableSurvivalGear && res?.BestParty != null && res.BestParty.Count > 0)
                 ApplySurvivalGear(config, res, autoEquipped);
             bool hasRes = res?.BestParty != null && res.BestParty.Count > 0;
+            void Stage(string name) { if (hasRes) config.OnStage?.Invoke(name, res); }
+            Stage("기본 탐색");
             if (config.PolishRotation && config.OptimizeRotation && hasRes && res.BestRotationPlan != null && res.BestRotationPlan.Count > 0)
             {
                 for (int i = 0; i < res.BestParty.Count; i++)
@@ -244,20 +269,34 @@ namespace GameDamageCalculator.Services.BattleEngine
                     res.BestScore = pr.TotalScore; res.BestRankScore = pr.RankScore; res.BestResult = pr; res.BestRotationPlan = pp;
                 }
             }
+            if (config.PolishRotation && config.OptimizeRotation) Stage("로테 다듬기");
             if (config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation && hasRes)
+            {
                 ApplyAggressiveSurvival(config, res, autoEquipped);
+                Stage("공격 로테+생존 보강");
+            }
+            Stage(SiegeOptimizerConfig.StandardStage);   // ── 여기까지가 정석 경로. 아래는 고점 경로 전용(템 옵션을 따로 손보는 수) ──
             bool changed = false;
             bool rankOn = config.SearchAtkRank && config.AutoEquip && config.OptimizeRotation && hasRes;
-            if (rankOn) changed |= ApplyAtkRank(config, res, autoEquipped);   // 순서 탐색 전에 — 쿨감 수령자가 맞아야 순서가 의미 있다
+            if (rankOn) { changed |= ApplyAtkRank(config, res, autoEquipped); Stage("공격력 순위"); }   // 순서 탐색 전에 — 쿨감 수령자가 맞아야 순서가 의미 있다
             bool orderChanged = false;
             if (config.SearchActionOrder && config.OptimizeRotation && hasRes)
+            {
                 orderChanged |= ApplyActionOrder(config, res);
+                Stage("행동 순서");
+            }
             if (config.AutoEquip && config.SearchSpeedLead && config.OptimizeRotation && hasRes)
+            {
                 orderChanged |= ApplySpeedLead(config, res, autoEquipped);   // 선행 영웅 × 나머지 순서를 함께 탐색
-            if (rankOn && orderChanged) changed |= ApplyAtkRank(config, res, autoEquipped);   // 순서가 바뀌면 1순위여야 할 영웅도 달라질 수 있다
+                Stage("속공 선행");
+            }
+            if (rankOn && orderChanged) { changed |= ApplyAtkRank(config, res, autoEquipped); Stage("공격력 순위(순서 변경 후)"); }   // 순서가 바뀌면 1순위여야 할 영웅도 달라질 수 있다
             changed |= orderChanged;
             if (changed && config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation)
+            {
                 ApplyAggressiveSurvival(config, res, autoEquipped);     // 순서가 바뀌면 죽는 영웅도 달라진다
+                Stage("생존 보강(순서 변경 후)");
+            }
             return res;
         }
 
