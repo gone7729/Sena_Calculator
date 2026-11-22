@@ -170,6 +170,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         public System.Action<string, SiegeOptimizerResult> OnStage { get; set; }
         public const string StandardStage = "정석";
 
+        // 시도 콜백 — 탐색이 "완성된 후보 하나"(자리·장비 + 그 후보의 최고 로테)를 평가할 때마다 알린다. 채택되지 않고 버려지는
+        //   후보도 전부 온다(도태된 시도 기록용 — SiegeTrialStore). 넘어오는 파티·장비는 탐색이 계속 고쳐 쓰는 공유 객체이므로
+        //   받는 쪽이 그 자리에서 복사해야 한다. 탐색 결과에는 영향을 주지 않는다(읽기 전용 알림).
+        public System.Action<SiegeTrialInfo> OnTrial { get; set; }
+
         // 좌표상승(기어↔로테/진형) 2패스 탐색. 기본 OFF(기존 1패스 동작·무회귀).
         //   ON이면 1패스(기어=프록시 레짐)로 진형·자리·빔로테를 찾은 뒤, 그 최종 레짐을 GearEval*에 피드백해
         //   기어를 재최적화하고 다시 탐색 → 기어 선정 레짐 = 최종 평가 레짐 정합(2단계 근사 함정 교정).
@@ -194,6 +199,16 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool DiagAlliesImmortal { get; set; }
         // 아군 스킬 쿨 안전 여유(초) — SiegeBattleConfig.AllyCooldownMargin 전달. 0이면 기존 동작.
         public double AllyCooldownMargin { get; set; }
+    }
+
+    /// <summary>탐색 중 평가된 후보 1건(SiegeOptimizerConfig.OnTrial). Team = 진형 번호 순, IsBackPosition = 그 후보의 자리.</summary>
+    public class SiegeTrialInfo
+    {
+        public string Phase { get; set; }                    // 어느 탐색 단계에서 나온 후보인지 (기본 탐색 / 공격력 순위 / 행동 순서 …)
+        public List<BattleCharacter> Team { get; set; }
+        public string Formation { get; set; }
+        public List<RotationDecision> Plan { get; set; }
+        public SiegeBattleResult Result { get; set; }
     }
 
     /// <summary>탐색 경로 — SiegeOptimizerConfig.ApplyRoute 설명 참조.</summary>
@@ -236,6 +251,26 @@ namespace GameDamageCalculator.Services.BattleEngine
     {
         private readonly SiegeBattleSimulator _sim = new(GearCompareSeed);   // 고정 시드 — 배치/진형 탐색 재현성
 
+        // 시도 기록(OnTrial)용 — 지금 어느 탐색 단계인지. Optimize가 단계마다 바꾼다.
+        private string _trialPhase = "기본 탐색";
+        private void Trial(SiegeOptimizerConfig config, List<BattleCharacter> team, string formation,
+            List<RotationDecision> plan, SiegeBattleResult r)
+        {
+            if (config.OnTrial == null || r == null || team == null) return;
+            config.OnTrial(new SiegeTrialInfo { Phase = _trialPhase, Team = team, Formation = formation, Plan = plan, Result = r });
+        }
+
+        /// <summary>시도 기록용 재생 — 탐색과 같은 조건(시드 777)으로 한 번 돌리되 스킬 순서 실행 기록(Feasibility)을 남긴다.
+        ///   party는 진형 번호 순, IsBackPosition이 맞춰져 있어야 한다. 점수는 단일 시드 값(N시드 평균 요일은 EvaluateBuild와 다를 수 있음).</summary>
+        public static SiegeBattleResult ReplayWithCasts(SiegeOptimizerConfig config, List<BattleCharacter> party,
+            string formation, List<RotationDecision> plan)
+        {
+            var sc = BuildSimConfig(config, party, formation);
+            sc.RotationPlan = plan;
+            sc.RecordFeasibility = true;
+            return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
+        }
+
         // 공성전 아군 순회 진형 (공격 진형 제외 — 기획)
         private static readonly string[] Formations = { "기본 진형", "밸런스 진형", "보호 진형" };
 
@@ -251,6 +286,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ? config.FixedMembers.Concat(config.Candidates ?? new List<BattleCharacter>())
                     .Where(bc => bc != null && bc.Equipment == null).ToHashSet()
                 : new HashSet<BattleCharacter>();
+            _trialPhase = "기본 탐색";
             var res = OptimizeCore(config);
             if (config.AutoEquip && config.EnableSurvivalGear && res?.BestParty != null && res.BestParty.Count > 0)
                 ApplySurvivalGear(config, res, autoEquipped);
@@ -272,28 +308,32 @@ namespace GameDamageCalculator.Services.BattleEngine
             if (config.PolishRotation && config.OptimizeRotation) Stage("로테 다듬기");
             if (config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation && hasRes)
             {
+                _trialPhase = "공격 로테+생존 보강";
                 ApplyAggressiveSurvival(config, res, autoEquipped);
                 Stage("공격 로테+생존 보강");
             }
             Stage(SiegeOptimizerConfig.StandardStage);   // ── 여기까지가 정석 경로. 아래는 고점 경로 전용(템 옵션을 따로 손보는 수) ──
             bool changed = false;
             bool rankOn = config.SearchAtkRank && config.AutoEquip && config.OptimizeRotation && hasRes;
-            if (rankOn) { changed |= ApplyAtkRank(config, res, autoEquipped); Stage("공격력 순위"); }   // 순서 탐색 전에 — 쿨감 수령자가 맞아야 순서가 의미 있다
+            if (rankOn) { _trialPhase = "공격력 순위"; changed |= ApplyAtkRank(config, res, autoEquipped); Stage("공격력 순위"); }   // 순서 탐색 전에 — 쿨감 수령자가 맞아야 순서가 의미 있다
             bool orderChanged = false;
             if (config.SearchActionOrder && config.OptimizeRotation && hasRes)
             {
+                _trialPhase = "행동 순서";
                 orderChanged |= ApplyActionOrder(config, res);
                 Stage("행동 순서");
             }
             if (config.AutoEquip && config.SearchSpeedLead && config.OptimizeRotation && hasRes)
             {
+                _trialPhase = "속공 선행";
                 orderChanged |= ApplySpeedLead(config, res, autoEquipped);   // 선행 영웅 × 나머지 순서를 함께 탐색
                 Stage("속공 선행");
             }
-            if (rankOn && orderChanged) { changed |= ApplyAtkRank(config, res, autoEquipped); Stage("공격력 순위(순서 변경 후)"); }   // 순서가 바뀌면 1순위여야 할 영웅도 달라질 수 있다
+            if (rankOn && orderChanged) { _trialPhase = "공격력 순위(순서 변경 후)"; changed |= ApplyAtkRank(config, res, autoEquipped); Stage("공격력 순위(순서 변경 후)"); }   // 순서가 바뀌면 1순위여야 할 영웅도 달라질 수 있다
             changed |= orderChanged;
             if (changed && config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation)
             {
+                _trialPhase = "생존 보강(순서 변경 후)";
                 ApplyAggressiveSurvival(config, res, autoEquipped);     // 순서가 바뀌면 죽는 영웅도 달라진다
                 Stage("생존 보강(순서 변경 후)");
             }
@@ -636,6 +676,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             if (config.PolishRotation && pick != null)
                 (pick, pickPlan) = PolishPlan(config, team, formation, pick, pickPlan);
+            Trial(config, team, formation, pickPlan, pick);
             return (pick, pickPlan);
         }
 
@@ -1245,6 +1286,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                                 cand.BestRotationPlan = plan;
                             }
                         }
+                        Trial(config, cand.BestParty, cand.BestFormation, cand.BestRotationPlan, cand.BestResult);   // 진형·자리 후보별 최고 로테
                     }
                     // 각 빔 후보에 생존반지+로테재최적화를 적용한 뒤 best 선정 — 딜러 후열 빌드가
                     //   "생존반지 전 점수"로 탈락하던 버그 수정. (라이언/타카 후열은 생존반지로 살리면 딜이

@@ -19,7 +19,7 @@ using GameDamageCalculator.Services.BattleEngine;
 //   [정석 경로] (`정석`) — 위 손질 없이 기본 탐색 + 로테 다듬기 + 생존 보강까지만. 따라 하기 쉬운 빌드.
 //       고점 탐색의 앞부분이 곧 정석이라, 고점 탐색을 돌리면 정석 빌드도 함께 저장된다(파일 이름에 _정석).
 //
-// 사용: SiegeBuildSearch <요일> 팀=a,b,c,d,e [고점=13090000 | 정석] [출발=N] [다시] [진형=밸런스 진형] [후열=x,y] [불러오기] [연장끔] [턴로그] [각성기끔]
+// 사용: SiegeBuildSearch <요일> 팀=a,b,c,d,e [고점=13090000 | 정석] [출발=N] [다시] [진형=밸런스 진형] [후열=x,y] [불러오기] [연장끔] [턴로그] [각성기끔] [시도]
 //        [6초월] [델로|리첼] [노각성] [dw] [quick] [nospd] [noorder] [nopolish] [nosurv] [norank]
 //        [페널티N] [반격시드N] [평가시드N]
 //   팀 순서 = 첫 탐색의 출발 순서(같은 속공이면 앞에서부터 행동). 저장 키는 팀 구성(순서 무관)이다.
@@ -170,6 +170,60 @@ string GitHead()
 string engineHash = EngineHash();
 string gitHead = GitHead();
 
+// ── 시도 기록 (SiegeTrialStore) — 탐색이 평가한 후보를 도태된 것까지 전부 trials_*.jsonl 에 덧붙인다 ──
+string trialPath = System.IO.Path.Combine(outDir, $"trials_{day}_{profile}_{teamKey}.jsonl");
+if (args.Contains("시도"))
+{
+    var all = SiegeTrialStore.Load(trialPath);
+    Console.WriteLine($"═══ 시도 기록 {day} [{teamKey}] {profile} — {all.Count}줄");
+    Console.WriteLine($"    {trialPath}");
+    if (all.Count == 0) { Console.WriteLine("기록이 없습니다. 먼저 탐색을 돌리세요."); return; }
+    string Line(SiegeTrialRecord t) => $"{t.Score,12:N0} (랭크 {t.RankScore,12:N0}, 사망 {t.DeathCount:0.#}) · {t.Formation?.Replace(" 진형", "")}·후열 {string.Join("+", t.BackRow)} · 순서 {string.Join(",", t.Order)} · {t.Phase}{(t.ForcedBuffOrder != null ? $" [가정: 버프 수령 {string.Join(">", t.ForcedBuffOrder)}]" : "")} · 출발 {t.StartOrder}";
+    double Median(List<double> v) { v.Sort(); return v.Count == 0 ? 0 : v.Count % 2 == 1 ? v[v.Count / 2] : (v[v.Count / 2 - 1] + v[v.Count / 2]) / 2; }
+    var uniq = all.GroupBy(t => t.EngineHash + t.Fingerprint).Select(g => g.OrderByDescending(t => t.Adopted).First()).ToList();
+    Console.WriteLine($"서로 다른 빌드 {uniq.Count}개 (그중 버프 수령자 강제 가정 {uniq.Count(t => t.ForcedBuffOrder != null)}개) · 단계 채택 기록 {all.Count(t => t.Adopted)}줄 · 엔진 {string.Join(", ", all.GroupBy(t => t.EngineHash).Select(g => $"{g.Key}×{g.Count()}"))}");
+    int mismatch = all.Count(t => t.ReplayScore != null && Math.Abs(t.ReplayScore.Value - t.Score) > 1);
+    if (mismatch > 0) Console.WriteLine($"  ⚠ 재생 점수가 기록 점수와 다른 줄 {mismatch}개 (N시드 평균 요일이면 정상)");
+    Console.WriteLine();
+    Console.WriteLine("──── 출발 순서별 ────");
+    foreach (var g in all.GroupBy(t => t.StartOrder))
+        Console.WriteLine($"  {g.Key}: {g.Count()}줄 · 랭크 최저 {g.Min(t => t.RankScore):N0} / 중앙 {Median(g.Select(t => t.RankScore).ToList()):N0} / 최고 {g.Max(t => t.RankScore):N0}");
+    Console.WriteLine();
+    Console.WriteLine("──── 단계별 (평가된 후보) ────");
+    foreach (var g in all.Where(t => !t.Adopted).GroupBy(t => t.Phase))
+        Console.WriteLine($"  {g.Key}: {g.Count()}건 · 랭크 최저 {g.Min(t => t.RankScore):N0} / 중앙 {Median(g.Select(t => t.RankScore).ToList()):N0} / 최고 {g.Max(t => t.RankScore):N0}");
+    Console.WriteLine();
+    Console.WriteLine("──── 랭크 상위 5 ────");
+    foreach (var t in uniq.OrderByDescending(t => t.RankScore).Take(5)) Console.WriteLine("  " + Line(t));
+    Console.WriteLine("──── 랭크 하위 5 ────");
+    foreach (var t in uniq.OrderBy(t => t.RankScore).Take(5)) Console.WriteLine("  " + Line(t));
+    if (args.Contains("검증"))
+    {
+        // 기록에서 빌드를 되살려 다시 돌렸을 때 기록된 점수가 그대로 나오는지 — 나중에 누수 분석이 이 기록을 재생해서 쓸 수 있는지 확인
+        Console.WriteLine();
+        Console.WriteLine("──── 재생 검증 (지금 엔진으로 기록된 시도만) ────");
+        int ok = 0, bad = 0;
+        foreach (var t in uniq.Where(t => t.EngineHash == engineHash))
+        {
+            var party = SiegeBuildStore.ToParty(t.Build);
+            var plan = SiegeBuildStore.ToPlan(t.Build, party);
+            var c = MakeCfg(party, null);
+            if (t.ForcedBuffOrder != null)
+            {
+                c.HighestAtkAllyOrder = t.ForcedBuffOrder.Select(n => party.FindIndex(p => p.Character.Name == n)).ToList();
+                c.HighestAtkAllyOverrideCdrOnly = t.ForcedCdrOnly;
+            }
+            var r = SiegeOptimizer.EvaluateBuild(c, party, t.Build.Formation, plan);
+            if (Math.Abs(r.TotalScore - t.Score) <= 1) ok++;
+            else { bad++; Console.WriteLine($"  ✗ {t.Phase} #{t.Seq} (출발 {t.StartOrder}): 기록 {t.Score:N0} → 재생 {r.TotalScore:N0}"); }
+        }
+        Console.WriteLine($"  일치 {ok}건 · 불일치 {bad}건" + (ok + bad < uniq.Count ? $" · 이전 엔진 기록 {uniq.Count - ok - bad}건은 건너뜀" : ""));
+    }
+    return;
+}
+// 같은 엔진에서 이미 기록한 빌드(지문)는 다시 적지 않는다
+var seenTrials = SiegeTrialStore.Load(trialPath).Where(t => t.EngineHash == engineHash && !t.Adopted).Select(t => t.Fingerprint).ToHashSet();
+
 // 저장된 빌드를 지금 엔진·지금 조건으로 다시 점수 낸다. (전용장비를 DB 영웅에 다시 꽂으므로 탐색 전후 각각 호출)
 (SiegeBattleResult Res, List<BattleCharacter> Party, List<RotationDecision> Plan) Evaluate(SiegeSavedBuild b)
 {
@@ -298,10 +352,47 @@ if (!loadOnly)
             Score = b.Score, RankScore = b.RankScore, Deaths = b.Deaths, Minutes = b.SearchMinutes, At = b.SavedAt, EngineHash = engineHash,
         };
 
+        // 시도 기록 — 평가된 후보(OnTrial)와 단계별 채택 빌드(OnStage)를 그 자리에서 복사해 trials_*.jsonl 에 덧붙인다.
+        //   party는 탐색이 계속 고쳐 쓰는 공유 객체라 콜백 안에서 바로 옮겨 적는다. 스킬 순서는 같은 빌드를 한 번 더 돌려 얻는다.
+        int trialSeq = 0, trialNew = 0;
+        void RecordTrial(string phase, bool adopted, List<BattleCharacter> party, string formation, List<RotationDecision> plan, SiegeBattleResult r)
+        {
+            if (r == null || party == null || party.Count == 0) return;
+            try
+            {
+                var back = party.Where(p => p.IsBackPosition).Select(p => p.Character.Name).ToList();
+                // 버프 수령자 강제(공격력 순위 탐색의 가정 평가) 중이면 그 순서도 지문·기록에 넣는다 — 빌드만으로는 재현되지 않는 점수
+                var forced = cfg.HighestAtkAllyOrder?.Where(i => i >= 0 && i < party.Count).Select(i => party[i].Character.Name).ToList();
+                string fp = SiegeTrialStore.Fingerprint(SiegeBuildStore.Capture(party, formation, back, plan))
+                    + (forced != null ? "|강제:" + string.Join(">", forced) + (cfg.HighestAtkAllyOverrideCdrOnly ? "(쿨감만)" : "") : "");
+                if (!adopted && !seenTrials.Add(fp)) return;   // 같은 빌드를 다시 평가한 것 — 이미 기록됨
+                var replay = plan != null && plan.Count > 0 ? SiegeOptimizer.ReplayWithCasts(cfg, party, formation, plan) : null;
+                var rec = SiegeTrialStore.Make(party, formation, plan, r, replay, penalty);
+                rec.At = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); rec.Day = day; rec.Profile = profile; rec.TeamKey = teamKey;
+                rec.StartOrder = startOrder; rec.Phase = phase; rec.Seq = trialSeq++; rec.Adopted = adopted;
+                rec.EngineHash = engineHash; rec.GitCommit = gitHead;
+                rec.ForcedBuffOrder = forced; rec.ForcedCdrOnly = forced != null && cfg.HighestAtkAllyOverrideCdrOnly;
+                rec.Fingerprint = fp;
+                SiegeTrialStore.Append(trialPath, rec);
+                trialNew++;
+            }
+            catch (Exception ex) { Console.WriteLine($"    [시도 기록 실패] {phase}: {ex.Message}"); }
+        }
+        cfg.OnTrial = t => RecordTrial(t.Phase, false, t.Team, t.Formation, t.Plan, t.Result);
+
         // 정석 경로가 끝난 시점의 결과를 그 자리에서 복사해 둔다(이후 고점 단계가 같은 객체를 고쳐 쓴다).
         SiegeSavedBuild stdSnap = null; double stdTotal = 0, stdRank = 0;
         cfg.OnStage = (name, r) =>
         {
+            if (name != SiegeOptimizerConfig.StandardStage)
+            {
+                // 채택 빌드의 자리(후열)를 파티에 맞춰 놓고 기록한 뒤 되돌린다 — 직전 후보 평가의 자리 표시가 남아 있을 수 있다.
+                var flags = r.BestParty.Select(p => p.IsBackPosition).ToList();
+                var backSet = new HashSet<string>(r.BestBackRow ?? new List<string>());
+                foreach (var p in r.BestParty) p.IsBackPosition = backSet.Contains(p.Character.Name);
+                RecordTrial(name, true, r.BestParty, r.BestFormation, r.BestRotationPlan, r.BestResult);
+                for (int i = 0; i < flags.Count; i++) r.BestParty[i].IsBackPosition = flags[i];
+            }
             if (name == SiegeOptimizerConfig.StandardStage)
             {
                 foreach (var s in stages) s.Standard = true;
@@ -323,6 +414,7 @@ if (!loadOnly)
         string finalOrder = string.Join(",", o2.BestParty.Select(x => x.Character.Name));
         Console.WriteLine($"  → {o2.BestScore:N0} (랭크 {o2.BestRankScore:N0}, 사망 {o2.BestResult?.Deaths?.Count ?? 0}) · {o2.BestFormation} 후열 {string.Join(",", o2.BestBackRow)} · 최종 순서 {finalOrder} · {sw.Elapsed.TotalMinutes:F1}분"
             + (target != null ? $" · 유저 최고점 대비 {Gap(o2.BestScore, target.Value)}" : ""));
+        Console.WriteLine($"  [시도 기록] {trialNew}건 추가 → {System.IO.Path.GetFileName(trialPath)}");
         if (stdSnap != null) { Offer(std, stdSnap, stdTotal, stdRank, Run(stdSnap)); found.Add(stdSnap); }
         if (peak != null)
         {
