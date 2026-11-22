@@ -19,7 +19,7 @@ using GameDamageCalculator.Services.BattleEngine;
 //   각성 보유 영웅은 각성 상태(IsAwakened)로 평가 (고스펙 가정).
 //   후보 필터(기본 ON, "전체" 인자로 끔): 요일 감쇄 90%↑ 공격 속성의 딜러 타입(공격형·마법형·만능형)은 후보에서 제외.
 //     단 그 요일 적 상태이상의 파티 면역 보유자(월 지크·수 라이언 등)는 유지. 지원형·방어형은 딜이 본업이 아니라 유지(목~토 비스킷).
-// 사용: dotnet run -c Release -- 화요일 [limitN] [정식N] [전체]
+// 사용: dotnet run -c Release -- 화요일 [limitN] [정식N] [전체] [각성기끔]
 // ============================================================================
 Console.OutputEncoding = Encoding.UTF8;
 string day = args.FirstOrDefault(a => a.EndsWith("요일")) ?? "화요일";
@@ -31,6 +31,11 @@ string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.B
 string resDir = System.IO.Path.Combine(repoRoot, "results", "siege");
 string basePath = System.IO.Path.Combine(resDir, $"siege_{day}_12초월_윈디.json");
 var stage = EnemyDb.SiegeStages[day];
+// [각성기끔] 각성기(SkillType.Awaken)를 전 영웅에서 뺀다 — 각성 게이지가 미모델이라 시뮬은 각성기를 쿨 0·비용 0으로
+//   스킬 턴마다 쓸 수 있다(쥬다스 「심판의 날」 연속 시전으로 팀 점수의 70%+). 게이지 모델 전까지의 하한 평가용.
+bool noAwkSkill = args.Contains("각성기끔");
+if (noAwkSkill)
+    foreach (var c in CharacterDb.Characters) c.Skills?.RemoveAll(s => s.SkillType == SkillType.Awaken);
 
 BattleCharacter Hero(int id)
 {
@@ -102,7 +107,7 @@ var baseBack = baseRes.BestBackRow.ToList();
 var baseParty = baseRes.BestParty;   // 기어 장착된 객체 (이후 교체 평가에서 재사용)
 var log = new StringBuilder();
 void Out(string s) { lock (log) { Console.WriteLine(s); log.AppendLine(s); } }
-Out($"═══ {day} 영웅 DB 탐색 (12초월·잠재3·윈디, 각성 보유 영웅은 각성) ═══");
+Out($"═══ {day} 영웅 DB 탐색 (12초월·잠재3·윈디, 각성 보유 영웅은 각성{(noAwkSkill ? " · 각성기 끔" : "")}) ═══");
 Out($"[기준·정식] {string.Join(",", baseParty.Select(b => b.Character.Name))} = {baseRes.BestScore:N0} ({baseForm}, 후열 {string.Join(",", baseBack)}) — {sw.Elapsed.TotalMinutes:F1}분");
 
 // 평가마다 BattleCharacter 얕은 복제 — 옵티마이저가 IsBackPosition 등을 바꾸므로 병렬 평가 간 공유 금지.
@@ -117,14 +122,18 @@ static BattleCharacter Clone(BattleCharacter b)
 var po = new ParallelOptions { MaxDegreeOfParallelism = 10 };
 
 // 스크리닝 기준점: 같은 저예산 파이프라인으로 기준 팀 재평가(공정 비교)
-double Screen(List<BattleCharacter> team, List<string> back, out SiegeOptimizerResult r, bool beam = true)
+//   free = 진형·후열을 고정하지 않고 스크리닝이 스스로 고른다(밸런스·보호 × 후열 배치). 교체 영웅이 들어오면 최적 진형이
+//   달라질 수 있어(토요일: 타카→아일린이면 밸런스 후열 2명 → 보호 진형 라이언 단독 후열) [A2]·[B]는 free로 잰다.
+//   [A1] 자동로테 1차 거름만 기준 진형·후열 고정(건수가 많아서).
+double Screen(List<BattleCharacter> team, List<string> back, out SiegeOptimizerResult r, bool beam = true, bool free = false)
 {
-    r = new SiegeOptimizer().Optimize(Cfg(team, full: false, baseForm, back, beam));
+    r = new SiegeOptimizer().Optimize(Cfg(team, full: false, free ? null : baseForm, free ? null : back, beam));
     return r.BestScore;
 }
+string Seat(SiegeOptimizerResult r) => r == null ? "" : $"{r.BestFormation?.Replace(" 진형", "")}·후열 {string.Join("+", r.BestBackRow ?? new List<string>())}";
 var t0 = Stopwatch.StartNew();
-double baseScreen = Screen(baseParty.Select(Clone).ToList(), baseBack, out _);
-Out($"[기준·스크리닝] {baseScreen:N0} ({t0.Elapsed.TotalSeconds:F0}s)");
+double baseScreen = Screen(baseParty.Select(Clone).ToList(), baseBack, out var baseScreenRes, free: true);
+Out($"[기준·스크리닝] {baseScreen:N0} ({Seat(baseScreenRes)}) ({t0.Elapsed.TotalSeconds:F0}s)");
 
 // ---- [A] 1자리 교체
 var inTeam = new HashSet<int>(baseIds);
@@ -193,12 +202,12 @@ for (int slot = 0; slot < baseParty.Count; slot++)
         .OrderByDescending(x => x.Score).Take(TOP_AUTO).Select(x => $"{x.Name} {x.Score / baseAuto * 100:F0}%")));
 var beamJobs = Enumerable.Range(0, baseParty.Count)
     .SelectMany(slot => autoBag.Where(x => x.Slot == slot).OrderByDescending(x => x.Score).Take(TOP_AUTO)).ToList();
-var single = new System.Collections.Concurrent.ConcurrentBag<(int Slot, int HeroId, string Name, double Score)>();
+var single = new System.Collections.Concurrent.ConcurrentBag<(int Slot, int HeroId, string Name, double Score, string Seat)>();
 done = 0; ta.Restart();
 Parallel.ForEach(beamJobs, po, job =>
 {
     var team = SwapTeam(job.Slot, job.HeroId, out var back);
-    try { single.Add((job.Slot, job.HeroId, job.Name, Screen(team, back, out _))); }
+    try { double sc = Screen(team, back, out var sr, free: true); single.Add((job.Slot, job.HeroId, job.Name, sc, Seat(sr))); }
     catch (Exception ex) { lock (log) Out($"  [오류] {job.Name}: {ex.Message}"); }
     int d = System.Threading.Interlocked.Increment(ref done);
     if (d % 10 == 0) Console.WriteLine($"  … 빔 {d}/{beamJobs.Count}건 ({ta.Elapsed.TotalMinutes:F1}분)");
@@ -210,7 +219,7 @@ for (int slot = 0; slot < baseParty.Count; slot++)
     Out($"  {baseParty[slot].Character.Name} 자리: " + string.Join(" / ", top.Select(x => $"{x.Name} {x.Score / baseScreen * 100:F1}%")));
 }
 var improving = single.Where(x => x.Score > baseScreen).OrderByDescending(x => x.Score).ToList();
-Out($"  기준 초과 교체 {improving.Count}건: " + string.Join(", ", improving.Take(15).Select(x => $"{baseParty[x.Slot].Character.Name}→{x.Name} {x.Score:N0}")));
+Out($"  기준 초과 교체 {improving.Count}건: " + string.Join(", ", improving.Take(15).Select(x => $"{baseParty[x.Slot].Character.Name}→{x.Name} {x.Score:N0} [{x.Seat}]")));
 if (limit != int.MaxValue) { Save(); return; }
 
 // ---- [B] 2자리 교체 (서로 다른 자리, 상위 교체끼리)
@@ -222,7 +231,7 @@ for (int i = 0; i < topPerSlot.Count; i++)
         if (topPerSlot[i].Slot != topPerSlot[j].Slot && topPerSlot[i].HeroId != topPerSlot[j].HeroId)
             pairs.Add((topPerSlot[i].Slot, topPerSlot[i].HeroId, topPerSlot[j].Slot, topPerSlot[j].HeroId));
 var tb = Stopwatch.StartNew();
-var doubles = new System.Collections.Concurrent.ConcurrentBag<(List<int> Ids, double Score)>();
+var doubles = new System.Collections.Concurrent.ConcurrentBag<(List<int> Ids, double Score, string Seat)>();
 Parallel.ForEach(pairs, po, pr =>
 {
     var (s1, h1, s2, h2) = pr;
@@ -231,12 +240,12 @@ Parallel.ForEach(pairs, po, pr =>
     team[s1] = a; team[s2] = b;
     var back = baseBack.Select(n => n == baseParty[s1].Character.Name ? a.Character.Name
                                   : n == baseParty[s2].Character.Name ? b.Character.Name : n).ToList();
-    try { doubles.Add((team.Select(t => t.Character.Id).ToList(), Screen(team, back, out _))); }
+    try { double sc = Screen(team, back, out var sr, free: true); doubles.Add((team.Select(t => t.Character.Id).ToList(), sc, Seat(sr))); }
     catch (Exception ex) { lock (log) Out($"  [오류] {a.Character.Name}+{b.Character.Name}: {ex.Message}"); }
 });
 Out($"\n[B] 2자리 교체 {doubles.Count}건 — {tb.Elapsed.TotalMinutes:F1}분");
 foreach (var d in doubles.OrderByDescending(d => d.Score).Take(8))
-    Out($"  {string.Join(",", d.Ids.Select(i => CharacterDb.Characters.First(c => c.Id == i).Name))} = {d.Score:N0} ({d.Score / baseScreen * 100:F1}%)");
+    Out($"  {string.Join(",", d.Ids.Select(i => CharacterDb.Characters.First(c => c.Id == i).Name))} = {d.Score:N0} ({d.Score / baseScreen * 100:F1}%) [{d.Seat}]");
 
 // ---- [C] 상위 팀 정식 탐색
 var cands = single.Select(x => { var ids = baseIds.ToList(); ids[x.Slot] = x.HeroId; return (Ids: ids, x.Score); })
@@ -281,7 +290,7 @@ Save();
 
 void Save()
 {
-    string outPath = System.IO.Path.Combine(resDir, $"explore_{day}_12초월_윈디.txt");
+    string outPath = System.IO.Path.Combine(resDir, $"explore_{day}_12초월_윈디{(noAwkSkill ? "_각성기끔" : "")}.txt");
     System.IO.File.WriteAllText(outPath, log.ToString(), Encoding.UTF8);
     Console.WriteLine($"→ {outPath}");
 }

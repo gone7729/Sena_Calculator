@@ -19,7 +19,7 @@ using GameDamageCalculator.Services.BattleEngine;
 //   [정석 경로] (`정석`) — 위 손질 없이 기본 탐색 + 로테 다듬기 + 생존 보강까지만. 따라 하기 쉬운 빌드.
 //       고점 탐색의 앞부분이 곧 정석이라, 고점 탐색을 돌리면 정석 빌드도 함께 저장된다(파일 이름에 _정석).
 //
-// 사용: SiegeBuildSearch <요일> 팀=a,b,c,d,e [고점=13090000 | 정석] [출발=N] [다시] [진형=밸런스 진형] [후열=x,y] [불러오기] [연장끔]
+// 사용: SiegeBuildSearch <요일> 팀=a,b,c,d,e [고점=13090000 | 정석] [출발=N] [다시] [진형=밸런스 진형] [후열=x,y] [불러오기] [연장끔] [턴로그] [각성기끔]
 //        [6초월] [델로|리첼] [노각성] [dw] [quick] [nospd] [noorder] [nopolish] [nosurv] [norank]
 //        [페널티N] [반격시드N] [평가시드N]
 //   팀 순서 = 첫 탐색의 출발 순서(같은 속공이면 앞에서부터 행동). 저장 키는 팀 구성(순서 무관)이다.
@@ -56,6 +56,10 @@ double? ParseScore(string s)
 bool quick = args.Contains("quick");
 bool noExtend = args.Contains("연장끔");   // [진단] 「공격 N회마다 턴제 버프 +1턴」(쥬리 신의 저울)을 끄고 재생 — 저장 안 함
 bool loadOnly = args.Contains("불러오기") || noExtend;
+bool turnLog = args.Contains("턴로그");     // [진단] 턴별 행동 로그를 build_*_턴로그.txt 로 따로 저장
+bool noAwkSkill = args.Contains("각성기끔"); // 각성 게이지 미모델 → 각성기(쿨 0)를 빼고 탐색(각성기 보유 영웅에겐 하한). 저장 프로필 분리(_각성기끔)
+if (noAwkSkill)
+    foreach (var c in CharacterDb.Characters) c.Skills?.RemoveAll(s => s.SkillType == SkillType.Awaken);
 if (noExtend)
     foreach (var c in CharacterDb.Characters.Where(c => teamNames.Contains(c.Name) && c.Passive?.LevelData != null))
         foreach (var ld in c.Passive.LevelData.Values) ld.TimedBuffExtendEveryAttacks = 0;
@@ -76,7 +80,7 @@ int evalSeeds = int.TryParse(Val("평가시드"), out var es) && es > 0 ? es : d
 
 var stage = EnemyDb.SiegeStages[day];
 var pet = PetDb.GetByName(petName);
-string profile = $"{TRANS}초월_{petName}" + (awaken == !lowSpec ? "" : awaken ? "_각성" : "_노각성") + (ingame ? "" : "_dw") + (quick ? "_quick" : "");
+string profile = $"{TRANS}초월_{petName}" + (awaken == !lowSpec ? "" : awaken ? "_각성" : "_노각성") + (ingame ? "" : "_dw") + (noAwkSkill ? "_각성기끔" : "") + (quick ? "_quick" : "");
 string teamKey = string.Join("-", teamNames.Select(n => CharacterDb.Characters.First(c => c.Name == n)).OrderBy(c => c.Id).Select(c => c.Name));
 string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 string outDir = System.IO.Path.Combine(repoRoot, "results", "siege");
@@ -492,6 +496,17 @@ List<string> DiffLines(SiegeSavedBuild a, SiegeSavedBuild b)
         foreach (var l in best.Log) sb.AppendLine("  " + l);
     }
     if (!loadOnly) System.IO.File.WriteAllText(System.IO.Path.ChangeExtension(slot.Path, ".txt"), sb.ToString(), new UTF8Encoding(true));
+    if (turnLog)
+    {
+        var tl = new StringBuilder(summary);
+        tl.AppendLine();
+        tl.AppendLine($"──── 턴별 행동 로그 (총 {rep.TurnLogs.Count}개) ────");
+        foreach (var l in rep.TurnLogs)
+            tl.AppendLine($"T{l.Turn,2} [{(l.IsAlly ? "아군" : "적 ")}] {l.ActorName} · {l.SkillName}: {l.Description}");
+        string tlPath = System.IO.Path.ChangeExtension(slot.Path, null) + "_턴로그.txt";
+        System.IO.File.WriteAllText(tlPath, tl.ToString(), new UTF8Encoding(true));
+        Console.WriteLine($"[턴로그] {tlPath}");
+    }
     return (summary, reproduced);
 }
 
