@@ -35,7 +35,7 @@ BattleCharacter Hero(int id)
 SiegeOptimizerConfig OptCfg(bool ingame) => new()
 {
     FixedMembers = ids.Select(Hero).ToList(), Candidates = new List<BattleCharacter>(), PartySize = 5,
-    SiegeStage = EnemyDb.SiegeStages[DAY], AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76,
+    SiegeStage = EnemyDb.SiegeStages[DAY], AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
     MaxTurns = 70, AutoEquip = true, SearchExclusiveWeapon = TR >= 12, EnableSurvivalRings = TR >= 12,
     FloorFirstGear = true, AllyDeathPenalty = 1_000_000, OptimizeRotation = true, RotationBeamWidth = 10, RotationMaxDepth = 36,
     CoordinateAscentGear = true, InGameBuffTargeting = ingame,
@@ -46,7 +46,7 @@ SiegeBattleResult Sim(SiegeOptimizerResult o, bool ingame, out string diag)
     var cfg = new SiegeBattleConfig
     {
         AllyParty = o.BestParty, FormationName = o.BestFormation, SiegeStage = EnemyDb.SiegeStages[DAY],
-        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, MaxTurns = 70,
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         RotationPlan = o.BestRotationPlan, AllyDeathPenalty = 1_000_000, RecordFeasibility = true,
         CounterattackChanceOverride = 0, InGameBuffTargeting = ingame,
     };

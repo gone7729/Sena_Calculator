@@ -20,7 +20,7 @@ var opt = new SiegeOptimizer().Optimize(new SiegeOptimizerConfig
 {
     Candidates = team, SiegeStage = EnemyDb.SiegeStages["화요일"], MaxTurns = 70,
     AutoEquip = true, SearchExclusiveWeapon = false, OptimizeRotation = false,
-    AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76,
+    AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
 });
 var nata = opt.BestParty.First(c => c.Character.Id == 118);
 var loadout = nata.Equipment;
@@ -45,7 +45,7 @@ double Compute(TuningOption opt4, string label)
         PotentialAtkLevel = 3, PotentialDefLevel = 3, PotentialHpLevel = 3,
         ExclusiveWeapon = nataChar.ExclusiveWeapon,
         Formation = new Formation { Name = opt.BestFormation, IsBackPosition = nataBack },
-        Pet = PetDb.GetByName("윈디"), PetStar = 6, PetOptionAtkRate = 76,
+        Pet = PetDb.GetByName("윈디"), PetStar = 6, PetOptionAtkRate = 72,
         PartyPetBuffs = new BuffSet { Atk_Rate = 15 },
     });
     var st = ds.DisplayStats;

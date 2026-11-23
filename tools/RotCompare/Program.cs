@@ -34,7 +34,7 @@ SiegeOptimizerConfig BaseOpt(List<BattleCharacter> team, bool asCandidates) => n
     FixedMembers = asCandidates ? new List<BattleCharacter>() : team,
     Candidates = asCandidates ? team : new List<BattleCharacter>(),
     SiegeStage = EnemyDb.SiegeStages[DAY], MaxTurns = 70,
-    AutoEquip = true, AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76,
+    AutoEquip = true, AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
     FloorFirstGear = true, OptimizeRotation = true, RotationBeamWidth = 10, RotationMaxDepth = 36,
     AllyDeathPenalty = 1_000_000, EnableSurvivalRings = false, SearchExclusiveWeapon = false,
 };
@@ -52,7 +52,7 @@ void RunAndReport(string label, List<BattleCharacter> party, string formation, L
     var cfg = new SiegeBattleConfig
     {
         AllyParty = party, FormationName = formation, SiegeStage = EnemyDb.SiegeStages[DAY],
-        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, MaxTurns = 70,
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         RotationPlan = plan, AllyDeathPenalty = 1_000_000, RecordFeasibility = true,
         HighestAtkAllyOrder = order, HighestAtkAllyOverrideCdrOnly = cdrOnly, DiagAlliesImmortal = IMMORTAL,
     };
@@ -120,7 +120,7 @@ if (mode == "p5" || mode == "p7")
     var cfg5 = new SiegeBattleConfig
     {
         AllyParty = party5, FormationName = "보호 진형", SiegeStage = EnemyDb.SiegeStages[DAY],
-        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, MaxTurns = 70,
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         RotationPlan = planU5, AllyDeathPenalty = 1_000_000, HighestAtkAllyOrder = ordNL5, HighestAtkAllyOverrideCdrOnly = true,
     };
     var sim5 = new SiegeBattleSimulator(777) { DiagAllyStats = true };

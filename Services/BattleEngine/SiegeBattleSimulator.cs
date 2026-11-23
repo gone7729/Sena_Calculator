@@ -1378,7 +1378,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         ///   Initialize·ApplyStandingEnemyDebuffs로 항상 포함). 치명/약점 4조합의 확정 데미지 + 입력 요약을 반환.
         ///   보스 보호막·링크(받피감)는 ApplyDamage 단계라 여기엔 미반영 = "링크 해제 상태" 데미지.</summary>
         public HitBreakdown EvaluateHitBreakdown(SiegeBattleConfig config, int dealerIndex, Skill skill, int round,
-            string targetName, double targetHpPct, IEnumerable<(int AllyIndex, SkillType Skill)> activeSkills)
+            string targetName, double targetHpPct, IEnumerable<(int AllyIndex, SkillType Skill)> activeSkills,
+            IEnumerable<(int AllyIndex, int Triggers)> attackStackTriggers = null)
         {
             var state = Initialize(config);
             if (round > 1)
@@ -1395,6 +1396,9 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ApplySkillEffects(state, a, sk, state.Enemies, preDamage: true);
                 ApplySkillEffects(state, a, sk, state.Enemies, preDamage: false);
             }
+            // 공격 발동형 중첩 디버프(타카 매의 발톱: 스킬 1회 = 2중첩)를 지정 횟수만큼 발동 — "타카 6중첩" 같은 상태 재현용.
+            foreach (var (ai, n) in attackStackTriggers ?? Enumerable.Empty<(int, int)>())
+                for (int k = 0; k < n; k++) ProcessAttackStacks(state, state.AllyStates[ai], isSkill: true);
             var dealer = state.AllyStates[dealerIndex];
             var target = state.Enemies.FirstOrDefault(e => e.Source.Name == targetName) ?? state.Enemies.First();
             target.CurrentHp = target.MaxHp * targetHpPct / 100.0;

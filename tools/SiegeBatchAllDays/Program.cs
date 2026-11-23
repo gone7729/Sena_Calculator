@@ -236,7 +236,7 @@ foreach (var (day, ids) in DAYS)
         PartySize = 5,
         SiegeStage = stage,
         AllyPet = PetDb.GetByName(petName),
-        PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76,
+        PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72,
         MaxTurns = 70,
         AutoEquip = true,
         SearchExclusiveWeapon = searchExclusive,   // 12초월=전설 4슬롯 조율, 6초월=미장착

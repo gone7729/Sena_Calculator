@@ -103,7 +103,7 @@ SiegeOptimizerConfig MakeCfg(List<BattleCharacter> team, List<List<RotationDecis
     var cfg = new SiegeOptimizerConfig
     {
         FixedMembers = team, Candidates = new List<BattleCharacter>(), PartySize = 5, SiegeStage = stage,
-        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, MaxTurns = 70,
+        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         AutoEquip = true, SearchExclusiveWeapon = !quick && !lowSpec, EnableSurvivalRings = !quick && !lowSpec,
         FloorFirstGear = true, AllyDeathPenalty = penalty, OptimizeRotation = true, InGameBuffTargeting = ingame,
         ForcedFormation = formationArg, ForcedBackRow = backArg,
@@ -608,7 +608,7 @@ if (args.Contains("반사실"))
         nb.Score = Math.Round(final.TotalScore); nb.RankScore = Math.Round(final.RankScore); nb.Deaths = final.Deaths?.Count ?? 0;
         nb.InGameBuffTargeting = ingame; nb.EngineHash = engineHash; nb.GitCommit = gitHead; nb.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
         nb.StartOrder = bt.StartOrder;
-        nb.Pet = new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 76 };
+        nb.Pet = new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 72 };
         nb.Log = new List<string> { $"[반사실 편집] 기준 {bt.Phase} {realBase.TotalScore:N0} (지문 {bt.Fingerprint})" }.Concat(chain.Select(c => "  [반사실 편집] " + c)).ToList();
         string cfPath = System.IO.Path.Combine(outDir, $"counterfactual_{day}_{profile}_{teamKey}.json");
         SiegeBuildStore.Save(cfPath, nb);
@@ -653,12 +653,20 @@ if (subMoveArg != null)
     var heroM = partyM.FirstOrDefault(x => x.Character.Name == mp[0]);
     if (heroM?.Equipment == null) { Console.WriteLine($"영웅 없음: {mp[0]}"); return; }
     var bsimM = new BattleSimulator();
-    var bcfgM = new BattleConfig { AllyParty = partyM, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, FormationName = sbM.Formation };
+    var bcfgM = new BattleConfig { AllyParty = partyM, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = sbM.Formation };
     string StatLine()
     {
         var stM = bsimM.InitializeCharacterState(bcfgM, heroM, partyM.IndexOf(heroM));
         var d = stM.DisplayStats;
         return $"공 {stM.FinalAtk:N0} · 치확 {d.Cri:0.#} · 치피 {d.Cri_Dmg:0.#} · 약확 {d.Wek:0.#} · 약피 {d.Wek_Dmg:0.#}";
+    }
+    // `:세트=복수자` (마지막 인자) — 먼저 그 영웅의 4부위 세트를 바꾼 뒤 기준을 잡는다(세트 A vs B를 같은 약확에서 비교할 때).
+    string setSwap = mp.FirstOrDefault(x => x.StartsWith("세트="))?.Substring(3);
+    if (setSwap != null)
+    {
+        var rOrig = SiegeOptimizer.EvaluateBuild(cfgM, partyM, sbM.Formation, planM);
+        Console.WriteLine($"  세트 교체 전({string.Join("+", heroM.Equipment.GetActiveSets().Select(x => $"{x.SetName}{x.PieceCount}"))}): {rOrig.TotalScore:N0} (사망 {rOrig.Deaths?.Count ?? 0}) · {mp[0]} {rOrig.CharacterResults.FirstOrDefault(c => c.CharacterName == mp[0])?.TotalDamage ?? 0:N0} · {StatLine()}");
+        foreach (var e in heroM.Equipment.GetEquipments()) e.SetName = setSwap;
     }
     var r0 = SiegeOptimizer.EvaluateBuild(cfgM, partyM, sbM.Formation, planM);
     Console.WriteLine($"═══ 부옵이동 {day} [{teamKey}] {RouteName(route)} — {mp[0]} {st2[0]} → {st2[1]} (같은 스킬 순서 재생, 저장 안 함)");
@@ -727,7 +735,7 @@ if (stageOnly)
         nb2.Score = Math.Round(chk.TotalScore); nb2.RankScore = Math.Round(chk.RankScore); nb2.Deaths = chk.Deaths?.Count ?? 0;
         nb2.InGameBuffTargeting = ingame; nb2.EngineHash = engineHash; nb2.GitCommit = gitHead; nb2.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
         nb2.StartOrder = sb0.StartOrder; nb2.SearchMinutes = Math.Round(sb0.SearchMinutes + swS.Elapsed.TotalMinutes, 1);
-        nb2.Pet = sb0.Pet ?? new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 76 };
+        nb2.Pet = sb0.Pet ?? new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 72 };
         nb2.History = sb0.History; nb2.TargetScore = sb0.TargetScore;
         nb2.Stages = (sb0.Stages ?? new()).ToList();
         nb2.Stages.Add(new SiegeSavedBuild.StageDto
@@ -862,7 +870,7 @@ if (!loadOnly && !stageOnly)
             b.Deaths = r.BestResult?.Deaths?.Count ?? 0; b.InGameBuffTargeting = ingame;
             b.EngineHash = engineHash; b.GitCommit = gitHead; b.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
             b.StartOrder = startOrder; b.SearchMinutes = Math.Round(sw.Elapsed.TotalMinutes, 1);
-            b.Pet = new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 76 };
+            b.Pet = new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 72 };
             b.Log = r.GearLog.ToList();
             b.Stages = stages.Select(s => new SiegeSavedBuild.StageDto { Name = s.Name, Score = s.Score, RankScore = s.RankScore, Deaths = s.Deaths, Order = s.Order, Standard = s.Standard }).ToList();
             return b;
@@ -990,10 +998,10 @@ List<string> DiffLines(SiegeSavedBuild a, SiegeSavedBuild b)
     var rep = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
     {
         AllyParty = fin.Party, FormationName = best.Formation, SiegeStage = stage,
-        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, MaxTurns = 70,
+        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         RotationPlan = fin.Plan, AllyDeathPenalty = penalty, RecordFeasibility = true, InGameBuffTargeting = ingame,
     });
-    var bcfg = new BattleConfig { AllyParty = fin.Party, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, FormationName = best.Formation };
+    var bcfg = new BattleConfig { AllyParty = fin.Party, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = best.Formation };
     var bsim = new BattleSimulator();
     var sb = new StringBuilder();
     sb.AppendLine($"════════ {day} 공성전 빌드 [{slot.Name} 경로] — {profile} · 타게팅 {(ingame ? "인게임(현재 공격력)" : "DW")} ════════");

@@ -65,7 +65,7 @@ SiegeOptimizerConfig Cfg(List<BattleCharacter> team, bool full, string formation
     var cfg = new SiegeOptimizerConfig
     {
         FixedMembers = team, Candidates = new List<BattleCharacter>(), PartySize = 5, SiegeStage = stage,
-        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 76, MaxTurns = 70,
+        AllyPet = PetDb.GetByName("윈디"), PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         AutoEquip = true, SearchExclusiveWeapon = true, FloorFirstGear = true, AllyDeathPenalty = 1_000_000,
         OptimizeRotation = true,
     };

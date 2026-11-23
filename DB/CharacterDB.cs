@@ -789,7 +789,7 @@ namespace GameDamageCalculator.Database
                     TranscendBonuses = new Dictionary<int, PassiveTranscend>
                     {
                         { 2, new PassiveTranscend {
-                            Effect = "공격 당한 적군 - 초월 시 스택 당 물리 취약 4%[상시]",
+                            Effect = "공격 당한 적군 - 초월 시 스택 당 물리 취약 3%→4%[상시]",
                             Effects = new List<PersistentEffect>
                             {
                                 new PersistentEffect
@@ -803,7 +803,7 @@ namespace GameDamageCalculator.Database
                                     StacksPerTrigger = 2,
                                     MaxStacks = 8,
                                     // 초월: 스택당 물리취약 4% (+ 기본 받물피증 3% 유지). override 방식이라 둘 다 여기에 명시.
-                                    Debuff = new DebuffSet { Vulnerability = 4, Phys_Dmg_Taken_Increase = 3 }
+                                    Debuff = new DebuffSet { Phys_Dmg_Taken_Increase = 4 }   // 2초월 "효과 상승: [매의 발톱] 물리 취약 4%" = 중첩당 3% → 4%로 오르는 것(3+4가 아님). 2026-11-23 영상 실측: 6중첩 라이언 광풍참 680,554/667,749 = 계산값과 자릿수 일치(이전 취약4+받물3 모델은 11.7% 과대)
                                 }
                             }
                         }}

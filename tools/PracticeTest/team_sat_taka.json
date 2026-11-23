@@ -1,0 +1,726 @@
+{
+ "heroes": [
+  {
+   "name": "비스킷",
+   "slot": 1,
+   "transcend": 12,
+   "awakened": false,
+   "potential": {
+    "atk": 3,
+    "def": 3,
+    "hp": 3
+   },
+   "enhanced": {
+    "normal": true,
+    "skill1": true,
+    "skill2": true,
+    "passive": true
+   },
+   "gear": [
+    {
+     "slot": "무기",
+     "name": "무기1",
+     "set": "복수자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "치명타피해%",
+       "tier": 6
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 1
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "속공",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "무기",
+     "name": "무기2",
+     "set": "복수자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 4
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 3
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "속공",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구1",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 3
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "속공",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구2",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 3
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    }
+   ],
+   "accessory": {
+    "grade": 6,
+    "sub": "보피증%",
+    "ring": "권능의 반지"
+   },
+   "exclusive": {
+    "atk": 247,
+    "hp": 0,
+    "def": 0,
+    "tuning": [
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     }
+    ]
+   }
+  },
+  {
+   "name": "풍연",
+   "slot": 2,
+   "transcend": 12,
+   "awakened": false,
+   "potential": {
+    "atk": 3,
+    "def": 3,
+    "hp": 3
+   },
+   "enhanced": {
+    "normal": true,
+    "skill1": true,
+    "skill2": true,
+    "passive": true
+   },
+   "gear": [
+    {
+     "slot": "무기",
+     "name": "무기1",
+     "set": "복수자",
+     "main": "치명타피해%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 6
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "무기",
+     "name": "무기2",
+     "set": "복수자",
+     "main": "치명타피해%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 6
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 1
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구1",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 6
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 1
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구2",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 2
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 5
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    }
+   ],
+   "accessory": {
+    "grade": 6,
+    "sub": "보피증%",
+    "ring": "권능의 반지"
+   },
+   "exclusive": {
+    "atk": 247,
+    "hp": 0,
+    "def": 0,
+    "tuning": [
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     }
+    ]
+   }
+  },
+  {
+   "name": "아일린",
+   "slot": 3,
+   "transcend": 12,
+   "awakened": true,
+   "potential": {
+    "atk": 3,
+    "def": 3,
+    "hp": 3
+   },
+   "enhanced": {
+    "normal": true,
+    "skill1": true,
+    "skill2": true,
+    "passive": true
+   },
+   "gear": [
+    {
+     "slot": "무기",
+     "name": "무기1",
+     "set": "복수자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "치명타피해%",
+       "tier": 6
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "무기",
+     "name": "무기2",
+     "set": "복수자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 3
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구1",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 3
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구2",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 3
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      }
+     ]
+    }
+   ],
+   "accessory": {
+    "grade": 6,
+    "main": "치명타확률%",
+    "sub": "보피증%"
+   },
+   "exclusive": {
+    "atk": 247,
+    "hp": 0,
+    "def": 0,
+    "tuning": [
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     }
+    ]
+   }
+  },
+  {
+   "name": "타카",
+   "slot": 4,
+   "transcend": 12,
+   "awakened": false,
+   "potential": {
+    "atk": 3,
+    "def": 3,
+    "hp": 3
+   },
+   "enhanced": {
+    "normal": true,
+    "skill1": true,
+    "skill2": true,
+    "passive": true
+   },
+   "gear": [
+    {
+     "slot": "무기",
+     "name": "무기1",
+     "set": "복수자",
+     "main": "치명타피해%",
+     "subs": [
+      {
+       "stat": "약점공격확률%",
+       "tier": 2
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 5
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "무기",
+     "name": "무기2",
+     "set": "복수자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 5
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력",
+       "tier": 1
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 2
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구1",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 2
+      },
+      {
+       "stat": "공격력",
+       "tier": 1
+      },
+      {
+       "stat": "공격력%",
+       "tier": 2
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구2",
+     "set": "복수자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타확률%",
+       "tier": 3
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 2
+      },
+      {
+       "stat": "공격력%",
+       "tier": 1
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 3
+      }
+     ]
+    }
+   ],
+   "accessory": {
+    "grade": 6,
+    "ring": "토벌의 반지",
+    "sub": "치명타확률%"
+   },
+   "exclusive": {
+    "atk": 247,
+    "hp": 0,
+    "def": 0,
+    "tuning": [
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "희귀"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "희귀"
+     },
+     {
+      "option": "모든공격력",
+      "grade": "희귀"
+     }
+    ]
+   }
+  },
+  {
+   "name": "라이언",
+   "slot": 5,
+   "transcend": 12,
+   "awakened": false,
+   "potential": {
+    "atk": 3,
+    "def": 3,
+    "hp": 3
+   },
+   "enhanced": {
+    "normal": true,
+    "skill1": true,
+    "skill2": true,
+    "passive": true
+   },
+   "gear": [
+    {
+     "slot": "무기",
+     "name": "무기1",
+     "set": "추적자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 2
+      },
+      {
+       "stat": "공격력%",
+       "tier": 2
+      }
+     ]
+    },
+    {
+     "slot": "무기",
+     "name": "무기2",
+     "set": "추적자",
+     "main": "치명타확률%",
+     "subs": [
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 2
+      },
+      {
+       "stat": "공격력%",
+       "tier": 2
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 4
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구1",
+     "set": "추적자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "치명타피해%",
+       "tier": 3
+      },
+      {
+       "stat": "공격력%",
+       "tier": 3
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 2
+      },
+      {
+       "stat": "약점공격확률%",
+       "tier": 1
+      }
+     ]
+    },
+    {
+     "slot": "방어구",
+     "name": "방어구2",
+     "set": "추적자",
+     "main": "공격력%",
+     "subs": [
+      {
+       "stat": "공격력%",
+       "tier": 3
+      },
+      {
+       "stat": "치명타확률%",
+       "tier": 1
+      },
+      {
+       "stat": "공격력",
+       "tier": 3
+      },
+      {
+       "stat": "치명타피해%",
+       "tier": 2
+      }
+     ]
+    }
+   ],
+   "accessory": {
+    "grade": 6,
+    "ring": "토벌의 반지",
+    "sub": "1-3인기%"
+   },
+   "exclusive": {
+    "atk": 247,
+    "hp": 0,
+    "def": 0,
+    "tuning": [
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     },
+     {
+      "option": "피해증폭",
+      "grade": "전설"
+     }
+    ]
+   }
+  }
+ ],
+ "pet": {
+  "grade": "전설",
+  "name": "윈디",
+  "enhance": 3,
+  "potentialAtkRate": 72.0
+ },
+ "_source": "영상 Desktop 2026.11.23 - 19.38.18.16.mp4 (라이언·타카 장비는 툴팁 판독, 나머지는 시뮬 빌드 장비 — 라이언 타격 계산에는 영향 없음)"
+}

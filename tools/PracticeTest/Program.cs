@@ -104,6 +104,7 @@ foreach (var h in doc.RootElement.GetProperty("heroes").EnumerateArray())
         Character = ch, TranscendLevel = tr, IsSkillEnhanced = enh, Equipment = loadout,
         PotentialAtkLevel = input.PotentialAtkLevel, PotentialDefLevel = input.PotentialDefLevel, PotentialHpLevel = input.PotentialHpLevel,
         IsBackPosition = backRow.Contains(name),
+        IsAwakened = h.TryGetProperty("awakened", out var awk) && awk.ValueKind == JsonValueKind.True,
     });
     var d = r.DisplayStats;
     var self = ch.Passive?.GetTotalSelfBuff(enh, tr) ?? new PermanentBuff();
@@ -303,6 +304,9 @@ if (runHit)
             .Select(t => (Ix(t[..^1]), t[^1] == '1' ? SkillType.Skill1 : SkillType.Skill2)).ToList();
     var hcfg = new SiegeBattleConfig { AllyParty = team, FormationName = FORMATION, SiegeStage = EnemyDb.SiegeStages[day],
         AllyPet = pet, PetStar = petStar, PetEnhance = petEnh, PetOptionAtkRate = petAtk, MaxTurns = 70 };
+    // stack=타카:3 — 공격 발동형 중첩(타카 매의 발톱: 1회 = 2중첩)을 n회 발동시킨 상태로 계산
+    var stackTrig = (args.FirstOrDefault(a => a.StartsWith("stack="))?.Substring(6) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(t => t.Split(':')).Select(t => (Ix(t[0]), int.Parse(t[1]))).ToList();
     string dealerName = args.FirstOrDefault(a => a.StartsWith("dealer="))?.Substring(7) ?? "나타";
     string bossName = args.FirstOrDefault(a => a.StartsWith("boss="))?.Substring(5) ?? (day == "수요일" ? "레이첼" : "루디");
     int di = Ix(dealerName);
@@ -315,7 +319,7 @@ if (runHit)
     {
         foreach (var (tgt, hp) in new[] { (bossName, 100.0), (bossName, 0.0), ("룩", 0.0), ("챈슬러", 0.0) })
         {
-            var hb = new SiegeBattleSimulator(seedArg).EvaluateHitBreakdown(hcfg, di, sk, 3, tgt, hp, active);
+            var hb = new SiegeBattleSimulator(seedArg).EvaluateHitBreakdown(hcfg, di, sk, 3, tgt, hp, active, stackTrig);
             if (first)
             {
                 var ip = hb.Input;
