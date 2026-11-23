@@ -101,6 +101,9 @@ namespace GameDamageCalculator.Services
             public double PerDebuffBonusPercent { get; set; }
             // 카운트 상한 (모든 효과 중 최대)
             public int PerDebuffBonusMaxStacks { get; set; }
+
+            /// <summary>얕은 복사 — 누수 장부(SiegeLeakRecorder)가 타격 입력을 보관·재계산할 때 쓴다.</summary>
+            public DamageInput Clone() => (DamageInput)MemberwiseClone();
         }
 
         public class DamageResult

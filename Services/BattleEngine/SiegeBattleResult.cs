@@ -44,6 +44,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         // 빌드 실행가능성: RotationPlan 각 스텝의 계획대로-시전 여부·쿨 여유 (config.RecordFeasibility=true일 때만)
         public List<BuildStepFeasibility> Feasibility { get; set; } = new();
 
+        // 누수 장부 (config.RecordLeak=true일 때만)
+        public SiegeLeakLedger Leak { get; set; }
+
         // 아군 사망 이벤트 (턴/경과초/이름/사인). 사망 로그용.
         public List<SiegeDeathEvent> Deaths { get; set; } = new();
 

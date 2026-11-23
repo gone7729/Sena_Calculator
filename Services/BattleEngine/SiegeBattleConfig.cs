@@ -49,6 +49,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   읽기 전용 계측 — 점수/전투 결과 불변. 보통 최종 빌드 1회 재생에만 켠다.
         public bool RecordFeasibility { get; set; }
 
+        // true면 누수 장부(SiegeLeakLedger)를 result.Leak에 채운다 — 타격별로 "그 전투의 최고 상태였다면" 재계산.
+        //   읽기 전용 계측 — 점수/전투 결과 불변. 시도 기록 재생에만 켠다.
+        public bool RecordLeak { get; set; }
+
         // [진단] true면 아군 효과 만료(Effects.TickTurn)를 건너뛴다 → 파티버프(청소·따뜻한울림 등) 강제 풀 uptime.
         //   "넉↔버프 정렬/uptime이 갭의 전부인가"를 못박는 실험용. 점수가 실측(13.15M)으로 가면 uptime이 전부.
         public bool ForceFullBuffUptime { get; set; }

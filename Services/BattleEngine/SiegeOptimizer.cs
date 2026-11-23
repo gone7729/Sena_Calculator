@@ -263,11 +263,12 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>시도 기록용 재생 — 탐색과 같은 조건(시드 777)으로 한 번 돌리되 스킬 순서 실행 기록(Feasibility)을 남긴다.
         ///   party는 진형 번호 순, IsBackPosition이 맞춰져 있어야 한다. 점수는 단일 시드 값(N시드 평균 요일은 EvaluateBuild와 다를 수 있음).</summary>
         public static SiegeBattleResult ReplayWithCasts(SiegeOptimizerConfig config, List<BattleCharacter> party,
-            string formation, List<RotationDecision> plan)
+            string formation, List<RotationDecision> plan, bool leak = false)
         {
             var sc = BuildSimConfig(config, party, formation);
             sc.RotationPlan = plan;
             sc.RecordFeasibility = true;
+            sc.RecordLeak = leak;   // 누수 장부(result.Leak)도 함께
             return new SiegeBattleSimulator(GearCompareSeed).Simulate(sc);
         }
 

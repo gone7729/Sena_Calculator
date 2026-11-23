@@ -221,6 +221,152 @@ if (args.Contains("시도"))
     }
     return;
 }
+// ── 누수 장부: 기록된 시도를 다시 돌려 "그 전투의 최고 상태 대비 덜 들어간 딜"을 계수별로 계산 (SiegeLeakLedger) ──
+//   `누수` = 구간 평균 + 상·하위 시도 + 최고 빌드 상세.  `상세=N` = 랭크 N위 시도의 상세.
+string leakPath = System.IO.Path.Combine(outDir, $"leaks_{day}_{profile}_{teamKey}.jsonl");
+if (args.Contains("누수"))
+{
+    var all = SiegeTrialStore.Load(trialPath);
+    Console.WriteLine($"═══ 누수 장부 {day} [{teamKey}] {profile}");
+    if (all.Count == 0) { Console.WriteLine($"시도 기록이 없습니다({trialPath}). 먼저 탐색을 돌리세요."); return; }
+    // 같은 빌드(지문)는 한 번만 — 채택 기록·최근 기록 우선
+    var uniq = all.GroupBy(t => t.Fingerprint).Select(g => g.OrderByDescending(t => t.Adopted).ThenByDescending(t => t.At).First()).ToList();
+    var adoptedFp = all.Where(t => t.Adopted).Select(t => t.Fingerprint).ToHashSet();
+    var finalFp = all.Where(t => t.Adopted).GroupBy(t => t.EngineHash + "|" + t.StartOrder)
+        .Select(g => g.OrderByDescending(t => t.At).ThenByDescending(t => t.Seq).First().Fingerprint).ToHashSet();
+    var recs = new List<SiegeLeakRecord>();
+    int recalcBad = 0;
+    foreach (var t in uniq)
+    {
+        var party = SiegeBuildStore.ToParty(t.Build);
+        var plan = SiegeBuildStore.ToPlan(t.Build, party);
+        var c = MakeCfg(party, null);
+        if (t.ForcedBuffOrder != null)
+        {
+            c.HighestAtkAllyOrder = t.ForcedBuffOrder.Select(n => party.FindIndex(p => p.Character.Name == n)).ToList();
+            c.HighestAtkAllyOverrideCdrOnly = t.ForcedCdrOnly;
+        }
+        var r = SiegeOptimizer.ReplayWithCasts(c, party, t.Build.Formation, plan, leak: true);
+        recalcBad += r.Leak.RecalcMismatch;
+        recs.Add(new SiegeLeakRecord
+        {
+            Fingerprint = t.Fingerprint, Score = t.Score, RankScore = t.RankScore, DeathCount = t.DeathCount,
+            Phase = t.Phase, StartOrder = t.StartOrder, Adopted = adoptedFp.Contains(t.Fingerprint), Final = finalFp.Contains(t.Fingerprint),
+            ForcedBuffOrder = t.ForcedBuffOrder, Formation = t.Formation, BackRow = t.BackRow, Order = t.Order,
+            ReplayOk = Math.Abs(r.TotalScore - (t.ReplayScore ?? t.Score)) <= 1, ReplayScore = Math.Round(r.TotalScore), Leak = r.Leak,
+        });
+    }
+    SiegeLeakStore.Save(leakPath, recs);
+
+    var good = recs.Where(x => x.ReplayOk).OrderByDescending(x => x.RankScore).ToList();
+    int bad = recs.Count - good.Count;
+    Console.WriteLine($"시도 {recs.Count}개 재생 · 점수 재현 {good.Count}개" + (bad > 0 ? $" · 재현 안 됨 {bad}개(다른 엔진의 기록 — 아래 표에서 제외)" : "")
+        + (recalcBad > 0 ? $" · ⚠ 재계산이 원래 계산과 어긋난 타격 {recalcBad}건" : " · 타격 재계산 전부 일치"));
+    Console.WriteLine($"    → {leakPath}");
+    if (good.Count == 0) return;
+    Console.WriteLine();
+    Console.WriteLine("값은 전부 그 시도 점수 대비 %.");
+    Console.WriteLine("  계수 누수 = 그 계수 하나만 그 전투의 최고 상태였다면 더 들어갔을 딜(타격별 재계산). '동시' = 전 계수가 함께 최고였다면.");
+    Console.WriteLine("  깎인 딜  = 계산된 피해 중 점수가 되지 못한 몫(면역·무효·링크·보호막·오버킬).");
+    Console.WriteLine("  사망     = 죽어 있던 턴 합 / 추정 손실(그 영웅의 생존 중 턴당 딜 × 죽은 턴 — 지원 영웅의 버프 손실은 빠짐).");
+
+    int W(string s) => s.Sum(ch => ch >= 0x1100 ? 2 : 1);
+    string PadL(string s, int w) => new string(' ', Math.Max(0, w - W(s))) + s;
+    string PadR(string s, int w) => s + new string(' ', Math.Max(0, w - W(s)));
+    string[] lostKeys = { "면역", "무효", "링크", "보호막", "오버킬", "피해1고정" };
+    var useF = SiegeLeakRecorder.Factors.Where(f => good.Any(x => x.Leak.Factor.GetValueOrDefault(f) > 0)).ToArray();
+    var useL = lostKeys.Where(l => good.Any(x => x.Leak.Lost.GetValueOrDefault(l) > 0)).ToArray();
+    double Pct(SiegeLeakRecord x, double v) => x.Leak.Score > 0 ? v / x.Leak.Score * 100 : 0;
+    // 한 시도의 열 값(%): 계수들 | 동시 | 깎인 딜들 | 사망턴 | 사망손실 | 폴백 | 홀드
+    double[] Cols(SiegeLeakRecord x) => useF.Select(f => Pct(x, x.Leak.Factor.GetValueOrDefault(f)))
+        .Append(Pct(x, x.Leak.AllBest))
+        .Concat(useL.Select(l => Pct(x, x.Leak.Lost.GetValueOrDefault(l))))
+        .Append(x.Leak.DeadTurns.Values.Sum()).Append(Pct(x, x.Leak.DeathLossEst))
+        .Append(x.Leak.Fallbacks).Append(x.Leak.Holds).ToArray();
+    int nF = useF.Length, nL = useL.Length;
+    string Header(string first) => PadR(first, 34) + PadL("점수", 12) + PadL("사망", 5) + " │" + string.Concat(useF.Select(f => PadL(f, 9))) + " │" + PadL("동시", 7)
+        + " │" + string.Concat(useL.Select(l => PadL(l, 8))) + " │" + PadL("사망턴", 7) + PadL("사망손실", 9) + " │" + PadL("폴백", 5) + PadL("홀드", 5);
+    string Fmt(string first, double score, double deaths, double[] v)
+    {
+        var sb = new StringBuilder();
+        sb.Append(PadR(first, 34)).Append(PadL(score.ToString("N0"), 12)).Append(PadL(deaths.ToString("0.#"), 5)).Append(" │");
+        for (int i = 0; i < nF; i++) sb.Append(PadL(v[i].ToString("0.0"), 9));
+        sb.Append(" │").Append(PadL(v[nF].ToString("0.0"), 7)).Append(" │");
+        for (int i = 0; i < nL; i++) sb.Append(PadL(v[nF + 1 + i].ToString("0.0"), 8));
+        sb.Append(" │").Append(PadL(v[nF + 1 + nL].ToString("0.#"), 7)).Append(PadL(v[nF + 2 + nL].ToString("0.0"), 9));
+        sb.Append(" │").Append(PadL(v[nF + 3 + nL].ToString("0.#"), 5)).Append(PadL(v[nF + 4 + nL].ToString("0.#"), 5));
+        return sb.ToString();
+    }
+    string Tag(SiegeLeakRecord x) => (x.ForcedBuffOrder != null ? "가정" : x.Final ? "최종" : x.Adopted ? "채택" : "후보");
+
+    // 구간 평균 — 실제 빌드(버프 수령자 강제 가정이 아닌 것)만. 수가 적으면 전부.
+    var real = good.Where(x => x.ForcedBuffOrder == null).ToList();
+    var pool = real.Count >= 8 ? real : good;
+    Console.WriteLine();
+    Console.WriteLine($"──── 구간 평균 (랭크 순 · {(pool == real ? $"실제 빌드 {real.Count}개, 가정 평가 {good.Count - real.Count}개 제외" : $"전체 {good.Count}개")}) ────");
+    Console.WriteLine(Header("구간"));
+    int q = Math.Max(1, pool.Count / 4);
+    var groups = new (string Name, List<SiegeLeakRecord> Items)[]
+    {
+        ($"상위 25% ({q})", pool.Take(q).ToList()),
+        ($"중간 ({pool.Count - 2 * q})", pool.Skip(q).Take(Math.Max(0, pool.Count - 2 * q)).ToList()),
+        ($"하위 25% ({q})", pool.Skip(Math.Max(0, pool.Count - q)).ToList()),
+    };
+    double[] Avg(List<SiegeLeakRecord> items)
+    {
+        var rows = items.Select(Cols).ToList();
+        return Enumerable.Range(0, rows[0].Length).Select(i => rows.Average(r => r[i])).ToArray();
+    }
+    double[] topAvg = null, botAvg = null;
+    foreach (var g in groups.Where(g => g.Items.Count > 0))
+    {
+        var a = Avg(g.Items);
+        if (topAvg == null) topAvg = a;
+        botAvg = a;
+        Console.WriteLine(Fmt(g.Name, g.Items.Average(x => x.Score), g.Items.Average(x => x.DeathCount), a));
+    }
+    if (topAvg != null && botAvg != null && pool.Count >= 4)
+        Console.WriteLine(Fmt("하위 − 상위", groups[2].Items.Average(x => x.Score) - groups[0].Items.Average(x => x.Score),
+            groups[2].Items.Average(x => x.DeathCount) - groups[0].Items.Average(x => x.DeathCount),
+            botAvg.Zip(topAvg, (b, a) => b - a).ToArray()));
+
+    Console.WriteLine();
+    int show = Math.Min(8, good.Count);
+    Console.WriteLine($"──── 랭크 상위 {show} ────");
+    Console.WriteLine(Header("구분·단계"));
+    foreach (var x in good.Take(show)) Console.WriteLine(Fmt($"{Tag(x)} {x.Phase}", x.Score, x.DeathCount, Cols(x)));
+    if (good.Count > show)
+    {
+        Console.WriteLine($"──── 랭크 하위 {show} ────");
+        foreach (var x in good.Skip(Math.Max(show, good.Count - show))) Console.WriteLine(Fmt($"{Tag(x)} {x.Phase}", x.Score, x.DeathCount, Cols(x)));
+    }
+
+    // 상세 — 기본은 실제 빌드 중 랭크 1위
+    int detailRank = int.TryParse(Val("상세="), out var dr) && dr >= 1 && dr <= good.Count ? dr : 0;
+    var d = detailRank > 0 ? good[detailRank - 1] : (real.FirstOrDefault() ?? good[0]);
+    Console.WriteLine();
+    Console.WriteLine($"──── 상세: 랭크 {good.IndexOf(d) + 1}위 · {d.Score:N0} (사망 {d.DeathCount:0.#}) · {Tag(d)} {d.Phase} · {d.Formation?.Replace(" 진형", "")}·후열 {string.Join("+", d.BackRow ?? new())} · 순서 {string.Join(",", d.Order ?? new())}"
+        + (d.ForcedBuffOrder != null ? $" · [가정: 버프 수령 {string.Join(">", d.ForcedBuffOrder)}]" : "") + " ────");
+    var L = d.Leak;
+    Console.WriteLine($"  점수 {L.Score:N0} = 타격 {L.HitScored:N0} + DoT {L.DotScored:N0} · 아군 스킬턴 {L.SkillTurns}회(폴백 {L.Fallbacks} · 홀드 {L.Holds})");
+    Console.WriteLine("  기준이 된 최고 상태(전투 중 값이 변한 것만): " + (L.Best.Count == 0 ? "없음" : string.Join(" · ", L.Best.Select(kv => $"{kv.Key} {kv.Value:0.#}"))));
+    Console.WriteLine("  계수 누수: " + string.Join(" · ", L.Factor.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:N0}({Pct(d, kv.Value):0.0}%)"))
+        + $" │ 동시 {L.AllBest:N0}({Pct(d, L.AllBest):0.0}%)");
+    if (L.Lost.Count > 0) Console.WriteLine("  깎인 딜: " + string.Join(" · ", L.Lost.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:N0}({Pct(d, kv.Value):0.0}%)")));
+    if (L.DeadTurns.Count > 0) Console.WriteLine("  사망: " + string.Join(" · ", L.DeadTurns.Select(kv => $"{kv.Key} {kv.Value}턴")) + $" → 추정 손실 {L.DeathLossEst:N0}({Pct(d, L.DeathLossEst):0.0}%)");
+    if (L.IdleSec.Count > 0) Console.WriteLine("  쿨이 돈 뒤 대기(초, 참고): " + string.Join(" · ", L.IdleSec.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:0.#}")));
+    Console.WriteLine();
+    Console.WriteLine("  " + PadR("스텝", 5) + PadR("턴", 4) + PadR("영웅", 10) + PadR("스킬", 26) + PadL("점수", 12) + PadL("동시 누수", 12) + "  누수 큰 계수 / 깎인 딜");
+    foreach (var row in L.Rows)
+    {
+        string fs = string.Join(" · ", row.Factor.Where(kv => kv.Value >= 1).OrderByDescending(kv => kv.Value).Take(4).Select(kv => $"{kv.Key} {kv.Value:N0}"));
+        string ls = row.Lost == null ? "" : string.Join(" · ", row.Lost.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} −{kv.Value:N0}"));
+        if (row.Targets != null) ls = ls.Length > 0 ? $"{ls} │ {row.Targets}" : row.Targets;
+        Console.WriteLine("  " + PadR(row.Step >= 0 ? row.Step.ToString() : "-", 5) + PadR(row.Turn >= 0 ? $"T{row.Turn}" : "-", 4) + PadR(row.Hero ?? "", 10) + PadR(row.Skill ?? "", 26)
+            + PadL(row.Scored.ToString("N0"), 12) + PadL(row.AllBest.ToString("N0"), 12) + "  " + fs + (fs.Length > 0 && ls.Length > 0 ? " │ " : "") + ls);
+    }
+    return;
+}
 // 같은 엔진에서 이미 기록한 빌드(지문)는 다시 적지 않는다
 var seenTrials = SiegeTrialStore.Load(trialPath).Where(t => t.EngineHash == engineHash && !t.Adopted).Select(t => t.Fingerprint).ToHashSet();
 

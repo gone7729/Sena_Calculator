@@ -40,6 +40,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   _readySince[(아군PartyIndex, 스킬)] = 그 스킬이 마지막 시전 후 쿨 0에 도달한 경과초(준비완료시각).
         //   double.PositiveInfinity = 아직 쿨 중(준비 전). 시전 전 한번도 안 쓴 스킬은 dict에 없음 = 0초부터 준비.
         private bool _recordFeasibility;
+        // [누수 계측] config.RecordLeak=true(시도 재생)일 때만 non-null — 점수/전투 불변. SiegeLeakLedger.cs 참고.
+        private SiegeLeakRecorder _leak;
         private readonly Dictionary<(int Idx, SkillType Skill), double> _readySince = new();
         private readonly List<BuildStepFeasibility> _feasLog = new();
         // 직전 아군 스킬 1회 시전이 부여한 아군 버프 수령자 이름(스킬 순서 로그의 [대상] 표기용). ExecuteAllySkill마다 초기화.
@@ -75,6 +77,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             // 실행가능성 계측은 최종(메인) 패스에만 — 스카우팅 서브시뮬(computeWeights=false)은 결과 폐기되므로 제외.
             _recordFeasibility = config.RecordFeasibility && computeWeights;
+            _leak = config.RecordLeak && computeWeights ? new SiegeLeakRecorder(_damageCalc) : null;
             _counterChanceOverride = config.CounterattackChanceOverride;   // 반격 확률 오버라이드(빔=0, 최종=null)
             _allyDeathPenalty = config.AllyDeathPenalty;   // 사망 페널티(RankScore용)
             _buffFirstAuto = config.BuffFirstAuto;         // 풀버프 정렬(셋업 버프 우선)
@@ -186,6 +189,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 t++;
                 roundTurn++;
                 state.CurrentTurn = t;
+                _leak?.OnTurn(state.AllyStates.Where(a => a.IsDead).Select(a => a.Source.Character.Name));
                 LogEnrageTransition(state);   // 광폭화 단계 진입 시 1회 로그
 
                 // 적 스킬 사용 판정용 쿨 스냅샷(턴 시작 = 평타 前). 스킬턴 처리 후 해제.
@@ -374,6 +378,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>스킬턴 처리 (해당 팀에 사용 가능한 스킬이 있으면 사용; 없으면 스킵).</summary>
         private void ProcessSkillTurn(SiegeBattleConfig config, SiegeBattleState state, bool byAlly)
         {
+            if (_leak != null) _leak.CurStep = byAlly ? state.AllySkillTurnIndex : -1;
             if (byAlly)
             {
                 int stIdx = state.AllySkillTurnIndex++;   // 이 아군 스킬턴의 발생 순서 인덱스
@@ -610,6 +615,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         /// <summary>기본공격 (턴 소모).</summary>
         private void ExecuteBasicAttack(SiegeBattleState state, SiegeActor actor)
         {
+            if (_leak != null) _leak.CurStep = -1;
             if (actor.IsAlly)
             {
                 var ally = actor.Ally;
@@ -825,6 +831,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     var input = BuildDamageInputToEnemy(owner, t, sk, state, out double redMult, out _, out _, out _);
                     // 협공도 치명·약점 적용 (2026-11-19 영상: 치명·약점 아이콘 + 약점 배율 1.53 확인).
                     double dmg = _damageCalc.Calculate(input).FinalDamage * Math.Max(0, redMult);
+                    double leakPre = dmg;
                     if (coop.CurrentHpBonusDmgMax > 0 && t.MaxHp > 0)   // 대상 현재 생명력 비례 최대 N% 피증(쥬리 50) — 협공 피해 전체에 곱
                     {
                         // R3 불멸 적은 생명력이 바닥나지 않는다: 영상 역산으로 보스 20.0%, 친위대(룩·챈슬러) 24.4%에서 고정
@@ -832,6 +839,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         double hpFloor = state.CurrentRound >= 3 ? (t.Source.HasEnrage ? 0.20 : 0.2437) : 0;
                         dmg *= 1 + coop.CurrentHpBonusDmgMax / 100.0 * Math.Clamp(t.CurrentHp / t.MaxHp, hpFloor, 1);
                     }
+                    if (_leak != null) LeakOnCalc(state, owner, t, sk, input, redMult, 1.0, leakPre > 0 ? dmg / leakPre : 1.0, dmg);
                     hits.Add((t, w * dmg, w));
                 }
                 if (hits.Count == 0) continue;
@@ -882,6 +890,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             int hitCount = 1)
         {
             if (dmg <= 0) return;
+            object lh = _leak?.BeginHit(ally, target, ally.Source.Character.Name, label, state.CurrentTurn);   // [누수 계측]
+            bool leakCapped = false;
 
             // 피격 시 상태이상 부여 패시브(레이첼 「화염의 힘」) — 면역·무효·보호막과 무관하게 "적중" 자체로 발동.
             ApplyEnemyOnHitStatus(state, target, hitCount * hitWeight);
@@ -890,11 +900,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   패시브/버프 아닌 고정 속성(SiegeDamageCapToOne)이라 버프해제·턴제버프감소로 풀 수 없음.
             //   단일 타격은 약점 미발동 시 무작위 적 → 확률(1−약확)×2/3로 룩·챈에 빠진다(ApplySingleTargetHit).
             //   기댓값 분산 타격(hitWeight<1)은 "1 × 가중치".
-            if (target.Source?.SiegeDamageCapToOne == true && dmg > hitWeight) dmg = hitWeight;
+            if (target.Source?.SiegeDamageCapToOne == true && dmg > hitWeight)
+            {
+                if (lh != null) { SiegeLeakRecorder.Lose(lh, "피해1고정", dmg - hitWeight); leakCapped = true; }
+                dmg = hitWeight;
+            }
 
             // 피해 면역 (화 R3 룩 스킬: 적 전체 [2턴]) — 이 대상이 면역 중이면 피해 0. 단 관통(IgnoresTurnDamageImmunity)이면 면역 무시.
             if (target.ImmunityTurns > 0 && !penetrate)
             {
+                SiegeLeakRecorder.Lose(lh, "면역", dmg);
                 if (!spill)
                     Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                         label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 피해 면역 (무효)");
@@ -906,6 +921,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   기댓값 분산분(spill)은 횟수를 소모하지 않고 무효만(근사).
             if (target.NullifyHitsRemaining > 0)
             {
+                SiegeLeakRecorder.Lose(lh, "무효", dmg);
                 if (spill) return;
                 target.NullifyHitsRemaining--;
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
@@ -920,6 +936,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             //   루디 대체HP(방어력×100=9.3만)는 첫 타에 깨져도 -10%는 5턴 내내 유효. 비스킷 리프어택(쿨60s)이
             //   버프해제로 둘 다 지워야(DispelBuffCount=2=정확히 이 2개) -10%가 풀린다 → 재해제가 점수에 유의미.
             //   [2026-10 실측 정정] 이 받피감은 루디 전용이 아니라 「링크」 — 룩·챈슬러 포함 적 전원에게 걸린다 → LinkTurns/LinkDmgRdc.
+            if (lh != null && target.LinkTurns > 0 && target.LinkDmgRdc > 0)
+                SiegeLeakRecorder.Lose(lh, "링크", dmg * target.LinkDmgRdc / 100.0);
             if (target.LinkTurns > 0 && target.LinkDmgRdc > 0)
                 dmg *= 1.0 - target.LinkDmgRdc / 100.0;
 
@@ -929,6 +947,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 double absorbed = Math.Min(target.Shield, dmg);
                 target.Shield -= absorbed;
                 dmg -= absorbed;
+                SiegeLeakRecorder.Lose(lh, "보호막", absorbed);
                 bool broke = target.Shield <= 0;
                 Log(state, ally.Source.Character.Name, true, isSkill ? ActionType.SkillAttack : ActionType.NormalAttack,
                     label, 0, $"{ally.Source.Character.Name} → {target.Source.Name}: 보호막 흡수 {absorbed:N0}{(broke ? " (보호막 파괴)" : $" (잔여 {target.Shield:N0})")} — 점수 미집계");
@@ -942,6 +961,11 @@ namespace GameDamageCalculator.Services.BattleEngine
             double scoredDmg = (state.CurrentRound < 3)
                 ? System.Math.Max(0, System.Math.Min(dmg, target.CurrentHp))
                 : dmg;
+            if (lh != null)
+            {
+                SiegeLeakRecorder.Lose(lh, "오버킬", dmg - scoredDmg);
+                SiegeLeakRecorder.Scored(lh, scoredDmg, leakCapped || scoredDmg < dmg);
+            }
             target.CurrentHp -= dmg;            // HP 0 이하 허용 (무사망)
             target.TotalDamageTaken += dmg;
             ally.TotalDamageDealt += scoredDmg;
@@ -1080,6 +1104,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 raw = pCond * raw + (1 - pCond) * rawUnmet;
             }
             double final = raw * Math.Max(0, reductionMult);
+            if (_leak != null && state != null) LeakOnCalc(state, ally, target, skill, input, reductionMult, pCond, 1.0, final);
 
             // [진단] 추적 스킬 타격 시 입력 구성요소 덤프
             if (IsDiagSkill(skill.Name) && _diagCount < 200)
@@ -1104,6 +1129,42 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DiagLog.AppendLine($"  ★결정값(치명+약점 둘다 발동)={finalDet:N0} [치명{drDet.CritMultiplier:F3}×약점{drDet.WeakpointMultiplier:F3}]");
             }
             return final;
+        }
+
+        // ── 누수 계측 (config.RecordLeak) — 읽기 전용. 전투 상태를 바꾸지 않는다. ──
+        /// <summary>피해 계산 1건을 누수 기록기에 넘긴다(기준 상태 표본도 함께 갱신).</summary>
+        private void LeakOnCalc(SiegeBattleState state, CharacterBattleState ally, SiegeEnemyState target, Skill skill,
+            DamageCalculator.DamageInput input, double reductionMult, double pCond, double extraMult, double final)
+        {
+            LeakSample(state, skill);
+            bool magic = ally.Source.Character.AttackType == AttackType.Magic;
+            var mid = ally.Effects.GetTotalBuffs();
+            CurrentEffAtk(ally, mid, out double atkRed);
+            _leak.OnCalc(ally, target, ally.PartyIndex, target.IsBoss, magic, input, reductionMult, pCond, extraMult, final,
+                magic ? mid.MagicAtk_Rate : mid.Atk_Rate, atkRed, ally.Stage3AtkRate);
+        }
+
+        /// <summary>지금 이 순간 아군 전원의 버프 상태·적 전원의 디버프 상태를 "그 전투의 최고 상태" 기준에 반영.</summary>
+        private void LeakSample(SiegeBattleState state, Skill skill)
+        {
+            var anyEnemy = state.Enemies.FirstOrDefault();
+            if (anyEnemy == null || skill == null) return;
+            foreach (var a in state.AllyStates)
+            {
+                if (a.IsDead) continue;
+                // 공격자 쪽 필드(치명·약점·피증·방무)는 스킬·대상과 무관 → 아무 스킬·아무 적으로 입력을 만들어 읽는다.
+                var inp = BuildDamageInputToEnemy(a, anyEnemy, skill, state, out _, out _, out _, out double red);
+                var mid = a.Effects.GetTotalBuffs();
+                bool magic = a.Source.Character.AttackType == AttackType.Magic;
+                _leak.SampleAlly(a.PartyIndex, a.Source.Character.Name, inp, magic ? mid.MagicAtk_Rate : mid.Atk_Rate, red);
+            }
+            foreach (var e in state.Enemies)
+            {
+                var d = e.Effects.GetTotalDebuffs();
+                _leak.SampleEnemy(e.IsBoss, d.Def_Reduction, d.Vulnerability, d.Boss_Vulnerability,
+                    d.GetEffectiveDmgTakenIncrease(AttackType.Physical), d.GetEffectiveDmgTakenIncrease(AttackType.Magic),
+                    CountEnemyDebuffs(e));
+            }
         }
 
         /// <summary>아군의 현재 실효 공격력 (자기 공격 속성 기준) — 데미지 계산·인게임 버프 타게팅 공용.
@@ -2268,6 +2329,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     if (src != null) src.TotalDamageDealt += scoredTick;
 
                     var dotName = StatusEffectDb.Get(dot.Type)?.Name ?? dot.Type.ToString();
+                    _leak?.OnDot(dot.SourceName, dotName, scoredTick, 0);
                     state.TurnLogs.Add(new BattleTurnLog
                     {
                         Turn = state.CurrentTurn, ActorName = dot.SourceName, IsAlly = true,
@@ -2275,6 +2337,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                         Description = $"[DoT] {dotName} → {enemy.Source.Name}: {dot.TickDamage:N0}",
                     });
                 }
+                else if (_leak != null && dot.TickDamage > 0)
+                    _leak.OnDot(dot.SourceName, StatusEffectDb.Get(dot.Type)?.Name ?? dot.Type.ToString(), 0, dot.TickDamage);
                 dot.RemainingTurns--;
             }
             enemy.ActiveDots.RemoveAll(d => d.RemainingTurns <= 0);
@@ -2448,6 +2512,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             ProcessTriggeredFixedDamage(state, ally, isSkill: true);   // N회 공격마다 추가 피해(세인·여포·발리스타 등)
             CountAttackForBuffExtend(state, ally);   // 공격 N회마다 자신의 턴제 버프 +1턴(쥬리)
             ApplySkillEffects(state, ally, skill, targets, preDamage: false);   // 아군 버프·아군 디버프해제 (피해 後)
+            if (_leak != null) LeakSample(state, skill);   // 피해 뒤에 걸린 버프·디버프도 "최고 상태" 기준에 반영
             ApplySkillHeal(state, ally, skill);   // 스킬 직접 회복(HealHpRatio, 예: 리나 행진가 전체회복 24%)
             ApplyPartyOnSkillCastPassives(state, ally);   // 스킬 시전 트리거(나타 보호막·미호 흡혈)
             state.AllyRotationCursor = (allyIdx + 1) % state.AllyStates.Count;   // 다음 자동 스킬턴은 다음 아군부터
@@ -3260,6 +3325,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             // 랭킹용 점수: 실제 딜 − 사망 페널티×(전투 종료 시 사망 아군 수). 보고 점수(TotalScore)는 불변.
             int deadCount = state.AllyStates.Count(a => a.IsDead);
             result.RankScore = result.TotalScore - _allyDeathPenalty * deadCount;
+            if (_leak != null)
+            {
+                result.Leak = _leak.Finish(state.TotalScore,
+                    state.AllyStates.GroupBy(a => a.Source.Character.Name).ToDictionary(g => g.Key, g => g.Sum(a => a.TotalDamageDealt)));
+                result.Leak.AddFeasibility(_feasLog);
+            }
             foreach (var ally in state.AllyStates)
             {
                 result.CharacterResults.Add(new SiegeCharacterResult
