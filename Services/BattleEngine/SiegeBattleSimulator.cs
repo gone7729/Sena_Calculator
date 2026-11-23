@@ -655,23 +655,25 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 // 적 기본공격 → 랜덤 아군 1명 피격 + 상태이상 부여
                 var enemy = actor.Enemy;
-                // 실명(라이언 강자사냥 등): 적 기본공격은 반드시 빗나감(피해·상태이상 없음). 스킬은 적중.
+                // 실명(라이언 강자사냥 등): 적 기본공격·반격은 반드시 "빗나감". 스킬은 영향 없음.
+                //   빗나감 = 타격 판정이 사라지는 게 아니다(유저 확인 2026-11-23): 피해 20% 감소 · 치명타 미적용 · 디버프(상태이상) 무시.
+                //   타격 자체는 들어가므로 피격 횟수형 피해 무효화(타카 등)를 소모하고 피해도 입힌다.
+                //   (공격자의 약점 공격이 발동하면 빗나감을 무시하지만 공성 적은 약점 공격이 없어 해당 없음.)
+                //   이전엔 "0뎀·무타격"으로 계산해 실명 중 평타가 무효화를 깎지 않았다 — 토요일 T62 타카 생존(실제는 사망)의 원인.
                 //   기본공격 1회로 실명 1턴 소모 (per-action 모델). HP와 무관하게 차감.
-                if (enemy.BlindTurnsRemaining > 0)
                 {
-                    enemy.BlindTurnsRemaining--;
-                    Log(state, enemy.Source.Name, false, ActionType.NormalAttack, "기본공격", 0,
-                        $"{enemy.Source.Name} 기본공격 빗나감 (실명, 잔여 {enemy.BlindTurnsRemaining}턴)");
-                }
-                else
-                {
+                    bool missed = enemy.BlindTurnsRemaining > 0;
+                    if (missed) enemy.BlindTurnsRemaining--;
                     var normal = enemy.Source.Skills?.FirstOrDefault(s => s.SkillType == SkillType.Normal);
                     var target = PickRandomAlly(state);
                     if (normal != null && target != null)
                     {
-                        double dmg = CalcDamageToAlly(enemy, target, normal);
-                        ApplyDamageToAlly(state, enemy, target, dmg, normal.Name);
-                        ApplyEnemyStatusToAlly(state, target, normal, enemy);
+                        double dmg = CalcDamageToAlly(enemy, target, normal, noCrit: missed) * (missed ? MissDamageMultiplier : 1.0);
+                        if (missed)
+                            Log(state, enemy.Source.Name, false, ActionType.NormalAttack, "기본공격", 0,
+                                $"{enemy.Source.Name} 기본공격 빗나감 → {target.Source.Character.Name} (실명: 피해 -20%·치명 없음·상태이상 없음, 잔여 {enemy.BlindTurnsRemaining}턴)");
+                        ApplyDamageToAlly(state, enemy, target, dmg, missed ? normal.Name + "(빗나감)" : normal.Name);
+                        if (!missed) ApplyEnemyStatusToAlly(state, target, normal, enemy);
                     }
                 }
             }
@@ -1544,18 +1546,14 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         /// <summary>
         /// 반격 1회 발동 — 무작위 아군 TargetCount명(도발 시 도발자 우선)에게 물리 Ratio%[강제치명·치피 CritDamage].
-        /// 실명 중이면 빗나감(0뎀·시간 미소모; 실명 턴은 기본공격만 소모). 발동 시 ActionSeconds초 경과(전체 쿨 감소).
+        /// 실명 중이면 빗나감(피해 -20%·치명 없음·상태이상 없음 — 타격은 들어감; 실명 턴은 기본공격만 소모). 발동 시 ActionSeconds초 경과(전체 쿨 감소).
         /// 라이언 물리면역(도발+면역) / 보호막 / 생존판정은 ApplyDamageToAlly가 자동 처리.
         /// 반격 대상에 용염(화상, 매 턴 공격력 120%)[2턴] 부여 — 틱 피해는 ProcessEnemyDotsOnAlly. 화상 면역이면 무효.
         /// </summary>
         private void ExecuteEnemyCounter(SiegeBattleState state, SiegeEnemyState enemy, Models.SiegeCounterattack ca)
         {
-            if (enemy.BlindTurnsRemaining > 0)
-            {
-                Log(state, enemy.Source.Name, false, ActionType.SkillAttack, "반격", 0,
-                    $"{enemy.Source.Name} 반격 빗나감 (실명)");
-                return;   // 실명 → 무효, 시간 미소모
-            }
+            // 실명 중 반격 = 빗나감: 타격은 들어가되 피해 -20%·치명 없음(강제 치명도 꺼짐)·상태이상(용염) 없음. 실명 턴은 기본공격만 소모.
+            bool missed = enemy.BlindTurnsRemaining > 0;
             var counterSkill = new Skill
             {
                 Name = "반격", SkillType = SkillType.Skill1,
@@ -1565,13 +1563,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             var targets = PickRandomAllies(state, ca.TargetCount);   // 도발 우선 → 라이언 도발 시 라이언에게(물리면역=0뎀)
             foreach (var t in targets)
             {
-                double dmg = CalcDamageToAlly(enemy, t, counterSkill, forceCrit: true, critDmgOverride: ca.CritDamage);
-                ApplyDamageToAlly(state, enemy, t, dmg, "반격");
-                if (ca.Status.HasValue)   // 용염[100%/2턴] — 화상 면역이면 무효
+                double dmg = missed
+                    ? CalcDamageToAlly(enemy, t, counterSkill, noCrit: true) * MissDamageMultiplier
+                    : CalcDamageToAlly(enemy, t, counterSkill, forceCrit: true, critDmgOverride: ca.CritDamage);
+                ApplyDamageToAlly(state, enemy, t, dmg, missed ? "반격(빗나감)" : "반격");
+                if (!missed && ca.Status.HasValue)   // 용염[100%/2턴] — 화상 면역이면 무효
                     AddEnemyStatusToAlly(state, enemy, t, ca.Status.Value, ca.StatusDuration, 1, ca.StatusAtkRatio);
             }
             Log(state, enemy.Source.Name, false, ActionType.SkillAttack, "반격", 0,
-                $"{enemy.Source.Name} 반격 발동 → 아군 {targets.Count}명 (물리 {ca.Ratio:0}%·치명 치피{ca.CritDamage:0}%)");
+                missed ? $"{enemy.Source.Name} 반격 빗나감 → 아군 {targets.Count}명 (실명: 피해 -20%·치명 없음·상태이상 없음)"
+                       : $"{enemy.Source.Name} 반격 발동 → 아군 {targets.Count}명 (물리 {ca.Ratio:0}%·치명 치피{ca.CritDamage:0}%)");
             AdvanceTime(state, ca.ActionSeconds, "반격");   // 반격 3초 → 전체(아군+적) 쿨 감소
         }
 
@@ -1668,6 +1669,9 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>살아있는 아군 중 랜덤 1명 (없으면 null). 도발 중인 아군이 있으면 그 중에서 우선 선택.</summary>
+        /// <summary>빗나감(실명) 시 피해 배수 — 피해 20% 감소(유저 확인 2026-11-23). 치명 미적용·디버프 무시는 호출부에서 처리.</summary>
+        private const double MissDamageMultiplier = 0.8;
+
         private CharacterBattleState PickRandomAlly(SiegeBattleState state)
         {
             var alive = state.AllyStates.Where(a => !a.IsDead).ToList();

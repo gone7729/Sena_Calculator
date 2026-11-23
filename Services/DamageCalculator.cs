@@ -341,10 +341,15 @@ namespace GameDamageCalculator.Services
             input.DefReduction = originalDefReduction;
         }
 
+        /// <summary>방어력 감소 합계 상한(%). 2026-11-23 토요일 연습전투 영상 역산: 비스킷 24 + 불새 36 + 아일린 3중첩 24 = 84%는
+        ///   수치가 정확히 맞고, 4중첩(합 92%)에서는 보스·친위대 × 불새·염화 네 군데 모두 남은 방어 10.0%(= 합 90%)로 나온다.
+        ///   게임 내 표기는 없음(유저도 모름) — 실측으로 찾은 값. 방어력 증가(BossDefIncrease)와의 순서는 미확인(상한 적용 후 가산으로 둠).</summary>
+        public const double MaxDefReductionPct = 90.0;
+
         private double CalcDefCoefficient(DamageInput input, double armorPen, out double effectiveDef)
         {
             const double DEF_CONSTANT = 467.0;
-            double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
+            double defModifier = Math.Max(1 + (input.BossDefIncrease - Math.Min(input.DefReduction, MaxDefReductionPct)) / 100.0, 0);
             double armorPenModifier = 1 - armorPen;
             effectiveDef = input.BossDef * defModifier * armorPenModifier;
             return 1 + effectiveDef / DEF_CONSTANT;
@@ -354,7 +359,7 @@ namespace GameDamageCalculator.Services
         {
             const double DEF_CONSTANT = 467.0;
             const double THRESHOLD = 3125.0;
-            double defModifier = Math.Max(1 + (input.BossDefIncrease - input.DefReduction) / 100.0, 0);
+            double defModifier = Math.Max(1 + (input.BossDefIncrease - Math.Min(input.DefReduction, MaxDefReductionPct)) / 100.0, 0);
             double armorPenModifier = 1 - armorPen;
             double effectiveDef = input.BossDef * defModifier * armorPenModifier;
 

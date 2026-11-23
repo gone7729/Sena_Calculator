@@ -140,6 +140,17 @@ namespace GameDamageCalculator.Services.BattleEngine
         //   2026-11-19 수요일 쥬리 편성: 라이언 수문장 + 비스킷 권능 반지면 같은 딜러 장비로 11.0M → 12.6M.
         public bool SearchAggressiveSurvival { get; set; }
 
+        // 순서 편집 + 생존 보강 트랙(후처리). 기본 OFF. 반사실 확인(SiegeCounterfactual, 2026-11-23)에서 나온 수:
+        //   완성된 빌드는 장비의 생존 여유가 그 스킬 순서 하나에 맞춰져 있어, 스킬 순서를 조금만 바꿔도 누군가 죽는다.
+        //   로테 다듬기는 그런 편집을 사망 페널티로 버리고, 공격 로테+생존 보강은 페널티 없는 빔 로테 하나에서만 출발한다.
+        //   이 트랙은 현재 플랜에서 행동 하나만 바꾼 플랜 전부(이동·맞바꿈·교체·끼움·빼기·홀드)를 평가해
+        //   (가) 장비 그대로 랭크 점수가 오르는 편집, (나) 실제 점수는 오르는데 사망으로 랭크에서 진 편집 상위 N개
+        //   (EditSurvivalCandidates)에 생존 반지·생존 장비를 다시 맞춘 결과 중 가장 높은 것을 채택하고, 채택이 없을 때까지
+        //   반복한다(EditSurvivalRounds, 무회귀). 토요일 메타 팀: 16,140,887 → 16,329,040 (풍연 생존 장비).
+        public bool SearchEditSurvival { get; set; }
+        public int EditSurvivalCandidates { get; set; } = 3;
+        public int EditSurvivalRounds { get; set; } = 3;
+
         // 공격력 순위 탐색(후처리). 기본 OFF. InGameBuffTargeting 전용.
         //   "공격력이 가장 높은 아군" 효과(비스킷 장비 강화·라이언 평타 쿨감 등)는 공격력 순위로 수령자가 갈린다.
         //   누가 1·2순위여야 하는지는 버프 가치·쿨감 누수·행동 순서가 얽혀 장비 그리디가 스스로 찾지 못한다
@@ -151,7 +162,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool SearchAtkRank { get; set; }
 
         // ── 탐색 경로 (2026-11-20 유저 방침) ──
-        //   정석(Standard): 기본 탐색 + 로테 다듬기 + 공격 로테·생존 보강. 속공 순서·공격력 순위처럼 "템 옵션을 따로 손봐야"
+        //   정석(Standard): 기본 탐색 + 로테 다듬기 + 공격 로테·생존 보강 + 순서 편집·생존 보강. 속공 순서·공격력 순위처럼 "템 옵션을 따로 손봐야"
         //                   성립하는 수(SearchAtkRank / SearchActionOrder / SearchSpeedLead)는 쓰지 않는다 — 따라 하기 쉬운 빌드.
         //   고점(Peak):     정석 + 공격력 순위 → 행동 순서 → 속공 선행 → (순서가 바뀌면) 순위·생존 재탐색. 유저 최고점 추격용.
         //   고점 파이프라인의 앞부분이 곧 정석이므로, 고점 탐색 한 번이면 OnStage(StandardStage) 시점의 결과가 정석 빌드다.
@@ -160,6 +171,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             bool peak = route == SiegeSearchRoute.Peak;
             PolishRotation = true;
             SearchAggressiveSurvival = true;
+            SearchEditSurvival = true;
             SearchAtkRank = peak;
             SearchActionOrder = peak;
             SearchSpeedLead = peak;
@@ -313,6 +325,12 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ApplyAggressiveSurvival(config, res, autoEquipped);
                 Stage("공격 로테+생존 보강");
             }
+            if (config.SearchEditSurvival && config.AutoEquip && config.OptimizeRotation && hasRes)
+            {
+                _trialPhase = "순서 편집+생존 보강";
+                ApplyEditSurvival(config, res, autoEquipped);
+                Stage("순서 편집+생존 보강");
+            }
             Stage(SiegeOptimizerConfig.StandardStage);   // ── 여기까지가 정석 경로. 아래는 고점 경로 전용(템 옵션을 따로 손보는 수) ──
             bool changed = false;
             bool rankOn = config.SearchAtkRank && config.AutoEquip && config.OptimizeRotation && hasRes;
@@ -338,7 +356,138 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ApplyAggressiveSurvival(config, res, autoEquipped);     // 순서가 바뀌면 죽는 영웅도 달라진다
                 Stage("생존 보강(순서 변경 후)");
             }
+            if (changed && config.SearchEditSurvival && config.AutoEquip && config.OptimizeRotation)
+            {
+                _trialPhase = "순서 편집+생존 보강(고점)";
+                ApplyEditSurvival(config, res, autoEquipped);           // 고점 단계가 장비·순서를 바꿨으면 편집 지형도 달라진다
+                Stage("순서 편집+생존 보강(고점)");
+            }
             return res;
+        }
+
+        /// <summary>[도구용] 이미 완성된 빌드(파티 장비·자리·플랜)에 순서 편집 + 생존 보강 트랙만 돌린다 — 다시 탐색하지 않고
+        ///   저장된 빌드를 새 단계로 손볼 때. party의 장비를 직접 고친다. 반환 = (결과, 플랜, 로그), 개선이 없으면 입력 그대로.</summary>
+        public (SiegeBattleResult R, List<RotationDecision> Plan, List<string> Log) RunEditSurvival(SiegeOptimizerConfig config,
+            List<BattleCharacter> party, string formation, List<RotationDecision> plan)
+        {
+            int mask = 0;
+            for (int i = 0; i < party.Count; i++) if (party[i].IsBackPosition) mask |= 1 << i;
+            var start = ScoreOnPlan(config, party, formation, plan);
+            var best = new SiegeOptimizerResult
+            {
+                BestParty = party, BestFormation = formation, BestMask = mask, BestRotationPlan = plan,
+                BestScore = start.TotalScore, BestRankScore = start.RankScore, BestResult = start,
+            };
+            _trialPhase = "순서 편집+생존 보강";
+            ApplyEditSurvival(config, best, party.ToHashSet());
+            return (best.BestResult, best.BestRotationPlan, best.GearLog);
+        }
+
+        /// <summary>
+        /// 순서 편집 + 생존 보강 트랙 — SiegeOptimizerConfig.SearchEditSurvival 설명 참조.
+        /// </summary>
+        private bool ApplyEditSurvival(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            if (best.BestRotationPlan == null || best.BestRotationPlan.Count == 0) return false;
+            var party = best.BestParty;
+            string formation = best.BestFormation;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            double startScore = best.BestScore;
+            bool any = false;
+
+            for (int round = 1; round <= System.Math.Max(1, config.EditSurvivalRounds); round++)
+            {
+                var plan = best.BestRotationPlan;
+                var cur = ScoreOnPlan(config, party, formation, plan);
+                int steps = ReplayWithCasts(config, party, formation, plan).Feasibility?
+                    .Where(f => f.Reached).Select(f => f.StepIndex).Distinct().Count() ?? plan.Count;
+                if (steps <= 0) steps = plan.Count;
+                string Label(int i) => i < plan.Count ? $"#{i} {SiegeCounterfactual.CastName(plan[i], party)}" : $"#{i}";
+                var runs = SiegeCounterfactual.SingleEdits(plan, steps, party)
+                    .Select(e => (E: e, R: ScoreOnPlan(config, party, formation, e.Plan))).ToList();
+
+                SiegeBattleResult pickR = null; List<RotationDecision> pickPlan = null; string pickDesc = null;
+                List<EquipmentLoadout> pickEq = null; List<Accessory> pickAcc = null; List<string> pickLog = null;
+
+                // (가) 장비 그대로 랭크 점수가 오르는 편집 — 로테 다듬기가 보지 않는 수(이동·끼움·빼기·먼 맞바꿈)까지
+                foreach (var x in runs)
+                    if (IsBetterPick(x.R.TotalScore, x.R.RankScore, cur.TotalScore, cur.RankScore)
+                        && (pickR == null || IsBetterPick(x.R.TotalScore, x.R.RankScore, pickR.TotalScore, pickR.RankScore)))
+                    { pickR = x.R; pickPlan = x.E.Plan; pickDesc = SiegeCounterfactual.Describe(x.E, party, Label); }
+
+                // (나) 실제 점수는 오르는데 사망으로 랭크에서 진 편집 → 그 순서를 고정하고 생존 반지·생존 장비를 다시 맞춘다
+                var cands = runs.Where(x => x.R.TotalScore > cur.TotalScore && !IsBetterPick(x.R.TotalScore, x.R.RankScore, cur.TotalScore, cur.RankScore))
+                    .GroupBy(x => (System.Math.Round(x.R.TotalScore), System.Math.Round(x.R.RankScore))).Select(g => g.First())
+                    .OrderByDescending(x => x.R.TotalScore).Take(System.Math.Max(0, config.EditSurvivalCandidates)).ToList();
+                foreach (var cd in cands)
+                {
+                    var eqSnap = party.Select(b => b.Equipment).ToList();
+                    var accSnap = party.Select(b => b.Equipment?.Accessory).ToList();
+                    var tmp = new SiegeOptimizerResult
+                    {
+                        BestParty = party, BestFormation = formation, BestMask = best.BestMask, BestRotationPlan = cd.E.Plan,
+                        BestScore = cd.R.TotalScore, BestRankScore = cd.R.RankScore, BestResult = cd.R,
+                    };
+                    bool opt = config.OptimizeRotation;
+                    config.OptimizeRotation = false;   // 순서 고정 — 생존 장비 채택 뒤의 빔 재탐색을 끈다(다듬기는 채택 후 한 번)
+                    try
+                    {
+                        if (config.EnableSurvivalRings) ApplySurvivalRings(config, tmp);
+                        ApplySurvivalGear(config, tmp, autoEquipped);
+                    }
+                    finally { config.OptimizeRotation = opt; }
+                    var r = ScoreOnPlan(config, party, formation, cd.E.Plan);
+                    Trial(config, party, formation, cd.E.Plan, r);
+                    if (IsBetterPick(r.TotalScore, r.RankScore, cur.TotalScore, cur.RankScore)
+                        && (pickR == null || IsBetterPick(r.TotalScore, r.RankScore, pickR.TotalScore, pickR.RankScore)))
+                    {
+                        pickR = r; pickPlan = cd.E.Plan;
+                        pickDesc = SiegeCounterfactual.Describe(cd.E, party, Label) + $" (편집만 {cd.R.TotalScore:N0}·랭크 {cd.R.RankScore:N0}) + 생존 재보강";
+                        pickEq = party.Select(b => b.Equipment).ToList();
+                        pickAcc = party.Select(b => b.Equipment?.Accessory).ToList();
+                        pickLog = tmp.GearLog.ToList();
+                    }
+                    for (int i = 0; i < party.Count; i++)
+                    {
+                        party[i].Equipment = eqSnap[i];
+                        if (party[i].Equipment != null) party[i].Equipment.Accessory = accSnap[i];
+                    }
+                }
+
+                if (pickR == null)
+                {
+                    best.GearLog.Add($"[순서 편집+생존 보강] {round}회차: 편집 {runs.Count}개 · 생존 재보강 후보 {cands.Count}개 — 더 나은 것 없음 ({clock.Elapsed.TotalMinutes:F1}분)");
+                    break;
+                }
+                if (pickEq != null)
+                {
+                    for (int i = 0; i < party.Count; i++)
+                    {
+                        party[i].Equipment = pickEq[i];
+                        if (party[i].Equipment != null) party[i].Equipment.Accessory = pickAcc[i];
+                    }
+                    best.RingedAcc = party.Select(b => b.Equipment?.Accessory).ToList();
+                    best.GearLog.AddRange(pickLog);
+                }
+                else Trial(config, party, formation, pickPlan, pickR);
+                best.GearLog.Add($"[순서 편집+생존 보강] {round}회차 채택: {pickDesc} — {cur.TotalScore:N0}(랭크 {cur.RankScore:N0}) → {pickR.TotalScore:N0}(랭크 {pickR.RankScore:N0}) · 편집 {runs.Count}개 · 재보강 후보 {cands.Count}개 ({clock.Elapsed.TotalMinutes:F1}분)");
+                best.BestRotationPlan = pickPlan; best.BestScore = pickR.TotalScore; best.BestRankScore = pickR.RankScore; best.BestResult = pickR;
+                any = true;
+            }
+
+            if (any && config.PolishRotation)
+            {
+                var (pr, pp) = PolishPlan(config, party, formation, best.BestResult, best.BestRotationPlan);
+                if (IsBetterPick(pr.TotalScore, pr.RankScore, best.BestScore, best.BestRankScore))
+                {
+                    best.GearLog.Add($"[순서 편집+생존 보강] 다듬기: {best.BestScore:N0} → {pr.TotalScore:N0}");
+                    best.BestScore = pr.TotalScore; best.BestRankScore = pr.RankScore; best.BestResult = pr; best.BestRotationPlan = pp;
+                }
+            }
+            if (any) best.GearLog.Add($"[순서 편집+생존 보강] 합계: {startScore:N0} → {best.BestScore:N0} ({clock.Elapsed.TotalMinutes:F1}분)");
+            return any;
         }
 
         /// <summary>
@@ -579,14 +728,28 @@ namespace GameDamageCalculator.Services.BattleEngine
                 bool ok = true, realized = false;
                 // 여유 단계별 (장비, 수 개수, 강제 없는 점수) — 강제 때 점수가 안 나와도 그중 가장 높은 단계를 쓴다.
                 var stages = new List<(Dictionary<BattleCharacter, List<(string Main, List<(string Stat, int Tier)> Subs)>> Gear, int StepCount, double Free, double Margin)>();
+                // [수령자 일치] 순위 조건(Viol = 강제 순서의 영웅이 나머지 전원보다 높아야 함)은 충분조건일 뿐이다.
+                //   예: 강제 1순위 후보가 실제로는 2위여도, 1위가 쿨감 시전자 본인(자신 제외 최고 아군에게 줌)이고 버프가 상위 2명 대상이면
+                //   수령자는 강제 때와 똑같다. 시뮬은 결정적이므로 "강제 없이 같은 로테가 강제 때와 같은 점수"면 수령자가 같은 것이다.
+                //   (2026-11-23: 토요일 메타 팀에서 '레이첼 강제 +80만'이 '라이언보다 공격력이 높아야 한다'는 조건 때문에 실현 불가로 버려짐)
+                double sameFree = 0;
+                bool SameAsForced()
+                {
+                    double forcedNow = ForcedScore(c.Order, c.Plan).RankScore;
+                    var freeNow = ScoreOnPlan(config, party, formation, c.Plan);
+                    sameFree = freeNow.RankScore;
+                    return freeNow.RankScore >= forcedNow * 0.999;
+                }
                 // 여유(공격력)를 넓혀 가며: 스탯 순위가 맞아도 전투 중 공격력 감소·버프로 순위가 뒤집힐 수 있다.
                 foreach (double margin in new[] { 1.0, 60.0, 150.0 })
                 {
+                    bool early = false;
                     for (int step = 0; step < 20; step++)
                     {
                         var a = AllyAtks(config, best, party);
                         double v0 = Viol(a, c.Order, margin);
                         if (v0 <= 0) break;
+                        if (SameAsForced()) { early = true; break; }
                         double s0 = ForcedScore(c.Order, c.Plan).RankScore;
                         (string Key, string Desc, Action Do, Action Undo) pick = default;
                         double pickEff = double.PositiveInfinity, pickV = v0;
@@ -614,6 +777,13 @@ namespace GameDamageCalculator.Services.BattleEngine
                         if (pick.Do == null) { ok = false; break; }
                         pick.Do();
                         steps.Add($"{pick.Desc} (격차 {v0:N0}→{pickV:N0})");
+                    }
+                    if (!early && (!ok || Viol(AllyAtks(config, best, party), c.Order, margin) > 0) && SameAsForced()) early = true;
+                    if (early)
+                    {
+                        stages.Add((movable.ToDictionary(b => b, SnapGear), steps.Count, sameFree, margin));
+                        realized = true;
+                        break;
                     }
                     if (!ok || Viol(AllyAtks(config, best, party), c.Order, margin) > 0) { ok = false; break; }
                     // 강제 없이 같은 로테를 돌려 강제 때와 같은 점수가 나오면 순위가 실제로 실현된 것.
