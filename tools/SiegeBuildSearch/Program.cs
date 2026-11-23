@@ -221,21 +221,20 @@ if (args.Contains("시도"))
     }
     return;
 }
-// ── 누수 장부: 기록된 시도를 다시 돌려 "그 전투의 최고 상태 대비 덜 들어간 딜"을 계수별로 계산 (SiegeLeakLedger) ──
-//   `누수` = 구간 평균 + 상·하위 시도 + 최고 빌드 상세.  `상세=N` = 랭크 N위 시도의 상세.
-string leakPath = System.IO.Path.Combine(outDir, $"leaks_{day}_{profile}_{teamKey}.jsonl");
-if (args.Contains("누수"))
+// ── 누수 장부·반사실 공용 ──
+int W(string s) => s.Sum(ch => ch >= 0x1100 ? 2 : 1);
+string PadL(string s, int w) => new string(' ', Math.Max(0, w - W(s))) + s;
+string PadR(string s, int w) => s + new string(' ', Math.Max(0, w - W(s)));
+
+// 기록된 시도를 빌드(지문)당 한 번씩 누수 장부를 켜고 다시 돌린다 — 채택 기록·최근 기록 우선
+List<(SiegeTrialRecord T, SiegeLeakRecord R)> BuildLeakRecs(List<SiegeTrialRecord> trials, out int recalcBad)
 {
-    var all = SiegeTrialStore.Load(trialPath);
-    Console.WriteLine($"═══ 누수 장부 {day} [{teamKey}] {profile}");
-    if (all.Count == 0) { Console.WriteLine($"시도 기록이 없습니다({trialPath}). 먼저 탐색을 돌리세요."); return; }
-    // 같은 빌드(지문)는 한 번만 — 채택 기록·최근 기록 우선
-    var uniq = all.GroupBy(t => t.Fingerprint).Select(g => g.OrderByDescending(t => t.Adopted).ThenByDescending(t => t.At).First()).ToList();
-    var adoptedFp = all.Where(t => t.Adopted).Select(t => t.Fingerprint).ToHashSet();
-    var finalFp = all.Where(t => t.Adopted).GroupBy(t => t.EngineHash + "|" + t.StartOrder)
+    var uniq = trials.GroupBy(t => t.Fingerprint).Select(g => g.OrderByDescending(t => t.Adopted).ThenByDescending(t => t.At).First()).ToList();
+    var adoptedFp = trials.Where(t => t.Adopted).Select(t => t.Fingerprint).ToHashSet();
+    var finalFp = trials.Where(t => t.Adopted).GroupBy(t => t.EngineHash + "|" + t.StartOrder)
         .Select(g => g.OrderByDescending(t => t.At).ThenByDescending(t => t.Seq).First().Fingerprint).ToHashSet();
-    var recs = new List<SiegeLeakRecord>();
-    int recalcBad = 0;
+    var list = new List<(SiegeTrialRecord, SiegeLeakRecord)>();
+    recalcBad = 0;
     foreach (var t in uniq)
     {
         var party = SiegeBuildStore.ToParty(t.Build);
@@ -248,14 +247,49 @@ if (args.Contains("누수"))
         }
         var r = SiegeOptimizer.ReplayWithCasts(c, party, t.Build.Formation, plan, leak: true);
         recalcBad += r.Leak.RecalcMismatch;
-        recs.Add(new SiegeLeakRecord
+        list.Add((t, new SiegeLeakRecord
         {
             Fingerprint = t.Fingerprint, Score = t.Score, RankScore = t.RankScore, DeathCount = t.DeathCount,
             Phase = t.Phase, StartOrder = t.StartOrder, Adopted = adoptedFp.Contains(t.Fingerprint), Final = finalFp.Contains(t.Fingerprint),
             ForcedBuffOrder = t.ForcedBuffOrder, Formation = t.Formation, BackRow = t.BackRow, Order = t.Order,
             ReplayOk = Math.Abs(r.TotalScore - (t.ReplayScore ?? t.Score)) <= 1, ReplayScore = Math.Round(r.TotalScore), Leak = r.Leak,
-        });
+        }));
     }
+    return list;
+}
+
+// 한 전투의 누수 장부 상세(기준 상태 · 계수 누수 · 깎인 딜 · 사망 · 행별 누수)
+void PrintLeakDetail(SiegeLeakLedger L)
+{
+    string P(double v) => L.Score > 0 ? $"{v / L.Score * 100:0.0}%" : "-";
+    Console.WriteLine($"  점수 {L.Score:N0} = 타격 {L.HitScored:N0} + DoT {L.DotScored:N0} · 아군 스킬턴 {L.SkillTurns}회(폴백 {L.Fallbacks} · 홀드 {L.Holds})");
+    Console.WriteLine("  기준이 된 최고 상태(전투 중 값이 변한 것만): " + (L.Best.Count == 0 ? "없음" : string.Join(" · ", L.Best.Select(kv => $"{kv.Key} {kv.Value:0.#}"))));
+    Console.WriteLine("  계수 누수: " + string.Join(" · ", L.Factor.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:N0}({P(kv.Value)})"))
+        + $" │ 동시 {L.AllBest:N0}({P(L.AllBest)})");
+    if (L.Lost.Count > 0) Console.WriteLine("  깎인 딜: " + string.Join(" · ", L.Lost.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:N0}({P(kv.Value)})")));
+    if (L.DeadTurns.Count > 0) Console.WriteLine("  사망: " + string.Join(" · ", L.DeadTurns.Select(kv => $"{kv.Key} {kv.Value}턴")) + $" → 추정 손실 {L.DeathLossEst:N0}({P(L.DeathLossEst)})");
+    if (L.IdleSec.Count > 0) Console.WriteLine("  쿨이 돈 뒤 대기(초, 참고): " + string.Join(" · ", L.IdleSec.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:0.#}")));
+    Console.WriteLine();
+    Console.WriteLine("  " + PadR("스텝", 5) + PadR("턴", 4) + PadR("영웅", 10) + PadR("스킬", 26) + PadL("점수", 12) + PadL("동시 누수", 12) + "  누수 큰 계수 / 깎인 딜");
+    foreach (var row in L.Rows)
+    {
+        string fs = string.Join(" · ", row.Factor.Where(kv => kv.Value >= 1).OrderByDescending(kv => kv.Value).Take(4).Select(kv => $"{kv.Key} {kv.Value:N0}"));
+        string ls = row.Lost == null ? "" : string.Join(" · ", row.Lost.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} −{kv.Value:N0}"));
+        if (row.Targets != null) ls = ls.Length > 0 ? $"{ls} │ {row.Targets}" : row.Targets;
+        Console.WriteLine("  " + PadR(row.Step >= 0 ? row.Step.ToString() : "-", 5) + PadR(row.Turn >= 0 ? $"T{row.Turn}" : "-", 4) + PadR(row.Hero ?? "", 10) + PadR(row.Skill ?? "", 26)
+            + PadL(row.Scored.ToString("N0"), 12) + PadL(row.AllBest.ToString("N0"), 12) + "  " + fs + (fs.Length > 0 && ls.Length > 0 ? " │ " : "") + ls);
+    }
+}
+
+// ── 누수 장부: 기록된 시도를 다시 돌려 "그 전투의 최고 상태 대비 덜 들어간 딜"을 계수별로 계산 (SiegeLeakLedger) ──
+//   `누수` = 구간 평균 + 상·하위 시도 + 최고 빌드 상세.  `상세=N` = 랭크 N위 시도의 상세.
+string leakPath = System.IO.Path.Combine(outDir, $"leaks_{day}_{profile}_{teamKey}.jsonl");
+if (args.Contains("누수"))
+{
+    var all = SiegeTrialStore.Load(trialPath);
+    Console.WriteLine($"═══ 누수 장부 {day} [{teamKey}] {profile}");
+    if (all.Count == 0) { Console.WriteLine($"시도 기록이 없습니다({trialPath}). 먼저 탐색을 돌리세요."); return; }
+    var recs = BuildLeakRecs(all, out int recalcBad).Select(x => x.R).ToList();
     SiegeLeakStore.Save(leakPath, recs);
 
     var good = recs.Where(x => x.ReplayOk).OrderByDescending(x => x.RankScore).ToList();
@@ -270,9 +304,6 @@ if (args.Contains("누수"))
     Console.WriteLine("  깎인 딜  = 계산된 피해 중 점수가 되지 못한 몫(면역·무효·링크·보호막·오버킬).");
     Console.WriteLine("  사망     = 죽어 있던 턴 합 / 추정 손실(그 영웅의 생존 중 턴당 딜 × 죽은 턴 — 지원 영웅의 버프 손실은 빠짐).");
 
-    int W(string s) => s.Sum(ch => ch >= 0x1100 ? 2 : 1);
-    string PadL(string s, int w) => new string(' ', Math.Max(0, w - W(s))) + s;
-    string PadR(string s, int w) => s + new string(' ', Math.Max(0, w - W(s)));
     string[] lostKeys = { "면역", "무효", "링크", "보호막", "오버킬", "피해1고정" };
     var useF = SiegeLeakRecorder.Factors.Where(f => good.Any(x => x.Leak.Factor.GetValueOrDefault(f) > 0)).ToArray();
     var useL = lostKeys.Where(l => good.Any(x => x.Leak.Lost.GetValueOrDefault(l) > 0)).ToArray();
@@ -347,23 +378,261 @@ if (args.Contains("누수"))
     Console.WriteLine();
     Console.WriteLine($"──── 상세: 랭크 {good.IndexOf(d) + 1}위 · {d.Score:N0} (사망 {d.DeathCount:0.#}) · {Tag(d)} {d.Phase} · {d.Formation?.Replace(" 진형", "")}·후열 {string.Join("+", d.BackRow ?? new())} · 순서 {string.Join(",", d.Order ?? new())}"
         + (d.ForcedBuffOrder != null ? $" · [가정: 버프 수령 {string.Join(">", d.ForcedBuffOrder)}]" : "") + " ────");
-    var L = d.Leak;
-    Console.WriteLine($"  점수 {L.Score:N0} = 타격 {L.HitScored:N0} + DoT {L.DotScored:N0} · 아군 스킬턴 {L.SkillTurns}회(폴백 {L.Fallbacks} · 홀드 {L.Holds})");
-    Console.WriteLine("  기준이 된 최고 상태(전투 중 값이 변한 것만): " + (L.Best.Count == 0 ? "없음" : string.Join(" · ", L.Best.Select(kv => $"{kv.Key} {kv.Value:0.#}"))));
-    Console.WriteLine("  계수 누수: " + string.Join(" · ", L.Factor.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:N0}({Pct(d, kv.Value):0.0}%)"))
-        + $" │ 동시 {L.AllBest:N0}({Pct(d, L.AllBest):0.0}%)");
-    if (L.Lost.Count > 0) Console.WriteLine("  깎인 딜: " + string.Join(" · ", L.Lost.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:N0}({Pct(d, kv.Value):0.0}%)")));
-    if (L.DeadTurns.Count > 0) Console.WriteLine("  사망: " + string.Join(" · ", L.DeadTurns.Select(kv => $"{kv.Key} {kv.Value}턴")) + $" → 추정 손실 {L.DeathLossEst:N0}({Pct(d, L.DeathLossEst):0.0}%)");
-    if (L.IdleSec.Count > 0) Console.WriteLine("  쿨이 돈 뒤 대기(초, 참고): " + string.Join(" · ", L.IdleSec.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value:0.#}")));
-    Console.WriteLine();
-    Console.WriteLine("  " + PadR("스텝", 5) + PadR("턴", 4) + PadR("영웅", 10) + PadR("스킬", 26) + PadL("점수", 12) + PadL("동시 누수", 12) + "  누수 큰 계수 / 깎인 딜");
-    foreach (var row in L.Rows)
+    PrintLeakDetail(d.Leak);
+    return;
+}
+
+// ── 반사실 확인: 한 시도의 스킬 순서에서 행동 하나만 바꿔(장비·자리 그대로) 다시 돌린다 (SiegeCounterfactual) ──
+//   누수 장부가 가리킨 누수가 실제로 되찾을 수 있는 딜인지 확인한다. Δ점수 = Δ상한 − Δ누수 로 분해.
+//   `반사실` = 실제 빌드 랭크 1위 기준.  `상세=N` = 랭크 N위 시도 기준.  `연쇄=N` = 가장 좋은 편집을 최대 N번 이어 적용(기본 6, 0=안 함).
+//   `표시=N` = 편집 목록 줄 수(기본 12).  `저장` = 연쇄 결과가 저장된 고점 빌드보다 높으면 build_*.json 을 그 빌드로 바꾼다.
+//   `불사` = [진단] 아군이 피해를 받지 않는 조건에서 비교(기준도 같은 조건) — 생존을 빼고 "딜만 보면 되찾을 수 있는가"를 본다.
+//   `보강[=N]` = 순서를 고정하고 실제 조건에서 생존 반지·생존 장비를 다시 맞춘 뒤(SiegeOptimizer.RefitSurvival) 기준과 비교.
+//                `불사 보강` = 불사 연쇄로 찾은 순서 하나.  `보강`만 = 점수는 오르는데 사망이 늘어 진 단일 편집 상위 N개(기본 3).
+//                기준보다 나으면 counterfactual_*.json 으로 남긴다(`저장`이면 고점 빌드도 갱신).
+if (args.Contains("반사실"))
+{
+    var all = SiegeTrialStore.Load(trialPath);
+    Console.WriteLine($"═══ 반사실 확인 {day} [{teamKey}] {profile}");
+    if (all.Count == 0) { Console.WriteLine($"시도 기록이 없습니다({trialPath}). 먼저 탐색을 돌리세요."); return; }
+    var pairs = BuildLeakRecs(all, out _);
+    var good = pairs.Where(x => x.R.ReplayOk).OrderByDescending(x => x.R.RankScore).ToList();   // `누수`의 랭크 번호와 같은 순서
+    if (good.Count == 0) { Console.WriteLine("지금 엔진으로 점수가 재현되는 시도가 없습니다. 탐색을 다시 돌리세요."); return; }
+    int pickRank = int.TryParse(Val("상세="), out var pr0) && pr0 >= 1 && pr0 <= good.Count ? pr0 : 0;
+    var pick = pickRank > 0 ? good[pickRank - 1] : (good.FirstOrDefault(x => x.R.ForcedBuffOrder == null).T != null ? good.First(x => x.R.ForcedBuffOrder == null) : good[0]);
+    int chainMax = int.TryParse(Val("연쇄="), out var cm) && cm >= 0 ? cm : 6;
+    int showN = int.TryParse(Val("표시="), out var sn2) && sn2 > 0 ? sn2 : 12;
+    var bt = pick.T;
+
+    // 기준 시도를 되살린다 (전용장비를 DB 영웅에 다시 꽂으므로 다른 빌드를 되살린 뒤에는 다시 불러야 한다)
+    var party = SiegeBuildStore.ToParty(bt.Build);
+    var basePlan = SiegeBuildStore.ToPlan(bt.Build, party);
+    var cfgCf = MakeCfg(party, null);
+    if (bt.ForcedBuffOrder != null)
     {
-        string fs = string.Join(" · ", row.Factor.Where(kv => kv.Value >= 1).OrderByDescending(kv => kv.Value).Take(4).Select(kv => $"{kv.Key} {kv.Value:N0}"));
-        string ls = row.Lost == null ? "" : string.Join(" · ", row.Lost.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} −{kv.Value:N0}"));
-        if (row.Targets != null) ls = ls.Length > 0 ? $"{ls} │ {row.Targets}" : row.Targets;
-        Console.WriteLine("  " + PadR(row.Step >= 0 ? row.Step.ToString() : "-", 5) + PadR(row.Turn >= 0 ? $"T{row.Turn}" : "-", 4) + PadR(row.Hero ?? "", 10) + PadR(row.Skill ?? "", 26)
-            + PadL(row.Scored.ToString("N0"), 12) + PadL(row.AllBest.ToString("N0"), 12) + "  " + fs + (fs.Length > 0 && ls.Length > 0 ? " │ " : "") + ls);
+        cfgCf.HighestAtkAllyOrder = bt.ForcedBuffOrder.Select(n => party.FindIndex(p => p.Character.Name == n)).ToList();
+        cfgCf.HighestAtkAllyOverrideCdrOnly = bt.ForcedCdrOnly;
+    }
+    bool immortal = args.Contains("불사");
+    cfgCf.DiagAlliesImmortal = immortal;
+    string formation = bt.Build.Formation;
+    var swCf = System.Diagnostics.Stopwatch.StartNew();
+    var baseRun = SiegeCounterfactual.Run(cfgCf, party, formation, basePlan);
+    string Sg(double v) => v.ToString("+#,0;-#,0;0");
+    string PctOf(double v, double of) => of > 0 ? $"{v / of * 100:0.0}%" : "-";
+
+    Console.WriteLine($"기준: 랭크 {good.IndexOf(pick) + 1}위 · {bt.Phase} · {bt.Formation?.Replace(" 진형", "")}·후열 {string.Join("+", bt.BackRow)} · 순서 {string.Join(",", bt.Order)}"
+        + (bt.ForcedBuffOrder != null ? $" · [가정: 버프 수령 {string.Join(">", bt.ForcedBuffOrder)}]" : ""));
+    if (immortal) Console.WriteLine($"  [진단: 불사] 아군이 피해를 받지 않는 조건 — 기록된 점수 {bt.Score:N0}(사망 {bt.DeathCount:0.#})와 다른 값이며, 아래 비교는 전부 이 조건 안에서의 차이다.");
+    Console.WriteLine($"  점수 {baseRun.Score:N0} (랭크 {baseRun.Rank:N0}, 사망 {baseRun.Deaths}) · 동시 누수 {baseRun.AllBest:N0}({PctOf(baseRun.AllBest, baseRun.Score)}) · 상한 {baseRun.Ceiling:N0}");
+    Console.WriteLine();
+    Console.WriteLine("스킬 순서에서 행동 하나만 바꾸고 장비·자리는 그대로 둔 채 다시 돌린 결과.");
+    Console.WriteLine("  상한 = 점수 + 동시 누수 = 그 전투의 모든 타격이 그 전투의 최고 상태로 들어갔을 때의 점수.");
+    Console.WriteLine("  Δ점수 = Δ상한 − Δ누수.  Δ누수 < 0 = 누수를 막음.  Δ상한 < 0 = 얻을 수 있던 딜 자체가 줄어듦(버스트 횟수·최고 상태·사망).");
+    Console.WriteLine("  편집 표기의 #번호·턴은 그 줄이 출발한 순서(기준 또는 연쇄의 직전 단계) 기준.");
+
+    // 한 플랜에서 나오는 단일 편집 전부를 돌린다
+    (List<SiegeCounterfactualRun> Runs, Func<int, string> Label) Sweep(SiegeCounterfactualRun from)
+    {
+        var turnOf = from.Leak.Rows.Where(r => r.Step >= 0).GroupBy(r => r.Step).ToDictionary(g => g.Key, g => g.First().Turn);
+        string Label(int i) => i < from.Plan.Count
+            ? $"#{i}{(turnOf.TryGetValue(i, out var tn) ? $" T{tn}" : "")} {SiegeCounterfactual.CastName(from.Plan[i], party)}" : $"#{i}";
+        var edits = SiegeCounterfactual.SingleEdits(from.Plan, from.Leak.SkillTurns, party);
+        var runs = edits.Select(e => SiegeCounterfactual.Run(cfgCf, party, formation, e.Plan, e)).ToList();
+        return (runs, Label);
+    }
+    bool Better(SiegeCounterfactualRun a, SiegeCounterfactualRun b) => SiegeOptimizer.IsBetterBuild(a.Score, a.Rank, b.Score, b.Rank);
+    string EditLine(SiegeCounterfactualRun v, SiegeCounterfactualRun from, Func<int, string> label) =>
+        PadL(Sg(v.Score - from.Score), 11) + PadL(Sg(v.Rank - from.Rank), 11) + PadL(v.Deaths.ToString(), 5)
+        + PadL(Sg(v.AllBest - from.AllBest), 11) + PadL(Sg(v.Ceiling - from.Ceiling), 11) + PadL(v.Leak.Fallbacks.ToString(), 5)
+        + "  " + SiegeCounterfactual.Describe(v.Edit, party, label);
+    string EditHeader() => PadL("Δ점수", 11) + PadL("Δ랭크", 11) + PadL("사망", 5) + PadL("Δ누수", 11) + PadL("Δ상한", 11) + PadL("폴백", 5) + "  편집";
+
+    var (runs0, label0) = Sweep(baseRun);
+    var ranked0 = runs0.OrderByDescending(v => v.Rank).ThenByDescending(v => v.Score).ToList();
+    Console.WriteLine();
+    Console.WriteLine($"──── 한 행동만 바꾼 편집 {runs0.Count}개 ({swCf.Elapsed.TotalSeconds:F0}초) ────");
+    // 결과가 기준과 같은 편집 = 바꾼 칸이 어차피 폴백(쿨)·자동으로 같은 시전이 된 경우 — 실제로는 아무것도 안 바뀐 것
+    bool NoOp(SiegeCounterfactualRun v, SiegeCounterfactualRun from) => Math.Abs(v.Score - from.Score) < 1 && Math.Abs(v.AllBest - from.AllBest) < 1 && v.Deaths == from.Deaths;
+    Console.WriteLine("  " + PadR("종류", 8) + PadL("개수", 6) + PadL("결과 같음", 10) + PadL("나음", 6) + PadL("사망 늘어남", 12) + PadL("최고 Δ랭크", 13) + PadL("중앙 Δ랭크", 13) + PadL("최고 Δ점수", 13));
+    foreach (var g in runs0.GroupBy(v => v.Edit.Kind))
+    {
+        var live = g.Where(v => !NoOp(v, baseRun)).ToList();
+        var ds = live.Select(v => v.Rank - baseRun.Rank).OrderBy(x => x).ToList();
+        Console.WriteLine("  " + PadR(g.Key, 8) + PadL(g.Count().ToString(), 6) + PadL((g.Count() - live.Count).ToString(), 10) + PadL(live.Count(v => Better(v, baseRun)).ToString(), 6)
+            + PadL(live.Count(v => v.Deaths > baseRun.Deaths).ToString(), 12)
+            + PadL(ds.Count > 0 ? Sg(ds[^1]) : "-", 13) + PadL(ds.Count > 0 ? Sg(ds[ds.Count / 2]) : "-", 13) + PadL(live.Count > 0 ? Sg(live.Max(v => v.Score - baseRun.Score)) : "-", 13));
+    }
+    var live0 = ranked0.Where(v => !NoOp(v, baseRun)).ToList();
+    Console.WriteLine($"  결과 같음 = 바꾼 칸이 폴백·자동으로 같은 시전이 되어 실제로는 아무것도 안 바뀐 편집(아래 목록에서 제외).");
+    Console.WriteLine($"  로테 다듬기가 보는 수 = 교체 · 3칸 이내 맞바꿈. 이동·끼움·빼기·먼 맞바꿈은 탐색이 본 적 없는 수.");
+    if (!immortal && live0.Count > 0)
+        Console.WriteLine($"  실제로 바뀐 편집 {live0.Count}개 중 사망이 늘어난 것 {live0.Count(v => v.Deaths > baseRun.Deaths)}개 (평균 사망 {live0.Average(v => v.Deaths):0.0}) — 장비의 생존 여유가 이 스킬 순서에 맞춰져 있다는 뜻. 딜만 보려면 `불사`.");
+    Console.WriteLine();
+    Console.WriteLine($"──── 랭크 점수가 가장 오른 편집 {Math.Min(showN, live0.Count)}개 ────");
+    Console.WriteLine(EditHeader());
+    foreach (var v in live0.Take(showN)) Console.WriteLine(EditLine(v, baseRun, label0));
+
+    // 누수 가설 확인: 누수가 큰 시전마다 "그 앞에 상태를 더 만들어 두는" 편집만 모아 본다
+    var leakRows = baseRun.Leak.Rows.Where(r => r.Step >= 0 && r.AllBest >= baseRun.Score * 0.01).OrderByDescending(r => r.AllBest).Take(6).ToList();
+    Console.WriteLine();
+    Console.WriteLine("──── 누수 가설 확인: 누수가 큰 시전 앞에 뒤의 시전을 당겨 오거나(이동·맞바꿈) 새 시전을 끼우는 편집 ────");
+    if (leakRows.Count == 0) Console.WriteLine("  점수의 1% 이상 새는 시전이 없습니다.");
+    foreach (var row in leakRows)
+    {
+        var touching = runs0.Where(v => !NoOp(v, baseRun) && v.Edit.PutsSomethingBefore(row.Step)).OrderByDescending(v => v.Rank).ThenByDescending(v => v.Score).ToList();
+        // 그 시전 자체가 더 세게 들어간 편집(+2% 이상)만이 "이 누수를 막은" 편집이다 — 총점까지 올라야 되찾은 것
+        var stronger = touching.Where(v => { var mm = SiegeCounterfactual.MatchRow(baseRun.Leak, row, v.Leak); return mm != null && mm.Scored > row.Scored * 1.02; }).ToList();
+        int nBetter = stronger.Count(v => Better(v, baseRun));
+        Console.WriteLine($"  #{row.Step} T{row.Turn} {row.Hero} {row.Skill} — 점수 {row.Scored:N0} · 누수 {row.AllBest:N0}"
+            + $" · 해당 편집 {touching.Count}개 · 그 시전이 더 세게 들어간 것 {stronger.Count}개 · 그중 총점(랭크)도 오른 것 {nBetter}개"
+            + (stronger.Count == 0 ? " → 한 행동으로는 그 시전을 더 세게 만들지 못함"
+               : nBetter > 0 ? " → 한 행동으로 되찾을 수 있음" : $" → 그 시전은 세져도 총점은 안 오름(가장 나은 것 Δ랭크 {Sg(stronger[0].Rank - baseRun.Rank)})"));
+        foreach (var v in (stronger.Count > 0 ? stronger : touching).Take(3))
+        {
+            var m = SiegeCounterfactual.MatchRow(baseRun.Leak, row, v.Leak);
+            string hit = m == null ? "그 시전이 없어짐" : $"그 시전 {row.Scored:N0} → {m.Scored:N0}(T{m.Turn}, 누수 {m.AllBest:N0})";
+            Console.WriteLine($"      Δ점수 {Sg(v.Score - baseRun.Score)} = Δ상한 {Sg(v.Ceiling - baseRun.Ceiling)} − Δ누수 {Sg(v.AllBest - baseRun.AllBest)} · 사망 {v.Deaths} · 폴백 {v.Leak.Fallbacks} · {hit}");
+            Console.WriteLine($"        {SiegeCounterfactual.Describe(v.Edit, party, label0)}");
+        }
+    }
+
+    // 연쇄: 가장 좋은 편집을 적용하고 거기서 다시 — 한 행동씩 얼마나 되찾아지는지
+    var cur = baseRun;
+    var chain = new List<string>();
+    if (chainMax > 0)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"──── 연쇄: 가장 좋은 편집을 적용한 뒤 거기서 다시 (최대 {chainMax}번) ────");
+        var runsK = runs0; var labelK = label0;
+        for (int k = 1; k <= chainMax; k++)
+        {
+            var bestV = runsK.Where(v => Better(v, cur)).OrderByDescending(v => v.Rank).ThenByDescending(v => v.Score).FirstOrDefault();
+            if (bestV == null) { Console.WriteLine($"  {k}. 더 나은 편집 없음 — 여기서 멈춤"); break; }
+            string desc = SiegeCounterfactual.Describe(bestV.Edit, party, labelK);
+            Console.WriteLine($"  {k}. {desc}");
+            Console.WriteLine($"       {cur.Score:N0} → {bestV.Score:N0} ({Sg(bestV.Score - cur.Score)}) · 랭크 {bestV.Rank:N0} · 사망 {bestV.Deaths} · 동시 누수 {PctOf(cur.AllBest, cur.Score)} → {PctOf(bestV.AllBest, bestV.Score)} · 상한 {Sg(bestV.Ceiling - cur.Ceiling)} · 폴백 {bestV.Leak.Fallbacks}");
+            chain.Add($"{desc} : {cur.Score:N0} → {bestV.Score:N0}");
+            cur = bestV;
+            if (k < chainMax) (runsK, labelK) = Sweep(cur);
+        }
+    }
+
+    string DeathStr(SiegeBattleResult r) => r.Deaths == null || r.Deaths.Count == 0 ? "사망 0" : $"사망 {r.Deaths.Count} (" + string.Join(", ", r.Deaths.Select(d => $"T{d.Turn} {d.AllyName}←{d.Cause}")) + ")";
+    bool chained = !ReferenceEquals(cur, baseRun);
+    if (chained)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"──── 연쇄 결과: {baseRun.Score:N0} → {cur.Score:N0} ({Sg(cur.Score - baseRun.Score)}, {(cur.Score - baseRun.Score) / baseRun.Score * 100:+0.0;-0.0}%) · 사망 {baseRun.Deaths} → {cur.Deaths}"
+            + $" · 동시 누수 {baseRun.AllBest:N0}({PctOf(baseRun.AllBest, baseRun.Score)}) → {cur.AllBest:N0}({PctOf(cur.AllBest, cur.Score)}) · 상한 {baseRun.Ceiling:N0} → {cur.Ceiling:N0} · {swCf.Elapsed.TotalSeconds:F0}초 ────");
+        PrintLeakDetail(cur.Leak);
+    }
+
+    // 여기부터는 실제 조건(피해 받음) · 탐색의 채택 기준(EvaluateBuild)
+    cfgCf.DiagAlliesImmortal = false;
+    var realBase = SiegeOptimizer.EvaluateBuild(cfgCf, party, formation, basePlan);
+    SiegeBattleResult final = null; List<RotationDecision> finalPlan = null;
+    if (chained && !immortal)
+    {
+        final = SiegeOptimizer.EvaluateBuild(cfgCf, party, formation, cur.Plan); finalPlan = cur.Plan;
+        Console.WriteLine();
+        Console.WriteLine($"탐색 채택 기준 재평가: {final.TotalScore:N0} (랭크 {final.RankScore:N0}) {(Math.Abs(final.TotalScore - cur.Score) <= 1 ? "일치 ✓" : "단일 시드 값과 다름(N시드 평균 요일)")}");
+    }
+    if (chained && immortal)
+    {
+        // 딜만 보면 나은 순서가 지금 장비의 생존 여유로는 얼마나 버티는지
+        var realNew = SiegeOptimizer.EvaluateBuild(cfgCf, party, formation, cur.Plan);
+        Console.WriteLine();
+        Console.WriteLine("──── 같은 순서를 실제 조건(피해 받음)·지금 장비로 돌리면 ────");
+        Console.WriteLine($"  기준 순서: {realBase.TotalScore:N0} (랭크 {realBase.RankScore:N0}) · {DeathStr(realBase)}");
+        Console.WriteLine($"  연쇄 순서: {realNew.TotalScore:N0} (랭크 {realNew.RankScore:N0}) · {DeathStr(realNew)}");
+        Console.WriteLine($"  → 점수 {Sg(realNew.TotalScore - realBase.TotalScore)} · 랭크 {Sg(realNew.RankScore - realBase.RankScore)}. 불사에서의 이득 {Sg(cur.Score - baseRun.Score)}이 실제로 남으려면 이 순서에 맞춘 생존 장비가 따로 필요하다(`보강`).");
+    }
+
+    // 보강: 순서를 고정하고 생존 반지·생존 장비를 다시 맞춘 뒤 기준과 비교 — "순서 편집 + 그 순서에 맞는 생존"까지가 공정한 반사실.
+    //   불사: 연쇄로 찾은 순서 하나.  실제 조건: 점수는 오르는데 사망이 늘어 랭크에서 진 단일 편집 상위 N개(`보강=N`, 기본 3).
+    //   죽는 영웅에게 생존을 더하기만 하므로(필요 없어진 생존을 공격으로 되돌리지 않음) 새 순서 쪽에 불리한 하한 비교다.
+    if (args.Any(a => a == "보강" || a.StartsWith("보강=")))
+    {
+        int refitN = int.TryParse(Val("보강="), out var rn) && rn > 0 ? rn : 3;
+        var cands = new List<(string Desc, List<RotationDecision> Plan)>();
+        if (immortal) { if (chained) cands.Add(("불사 연쇄 순서", cur.Plan)); }
+        else
+            foreach (var v in runs0.Where(v => !NoOp(v, baseRun) && v.Score > baseRun.Score && v.Deaths > baseRun.Deaths).OrderByDescending(v => v.Score).Take(refitN))
+                cands.Add(($"{SiegeCounterfactual.Describe(v.Edit, party, label0)} (점수 {Sg(v.Score - baseRun.Score)} · 사망 {v.Deaths})", v.Plan));
+        Console.WriteLine();
+        Console.WriteLine($"──── 보강: 순서를 고정하고 생존 반지·생존 장비를 다시 맞춘 뒤 기준({realBase.TotalScore:N0}, 사망 {realBase.Deaths?.Count ?? 0})과 비교 — 후보 {cands.Count}개 ────");
+        if (cands.Count == 0) Console.WriteLine(immortal ? "  불사에서도 더 나은 순서가 없어 보강할 것이 없습니다." : "  점수는 오르는데 사망이 늘어 진 편집이 없습니다.");
+        SiegeBattleResult bestR = null; List<RotationDecision> bestPlan = null; string bestDesc = null;
+        List<(EquipmentLoadout Eq, Accessory Acc)> bestGear = null;
+        foreach (var cd in cands)
+        {
+            var snap = party.Select(p => (Eq: p.Equipment, Acc: p.Equipment?.Accessory)).ToList();
+            var refitLog = new List<string>();
+            var swR = System.Diagnostics.Stopwatch.StartNew();
+            var before = SiegeOptimizer.EvaluateBuild(cfgCf, party, formation, cd.Plan);
+            var refit = new SiegeOptimizer().RefitSurvival(cfgCf, party, formation, cd.Plan, refitLog);
+            Console.WriteLine($"  ▷ {cd.Desc}");
+            Console.WriteLine($"      보강 전: {before.TotalScore:N0} (랭크 {before.RankScore:N0}) · {DeathStr(before)}");
+            foreach (var l in refitLog.Where(l => l.StartsWith("["))) Console.WriteLine("      " + l);
+            Console.WriteLine($"      보강 후: {refit.TotalScore:N0} (랭크 {refit.RankScore:N0}) · {DeathStr(refit)} · {swR.Elapsed.TotalMinutes:F1}분");
+            bool wins = SiegeOptimizer.IsBetterBuild(refit.TotalScore, refit.RankScore, realBase.TotalScore, realBase.RankScore);
+            Console.WriteLine($"      기준 대비 점수 {Sg(refit.TotalScore - realBase.TotalScore)} · 랭크 {Sg(refit.RankScore - realBase.RankScore)} → {(wins ? "기준보다 나음" : "기준보다 낫지 않음")}");
+            if (wins && (bestR == null || SiegeOptimizer.IsBetterBuild(refit.TotalScore, refit.RankScore, bestR.TotalScore, bestR.RankScore)))
+            {
+                bestR = refit; bestPlan = cd.Plan; bestDesc = cd.Desc;
+                bestGear = party.Select(p => (p.Equipment, p.Equipment?.Accessory)).ToList();
+            }
+            for (int i = 0; i < party.Count; i++) { party[i].Equipment = snap[i].Eq; if (snap[i].Eq != null) snap[i].Eq.Accessory = snap[i].Acc; }
+        }
+        if (bestR != null)
+        {
+            for (int i = 0; i < party.Count; i++) { party[i].Equipment = bestGear[i].Eq; if (bestGear[i].Eq != null) bestGear[i].Eq.Accessory = bestGear[i].Acc; }
+            final = bestR; finalPlan = bestPlan;
+            chain.Add($"{bestDesc} + 생존 재보강 : {realBase.TotalScore:N0} → {bestR.TotalScore:N0}");
+            Console.WriteLine();
+            Console.WriteLine($"  → 순서 편집 + 생존 재보강으로 실제 조건에서 {realBase.TotalScore:N0} → {bestR.TotalScore:N0} ({Sg(bestR.TotalScore - realBase.TotalScore)}) · {DeathStr(bestR)}");
+            PrintLeakDetail(SiegeOptimizer.ReplayWithCasts(cfgCf, party, formation, bestPlan, leak: true).Leak);
+        }
+        else if (cands.Count > 0)
+            Console.WriteLine("  → 기준보다 나은 것이 없음: 순서를 바꿔 얻는 딜보다 그 순서를 버티는 데 드는 생존 값이 크다(더하기만 한 하한 비교).");
+    }
+
+    if (final != null && SiegeOptimizer.IsBetterBuild(final.TotalScore, final.RankScore, realBase.TotalScore, realBase.RankScore))
+    {
+        // 파생 자료로 빌드를 남긴다(저장된 최고 빌드는 `저장`을 줄 때만 바꾼다)
+        var back = party.Where(p => p.IsBackPosition).Select(p => p.Character.Name).ToList();
+        var nb = SiegeBuildStore.Capture(party, formation, back, finalPlan);
+        nb.Day = day; nb.Profile = profile; nb.Route = "고점";
+        nb.Score = Math.Round(final.TotalScore); nb.RankScore = Math.Round(final.RankScore); nb.Deaths = final.Deaths?.Count ?? 0;
+        nb.InGameBuffTargeting = ingame; nb.EngineHash = engineHash; nb.GitCommit = gitHead; nb.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        nb.StartOrder = bt.StartOrder;
+        nb.Pet = new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 76 };
+        nb.Log = new List<string> { $"[반사실 편집] 기준 {bt.Phase} {realBase.TotalScore:N0} (지문 {bt.Fingerprint})" }.Concat(chain.Select(c => "  [반사실 편집] " + c)).ToList();
+        string cfPath = System.IO.Path.Combine(outDir, $"counterfactual_{day}_{profile}_{teamKey}.json");
+        SiegeBuildStore.Save(cfPath, nb);
+        Console.WriteLine();
+        Console.WriteLine($"→ {cfPath}");
+        if (args.Contains("저장") && bt.ForcedBuffOrder == null)
+        {
+            string peakPath = PathFor(SiegeSearchRoute.Peak);
+            var saved = SiegeBuildStore.Load(peakPath);
+            double sTot = double.NegativeInfinity, sRank = double.NegativeInfinity;
+            if (saved != null) { var ev = Evaluate(saved); sTot = ev.Res.TotalScore; sRank = ev.Res.RankScore; }
+            if (SiegeOptimizer.IsBetterBuild(final.TotalScore, final.RankScore, sTot, sRank))
+            {
+                if (saved != null)
+                {
+                    nb.History = saved.History; nb.TargetScore = saved.TargetScore;
+                    nb.Stages = (saved.Stages ?? new()).ToList();
+                    nb.Log = (saved.Log ?? new()).Concat(nb.Log).ToList();
+                }
+                nb.Stages.Add(new SiegeSavedBuild.StageDto { Name = "반사실 편집(스킬 순서)", Score = nb.Score, RankScore = nb.RankScore, Deaths = nb.Deaths, Order = string.Join(",", party.Select(p => p.Character.Name)) });
+                SiegeBuildStore.Save(peakPath, nb);
+                Console.WriteLine($"[저장·고점] {(saved == null ? "새 빌드" : $"갱신 {sTot:N0} →")} {final.TotalScore:N0} → {peakPath}");
+            }
+            else Console.WriteLine($"[유지·고점] 저장된 빌드 {sTot:N0}가 반사실 결과 {final.TotalScore:N0} 이상 — 바꾸지 않습니다.");
+        }
     }
     return;
 }

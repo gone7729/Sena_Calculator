@@ -1541,6 +1541,36 @@ namespace GameDamageCalculator.Services.BattleEngine
         }
 
         /// <summary>
+        /// [반사실 확인용] 스킬 순서를 고정한 채 생존 반지 → 생존 장비 후처리만 다시 돌린다(로테 재탐색 없음).
+        ///   "이 순서로 바꾸면 딜은 오르는데 지금 장비로는 죽는다"를 공정하게 비교하려면 그 순서에 맞춘 생존 장비가 필요하다.
+        ///   party의 장비·장신구를 직접 고친다(호출부가 필요하면 스냅샷·복원). party는 진형 번호 순, IsBackPosition이 맞춰져 있어야 한다.
+        ///   주의: 지금 장비에서 **죽는 영웅에게 생존을 더하기만** 한다 — 새 순서에서 필요 없어진 생존 옵션을 공격으로 되돌리지는 않으므로
+        ///   새 순서 쪽에 불리한(하한) 비교다.
+        /// </summary>
+        public SiegeBattleResult RefitSurvival(SiegeOptimizerConfig config, List<BattleCharacter> party, string formation,
+            List<RotationDecision> plan, List<string> log)
+        {
+            int mask = 0;
+            for (int i = 0; i < party.Count; i++) if (party[i].IsBackPosition) mask |= 1 << i;
+            var start = ScoreOnPlan(config, party, formation, plan);
+            var best = new SiegeOptimizerResult
+            {
+                BestParty = party, BestFormation = formation, BestMask = mask, BestRotationPlan = plan,
+                BestScore = start.TotalScore, BestRankScore = start.RankScore, BestResult = start,
+            };
+            bool opt = config.OptimizeRotation;
+            config.OptimizeRotation = false;   // 순서 고정 — 생존 장비 채택 뒤의 로테 재탐색을 끈다
+            try
+            {
+                if (config.EnableSurvivalRings) ApplySurvivalRings(config, best);
+                ApplySurvivalGear(config, best, party.ToHashSet());
+            }
+            finally { config.OptimizeRotation = opt; }
+            log?.AddRange(best.GearLog);
+            return ScoreOnPlan(config, party, formation, plan);
+        }
+
+        /// <summary>
         /// 생존반지 후처리 — 최종 best config(진형·자리·로테이션 고정)에서 죽는(부활 못 한) 캐릭에
         /// 권능/부활/불사 반지를 같은 조건으로 재시뮬해 비교, 점수 개선 시 채택한다.
         /// 사망캐 게이팅 + 캐스케이드(한 명 살리면 새로 죽는 캐릭) 대응으로 반복(상한 5). 매 회 최선의
