@@ -86,8 +86,20 @@ namespace GameDamageCalculator.Services.BattleEngine
         // [진단] true면 아군이 HP 피해를 받지 않는다(불사) — "생존을 전제로 한 순수 로테 품질" 비교 실험용. 점수 로직 불변.
         public bool DiagAlliesImmortal { get; set; }
 
+        // 이름이 든 아군만 HP 피해를 받지 않는다(부분 불사). 생존 조합 단계(SiegeOptimizer.RelaxImmortality)가
+        //   "전원 불사 → 한 명씩 필멸"로 풀어 갈 때 쓴다. null이면 미사용.
+        public System.Collections.Generic.HashSet<string> DiagImmortalAllies { get; set; }
+
         // [진단] true면 아군→적 치명·약점을 기댓값 대신 "항상 발동"으로 계산(실측 최고점 대조용 상한). 점수 비교 전용.
         public bool DiagForceCritWeak { get; set; }
+
+        // [표본 모드] 값이 있으면 아군→적 치명·약점을 기댓값 대신 이 시드로 추첨한다(타격마다) — 한 판의 실제 점수.
+        //   여러 시드로 돌려 점수 분포(하루 5판 중 최고점의 기대치 등)를 구한다. null이면 기존 기댓값 계산.
+        public int? CritSampleSeed { get; set; }
+
+        // [진단] (영웅 이름, 턴) — 그 턴 시작에 해당 아군에게 치명 판정을 강제한다(무효화·불사 진단 무시, 부활·권능은 정상 처리).
+        //   "일부러 일찍 죽여 부활 연계(아일린 청천벽력·진)를 당긴다" 같은 수의 값을 재는 실험용.
+        public System.Collections.Generic.List<(string Name, int Turn)> DiagForceLethal { get; set; }
 
         // 아군 스킬 쿨 안전 여유(초). 시전 시 쿨 = 원래 쿨 + 이 값 → 빔이 "딱 맞게 도는" 스텝을 피하고 항상 재현되는 로테만 산출.
         //   2026-10 월요일 연습전투: 시뮬 여유 2.0초 스텝(턴28 혼천·턴32 교만)이 DoT 지연 없으면 0초/−0.n초 → 시뮬 시간 ~2~2.5초 과대.

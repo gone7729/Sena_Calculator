@@ -61,6 +61,16 @@ namespace GameDamageCalculator.Services
             return removed;
         }
 
+        /// <summary>지속 턴이 있는 효과(턴제 버프·디버프·상태이상)를 전부 제거. 제거한 효과 목록 반환.
+        ///   부활하면 부여돼 있던 버프는 유지되지 않고, 디버프·상태이상도 같이 풀린다(2026-11-24 유저 확인).
+        ///   상시 효과(패시브·펫 상시)는 건드리지 않는다.</summary>
+        public List<BattleEffect> RemoveAllTimed()
+        {
+            var removed = _effects.Where(e => !e.IsPermanent).ToList();
+            foreach (var e in removed) _effects.Remove(e);
+            return removed;
+        }
+
         /// <summary>만료된 효과 제거</summary>
         public void RemoveExpired()
         {

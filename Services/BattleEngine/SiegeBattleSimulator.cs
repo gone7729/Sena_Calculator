@@ -115,9 +115,12 @@ namespace GameDamageCalculator.Services.BattleEngine
 
         #region 초기화
 
+        private Random _critRng;   // [표본 모드] 치명·약점 추첨용(타게팅 난수 _rng와 분리 — 기댓값 판과 같은 타게팅을 유지)
+
         private SiegeBattleState Initialize(SiegeBattleConfig config)
         {
             _atkForBuffExtend.Clear();
+            _critRng = config.CritSampleSeed.HasValue ? new Random(config.CritSampleSeed.Value) : null;
             var state = new SiegeBattleState
             {
                 SiegeStage = config.SiegeStage,
@@ -127,6 +130,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 HighestAtkAllyOverrideCdrOnly = config.HighestAtkAllyOverrideCdrOnly,
                 InGameBuffTargeting = config.InGameBuffTargeting,
                 DiagAlliesImmortal = config.DiagAlliesImmortal,
+                DiagImmortalAllies = config.DiagImmortalAllies,
                 DiagForceCritWeak = config.DiagForceCritWeak,
                 AllyCooldownMargin = config.AllyCooldownMargin,
                 BasicAttackSeconds = config.BasicAttackSeconds,
@@ -191,6 +195,19 @@ namespace GameDamageCalculator.Services.BattleEngine
                 state.CurrentTurn = t;
                 _leak?.OnTurn(state.AllyStates.Where(a => a.IsDead).Select(a => a.Source.Character.Name));
                 LogEnrageTransition(state);   // 광폭화 단계 진입 시 1회 로그
+                if (config.DiagForceLethal != null)
+                    foreach (var (fn, ft) in config.DiagForceLethal)
+                    {
+                        if (ft != t) continue;
+                        var fa = state.AllyStates.FirstOrDefault(a => a.Source.Character.Name == fn && !a.IsDead);
+                        if (fa == null) continue;
+                        fa.CurrentHp = 0;
+                        var fr = SurvivalResolver.ResolveLethal(fa);
+                        if (fa.IsDead) fa.CurrentHp = 0;
+                        Log(state, fn, true, ActionType.BuffApplied, "강제 치명(진단)", 0, $"{fn} 강제 치명 → {fr.Label} (HP {Math.Max(0, fa.CurrentHp):N0}/{fa.MaxHp:N0})");
+                        if (fr.Survived && fr.Label == "부활") OnAllyRevived(state, fa);
+                        if (fa.IsDead) _deaths.Add(new SiegeDeathEvent { Turn = t, Elapsed = state.ElapsedSeconds, AllyName = fn, Cause = "강제 치명(진단)" });
+                    }
 
                 // 적 스킬 사용 판정용 쿨 스냅샷(턴 시작 = 평타 前). 스킬턴 처리 후 해제.
                 state.EnemyCdAtTurnStart = state.EnemySkillReadyAtTurnStart
@@ -1287,6 +1304,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 input.PerDebuffBonusMaxStacks = perDebuff.MaxStacks;
             }
             if (state?.DiagForceCritWeak == true) input.ExpectedCritWeak = false;   // [진단] 치명·약점 항상 발동
+            else if (_critRng != null && state != null) input.SampleRng = _critRng;      // [표본 모드] 타격마다 추첨
             // 공성전 감쇄 = 곱연산 (받는 물/마 피해 N% 감소 × 타겟수별 감소). 합연산 시 180%↑ 차감으로 음수가 되므로.
             // 대상수 감쇄(1인 70%·5인 90% 등)는 별도 곱이 아니라 "받는 피해 증가"(취약·보스취약·받피증)와 합산
             //   → 취약계수 = 1 + (취약+보스취약+받피증 − 대상수감쇄)/100 (0 하한). 실측: 보스취약30·1인70 → 0.6배.
@@ -1588,6 +1606,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             if (dmg <= 0 || ally.IsDead) return;
             if (state.DiagAlliesImmortal) return;   // [진단] 불사 실험 — 피격 자체를 무시
+            if (state.DiagImmortalAllies != null && state.DiagImmortalAllies.Contains(ally.Source.Character.Name)) return;   // 부분 불사
             bool isDot = dotSource != null;
             string srcName = isDot ? dotSource : enemy.Source.Name;
 
@@ -1647,7 +1666,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 DamageDealt = dmg,
                 Description = isDot
                     ? $"[DoT] {label}({srcName}) → {ally.Source.Character.Name}: {dmg:N0}{outcome} (HP {Math.Max(0, ally.CurrentHp):N0}/{ally.MaxHp:N0})"
-                    : $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome}",
+                    : $"{enemy.Source.Name} → {ally.Source.Character.Name}: {dmg:N0}{outcome} (HP {Math.Max(0, ally.CurrentHp):N0}/{ally.MaxHp:N0})",
             });
 
             // 사망 이벤트 기록 (사망 로그용): 이번 피격으로 처음 사망(부활 못 함). 권능=생존이라 미기록.
@@ -3161,6 +3180,17 @@ namespace GameDamageCalculator.Services.BattleEngine
         ///   아일린 각성 「불꽃의 화신」: 부활 시 [청천벽력·진] 발동(본래 스킬과 별개) + 모든 피해 면역[3턴].</summary>
         private void OnAllyRevived(SiegeBattleState state, CharacterBattleState ally)
         {
+            // 부활하면 부여돼 있던 버프는 유지되지 않고 사라지고, 디버프·상태이상도 같이 풀린다(2026-11-24 유저 확인)
+            //   — 지속 턴이 있는 효과 전부 + 보호막·도발 제거. (권능은 죽지 않고 버티는 것이라 그대로 남는다. 상시 패시브·펫 버프는 유지.)
+            var lost = ally.Effects.RemoveAllTimed();
+            ally.Shield = 0;
+            ally.TauntTurnsRemaining = 0;
+            if (lost.Count > 0)
+            {
+                int nBuff = lost.Count(e => e.IsStatBuff && !e.IsStatDebuff);
+                Log(state, ally.Source.Character.Name, true, ActionType.BuffApplied, "부활", 0,
+                    $"부활 → {ally.Source.Character.Name} 버프 {nBuff}개·디버프/상태이상 {lost.Count - nBuff}개 소멸 ({string.Join(", ", lost.Select(e => e.SourceName).Distinct())})");
+            }
             var passive = ally.Source.Character.Passive;
             if (passive == null) return;
             foreach (var e in GetPassiveEffects(passive, ally))

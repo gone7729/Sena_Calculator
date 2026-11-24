@@ -19,7 +19,9 @@ using GameDamageCalculator.Services.BattleEngine;
 //   각성 보유 영웅은 각성 상태(IsAwakened)로 평가 (고스펙 가정).
 //   후보 필터(기본 ON, "전체" 인자로 끔): 요일 감쇄 90%↑ 공격 속성의 딜러 타입(공격형·마법형·만능형)은 후보에서 제외.
 //     단 그 요일 적 상태이상의 파티 면역 보유자(월 지크·수 라이언 등)는 유지. 지원형·방어형은 딜이 본업이 아니라 유지(목~토 비스킷).
-// 사용: dotnet run -c Release -- 화요일 [limitN] [정식N] [전체] [각성기끔]
+//   기준=a,b,c,d,e — 기준 팀을 저장된 공식 결과 대신 직접 지정(교체 탐색은 기준 팀 주변만 보므로, 기준을 바꿔 다른 이웃을 본다).
+//     결과 파일은 explore_..._기준-a-b-c-d-e.txt 로 따로 저장.
+// 사용: dotnet run -c Release -- 화요일 [limitN] [정식N] [전체] [각성기끔] [기준=a,b,c,d,e]
 // ============================================================================
 Console.OutputEncoding = Encoding.UTF8;
 string day = args.FirstOrDefault(a => a.EndsWith("요일")) ?? "화요일";
@@ -97,6 +99,13 @@ using (var doc = JsonDocument.Parse(System.IO.File.ReadAllText(basePath)))
     baseIds = doc.RootElement.GetProperty("team").EnumerateArray().Select(t => t.GetProperty("id").GetInt32()).ToArray();
     jForm = doc.RootElement.GetProperty("formation").GetString();
     jBack = doc.RootElement.GetProperty("backRow").EnumerateArray().Select(x => x.GetString()).ToList();
+}
+// 기준= : 기준 팀 직접 지정 (진형·후열은 정식 탐색이 다시 잡는다 — quickbase와 같이 쓰면 저장된 결과의 진형·후열이 그대로 쓰이므로 금지)
+string[] baseNames = args.FirstOrDefault(a => a.StartsWith("기준="))?.Substring(3).Split(',', StringSplitOptions.RemoveEmptyEntries);
+if (baseNames != null)
+{
+    if (baseNames.Length != 5 || args.Contains("quickbase")) { Console.WriteLine("기준= 은 영웅 5명, quickbase 없이"); return; }
+    baseIds = baseNames.Select(n => CharacterDb.Characters.First(c => c.Name == n).Id).ToArray();
 }
 var sw = Stopwatch.StartNew();
 var baseTeam = baseIds.Select(Hero).ToList();
@@ -290,7 +299,7 @@ Save();
 
 void Save()
 {
-    string outPath = System.IO.Path.Combine(resDir, $"explore_{day}_12초월_윈디{(noAwkSkill ? "_각성기끔" : "")}.txt");
+    string outPath = System.IO.Path.Combine(resDir, $"explore_{day}_12초월_윈디{(noAwkSkill ? "_각성기끔" : "")}{(baseNames != null ? "_기준-" + string.Join("-", baseNames) : "")}.txt");
     System.IO.File.WriteAllText(outPath, log.ToString(), Encoding.UTF8);
     Console.WriteLine($"→ {outPath}");
 }

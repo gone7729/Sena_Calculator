@@ -64,6 +64,9 @@ namespace GameDamageCalculator.Services
             // 확률 기반 기댓값 크리/약점 (true면 100% 가정 대신 실제 확률로 기대 계수 계산).
             // 메인옵·부옵 탐색(치확/약확)이 의미를 가지려면 이 모드를 써야 함.
             public bool ExpectedCritWeak { get; set; }
+            // [표본 모드] 기댓값 모드에서 이 난수가 주어지면 확률 대신 "이번 판에 실제로 터진 비율"(타수만큼 추첨)로 계산한다.
+            //   판마다 점수가 흔들리는 분포(여러 판 중 최고점)를 보기 위한 것 — null이면 기존 기댓값 계산 그대로.
+            public System.Random SampleRng { get; set; }
             public double CritChance { get; set; }   // 치명타확률% (0~100+, 100 초과는 100으로 캡)
             public double WeakChance { get; set; }   // 약점공격확률%
             public bool IsBlocked { get; set; }
@@ -115,6 +118,8 @@ namespace GameDamageCalculator.Services
 
             public double SkillRatio { get; set; }
             public double CritMultiplier { get; set; }
+            public double? SampledCritFrac { get; set; }   // [표본 모드] 이번 계산에서 치명이 터진 비율(없으면 null)
+            public double? SampledWeakFrac { get; set; }   // [표본 모드] 이번 계산에서 약점이 터진 비율
             public double WeakpointMultiplier { get; set; }
             public double DamageMultiplier { get; set; }
             public double SkillDmgMultiplier { get; set; } // 스킬피해용 (자버프 타입피증 제외)
@@ -221,11 +226,24 @@ namespace GameDamageCalculator.Services
             //   안 그러면 기댓값 모드가 이미 확정인 치확/약확을 과소평가 → 옵티마이저가 치확/약확 기어를 낭비 배분.
             double effCritChance = input.CritChance + skillBonus.Cri;
             double effWeakChance = input.WeakChance + skillBonus.Wek;
+            if (input.SampleRng != null && input.ExpectedCritWeak)
+            {
+                int nHit = System.Math.Max(1, result.AtkCount);
+                double Draw(double prob)
+                {
+                    prob = System.Math.Min(1.0, System.Math.Max(0, prob));
+                    int k = 0;
+                    for (int i = 0; i < nHit; i++) if (input.SampleRng.NextDouble() < prob) k++;
+                    return (double)k / nHit;
+                }
+                result.SampledCritFrac = Draw(effCritChance / 100.0);
+                result.SampledWeakFrac = Draw(effWeakChance / 100.0);
+            }
             if (!input.IsCritical)
                 result.CritMultiplier = 1.0;
             else if (input.ExpectedCritWeak)
             {
-                double pc = System.Math.Min(1.0, System.Math.Max(0, effCritChance) / 100.0);
+                double pc = result.SampledCritFrac ?? System.Math.Min(1.0, System.Math.Max(0, effCritChance) / 100.0);
                 result.CritMultiplier = 1.0 + pc * (critFull - 1.0);
             }
             else result.CritMultiplier = critFull;
@@ -237,7 +255,7 @@ namespace GameDamageCalculator.Services
                 result.WeakpointMultiplier = 1.0;
             else if (input.ExpectedCritWeak)
             {
-                double pw = System.Math.Min(1.0, System.Math.Max(0, effWeakChance) / 100.0);
+                double pw = result.SampledWeakFrac ?? System.Math.Min(1.0, System.Math.Max(0, effWeakChance) / 100.0);
                 result.WeakpointMultiplier = 1.0 + pw * (weakFull - 1.0);
             }
             else result.WeakpointMultiplier = weakFull;
@@ -569,8 +587,8 @@ namespace GameDamageCalculator.Services
             double critFull = (input.CritDamage + skillBonus.Cri_Dmg) / 100.0;
             double weakFull = (input.WeakpointDmg + input.WeakpointDmgBuff) / 100.0;
             // 스킬 내장 치확/약확(확정치명 등) 합산 — 위 치명/약점 계수와 동일 기준.
-            double pc = System.Math.Min(1.0, System.Math.Max(0, input.CritChance + skillBonus.Cri) / 100.0);
-            double pw = System.Math.Min(1.0, System.Math.Max(0, input.WeakChance + skillBonus.Wek) / 100.0);
+            double pc = result.SampledCritFrac ?? System.Math.Min(1.0, System.Math.Max(0, input.CritChance + skillBonus.Cri) / 100.0);
+            double pw = result.SampledWeakFrac ?? System.Math.Min(1.0, System.Math.Max(0, input.WeakChance + skillBonus.Wek) / 100.0);
 
             result.WekBonusDmg = 0;
             result.DebugLog.AppendLine($"    [약점추가 조건] IsWeakpoint:{input.IsWeakpoint}, 기댓값:{input.ExpectedCritWeak}, WekBonusDmg:{skillBonus.WekBonusDmg}%");

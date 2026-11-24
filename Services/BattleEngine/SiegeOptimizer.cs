@@ -209,6 +209,14 @@ namespace GameDamageCalculator.Services.BattleEngine
         public System.Func<int, string, string, System.Collections.Generic.IReadOnlyList<string>, bool> HighestAtkBuffGate { get; set; }
         // [진단] 아군 불사(SiegeBattleConfig.DiagAlliesImmortal) — 생존 제약 없는 순수 로테 품질 탐색 실험용.
         public bool DiagAlliesImmortal { get; set; }
+        // [진단] 아군 치명·약점 항상 발동(SiegeBattleConfig.DiagForceCritWeak) — 운 상한 확인용.
+        public bool DiagForceCritWeak { get; set; }
+        // 부분 불사(SiegeBattleConfig.DiagImmortalAllies) — 생존 조합 단계가 내부에서 쓴다.
+        public HashSet<string> DiagImmortalAllies { get; set; }
+        // [표본 모드] 치명·약점 추첨 시드(SiegeBattleConfig.CritSampleSeed) — 한 판의 실제 점수. null이면 기댓값.
+        public int? CritSampleSeed { get; set; }
+        // [진단] 지정 턴에 아군 강제 치명(SiegeBattleConfig.DiagForceLethal).
+        public List<(string Name, int Turn)> DiagForceLethal { get; set; }
         // 아군 스킬 쿨 안전 여유(초) — SiegeBattleConfig.AllyCooldownMargin 전달. 0이면 기존 동작.
         public double AllyCooldownMargin { get; set; }
     }
@@ -488,6 +496,152 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             if (any) best.GearLog.Add($"[순서 편집+생존 보강] 합계: {startScore:N0} → {best.BestScore:N0} ({clock.Elapsed.TotalMinutes:F1}분)");
             return any;
+        }
+
+        /// <summary>
+        /// 생존 조합 단계 — "아군이 죽지 않는다고 놓고 찾은 빌드(딜 천장)"에서 출발해 실제 조건의 빌드로 내려온다.
+        ///   기존 생존 보강은 실제 조건에서 죽는 영웅을 한 명씩 살려 보고 그때마다 점수가 올라야 채택한다 — 여러 명이 함께 죽는
+        ///   순서에서는 한 명을 살려도 점수가 안 올라 멈춘다(2026-11-24 토요일: 불사 순서 17.22M → 보강 11.85M·사망 3).
+        ///   여기선 반대로 간다: 전원 불사에서 시작해 한 명씩 "죽을 수 있게" 풀고, 풀 때마다 그 한 명의 문제만 푼다
+        ///   (생존 반지 → 생존 장비 → 스킬 순서 재탐색, 그리고 필요 없어진 생존 수단 덜어내기). 남은 영웅은 아직 불사라
+        ///   한 번에 제약 하나만 늘어난다. 다음에 풀 영웅은 후보를 전부 시도해 결과가 가장 좋은 쪽을 고른다.
+        ///   party = 불사 빌드의 장비·자리(진형 번호 순, IsBackPosition 설정됨), plan = 불사 빌드의 스킬 순서.
+        ///   party의 장비를 직접 고친다. 반환 = (실제 조건의 결과, 스킬 순서, 로그).
+        /// </summary>
+        public (SiegeBattleResult R, List<RotationDecision> Plan, List<string> Log) RelaxImmortality(SiegeOptimizerConfig config,
+            List<BattleCharacter> party, string formation, List<RotationDecision> plan)
+        {
+            int mask = 0;
+            for (int i = 0; i < party.Count; i++) if (party[i].IsBackPosition) mask |= 1 << i;
+            var log = new List<string>();
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            // 딜 장비(불사 기준) — 덜어내기에서 되돌릴 기준
+            var dmgGear = party.Select(b => (Eq: b.Equipment, Acc: b.Equipment?.Accessory)).ToList();
+            bool keepAll = config.DiagAlliesImmortal; var keepSet = config.DiagImmortalAllies;
+            bool keepOpt = config.OptimizeRotation;
+            _trialPhase = "생존 조합";
+
+            List<(EquipmentLoadout Eq, Accessory Acc)> Snap() => party.Select(b => (b.Equipment, b.Equipment?.Accessory)).ToList();
+            void Restore(List<(EquipmentLoadout Eq, Accessory Acc)> g)
+            {
+                for (int i = 0; i < party.Count; i++)
+                {
+                    party[i].Equipment = g[i].Eq;
+                    if (g[i].Eq != null) g[i].Eq.Accessory = g[i].Acc;
+                }
+            }
+
+            // 현재 불사 집합에서의 한 번 풀이: 죽는 영웅에 생존 반지·장비 → 스킬 순서 재탐색 → (필요 없는 생존 수단 덜어내기)
+            (SiegeBattleResult R, List<RotationDecision> Plan, List<string> Steps) Solve(List<RotationDecision> startPlan)
+            {
+                var steps = new List<string>();
+                var tmp = new SiegeOptimizerResult { BestParty = party, BestFormation = formation, BestMask = mask, BestRotationPlan = startPlan };
+                var r0 = ScoreOnPlan(config, party, formation, startPlan);
+                tmp.BestScore = r0.TotalScore; tmp.BestRankScore = r0.RankScore; tmp.BestResult = r0;
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    if ((tmp.BestResult.Deaths?.Count ?? 0) > 0)
+                    {
+                        int mark = tmp.GearLog.Count;
+                        config.OptimizeRotation = false;
+                        try
+                        {
+                            if (config.EnableSurvivalRings) ApplySurvivalRings(config, tmp);
+                            ApplySurvivalGear(config, tmp, party.ToHashSet());
+                        }
+                        finally { config.OptimizeRotation = keepOpt; }
+                        steps.AddRange(tmp.GearLog.Skip(mark).Where(l => l.StartsWith("[")));
+                        var rr = ScoreOnPlan(config, party, formation, tmp.BestRotationPlan);
+                        tmp.BestScore = rr.TotalScore; tmp.BestRankScore = rr.RankScore; tmp.BestResult = rr;
+                    }
+                    var (fr, fp) = SearchRotationFor(config, party, formation, config.RotationBeamWidth, new[] { tmp.BestRotationPlan, startPlan });
+                    if (fr != null && IsBetterPick(fr.TotalScore, fr.RankScore, tmp.BestScore, tmp.BestRankScore))
+                    { tmp.BestScore = fr.TotalScore; tmp.BestRankScore = fr.RankScore; tmp.BestResult = fr; tmp.BestRotationPlan = fp; }
+                    if ((tmp.BestResult.Deaths?.Count ?? 0) == 0) break;
+                }
+                // 덜어내기: 딜 장비와 달라진 영웅의 반지·장비를 되돌려 보고 오르면 채택
+                for (bool changed = true; changed;)
+                {
+                    changed = false;
+                    for (int i = 0; i < party.Count; i++)
+                    {
+                        var b = party[i];
+                        if (b.Equipment == null) continue;
+                        var curEq = b.Equipment; var curAcc = curEq.Accessory;
+                        if (!ReferenceEquals(curAcc, dmgGear[i].Acc))
+                        {
+                            curEq.Accessory = dmgGear[i].Acc;
+                            var r = ScoreOnPlan(config, party, formation, tmp.BestRotationPlan);
+                            if (IsBetterPick(r.TotalScore, r.RankScore, tmp.BestScore, tmp.BestRankScore))
+                            {
+                                steps.Add($"[{b.Character.Name}] 생존 반지 덜어냄: {tmp.BestScore:N0} → {r.TotalScore:N0}");
+                                tmp.BestScore = r.TotalScore; tmp.BestRankScore = r.RankScore; tmp.BestResult = r; changed = true; curAcc = dmgGear[i].Acc;
+                            }
+                            else curEq.Accessory = curAcc;
+                        }
+                        if (!ReferenceEquals(curEq, dmgGear[i].Eq))
+                        {
+                            var origEq = dmgGear[i].Eq; var origAcc = origEq.Accessory;
+                            origEq.Accessory = curAcc; b.Equipment = origEq;
+                            var r = ScoreOnPlan(config, party, formation, tmp.BestRotationPlan);
+                            if (IsBetterPick(r.TotalScore, r.RankScore, tmp.BestScore, tmp.BestRankScore))
+                            {
+                                steps.Add($"[{b.Character.Name}] 생존 장비 덜어냄: {tmp.BestScore:N0} → {r.TotalScore:N0}");
+                                tmp.BestScore = r.TotalScore; tmp.BestRankScore = r.RankScore; tmp.BestResult = r; changed = true;
+                            }
+                            else { b.Equipment = curEq; origEq.Accessory = origAcc; }
+                        }
+                    }
+                }
+                return (tmp.BestResult, tmp.BestRotationPlan, steps);
+            }
+
+            var immortal = party.Select(b => b.Character.Name).ToHashSet();
+            var curPlan = plan;
+            SiegeBattleResult curR = null;
+            try
+            {
+                config.DiagAlliesImmortal = false;
+                config.DiagImmortalAllies = new HashSet<string>(immortal);
+                var start = ScoreOnPlan(config, party, formation, curPlan);
+                log.Add($"[생존 조합] 시작(전원 불사): {start.TotalScore:N0}");
+                while (immortal.Count > 0)
+                {
+                    string pickName = null; SiegeBattleResult pickR = null; List<RotationDecision> pickPlan = null;
+                    List<(EquipmentLoadout Eq, Accessory Acc)> pickGear = null; List<string> pickSteps = null;
+                    var summary = new List<string>();
+                    foreach (string name in immortal.ToList())
+                    {
+                        var snap = Snap();
+                        config.DiagImmortalAllies = new HashSet<string>(immortal.Where(n => n != name));
+                        var (r, p, steps) = Solve(curPlan);
+                        summary.Add($"{name} {r.TotalScore:N0}(사망 {r.Deaths?.Count ?? 0})");
+                        if (pickR == null || IsBetterPick(r.TotalScore, r.RankScore, pickR.TotalScore, pickR.RankScore))
+                        { pickName = name; pickR = r; pickPlan = p; pickGear = Snap(); pickSteps = steps; }
+                        Restore(snap);
+                    }
+                    Restore(pickGear);
+                    immortal.Remove(pickName);
+                    curPlan = pickPlan; curR = pickR;
+                    log.Add($"[생존 조합] {party.Count - immortal.Count}번째로 푼 영웅: {pickName} → {pickR.TotalScore:N0} (랭크 {pickR.RankScore:N0}, 사망 {pickR.Deaths?.Count ?? 0})"
+                        + $" · 후보: {string.Join(" / ", summary)} · 남은 불사 {(immortal.Count == 0 ? "없음" : string.Join("·", immortal))} ({clock.Elapsed.TotalMinutes:F1}분)");
+                    foreach (var st in pickSteps) log.Add("    " + st);
+                }
+                // 전원 필멸에서 한 번 더 풀이(무회귀)
+                config.DiagImmortalAllies = null;
+                var snapF = Snap();
+                var (fr2, fp2, fsteps) = Solve(curPlan);
+                var chk = ScoreOnPlan(config, party, formation, curPlan);
+                if (curR != null && !IsBetterPick(fr2.TotalScore, fr2.RankScore, curR.TotalScore, curR.RankScore)) Restore(snapF);
+                else { curR = fr2; curPlan = fp2; foreach (var st in fsteps) log.Add("    " + st); }
+                curR = ScoreOnPlan(config, party, formation, curPlan);
+                log.Add($"[생존 조합] 결과(실제 조건): {curR.TotalScore:N0} (랭크 {curR.RankScore:N0}, 사망 {curR.Deaths?.Count ?? 0}) ({clock.Elapsed.TotalMinutes:F1}분)");
+            }
+            finally
+            {
+                config.DiagAlliesImmortal = keepAll; config.DiagImmortalAllies = keepSet; config.OptimizeRotation = keepOpt;
+            }
+            return (curR, curPlan, log);
         }
 
         /// <summary>
@@ -1518,6 +1672,107 @@ namespace GameDamageCalculator.Services.BattleEngine
         public static SiegeBattleResult EvaluateBuild(SiegeOptimizerConfig config, List<BattleCharacter> party,
             string formation, List<RotationDecision> plan) => ScoreOnPlan(config, party, formation, plan);
 
+        /// <summary>한 빌드의 판별 점수 분포 — 치명·약점을 실제로 추첨한 판(CritSampleSeed 1..samples)을 돌려 요약한다.
+        ///   BestOfN = "하루 tries판 중 최고점"의 기대치 = Σ x(i)·[(i/K)^N − ((i−1)/K)^N] (오름차순 표본).
+        ///   점수는 랭크 점수(사망 페널티 포함) 기준 — 사망이 없으면 실제 점수와 같다.</summary>
+        public sealed class ScoreDist
+        {
+            public int Samples, Tries;
+            public double Mean, P10, P50, P90, Max, BestOfN;
+        }
+
+        public static ScoreDist ScoreDistribution(SiegeOptimizerConfig config, List<BattleCharacter> party, string formation,
+            List<RotationDecision> plan, int samples, int tries, int seedOffset = 0)
+        {
+            var xs = new List<double>(samples);
+            int? keep = config.CritSampleSeed;
+            try
+            {
+                for (int i = 1; i <= samples; i++)
+                {
+                    config.CritSampleSeed = seedOffset + i;
+                    xs.Add(ScoreOnPlan(config, party, formation, plan).RankScore);
+                }
+            }
+            finally { config.CritSampleSeed = keep; }
+            xs.Sort();
+            double emax = 0;
+            for (int i = 1; i <= samples; i++)
+                emax += xs[i - 1] * (System.Math.Pow((double)i / samples, tries) - System.Math.Pow((double)(i - 1) / samples, tries));
+            double Q(double q) => xs[System.Math.Min(samples - 1, (int)(q * samples))];
+            return new ScoreDist { Samples = samples, Tries = tries, Mean = xs.Average(), P10 = Q(0.1), P50 = Q(0.5), P90 = Q(0.9), Max = xs[samples - 1], BestOfN = emax };
+        }
+
+        /// <summary>
+        /// N판 기대 손질 — 유저는 평균이 아니라 "하루 N판 중 가장 잘 나온 판"을 노린다(2026-11-24 유저: 하루 5번, 치확·약확을 조금 내리고
+        ///   치피·공격력을 챙기되 너무 내리면 의미 없음, 약점은 터져야 함). 평균 최대 빌드에서 출발해 딜 비중이 minShare 이상인 영웅의
+        ///   부옵 티어를 같은 부위 안에서 한 칸씩 옮겨 보고(치확·약확 ↔ 치피·공격력%, 양방향), "N판 중 최고점 기대"가 가장 많이 오르는
+        ///   이동을 채택한다. 오르지 않으면 멈춘다. 모든 후보를 같은 추첨 시드로 재므로 비교 잡음이 작다.
+        ///   약확이나 라운드 클리어를 맡은 딜러의 치확처럼 "안 터지면 크게 깎이는" 옵션은 분포 하단이 무너져 저절로 남는다.
+        ///   party의 장비(부옵 티어)를 직접 고친다. 반환 = (손질 전 분포, 손질 후 분포).
+        /// </summary>
+        public (ScoreDist Before, ScoreDist After) TuneBestOfN(SiegeOptimizerConfig config, List<BattleCharacter> party, string formation,
+            List<RotationDecision> plan, List<string> log, int tries = 5, int samples = 300, int maxRounds = 16, double minShare = 0.05,
+            ICollection<string> onlyHeroes = null, bool lockWeak = true)
+        {
+            // lockWeak(기본): 약확은 옮기지 않는다 — 유저 지침 "약점공격은 무조건 터져야". 풀면 5판 기대는 조금 오르지만(토요일 +8만)
+            //   주력기 약점이 96%로 내려가고, 버프 타이밍이 어긋나면 손실이 커진다.
+            string[] chance = lockWeak ? new[] { "치명타확률%" } : new[] { "치명타확률%", "약점공격확률%" };
+            string[] power = { "치명타피해%", "공격력%" };
+            var pairs = chance.SelectMany(c => power.SelectMany(w => new[] { (From: c, To: w), (From: w, To: c) })).ToList();
+            var ev0 = ScoreOnPlan(config, party, formation, plan);
+            double total = System.Math.Max(1, ev0.TotalScore);
+            var dealers = party.Where(b => b.Equipment != null
+                && (ev0.CharacterResults.FirstOrDefault(c => c.CharacterName == b.Character.Name)?.TotalDamage ?? 0) / total >= minShare
+                && (onlyHeroes == null || onlyHeroes.Contains(b.Character.Name))).ToList();
+            var before = ScoreDistribution(config, party, formation, plan, samples, tries);
+            var cur = before;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            log?.Add($"[{tries}판 기대] 시작: 평균 {before.Mean:N0} · {tries}판 중 최고 기대 {before.BestOfN:N0} (표본 {samples}판, 대상 {string.Join("·", dealers.Select(d => d.Character.Name))})");
+            string[] partName = { "무기1", "무기2", "방어구1", "방어구2" };
+            for (int round = 1; round <= maxRounds; round++)
+            {
+                ScoreDist bestD = null; Models.SubStatSlot bestA = null, bestB = null; string bestDesc = null;
+                int tried = 0;
+                foreach (var h in dealers)
+                {
+                    var eqs = h.Equipment.GetEquipments().ToList();
+                    for (int ei = 0; ei < eqs.Count; ei++)
+                        foreach (var (f, t) in pairs)
+                        {
+                            var a = eqs[ei].SubSlots.FirstOrDefault(x => x.StatName == f && x.Tier > 1);
+                            var b = eqs[ei].SubSlots.FirstOrDefault(x => x.StatName == t && x.Tier < 6);
+                            if (a == null || b == null) continue;
+                            a.Tier--; b.Tier++;
+                            var d = ScoreDistribution(config, party, formation, plan, samples, tries);
+                            a.Tier++; b.Tier--;
+                            tried++;
+                            if (bestD == null || d.BestOfN > bestD.BestOfN)
+                            { bestD = d; bestA = a; bestB = b; bestDesc = $"{h.Character.Name} {(ei < partName.Length ? partName[ei] : $"부위{ei + 1}")} {f} → {t}"; }
+                        }
+                }
+                if (bestD == null || bestD.BestOfN <= cur.BestOfN * 1.0003)
+                {
+                    log?.Add($"[{tries}판 기대] {round}회차: 후보 {tried}개 — 더 오르는 이동 없음 ({clock.Elapsed.TotalMinutes:F1}분)");
+                    break;
+                }
+                // 확인: 고른 이동을 다른 추첨 시드·4배 표본으로 다시 잰다. 후보 수십 개 중 최고를 고르면 표본 잡음이 좋게 나온 쪽이
+                //   뽑혀 정점을 지나치기 쉽다(2026-11-24: 300판 탐색이 치확 77%까지 내렸는데 2000판으로는 85%가 더 높았다).
+                var chkCur = ScoreDistribution(config, party, formation, plan, samples * 4, tries, 500_000);
+                bestA.Tier--; bestB.Tier++;
+                var chkNew = ScoreDistribution(config, party, formation, plan, samples * 4, tries, 500_000);
+                if (chkNew.BestOfN <= chkCur.BestOfN * 1.0003)
+                {
+                    bestA.Tier++; bestB.Tier--;
+                    log?.Add($"[{tries}판 기대] {round}회차: {bestDesc} — 확인 표본({samples * 4}판)에서 {chkCur.BestOfN:N0} → {chkNew.BestOfN:N0}로 오르지 않아 멈춤 ({clock.Elapsed.TotalMinutes:F1}분)");
+                    break;
+                }
+                log?.Add($"[{tries}판 기대] {round}회차 채택: {bestDesc} 1티어 — {tries}판 기대 {cur.BestOfN:N0} → {bestD.BestOfN:N0} (평균 {cur.Mean:N0} → {bestD.Mean:N0}, 하위10% {bestD.P10:N0}) · 후보 {tried}개 ({clock.Elapsed.TotalMinutes:F1}분)");
+                cur = bestD;
+            }
+            return (before, cur);
+        }
+
         /// <summary>두 빌드 비교(탐색의 채택 기준과 동일: 랭크 점수 우선, 동률이면 실제 점수).</summary>
         public static bool IsBetterBuild(double total, double rank, double bestTotal, double bestRank)
             => IsBetterPick(total, rank, bestTotal, bestRank);
@@ -2075,6 +2330,10 @@ namespace GameDamageCalculator.Services.BattleEngine
             InGameBuffTargeting = config.InGameBuffTargeting,
             HighestAtkBuffGate = config.HighestAtkBuffGate,
             DiagAlliesImmortal = config.DiagAlliesImmortal,
+            DiagImmortalAllies = config.DiagImmortalAllies,
+            DiagForceCritWeak = config.DiagForceCritWeak,
+            DiagForceLethal = config.DiagForceLethal,
+            CritSampleSeed = config.CritSampleSeed,
             AllyCooldownMargin = config.AllyCooldownMargin,
         };
 

@@ -45,6 +45,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         public bool HighestAtkAllyOverrideCdrOnly { get; set; } // 강제를 평타 쿨감에만 적용
         public bool InGameBuffTargeting { get; set; }           // true=시전 순간 현재 공격력 순 / false=DamageWeight 순
         public bool DiagAlliesImmortal { get; set; }            // [진단] 아군 HP 피해 무시(불사)
+        public System.Collections.Generic.HashSet<string> DiagImmortalAllies { get; set; }   // 부분 불사(이름)
         public bool DiagForceCritWeak { get; set; }             // [진단] 아군 치명·약점 항상 발동
         public double AllyCooldownMargin { get; set; }          // 아군 스킬 쿨 안전 여유(초)
         public double BasicAttackSeconds { get; set; } = 1.85;  // 평타 1회 소요시간(초) — 값·근거는 SiegeBattleConfig 참조

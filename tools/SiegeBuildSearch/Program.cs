@@ -58,6 +58,11 @@ bool noExtend = args.Contains("연장끔");   // [진단] 「공격 N회마다 �
 bool loadOnly = args.Contains("불러오기") || noExtend;
 bool turnLog = args.Contains("턴로그");     // [진단] 턴별 행동 로그를 build_*_턴로그.txt 로 따로 저장
 bool noAwkSkill = args.Contains("각성기끔"); // 각성 게이지 미모델 → 각성기(쿨 0)를 빼고 탐색(각성기 보유 영웅에겐 하한). 저장 프로필 분리(_각성기끔)
+// 불사탐색: [진단] 아군이 죽지 않는다고 놓고 탐색 — 이 편성이 낼 수 있는 순수 딜 천장(생존 제약 없음). 저장 프로필 분리(_불사).
+//   유저 최고점이 이 천장보다 높으면 탐색이 아니라 모델(횟수·시간·미모델 효과)이 모자란 것이다.
+bool immortalSearch = args.Contains("불사탐색");
+// 프로필=이름: 저장 프로필에 꼬리표를 붙여 따로 저장 — 실험용 빌드(예: 불사 빌드를 복사해 필멸 조건으로 손보기)가 정식 저장 빌드를 덮지 않게.
+string profTag = args.FirstOrDefault(a => a.StartsWith("프로필="))?.Substring(4);
 if (noAwkSkill)
     foreach (var c in CharacterDb.Characters) c.Skills?.RemoveAll(s => s.SkillType == SkillType.Awaken);
 if (noExtend)
@@ -80,7 +85,7 @@ int evalSeeds = int.TryParse(Val("평가시드"), out var es) && es > 0 ? es : d
 
 var stage = EnemyDb.SiegeStages[day];
 var pet = PetDb.GetByName(petName);
-string profile = $"{TRANS}초월_{petName}" + (awaken == !lowSpec ? "" : awaken ? "_각성" : "_노각성") + (ingame ? "" : "_dw") + (noAwkSkill ? "_각성기끔" : "") + (quick ? "_quick" : "");
+string profile = $"{TRANS}초월_{petName}" + (awaken == !lowSpec ? "" : awaken ? "_각성" : "_노각성") + (ingame ? "" : "_dw") + (noAwkSkill ? "_각성기끔" : "") + (immortalSearch ? "_불사" : "") + (profTag != null ? "_" + profTag : "") + (quick ? "_quick" : "");
 string teamKey = string.Join("-", teamNames.Select(n => CharacterDb.Characters.First(c => c.Name == n)).OrderBy(c => c.Id).Select(c => c.Name));
 string repoRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 string outDir = System.IO.Path.Combine(repoRoot, "results", "siege");
@@ -109,6 +114,7 @@ SiegeOptimizerConfig MakeCfg(List<BattleCharacter> team, List<List<RotationDecis
         ForcedFormation = formationArg, ForcedBackRow = backArg,
         CounterattackSearchSeeds = caSeeds, EvalSeeds = evalSeeds,
         SeedRotations = seeds != null && seeds.Count > 0 ? seeds : null,
+        DiagAlliesImmortal = immortalSearch,
     };
     if (quick)
     {
@@ -669,8 +675,28 @@ if (subMoveArg != null)
         foreach (var e in heroM.Equipment.GetEquipments()) e.SetName = setSwap;
     }
     var r0 = SiegeOptimizer.EvaluateBuild(cfgM, partyM, sbM.Formation, planM);
+    // `운` — 매 단계 "치명·약점이 전부 터진 판"(DiagForceCritWeak) 점수도 같이 낸다. 유저는 여러 판 중 최고점을 노리므로
+    //   치확·약확을 덜고 치피·공격력을 챙긴다 — 기댓값은 내려가도 최고점은 오르는지 본다.
+    bool luckM = args.Contains("운");
+    var cfgML = MakeCfg(partyM, null); cfgML.DiagForceCritWeak = true;
+    string Luck() => (luckM ? $" · 전부 터진 판 {SiegeOptimizer.EvaluateBuild(cfgML, partyM, sbM.Formation, planM).TotalScore:N0}" : "") + Dist();
+    // `표본=K` — 치명·약점을 실제로 추첨한 판을 K번 돌려 분포를 낸다. `판=N`(기본 5) = 하루 도전 횟수 → "N판 중 최고점의 기대치".
+    int sampK = int.TryParse(Val("표본="), out var sk0) ? sk0 : 0;
+    int triesN = int.TryParse(Val("판="), out var tn0) ? tn0 : 5;
+    string Dist()
+    {
+        if (sampK <= 0) return "";
+        var cfgS = MakeCfg(partyM, null);
+        var xs = new List<double>();
+        for (int i = 1; i <= sampK; i++) { cfgS.CritSampleSeed = i; xs.Add(SiegeOptimizer.EvaluateBuild(cfgS, partyM, sbM.Formation, planM).TotalScore); }
+        xs.Sort();
+        double emax = 0;   // E[N판 중 최고] = Σ x(i) × [(i/K)^N − ((i−1)/K)^N]
+        for (int i = 1; i <= sampK; i++) emax += xs[i - 1] * (Math.Pow((double)i / sampK, triesN) - Math.Pow((double)(i - 1) / sampK, triesN));
+        double Q(double q) => xs[Math.Min(sampK - 1, (int)(q * sampK))];
+        return $"\n      표본 {sampK}판: 평균 {xs.Average():N0} · 중앙 {Q(0.5):N0} · 하위10% {Q(0.1):N0} · 상위10% {Q(0.9):N0} · 최고 {xs[sampK - 1]:N0} · ★{triesN}판 중 최고 기대 {emax:N0}";
+    }
     Console.WriteLine($"═══ 부옵이동 {day} [{teamKey}] {RouteName(route)} — {mp[0]} {st2[0]} → {st2[1]} (같은 스킬 순서 재생, 저장 안 함)");
-    Console.WriteLine($"  기준: {r0.TotalScore:N0} (사망 {r0.Deaths?.Count ?? 0}) · {mp[0]} {r0.CharacterResults.FirstOrDefault(c => c.CharacterName == mp[0])?.TotalDamage ?? 0:N0} · {StatLine()}");
+    Console.WriteLine($"  기준: {r0.TotalScore:N0} (사망 {r0.Deaths?.Count ?? 0}) · {mp[0]} {r0.CharacterResults.FirstOrDefault(c => c.CharacterName == mp[0])?.TotalDamage ?? 0:N0} · {StatLine()}{Luck()}");
     // `:교체` — 티어 이동 대신 칸 자체를 바꾼다(부위마다 출발 스탯 칸을 도착 스탯으로, 티어 유지. 도착 스탯이 이미 있는 부위는 건너뜀).
     if (mp.Length >= 3 && mp[2] == "교체")
     {
@@ -698,13 +724,392 @@ if (subMoveArg != null)
         }
         if (!moved) { Console.WriteLine($"  {k}티어째: 옮길 칸 없음(출발 스탯 2티어 이상·도착 스탯 6티어 미만인 부위가 없음)"); break; }
         var rk = SiegeOptimizer.EvaluateBuild(cfgM, partyM, sbM.Formation, planM);
-        Console.WriteLine($"  {k}티어 이동: {rk.TotalScore:N0} ({rk.TotalScore - r0.TotalScore:+#,0;-#,0}, 사망 {rk.Deaths?.Count ?? 0}) · {mp[0]} {rk.CharacterResults.FirstOrDefault(c => c.CharacterName == mp[0])?.TotalDamage ?? 0:N0} · {StatLine()}");
+        Console.WriteLine($"  {k}티어 이동: {rk.TotalScore:N0} ({rk.TotalScore - r0.TotalScore:+#,0;-#,0}, 사망 {rk.Deaths?.Count ?? 0}) · {mp[0]} {rk.CharacterResults.FirstOrDefault(c => c.CharacterName == mp[0])?.TotalDamage ?? 0:N0} · {StatLine()}{Luck()}");
     }
     return;
 }
 
 // ── 단계: 다시 탐색하지 않고, 저장된 빌드에 탐색의 "순서 편집+생존 보강" 단계만 돌린다 (SiegeOptimizer.RunEditSurvival) ──
 //   이미 찾아 둔 빌드를 새로 생긴 후처리 단계로 손볼 때. 정석·고점 저장 빌드를 각각 처리하고(`정석`이면 정석만),
+// ── 상한: 저장된 빌드가 유저 최고점에 못 미칠 때 "어디서 더 나올 수 있는가"를 잰다 (저장 안 함) ──
+//   ① 같은 스킬 순서 재생: 기준 / 치명·약점 항상 발동(운 상한) / 불사(생존 제약 없음) / 둘 다
+//   ② 같은 장비로 스킬 순서만 다시 탐색: 쿨 여유(초)를 0, -2, -4 … 로 줘 가며 — 스킬턴 격자(4턴)에 몇 초 차이로 걸려
+//      주력기가 한 번 덜 들어가는 구조인지 본다. `상한=0,-2,-4,-8`로 여유 목록 지정, `불사`를 붙이면 ②도 불사로.
+// ── 벗기기=아일린:방어구1[+방어구2+무기1+무기2+장신구][,영웅:부위…]: 저장된 빌드에서 장비 부위를 빼고 같은 스킬 순서로 재생 (저장 안 함) ──
+//   "일부러 빨리 죽게 만든다" 같은 수가 시뮬에서도 이득인지 확인용. 실제 점수(누적 딜)와 랭크 점수(사망 페널티 포함)를 같이 낸다.
+string stripArg = Val("벗기기=");
+if (stripArg != null)
+{
+    var sbS = SiegeBuildStore.Load(PathFor(route));
+    if (sbS == null) { Console.WriteLine("저장된 빌드 없음"); return; }
+    string DS(SiegeBattleResult r) => r.Deaths == null || r.Deaths.Count == 0 ? "사망 0" : $"사망 {r.Deaths.Count} (" + string.Join(", ", r.Deaths.Select(d => $"T{d.Turn} {d.AllyName}←{d.Cause}")) + ")";
+    void Show(string title, SiegeBattleResult r)
+    {
+        Console.WriteLine($"▷ {title}: {r.TotalScore:N0} (랭크 {r.RankScore:N0}) · {DS(r)}");
+        Console.WriteLine("    기여: " + string.Join(" / ", r.CharacterResults.OrderByDescending(x => x.TotalDamage).Select(x => $"{x.CharacterName} {x.TotalDamage:N0}")));
+        Console.WriteLine("    시전: " + string.Join(" | ", r.TurnLogs.Where(l => l.IsAlly && l.SkillName == "쿨").Select(l => $"T{l.Turn} {l.ActorName} {(l.Description ?? "").Split(" 시전")[0]}")));
+        foreach (var l in r.TurnLogs.Where(l => ((l.Description ?? "") + (l.SkillName ?? "")).Contains("부활") || (l.SkillName ?? "").Contains("발동")))
+            Console.WriteLine($"    T{l.Turn} [{(l.IsAlly ? "아군" : "적")}] {l.ActorName} · {l.SkillName}: {l.Description}");
+        foreach (var g in r.TurnLogs.Where(l => l.IsAlly && l.ActorName == "라이언" && l.SkillName == "광풍참").GroupBy(l => l.Turn))
+            Console.WriteLine($"    T{g.Key} 광풍참: " + string.Join(" / ", g.Select(l => (l.Description ?? "").Split("→ ").Last())));
+    }
+    Console.WriteLine($"═══ 벗기기 {day} [{teamKey}] {profile} · {RouteName(route)} (저장 안 함)");
+    {
+        var pt = SiegeBuildStore.ToParty(sbS); var pl = SiegeBuildStore.ToPlan(sbS, pt);
+        Show("기준", SiegeOptimizer.EvaluateBuild(MakeCfg(pt, null), pt, sbS.Formation, pl));
+    }
+    foreach (string variant in stripArg.Split('/', StringSplitOptions.RemoveEmptyEntries))
+    {
+        var pt = SiegeBuildStore.ToParty(sbS); var pl = SiegeBuildStore.ToPlan(sbS, pt);
+        foreach (string item in variant.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = item.Split(':'); var h = pt.First(x => x.Character.Name == kv[0]);
+            foreach (string part in kv[1].Split('+'))
+                switch (part)
+                {
+                    case "방어구1": h.Equipment.Armor1 = null; break;
+                    case "방어구2": h.Equipment.Armor2 = null; break;
+                    case "무기1": h.Equipment.Weapon1 = null; break;
+                    case "무기2": h.Equipment.Weapon2 = null; break;
+                    case "장신구": h.Equipment.Accessory = null; break;
+                    default: throw new ArgumentException($"부위 없음: {part}");
+                }
+        }
+        Show(variant + " 제거", SiegeOptimizer.EvaluateBuild(MakeCfg(pt, null), pt, sbS.Formation, pl));
+    }
+    return;
+}
+
+// ── 강제사망=아일린:2/아일린:6/…: 저장된 빌드에서 지정 턴에 그 영웅이 치명 판정을 받는다고 놓고 (저장 안 함) ──
+//   ① 같은 스킬 순서 재생 ② 같은 장비로 스킬 순서만 재탐색. `불사`를 붙이면 그 외 피해는 받지 않는 조건.
+string lethalArg = Val("강제사망=");
+if (lethalArg != null)
+{
+    var sbL = SiegeBuildStore.Load(PathFor(route));
+    if (sbL == null) { Console.WriteLine("저장된 빌드 없음"); return; }
+    bool immL = args.Contains("불사");
+    string DSL(SiegeBattleResult r) => r.Deaths == null || r.Deaths.Count == 0 ? "사망 0" : $"사망 {r.Deaths.Count} (" + string.Join(", ", r.Deaths.Select(d => $"T{d.Turn} {d.AllyName}←{d.Cause}")) + ")";
+    void ShowL(string title, SiegeBattleResult r, double baseScore)
+    {
+        Console.WriteLine($"▷ {title}: {r.TotalScore:N0} ({r.TotalScore - baseScore:+#,0;-#,0}) · {DSL(r)}");
+        Console.WriteLine("    기여: " + string.Join(" / ", r.CharacterResults.OrderByDescending(x => x.TotalDamage).Select(x => $"{x.CharacterName} {x.TotalDamage:N0}")));
+        Console.WriteLine("    시전: " + string.Join(" | ", r.TurnLogs.Where(l => l.IsAlly && l.SkillName == "쿨").Select(l => $"T{l.Turn} {l.ActorName} {(l.Description ?? "").Split(" 시전")[0]}")));
+        foreach (var l in r.TurnLogs.Where(l => ((l.Description ?? "") + (l.SkillName ?? "")).Contains("부활") || (l.SkillName ?? "").Contains("강제 치명")))
+            Console.WriteLine($"    T{l.Turn} {l.ActorName} · {l.SkillName}: {l.Description}");
+        foreach (var g in r.TurnLogs.Where(l => l.IsAlly && l.ActorName == "라이언" && l.SkillName == "광풍참").GroupBy(l => l.Turn))
+            Console.WriteLine($"    T{g.Key} 광풍참: " + string.Join(" / ", g.Select(l => (l.Description ?? "").Split("→ ").Last())));
+    }
+    SiegeOptimizerConfig CfgL(List<BattleCharacter> pt, List<(string, int)> lethal, List<RotationDecision> seed)
+    {
+        var c = MakeCfg(pt, seed != null ? new List<List<RotationDecision>> { seed } : null);
+        c.DiagAlliesImmortal = immL || immortalSearch; c.DiagForceLethal = lethal;
+        return c;
+    }
+    Console.WriteLine($"═══ 강제사망 {day} [{teamKey}] {profile} · {RouteName(route)}{(immL ? " · 불사" : "")} (저장 안 함)");
+    double baseL;
+    {
+        var pt = SiegeBuildStore.ToParty(sbL); var pl = SiegeBuildStore.ToPlan(sbL, pt);
+        var r0 = SiegeOptimizer.EvaluateBuild(CfgL(pt, null, null), pt, sbL.Formation, pl);
+        baseL = r0.TotalScore; ShowL("기준", r0, baseL);
+    }
+    foreach (string variant in lethalArg.Split('/', StringSplitOptions.RemoveEmptyEntries))
+    {
+        var lethal = variant.Split(',').Select(x => x.Split(':')).Select(x => (x[0], int.Parse(x[1]))).ToList();
+        var pt = SiegeBuildStore.ToParty(sbL); var pl = SiegeBuildStore.ToPlan(sbL, pt);
+        ShowL($"{variant} · 같은 순서", SiegeOptimizer.EvaluateBuild(CfgL(pt, lethal, null), pt, sbL.Formation, pl), baseL);
+        if (args.Contains("재탐색"))
+        {
+            var c = CfgL(pt, lethal, pl);
+            c.AutoEquip = false; c.SearchExclusiveWeapon = false; c.CoordinateAscentGear = false; c.EnableSurvivalRings = false;
+            c.SearchAggressiveSurvival = false; c.SearchEditSurvival = false; c.SearchAtkRank = false; c.SearchActionOrder = false; c.SearchSpeedLead = false;
+            c.ForcedFormation = sbL.Formation; c.ForcedBackRow = pt.Where(x => x.IsBackPosition).Select(x => x.Character.Name).ToList();
+            var o = new SiegeOptimizer().Optimize(c);
+            ShowL($"{variant} · 순서 재탐색", o.BestResult, baseL);
+        }
+    }
+    return;
+}
+
+string ceilArg = args.FirstOrDefault(a => a == "상한" || a.StartsWith("상한="));
+if (ceilArg != null)
+{
+    var sbC = SiegeBuildStore.Load(PathFor(route));
+    if (sbC == null) { Console.WriteLine("저장된 빌드 없음"); return; }
+    var margins = (ceilArg.Length > 3 ? ceilArg.Substring(3) : "0,-2,-4,-8").Split(',').Select(x => double.Parse(x, CultureInfo.InvariantCulture)).ToList();
+    bool imm = args.Contains("불사");
+    Console.WriteLine($"═══ 상한 {day} [{teamKey}] {RouteName(route)} (저장 안 함)");
+    SiegeBattleResult Rep(bool luck, bool immortal)
+    {
+        var pt = SiegeBuildStore.ToParty(sbC); var pl = SiegeBuildStore.ToPlan(sbC, pt);
+        var c = MakeCfg(pt, null); c.DiagForceCritWeak = luck; c.DiagAlliesImmortal = immortal;
+        return SiegeOptimizer.EvaluateBuild(c, pt, sbC.Formation, pl);
+    }
+    string Casts(SiegeBattleResult r) => string.Join(" · ", r.TurnLogs.Where(l => l.IsAlly && l.SkillName == "쿨")
+        .GroupBy(l => l.ActorName + " " + (l.Description ?? "").Split(" 시전")[0]).OrderByDescending(g => g.Count()).ThenBy(g => g.Key)
+        .Select(g => $"{g.Key}×{g.Count()}"));
+    string Shares(SiegeBattleResult r) => string.Join(" / ", r.CharacterResults.OrderByDescending(x => x.TotalDamage).Take(3).Select(x => $"{x.CharacterName} {x.TotalDamage:N0}"));
+    var r00 = Rep(false, false);
+    Console.WriteLine("① 같은 스킬 순서 재생");
+    foreach (var (nm, lk, im) in new[] { ("기준", false, false), ("치명·약점 항상 발동", true, false), ("불사", false, true), ("치명·약점 항상 + 불사", true, true) })
+    {
+        var r = nm == "기준" ? r00 : Rep(lk, im);
+        Console.WriteLine($"  {nm}: {r.TotalScore:N0} ({r.TotalScore - r00.TotalScore:+#,0;-#,0}, 사망 {r.Deaths?.Count ?? 0}) · {Shares(r)}");
+    }
+    Console.WriteLine($"  시전: {Casts(r00)}");
+    // `순서=라이언1,풍연1,비스킷1,아일린1,…` — 손으로 적은 스킬 순서를 같은 장비로 재생(영웅+스킬 번호, 스킬턴 순). 탐색이 놓친 순서 확인용.
+    string orderArg = Val("순서=");
+    if (orderArg != null)
+    {
+        var pt = SiegeBuildStore.ToParty(sbC);
+        var hand = orderArg.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(t =>
+        {
+            string nm = t.TrimEnd('1', '2'); int idx = pt.FindIndex(x => x.Character.Name == nm);
+            if (idx < 0) throw new ArgumentException($"영웅 없음: {t}");
+            return new RotationDecision { HeroIndex = idx, Skill = t.EndsWith("2") ? SkillType.Skill2 : SkillType.Skill1 };
+        }).ToList();
+        foreach (double mg in margins)
+        {
+            var c = MakeCfg(pt, null); c.AllyCooldownMargin = mg; c.DiagAlliesImmortal = imm;
+            var r = SiegeOptimizer.EvaluateBuild(c, pt, sbC.Formation, hand);
+            Console.WriteLine($"③ 손 순서 (쿨 여유 {mg:+0.#;-0.#;0}초): {r.TotalScore:N0} ({r.TotalScore - r00.TotalScore:+#,0;-#,0}, 사망 {r.Deaths?.Count ?? 0}) · {Shares(r)}");
+            Console.WriteLine($"      시전: {Casts(r)}");
+            foreach (var l in r.TurnLogs.Where(l => l.IsAlly && l.SkillName == "쿨"))
+                Console.Write($" T{l.Turn} {l.ActorName} {(l.Description ?? "").Split(" 시전")[0]} |");
+            Console.WriteLine();
+            foreach (var dth in r.Deaths ?? new()) Console.WriteLine($"      사망: T{dth.Turn} {dth.AllyName} ({dth.Cause})");
+        }
+        return;
+    }
+    Console.WriteLine($"② 같은 장비·스킬 순서만 재탐색 (쿨 여유별{(imm ? ", 불사" : "")})");
+    foreach (double mg in margins)
+    {
+        var pt = SiegeBuildStore.ToParty(sbC); var pl = SiegeBuildStore.ToPlan(sbC, pt);
+        var c = MakeCfg(pt, new List<List<RotationDecision>> { pl });
+        c.AutoEquip = false; c.SearchExclusiveWeapon = false; c.CoordinateAscentGear = false; c.EnableSurvivalRings = false;
+        c.SearchAggressiveSurvival = false; c.SearchEditSurvival = false; c.SearchAtkRank = false; c.SearchActionOrder = false; c.SearchSpeedLead = false;
+        c.ForcedFormation = sbC.Formation; c.ForcedBackRow = pt.Where(x => x.IsBackPosition).Select(x => x.Character.Name).ToList();
+        c.AllyCooldownMargin = mg; c.DiagAlliesImmortal = imm;
+        var swC = System.Diagnostics.Stopwatch.StartNew();
+        var same = SiegeOptimizer.EvaluateBuild(c, pt, sbC.Formation, pl);
+        var o = new SiegeOptimizer().Optimize(c);
+        var br = o.BestResult;
+        Console.WriteLine($"  쿨 여유 {mg:+0.#;-0.#;0}초: 같은 순서 {same.TotalScore:N0} → 재탐색 {br.TotalScore:N0} (사망 {br.Deaths?.Count ?? 0}) · {Shares(br)} · {swC.Elapsed.TotalMinutes:F1}분");
+        Console.WriteLine($"      시전: {Casts(br)}");
+        if (o.BestRotationPlan != null)
+            Console.WriteLine("      순서: " + string.Join(" ", o.BestRotationPlan.Select(d => SiegeCounterfactual.CastName(d, o.BestParty))));
+    }
+    return;
+}
+
+// ── 보강: 저장된 빌드의 스킬 순서를 그대로 두고 생존 반지·생존 장비만 다시 맞춘다 (RefitSurvival) ──
+//   불사탐색으로 찾은 순서(딜 천장)를 `프로필=`로 복사해 온 뒤 "이 순서를 실제로 버티려면 얼마가 드는가"를 잴 때 쓴다.
+//   더 높아지면 그 프로필에 저장한다.
+if (args.Contains("보강"))
+{
+    string rpath = PathFor(route);
+    var sbR = SiegeBuildStore.Load(rpath);
+    if (sbR == null) { Console.WriteLine("저장된 빌드 없음"); return; }
+    var rparty = SiegeBuildStore.ToParty(sbR); var rplan = SiegeBuildStore.ToPlan(sbR, rparty);
+    var rcfg = MakeCfg(rparty, null);
+    string DStr(SiegeBattleResult r) => r.Deaths == null || r.Deaths.Count == 0 ? "사망 0" : $"사망 {r.Deaths.Count} (" + string.Join(", ", r.Deaths.Select(d => $"T{d.Turn} {d.AllyName}←{d.Cause}")) + ")";
+    string Top(SiegeBattleResult r) => string.Join(" / ", r.CharacterResults.OrderByDescending(x => x.TotalDamage).Select(x => $"{x.CharacterName} {x.TotalDamage:N0}"));
+    Console.WriteLine($"═══ 보강(순서 고정·생존만 다시) {day} [{teamKey}] {profile} · {RouteName(route)}");
+    var rb = SiegeOptimizer.EvaluateBuild(rcfg, rparty, sbR.Formation, rplan);
+    Console.WriteLine($"  보강 전: {rb.TotalScore:N0} (랭크 {rb.RankScore:N0}) · {DStr(rb)}");
+    var rlog = new List<string>(); var swR2 = System.Diagnostics.Stopwatch.StartNew();
+    var ra = new SiegeOptimizer().RefitSurvival(rcfg, rparty, sbR.Formation, rplan, rlog);
+    foreach (var l in rlog.Where(l => l.StartsWith("["))) Console.WriteLine("    " + l);
+    Console.WriteLine($"  보강 후: {ra.TotalScore:N0} (랭크 {ra.RankScore:N0}) · {DStr(ra)} · {swR2.Elapsed.TotalMinutes:F1}분");
+    Console.WriteLine($"    기여: {Top(ra)}");
+    foreach (var l in ra.TurnLogs.Where(l => l.IsAlly && l.SkillName == "쿨")) Console.Write($" T{l.Turn} {l.ActorName} {(l.Description ?? "").Split(" 시전")[0]} |");
+    Console.WriteLine();
+    foreach (var h in rparty)
+        Console.WriteLine($"    [{h.Character.Name}] {string.Join("+", h.Equipment.GetActiveSets().Select(x => $"{x.SetName}{x.PieceCount}"))} · 장신구 {h.Equipment?.Accessory?.RingName ?? h.Equipment?.Accessory?.MainOption}/{h.Equipment?.Accessory?.SubOption}");
+    if (SiegeOptimizer.IsBetterBuild(ra.TotalScore, ra.RankScore, rb.TotalScore, rb.RankScore))
+    {
+        var rback = rparty.Where(x => x.IsBackPosition).Select(x => x.Character.Name).ToList();
+        var nbR = SiegeBuildStore.Capture(rparty, sbR.Formation, rback, rplan);
+        nbR.Day = day; nbR.Profile = profile; nbR.Route = RouteName(route);
+        nbR.Score = Math.Round(ra.TotalScore); nbR.RankScore = Math.Round(ra.RankScore); nbR.Deaths = ra.Deaths?.Count ?? 0;
+        nbR.InGameBuffTargeting = ingame; nbR.EngineHash = engineHash; nbR.GitCommit = gitHead; nbR.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        nbR.StartOrder = sbR.StartOrder; nbR.SearchMinutes = Math.Round(sbR.SearchMinutes + swR2.Elapsed.TotalMinutes, 1);
+        nbR.Pet = sbR.Pet ?? new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 72 };
+        nbR.History = sbR.History; nbR.TargetScore = sbR.TargetScore; nbR.Stages = (sbR.Stages ?? new()).ToList();
+        SiegeBuildStore.Save(rpath, nbR);
+        Console.WriteLine($"  [저장] {rb.TotalScore:N0} → {ra.TotalScore:N0} → {rpath}");
+    }
+    return;
+}
+
+// ── 생존조합: 불사탐색으로 찾은 빌드(프로필 `_불사`)에서 출발해 실제 조건의 빌드로 내려온다 (RelaxImmortality) ──
+//   먼저 `불사탐색`으로 딜 천장 빌드를 저장해 둬야 한다. 결과는 `_생존조합` 프로필에 저장하고,
+//   저장된 고점 빌드보다 높으면 고점 빌드도 갱신한다(최고 빌드만 유지).
+if (args.Contains("생존조합"))
+{
+    string immPath = System.IO.Path.Combine(outDir, $"build_{day}_{profile}_불사_{teamKey}.json");
+    var sbI = SiegeBuildStore.Load(immPath);
+    if (sbI == null) { Console.WriteLine($"불사 빌드 없음 — 먼저 `불사탐색`을 붙여 탐색하세요. ({immPath})"); return; }
+    var ptI = SiegeBuildStore.ToParty(sbI); var plI = SiegeBuildStore.ToPlan(sbI, ptI);
+    var cfgI = MakeCfg(ptI, null);
+    string DSI(SiegeBattleResult r) => r.Deaths == null || r.Deaths.Count == 0 ? "사망 0" : $"사망 {r.Deaths.Count} (" + string.Join(", ", r.Deaths.Select(d => $"T{d.Turn} {d.AllyName}←{d.Cause}")) + ")";
+    Console.WriteLine($"═══ 생존 조합 {day} [{teamKey}] {profile} — 불사 빌드 {sbI.Score:N0}에서 출발");
+    var swI = System.Diagnostics.Stopwatch.StartNew();
+    var (rI, pI, logI) = new SiegeOptimizer().RelaxImmortality(cfgI, ptI, sbI.Formation, plI);
+    foreach (var l in logI) Console.WriteLine("  " + l);
+    Console.WriteLine($"  결과: {rI.TotalScore:N0} (랭크 {rI.RankScore:N0}) · {DSI(rI)} · {swI.Elapsed.TotalMinutes:F1}분");
+    Console.WriteLine("    기여: " + string.Join(" / ", rI.CharacterResults.OrderByDescending(x => x.TotalDamage).Select(x => $"{x.CharacterName} {x.TotalDamage:N0}")));
+    Console.WriteLine("    시전: " + string.Join(" | ", rI.TurnLogs.Where(l => l.IsAlly && l.SkillName == "쿨").Select(l => $"T{l.Turn} {l.ActorName} {(l.Description ?? "").Split(" 시전")[0]}")));
+    var backI = ptI.Where(x => x.IsBackPosition).Select(x => x.Character.Name).ToList();
+    var nbI = SiegeBuildStore.Capture(ptI, sbI.Formation, backI, pI);
+    nbI.Day = day; nbI.Profile = profile; nbI.Route = "고점";
+    nbI.Score = Math.Round(rI.TotalScore); nbI.RankScore = Math.Round(rI.RankScore); nbI.Deaths = rI.Deaths?.Count ?? 0;
+    nbI.InGameBuffTargeting = ingame; nbI.EngineHash = engineHash; nbI.GitCommit = gitHead; nbI.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+    nbI.StartOrder = sbI.StartOrder; nbI.SearchMinutes = Math.Round(sbI.SearchMinutes + swI.Elapsed.TotalMinutes, 1);
+    nbI.Pet = sbI.Pet ?? new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 72 };
+    nbI.TargetScore = sbI.TargetScore;
+    nbI.Log = logI.ToList();
+    foreach (var l in DiffLines(sbI, nbI)) Console.WriteLine("    불사 빌드에서 바뀐 것: " + l);
+    string relPath = System.IO.Path.Combine(outDir, $"build_{day}_{profile}_생존조합_{teamKey}.json");
+    SiegeBuildStore.Save(relPath, nbI);
+    Console.WriteLine($"  [저장] {relPath}");
+    string peakPathI = PathFor(SiegeSearchRoute.Peak);
+    var savedI = SiegeBuildStore.Load(peakPathI);
+    double sTotI = double.NegativeInfinity, sRankI = double.NegativeInfinity;
+    if (savedI != null) { var ev = Evaluate(savedI); sTotI = ev.Res.TotalScore; sRankI = ev.Res.RankScore; }
+    if (SiegeOptimizer.IsBetterBuild(rI.TotalScore, rI.RankScore, sTotI, sRankI))
+    {
+        if (savedI != null)
+        {
+            nbI.History = savedI.History; nbI.TargetScore = savedI.TargetScore;
+            nbI.Stages = (savedI.Stages ?? new()).ToList();
+            nbI.Log = (savedI.Log ?? new()).Concat(logI).ToList();
+        }
+        nbI.Stages.Add(new SiegeSavedBuild.StageDto { Name = "생존 조합(불사 순서에서 출발)", Score = nbI.Score, RankScore = nbI.RankScore, Deaths = nbI.Deaths, Order = string.Join(",", ptI.Select(x => x.Character.Name)) });
+        SiegeBuildStore.Save(peakPathI, nbI);
+        Console.WriteLine($"  [저장·고점] {(savedI == null ? "새 빌드" : $"갱신 {sTotI:N0} →")} {rI.TotalScore:N0} → {peakPathI}");
+    }
+    else Console.WriteLine($"  [유지·고점] 저장된 빌드 {sTotI:N0}(랭크 {sRankI:N0})가 생존 조합 결과 {rI.TotalScore:N0}(랭크 {rI.RankScore:N0}) 이상 — 바꾸지 않습니다.");
+    return;
+}
+
+// ── 장신구비교=라이언: 저장된 빌드에서 그 영웅의 6성 장신구 옵션 2개 조합을 전부 바꿔 끼워 본다 (저장 안 함) ──
+//   조합마다 그 영웅의 부옵 티어(치확·약확 ↔ 치피·공격력%)를 ① 평균 최대로 다시 맞춘 점수와 ② 거기서 N판 기대 최대로 맞춘 점수를 낸다
+//   — 장신구가 치확을 주면 부옵의 치확을 치피로 돌릴 수 있으므로, 부옵을 다시 맞춰야 공정한 비교가 된다.
+string accCmp = Val("장신구비교=");
+if (accCmp != null)
+{
+    var sbA = SiegeBuildStore.Load(PathFor(route));
+    if (sbA == null) { Console.WriteLine("저장된 빌드 없음"); return; }
+    int triesA = int.TryParse(Val("판="), out var ta) ? ta : 5;
+    int sampA = int.TryParse(Val("표본="), out var sa) ? sa : 300;
+    var ptA = SiegeBuildStore.ToParty(sbA); var plA = SiegeBuildStore.ToPlan(sbA, ptA);
+    var cfgA = MakeCfg(ptA, null);
+    var hA = ptA.FirstOrDefault(x => x.Character.Name == accCmp);
+    if (hA?.Equipment?.Accessory == null) { Console.WriteLine($"영웅 없음: {accCmp}"); return; }
+    var origAcc = hA.Equipment.Accessory;
+    var slotsA = hA.Equipment.GetEquipments().SelectMany(e => e.SubSlots).ToList();
+    var tiers0 = slotsA.Select(x => x.Tier).ToList();
+    // `옵션=보피증%,1-3인기%,치명타확률%` — 비교할 옵션을 줄인다(기본 5종 = 10조합)
+    string[] opts = Val("옵션=")?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? new[] { "보피증%", "1-3인기%", "피증%", "치명타확률%", "약점공격확률%" };
+    string[] chanceA = { "치명타확률%", "약점공격확률%" }; string[] powerA = { "치명타피해%", "공격력%" };
+    var pairsA = chanceA.SelectMany(c => powerA.SelectMany(w => new[] { (From: c, To: w), (From: w, To: c) })).ToList();
+    string StatA()
+    {
+        var bs = new BattleSimulator();
+        var bc = new BattleConfig { AllyParty = ptA, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = sbA.Formation };
+        var stt = bs.InitializeCharacterState(bc, hA, ptA.IndexOf(hA)); var dd = stt.DisplayStats;
+        return $"치확 {dd.Cri:0.#}·치피 {dd.Cri_Dmg:0.#}·약확 {dd.Wek:0.#}";
+    }
+    Console.WriteLine($"═══ 장신구 비교 {day} [{teamKey}] {profile} · {RouteName(route)} — {accCmp} (현재 {origAcc.RingName ?? origAcc.MainOption}/{origAcc.SubOption}) · 부옵 재조정 포함, 저장 안 함");
+    var rows = new List<(string Name, double Ev, string EvStat, double Mean, double B5, string B5Stat)>();
+    for (int i = 0; i < opts.Length; i++)
+        for (int j = i + 1; j < opts.Length; j++)
+        {
+            for (int k = 0; k < slotsA.Count; k++) slotsA[k].Tier = tiers0[k];
+            hA.Equipment.Accessory = new Accessory { Grade = 6, MainOption = opts[i], SubOption = opts[j] };
+            // ① 평균(기댓값) 최대로 부옵 재조정
+            double cur = SiegeOptimizer.EvaluateBuild(cfgA, ptA, sbA.Formation, plA).RankScore;
+            for (bool moved = true; moved;)
+            {
+                moved = false; GameDamageCalculator.Models.SubStatSlot ba = null, bb = null; double bv = cur;
+                foreach (var e in hA.Equipment.GetEquipments())
+                    foreach (var (f, t) in pairsA)
+                    {
+                        var a = e.SubSlots.FirstOrDefault(x => x.StatName == f && x.Tier > 1);
+                        var b = e.SubSlots.FirstOrDefault(x => x.StatName == t && x.Tier < 6);
+                        if (a == null || b == null) continue;
+                        a.Tier--; b.Tier++;
+                        double v = SiegeOptimizer.EvaluateBuild(cfgA, ptA, sbA.Formation, plA).RankScore;
+                        a.Tier++; b.Tier--;
+                        if (v > bv + 1) { bv = v; ba = a; bb = b; }
+                    }
+                if (ba != null) { ba.Tier--; bb.Tier++; cur = bv; moved = true; }
+            }
+            string evStat = StatA();
+            // ② 거기서 N판 기대 최대로
+            var (_, aft) = new SiegeOptimizer().TuneBestOfN(cfgA, ptA, sbA.Formation, plA, null, triesA, sampA, 16, 0.0, new[] { accCmp });
+            rows.Add(($"{opts[i]} + {opts[j]}", cur, evStat, aft.Mean, aft.BestOfN, StatA()));
+            Console.WriteLine($"  {opts[i]} + {opts[j]}: 평균 최대 {cur:N0} ({evStat}) · {triesA}판 기대 최대 {aft.BestOfN:N0} (그때 평균 {aft.Mean:N0}, {StatA()})");
+        }
+    for (int k = 0; k < slotsA.Count; k++) slotsA[k].Tier = tiers0[k];
+    hA.Equipment.Accessory = origAcc;
+    Console.WriteLine("  ── 평균 순 ──");
+    foreach (var r in rows.OrderByDescending(r => r.Ev)) Console.WriteLine($"    {r.Ev,12:N0}  {r.Name}");
+    Console.WriteLine($"  ── {triesA}판 기대 순 ──");
+    foreach (var r in rows.OrderByDescending(r => r.B5)) Console.WriteLine($"    {r.B5,12:N0}  {r.Name}");
+    return;
+}
+
+// ── 다섯판: 저장된 빌드(평균 최대)를 "하루 N판 중 최고점 기대"가 최대가 되게 부옵 티어를 손본다 (TuneBestOfN) ──
+//   `다섯판 [판=5] [표본=300]`. 결과는 프로필 꼬리표 `_N판`으로 따로 저장 — 원래 빌드는 그대로. 확인: `프로필=5판 불러오기`.
+if (args.Contains("다섯판"))
+{
+    var sbT = SiegeBuildStore.Load(PathFor(route));
+    if (sbT == null) { Console.WriteLine("저장된 빌드 없음"); return; }
+    int triesT = int.TryParse(Val("판="), out var tt) ? tt : 5;
+    int sampT = int.TryParse(Val("표본="), out var st) ? st : 300;
+    var ptT = SiegeBuildStore.ToParty(sbT); var plT = SiegeBuildStore.ToPlan(sbT, ptT);
+    var cfgT = MakeCfg(ptT, null);
+    Console.WriteLine($"═══ {triesT}판 기대 손질 {day} [{teamKey}] {profile} · {RouteName(route)}");
+    var ev0 = SiegeOptimizer.EvaluateBuild(cfgT, ptT, sbT.Formation, plT);
+    var big0 = SiegeOptimizer.ScoreDistribution(cfgT, ptT, sbT.Formation, plT, 2000, triesT);
+    string DistStr(SiegeOptimizer.ScoreDist d) => $"평균 {d.Mean:N0} · 하위10% {d.P10:N0} · 중앙 {d.P50:N0} · 상위10% {d.P90:N0} · 최고 {d.Max:N0} · ★{d.Tries}판 중 최고 기대 {d.BestOfN:N0}";
+    string StatsOf(BattleCharacter h)
+    {
+        var bs = new BattleSimulator();
+        var bc = new BattleConfig { AllyParty = ptT, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = sbT.Formation };
+        var stt = bs.InitializeCharacterState(bc, h, ptT.IndexOf(h)); var dd = stt.DisplayStats;
+        return $"공 {stt.FinalAtk:N0} · 치확 {dd.Cri:0.#} · 치피 {dd.Cri_Dmg:0.#} · 약확 {dd.Wek:0.#}";
+    }
+    Console.WriteLine($"  손질 전: 기댓값 {ev0.TotalScore:N0} (사망 {ev0.Deaths?.Count ?? 0})");
+    Console.WriteLine($"    2000판: {DistStr(big0)}");
+    foreach (var h in ptT) Console.WriteLine($"    [{h.Character.Name}] {StatsOf(h)}");
+    var tlog = new List<string>();
+    // 약확은 기본으로 건드리지 않는다(약점은 항상 터져야 한다는 지침). `약확허용`을 붙이면 약확도 옮겨 본다.
+    new SiegeOptimizer().TuneBestOfN(cfgT, ptT, sbT.Formation, plT, tlog, triesT, sampT, lockWeak: !args.Contains("약확허용"));
+    foreach (var l in tlog) Console.WriteLine("    " + l);
+    var ev1 = SiegeOptimizer.EvaluateBuild(cfgT, ptT, sbT.Formation, plT);
+    var big1 = SiegeOptimizer.ScoreDistribution(cfgT, ptT, sbT.Formation, plT, 2000, triesT);
+    Console.WriteLine($"  손질 후: 기댓값 {ev1.TotalScore:N0} ({ev1.TotalScore - ev0.TotalScore:+#,0;-#,0}, 사망 {ev1.Deaths?.Count ?? 0})");
+    Console.WriteLine($"    2000판: {DistStr(big1)}");
+    Console.WriteLine($"    {triesT}판 중 최고 기대 {big0.BestOfN:N0} → {big1.BestOfN:N0} ({big1.BestOfN - big0.BestOfN:+#,0;-#,0})");
+    foreach (var h in ptT) Console.WriteLine($"    [{h.Character.Name}] {StatsOf(h)}");
+    var backT = ptT.Where(x => x.IsBackPosition).Select(x => x.Character.Name).ToList();
+    var nbT = SiegeBuildStore.Capture(ptT, sbT.Formation, backT, plT);
+    nbT.Day = day; nbT.Profile = profile + $"_{triesT}판"; nbT.Route = RouteName(route);
+    nbT.Score = Math.Round(ev1.TotalScore); nbT.RankScore = Math.Round(ev1.RankScore); nbT.Deaths = ev1.Deaths?.Count ?? 0;
+    nbT.InGameBuffTargeting = ingame; nbT.EngineHash = engineHash; nbT.GitCommit = gitHead; nbT.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+    nbT.StartOrder = sbT.StartOrder; nbT.SearchMinutes = sbT.SearchMinutes;
+    nbT.Pet = sbT.Pet ?? new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = 72 };
+    nbT.TargetScore = sbT.TargetScore;
+    nbT.Log = tlog.Concat(new[] { $"[{triesT}판 기대] 손질 전 2000판: {DistStr(big0)}", $"[{triesT}판 기대] 손질 후 2000판: {DistStr(big1)}" }).ToList();
+    foreach (var l in DiffLines(sbT, nbT)) Console.WriteLine("    바뀐 것: " + l);
+    string tpath = System.IO.Path.Combine(outDir, $"build_{day}_{profile}_{triesT}판{(route == SiegeSearchRoute.Standard ? "_정석" : "")}_{teamKey}.json");
+    SiegeBuildStore.Save(tpath, nbT);
+    Console.WriteLine($"  [저장] {tpath}");
+    return;
+}
+
 //   더 높아지면 그 빌드로 저장한 뒤 아래 리포트로 이어진다(탐색은 건너뜀).
 bool stageOnly = args.Contains("단계");
 if (stageOnly)
@@ -1000,6 +1405,7 @@ List<string> DiffLines(SiegeSavedBuild a, SiegeSavedBuild b)
         AllyParty = fin.Party, FormationName = best.Formation, SiegeStage = stage,
         AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
         RotationPlan = fin.Plan, AllyDeathPenalty = penalty, RecordFeasibility = true, InGameBuffTargeting = ingame,
+        DiagAlliesImmortal = immortalSearch,   // 불사탐색 프로필은 리포트·턴로그도 같은 조건으로 재생
     });
     var bcfg = new BattleConfig { AllyParty = fin.Party, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = best.Formation };
     var bsim = new BattleSimulator();
@@ -1121,6 +1527,41 @@ List<string> DiffLines(SiegeSavedBuild a, SiegeSavedBuild b)
     if (turnLog)
     {
         var tl = new StringBuilder(summary);
+        // 생존 여유 — 영웅별 피격 직후 최저 HP(시점·원인)와 무효화·부활로 넘긴 횟수. 인게임 검증 전에 얇은 여유를 먼저 본다.
+        tl.AppendLine();
+        tl.AppendLine("──── 생존 여유 (피격 직후 최저 HP) ────");
+        var hpRx = new System.Text.RegularExpressions.Regex(@"→ (\S+?): [\d,]+(?: \((\S+?)\))? \(HP ([\d,]+)/([\d,]+)\)");
+        var low = new Dictionary<string, (double Pct, int Turn, string Cause, int Hits)>();
+        var saved = new Dictionary<string, List<string>>();
+        foreach (var l in rep.TurnLogs.Where(l => !l.IsAlly))
+        {
+            var m = hpRx.Match(l.Description ?? "");
+            if (m.Success)
+            {
+                string who = m.Groups[1].Value;
+                double pct = 100.0 * double.Parse(m.Groups[3].Value.Replace(",", "")) / double.Parse(m.Groups[4].Value.Replace(",", ""));
+                var cur = low.TryGetValue(who, out var c) ? c : (Pct: 101.0, Turn: 0, Cause: "", Hits: 0);
+                // 부활·권능 등으로 넘긴 치명타는 HP가 다시 차므로 최저값이 아니라 "넘김" 목록에 따로 적는다
+                if (m.Groups[2].Success)
+                {
+                    if (!saved.TryGetValue(who, out var sl)) saved[who] = sl = new List<string>();
+                    sl.Add($"T{l.Turn} {m.Groups[2].Value}({l.ActorName} {l.SkillName})");
+                    low[who] = (cur.Pct, cur.Turn, cur.Cause, cur.Hits + 1);
+                }
+                else low[who] = pct < cur.Pct ? (pct, l.Turn, $"{l.ActorName} {l.SkillName}", cur.Hits + 1) : (cur.Pct, cur.Turn, cur.Cause, cur.Hits + 1);
+            }
+        }
+        var nulls = rep.TurnLogs.Where(l => !l.IsAlly && l.SkillName == "피해 무효화")
+            .GroupBy(l => (l.Description ?? "").Split(' ')[0]).ToDictionary(g => g.Key, g => g.Count());
+        foreach (var name in low.Keys.Union(nulls.Keys).Union(saved.Keys))
+        {
+            var parts = new List<string>();
+            if (low.TryGetValue(name, out var v) && v.Pct <= 100) parts.Add($"최저 {v.Pct:F0}% (T{v.Turn} {v.Cause}) · 피격 {v.Hits}회");
+            else if (low.ContainsKey(name)) parts.Add($"피격 {low[name].Hits}회");
+            if (nulls.TryGetValue(name, out int nc)) parts.Add($"무효화 {nc}회");
+            if (saved.TryGetValue(name, out var sv)) parts.Add("치명 넘김: " + string.Join(", ", sv));
+            tl.AppendLine($"  {name}: {string.Join(" · ", parts)}");
+        }
         tl.AppendLine();
         tl.AppendLine($"──── 턴별 행동 로그 (총 {rep.TurnLogs.Count}개) ────");
         foreach (var l in rep.TurnLogs)
