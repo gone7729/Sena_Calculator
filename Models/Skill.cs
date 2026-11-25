@@ -28,6 +28,9 @@ namespace GameDamageCalculator.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public SkillType SkillType { get; set; }
+        /// <summary>[공성 시간 모델] 이 스킬 1회 시전에 흐르는 게임 시간(초). null이면 스킬 종류별 기본값(SiegeBattleConfig의 *Seconds).
+        /// 영상에서 잰 값이 기본값과 다른 스킬에만 지정한다(예: 토요일 적 스킬).</summary>
+        public double? ActionSeconds { get; set; }
         public int TargetCount { get; set; } = 1;
         public int Atk_Count { get; set; } = 1;
         public int Ticks { get; set; } = 1;

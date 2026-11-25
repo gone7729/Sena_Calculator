@@ -1482,9 +1482,15 @@ namespace GameDamageCalculator.Services.BattleEngine
             double buffCriDmg = enemy.HasEnemyBuff ? enemy.EnemyBuff.Cri_Dmg : 0;
             bool enemyCrit = !noCrit && (forceCrit || (e.Stats.Cri + buffCri) >= 100);   // 적 치확(보통 0; 반격·버프는 강제). DoT 틱은 치명 없음
             double critDmg = critDmgOverride >= 0 ? critDmgOverride : (e.Stats.Cri_Dmg + buffCriDmg);
+            // 적 치명타 피해 상한(실측 2026-11-25 토요일 영상): 분쇄 버프(치피 150 + 500 = 650%) 지진이 실제로는 치피 400% 값으로 들어온다
+            //   (T6 레이첼 1,932·비스킷 1,081 — 650%면 3,140·1,757). 툴팁은 +500% 그대로라 "과치피는 효율이 떨어진다"로 해석(유저 추정).
+            //   아군 쪽 치피는 310%까지만 실측 일치를 확인했으므로 상한을 적→아군에만 둔다.
+            //   반격 등 치피를 직접 지정한 경로(critDmgOverride, 금요일 제이브 650%)는 실측이 없어 그대로 둔다.
+            if (critDmgOverride < 0) critDmg = System.Math.Min(critDmg, MaxEnemyCritDamagePct);
             // 탄성(전용무기): 치명타 공격 피격 시 받는 피해 % 감소. 받피감과 동일 채널로 합산.
             double tanseong = enemyCrit ? (ally.DisplayStats?.CritDmg_Taken_Reduction ?? 0) : 0;
-            double effDmgRdc = allyDmgRdc + enemyDebuffs.Dmg_Reduction + tanseong;
+            // 받는 쪽 감소(아군 받피감·탄성)와 주는 쪽 증감(적 피해량 감소 디버프·광폭화)은 서로 다른 곱이다 — 아래 enemyOut 참고.
+            double effDmgRdc = allyDmgRdc + tanseong;
 
             var input = new DamageCalculator.DamageInput
             {
@@ -1517,8 +1523,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             double blkCut = Math.Min(1.0, 0.5 + (ally.DisplayStats?.Blk_Red ?? 0) / 100.0);
             double blockMult = 1 - blkChance * blkCut;
             // 광폭화는 패시브 보유 적(요일 보스)만. 룩·챈슬러 친위대는 보스취급이나 광폭화 없음 → ×1.0.
-            return _damageCalc.Calculate(input).FinalDamage * blockMult * (e.HasEnrage ? EnrageMultiplier() : 1.0);
+            // 적이 주는 피해 증감 = 1 + 광폭화% − 피해량 감소 디버프% (한 괄호 안에서 합산).
+            //   실측(2026-11-25 토요일 영상, 혹한의 지진 1타): 레이첼 T6 1,932 → T30 2,132 → T54 3,736, 비스킷 1,081 → 1,193.
+            //   T54/T30 = 1.752 = (1+1.5−0.17)/(1+0.5−0.17) — 광폭화와 염화 피감 17이 합산. 곱이면 2.5/1.5 = 1.667.
+            //   T30/T6 = 1.1035 = (1.33 × 공감 0.78)/(1−0.06) — 받피감 0인 레이첼과 26%인 비스킷이 같은 비 → 아군 받피감은 별도 곱.
+            double enemyOut = 1.0 + (e.HasEnrage ? EnrageMultiplier() - 1.0 : 0.0) - enemyDebuffs.Dmg_Reduction / 100.0;
+            return _damageCalc.Calculate(input).FinalDamage * blockMult * System.Math.Max(0, enemyOut);
         }
+
+        /// <summary>적→아군 치명타 피해 상한(%). 토요일 분쇄 버프 실측으로 정함 — CalcDamageToAlly 주석 참고.</summary>
+        public const double MaxEnemyCritDamagePct = 400;
 
         /// <summary>
         /// 광폭화 배수 (광폭화 패시브 보유 적=요일 보스만; 룩·챈슬러 친위대 제외 — e.HasEnrage로 게이팅):
@@ -2380,6 +2394,7 @@ namespace GameDamageCalculator.Services.BattleEngine
         {
             var s = _activeState;
             if (skill == null) return s?.BasicAttackSeconds ?? 2.0;   // 기본공격 (config.BasicAttackSeconds)
+            if (skill.ActionSeconds is double fixedSec) return fixedSec;   // 스킬별 실측값이 있으면 그 값
             return skill.SkillType switch
             {
                 SkillType.Normal or SkillType.Normal2 => s?.BasicAttackSeconds ?? 2.0,

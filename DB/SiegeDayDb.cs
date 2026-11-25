@@ -68,8 +68,13 @@ namespace GameDamageCalculator.Database
 
                 R3LookStats = new BaseStatSet { Atk = 1502, Def = 1423, Hp = 40000, Spd = 19, Cri_Dmg = 150, Eff_Hit = 100 },
                 R3ChanStats = new BaseStatSet { Atk = 1754, Def = 1423, Hp = 40000, Spd = 25, Cri_Dmg = 150, Eff_Hit = 100 },
-                R3Look = SiegeBossSkillDb.LookSkills(100, 340),
-                R3Chan = SiegeBossSkillDb.ChancellorSkills(100, 340, r3Frost: true),
+                // [시간 모델] 토요일 적 스킬은 기본값(1스킬 3.1초·2스킬 4.0초)보다 길다 — 2026-11-25 유저 영상 실측.
+                //   게임 시계 = 영상 시간 × 1.465(쿨 카운터로 확인, 컷신 중에도 같은 속도). 아군 스킬 턴 사이 간격(초):
+                //   적 스킬 없는 구간 11.4·11.6·12.2 (모델 11.65 — 일치), 있는 구간 15.1~17.9 (모델 13.8~15.65 — 평균 1.9초 모자람).
+                //   스킬별 평균: 혹한의 일격 5.4 · 혹한의 지진 5.7 · 분쇄 4.5 · 투창 4.8 (표본 2~5개, ±0.5초).
+                //   이 차이로 혹한의 일격(쿨 40)이 실제는 T22에 다시 나오고(적 스킬 24턴 주기) 구 모델은 T26(28턴 주기)이었다.
+                R3Look = WithSkillSeconds(SiegeBossSkillDb.LookSkills(100, 340), 4.8),
+                R3Chan = WithSkillSeconds(SiegeBossSkillDb.ChancellorSkills(100, 340, r3Frost: true), 4.5),
 
                 Pri1 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
                 Pri2 = new() { new("챈슬러", SkillType.Skill1), new("룩", SkillType.Skill1) },
@@ -173,6 +178,13 @@ namespace GameDamageCalculator.Database
         }
 
         // R3 스킬 우선순위 표기 헬퍼 (프로퍼티 — Days 필드 초기화 순서와 무관하게 접근 시 평가)
+        /// <summary>액티브 스킬(평타 제외)의 시전 소요시간을 지정해 돌려준다 — 요일별 실측값용(Skill.ActionSeconds).</summary>
+        private static List<Skill> WithSkillSeconds(List<Skill> skills, double seconds)
+        {
+            foreach (var sk in skills)
+                if (sk.SkillType != SkillType.Normal && sk.SkillType != SkillType.Normal2) sk.ActionSeconds = seconds;
+            return skills;
+        }
         private static PriItem B(string boss, SkillType s) => new(boss, s);
         private static PriItem Look1 => new("룩", SkillType.Skill1);
         private static PriItem Chan1 => new("챈슬러", SkillType.Skill1);

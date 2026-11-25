@@ -321,6 +321,7 @@ namespace GameDamageCalculator.Database
                     // 주 대상 195% + 동일 열 적군 75%(별도 타격) — 동일 열 추가타격은 Effect 텍스트로 보존.
                     Name = "혹한의 일격",
                     SkillType = SkillType.Skill1,
+                    ActionSeconds = 5.4,   // 2026-11-25 영상 실측 — SiegeDayDb 토요일 주석 참고
                     LevelData = new()
                     {
                         [0] = new SkillLevelData
@@ -345,6 +346,7 @@ namespace GameDamageCalculator.Database
                 {
                     Name = "혹한의 지진",
                     SkillType = SkillType.Skill2,
+                    ActionSeconds = 5.7,   // 2026-11-25 영상 실측
                     LevelData = new()
                     {
                         [0] = new SkillLevelData

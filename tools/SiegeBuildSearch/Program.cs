@@ -75,6 +75,8 @@ bool force = args.Contains("다시");
 var route = args.Contains("정석") ? SiegeSearchRoute.Standard : SiegeSearchRoute.Peak;
 double? targetArg = ParseScore(Val("고점=") ?? Val("목표="));
 int TRANS = lowSpec ? 6 : 12, POT = lowSpec ? 0 : 3;
+// 펫잠재=66: 펫 잠재 모든 공격력% 합(기본 72 = 18×4). 유저 빌드 대조용.
+double PETPOT = double.TryParse(args.FirstOrDefault(a => a.StartsWith("펫잠재="))?.Substring(4), out var pp0) ? pp0 : 72;
 string petName = args.Contains("델로") ? "델로" : args.Contains("리첼") ? "리첼" : "윈디";
 string formationArg = Val("진형=");
 var backArg = Val("후열=")?.Split(',').Select(x => x.Trim()).ToList();
@@ -108,7 +110,7 @@ SiegeOptimizerConfig MakeCfg(List<BattleCharacter> team, List<List<RotationDecis
     var cfg = new SiegeOptimizerConfig
     {
         FixedMembers = team, Candidates = new List<BattleCharacter>(), PartySize = 5, SiegeStage = stage,
-        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
+        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = PETPOT, MaxTurns = 70,
         AutoEquip = true, SearchExclusiveWeapon = !quick && !lowSpec, EnableSurvivalRings = !quick && !lowSpec,
         FloorFirstGear = true, AllyDeathPenalty = penalty, OptimizeRotation = true, InGameBuffTargeting = ingame,
         ForcedFormation = formationArg, ForcedBackRow = backArg,
@@ -659,7 +661,7 @@ if (subMoveArg != null)
     var heroM = partyM.FirstOrDefault(x => x.Character.Name == mp[0]);
     if (heroM?.Equipment == null) { Console.WriteLine($"영웅 없음: {mp[0]}"); return; }
     var bsimM = new BattleSimulator();
-    var bcfgM = new BattleConfig { AllyParty = partyM, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = sbM.Formation };
+    var bcfgM = new BattleConfig { AllyParty = partyM, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = PETPOT, FormationName = sbM.Formation };
     string StatLine()
     {
         var stM = bsimM.InitializeCharacterState(bcfgM, heroM, partyM.IndexOf(heroM));
@@ -1016,7 +1018,7 @@ if (accCmp != null)
     string StatA()
     {
         var bs = new BattleSimulator();
-        var bc = new BattleConfig { AllyParty = ptA, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = sbA.Formation };
+        var bc = new BattleConfig { AllyParty = ptA, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = PETPOT, FormationName = sbA.Formation };
         var stt = bs.InitializeCharacterState(bc, hA, ptA.IndexOf(hA)); var dd = stt.DisplayStats;
         return $"치확 {dd.Cri:0.#}·치피 {dd.Cri_Dmg:0.#}·약확 {dd.Wek:0.#}";
     }
@@ -1077,7 +1079,7 @@ if (args.Contains("다섯판"))
     string StatsOf(BattleCharacter h)
     {
         var bs = new BattleSimulator();
-        var bc = new BattleConfig { AllyParty = ptT, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = sbT.Formation };
+        var bc = new BattleConfig { AllyParty = ptT, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = PETPOT, FormationName = sbT.Formation };
         var stt = bs.InitializeCharacterState(bc, h, ptT.IndexOf(h)); var dd = stt.DisplayStats;
         return $"공 {stt.FinalAtk:N0} · 치확 {dd.Cri:0.#} · 치피 {dd.Cri_Dmg:0.#} · 약확 {dd.Wek:0.#}";
     }
@@ -1403,11 +1405,11 @@ List<string> DiffLines(SiegeSavedBuild a, SiegeSavedBuild b)
     var rep = new SiegeBattleSimulator(777).Simulate(new SiegeBattleConfig
     {
         AllyParty = fin.Party, FormationName = best.Formation, SiegeStage = stage,
-        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, MaxTurns = 70,
+        AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = PETPOT, MaxTurns = 70,
         RotationPlan = fin.Plan, AllyDeathPenalty = penalty, RecordFeasibility = true, InGameBuffTargeting = ingame,
         DiagAlliesImmortal = immortalSearch,   // 불사탐색 프로필은 리포트·턴로그도 같은 조건으로 재생
     });
-    var bcfg = new BattleConfig { AllyParty = fin.Party, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = 72, FormationName = best.Formation };
+    var bcfg = new BattleConfig { AllyParty = fin.Party, AllyPet = pet, PetStar = 6, PetEnhance = 3, PetOptionAtkRate = PETPOT, FormationName = best.Formation };
     var bsim = new BattleSimulator();
     var sb = new StringBuilder();
     sb.AppendLine($"════════ {day} 공성전 빌드 [{slot.Name} 경로] — {profile} · 타게팅 {(ingame ? "인게임(현재 공격력)" : "DW")} ════════");
