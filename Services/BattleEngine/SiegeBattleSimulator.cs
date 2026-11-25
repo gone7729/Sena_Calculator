@@ -652,6 +652,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             else
                                 ApplyDamage(state, ally, target, CalcDamageToEnemy(ally, target, normal, state), normal.Name, isSkill: false, penetrate: pen, hitCount: HitCountOf(ally, normal));
                             RegisterDotToEnemy(state, ally, target, normal);   // 평타의 DoT(화상 등) 등록
+                            RegisterRingStatusToEnemy(ally, target);           // 상태이상 반지(가시·샐러맨더·독사) — 기본 공격 시 확률 부여
                             MaybeEnemyCounter(state, target, normal.GetLevelData(ally.Source.IsSkillEnhanced, ally.Source.IsAwakened)?.AtkCount ?? 1);
                         }
                         if (targets.Count > 0)
@@ -1660,6 +1661,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
 
             ally.CurrentHp -= dmg;
+            if (ally.CurrentHp > 0 && ally.MaxHp > 0)   // [생존 여유] 피격 직후 최저 HP%
+                ally.MinHpPctAfterHit = Math.Min(ally.MinHpPctAfterHit, 100.0 * ally.CurrentHp / ally.MaxHp);
             string outcome = "";
             if (ally.CurrentHp <= 0)
             {
@@ -1667,6 +1670,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 var r = SurvivalResolver.ResolveLethal(ally);
                 if (ally.IsDead) ally.CurrentHp = 0;
                 outcome = $" ({r.Label})";
+                if (r.Survived) ally.LethalSaves++;   // [생존 여유] 치사 피해를 생존 수단으로 넘김
                 if (r.Survived && r.Label == "부활") OnAllyRevived(state, ally);   // 부활 연계 (아일린 청천벽력·진 발동·피해 면역)
             }
 
@@ -2292,34 +2296,16 @@ namespace GameDamageCalculator.Services.BattleEngine
             {
                 var baseEffect = StatusEffectDb.Get(se.Type);
                 if (baseEffect == null) continue;
-                double atkRatio = (se.CustomAtkRatio ?? baseEffect.AtkRatio) / 100.0;
-                // 대상 최대HP 비례 DoT(중독 6%·동영 극독 30%) — 시전자 공격력 AtkCap% 상한. 보스는 HP가 커서 대개 상한 적용.
-                //   중독만 매 턴 DoT. 빙결·마력역류·사슬피해의 최대HP%는 피격/공격 시 발동이라 여기서 제외.
-                double maxHpRatio = se.Type == StatusEffectType.Poison
-                    ? (se.CustomTargetMaxHpRatio ?? baseEffect.TargetMaxHpRatio) / 100.0 : 0;
-                if (atkRatio <= 0 && maxHpRatio <= 0) continue;
-
-                double elemReduction = ally.Source.Character.AttackType == AttackType.Magic
-                    ? target.Source.MagicReduction
-                    : target.Source.PhysicalReduction;
-                double raw = ally.FinalAtk * atkRatio;
-                if (maxHpRatio > 0)
-                {
-                    double hpDmg = target.MaxHp * maxHpRatio;
-                    double cap = (se.CustomAtkCap ?? baseEffect.AtkCap) / 100.0;
-                    if (cap > 0) hpDmg = Math.Min(hpDmg, ally.FinalAtk * cap);
-                    raw += hpDmg;
-                }
-                double tick = raw * Math.Max(0, 1 - elemReduction / 100.0);
+                double tick = DotTickDamage(ally, target, se.Type, se.CustomAtkRatio, se.CustomTargetMaxHpRatio, se.CustomAtkCap);
+                if (tick <= 0) continue;
                 int dur = se.Duration > 0 ? se.Duration : baseEffect.Duration;
 
                 // 세나 규칙(2026-11-17 유저 확인): 상태이상은 갱신형이 아니다 — 부여될 때마다 자기 지속 턴을 가진 새 인스턴스 추가.
                 //   부여 횟수 = 툴팁: "각 공격마다"(PerHit)면 타수만큼 개별 롤, 아니면 스킬당 1회. × Stacks.
-                //   확률은 기댓값: 인스턴스 틱 × p (p = 확률 × (1 + 효과적중/100), 적 효과저항 0 가정 — 공성 적 효저 데이터 없음).
+                //   확률은 기댓값: 인스턴스 틱 × p (StatusChance 참조).
                 int hits = se.PerHit ? Math.Max(1, skill.GetAtkCount(ally.Source.IsSkillEnhanced, ally.Source.TranscendLevel, ally.Source.IsAwakened)) : 1;
                 int count = hits * Math.Max(1, se.Stacks);
-                double effHit = (ally.DisplayStats?.Eff_Hit ?? 0) + ally.Effects.GetTotalBuffs().Eff_Hit;
-                double p = Math.Clamp(se.Chance / 100.0 * (1 + effHit / 100.0), 0, 1);
+                double p = StatusChance(ally, se.Chance);
                 if (p <= 0) continue;
                 for (int k = 0; k < count; k++)
                     target.ActiveDots.Add(new SiegeDot
@@ -2330,6 +2316,69 @@ namespace GameDamageCalculator.Services.BattleEngine
                         SourceName = ally.Source.Character.Name,
                         Probability = p,
                     });
+            }
+        }
+
+        /// <summary>DoT 1틱 피해(확률 반영 전) — 시전자 공격력 × 비율(화상 80%·출혈 60%), 중독은 대상 최대HP 비례(공격력 상한). 공성 감쇄(시전자 공격속성) 적용.</summary>
+        private static double DotTickDamage(CharacterBattleState ally, SiegeEnemyState target, StatusEffectType type,
+            double? customAtkRatio = null, double? customMaxHpRatio = null, double? customAtkCap = null)
+        {
+            var baseEffect = StatusEffectDb.Get(type);
+            if (baseEffect == null) return 0;
+            double atkRatio = (customAtkRatio ?? baseEffect.AtkRatio) / 100.0;
+            // 대상 최대HP 비례 DoT(중독 6%·동영 극독 30%) — 시전자 공격력 AtkCap% 상한. 보스는 HP가 커서 대개 상한 적용.
+            //   중독만 매 턴 DoT. 빙결·마력역류·사슬피해의 최대HP%는 피격/공격 시 발동이라 여기서 제외.
+            double maxHpRatio = type == StatusEffectType.Poison
+                ? (customMaxHpRatio ?? baseEffect.TargetMaxHpRatio) / 100.0 : 0;
+            if (atkRatio <= 0 && maxHpRatio <= 0) return 0;
+
+            double elemReduction = ally.Source.Character.AttackType == AttackType.Magic
+                ? target.Source.MagicReduction
+                : target.Source.PhysicalReduction;
+            double raw = ally.FinalAtk * atkRatio;
+            if (maxHpRatio > 0)
+            {
+                double hpDmg = target.MaxHp * maxHpRatio;
+                double cap = (customAtkCap ?? baseEffect.AtkCap) / 100.0;
+                if (cap > 0) hpDmg = Math.Min(hpDmg, ally.FinalAtk * cap);
+                raw += hpDmg;
+            }
+            return raw * Math.Max(0, 1 - elemReduction / 100.0);
+        }
+
+        /// <summary>상태이상이 걸릴 확률 = 툴팁 확률 × (1 + 효과 적용 확률/100) × (1 + 효과 적중/100), 0~1.
+        ///   효과 적용 확률(주술사 4세트 +10)은 스킬의 n% 상태이상 확률을 1.1배로 올린다(2026-11-25 유저 확인 — 효과 적중과 다른 옵션, 곱연산).
+        ///   반지의 상태이상에도 같은 배수를 적용했다(유저 설명은 "캐릭터 스킬의 cc기" — 반지 적용 여부는 미확인).
+        ///   효과 적중 항은 기존 모델 그대로(적 효과 저항 0 가정 — 공성 적 효저 데이터 없음). 미확정: 실제로는 효저를 상쇄하는 값일 수 있다.</summary>
+        private static double StatusChance(CharacterBattleState ally, double chance)
+        {
+            if (chance <= 0) return 0;
+            double effHit = (ally.DisplayStats?.Eff_Hit ?? 0) + ally.Effects.GetTotalBuffs().Eff_Hit;
+            double effAcc = ally.DisplayStats?.Eff_Acc ?? 0;
+            return Math.Clamp(chance / 100.0 * (1 + effAcc / 100.0) * (1 + effHit / 100.0), 0, 1);
+        }
+
+        /// <summary>상태이상 반지 — 기본 공격 시 확률로 적에게 상태이상(Accessory.GetNormalAttackStatusEffects: 본 반지 + 세공 칸).
+        ///   공성 적은 보스 취급이라 행동불가·즉사는 무효 → 지속 피해형(출혈·화상·중독)만 등록한다. 틱 피해는 착용자 공격력 기준(스킬 DoT와 같은 식),
+        ///   부여마다 새 인스턴스(기댓값: 틱 × 확률). 실명(공포의 반지)·버프 해제·턴 감소 반지는 미모델.</summary>
+        private void RegisterRingStatusToEnemy(CharacterBattleState ally, SiegeEnemyState target)
+        {
+            var acc = ally.Source.Equipment?.Accessory;
+            if (acc == null || string.IsNullOrEmpty(acc.RingName) && string.IsNullOrEmpty(acc.SubOption)) return;
+            foreach (var e in acc.GetNormalAttackStatusEffects())
+            {
+                if (e.StatusType != StatusEffectType.Bleeding && e.StatusType != StatusEffectType.Burn && e.StatusType != StatusEffectType.Poison) continue;
+                double tick = DotTickDamage(ally, target, e.StatusType);
+                double p = StatusChance(ally, e.Chance);
+                if (tick <= 0 || p <= 0) continue;
+                target.ActiveDots.Add(new SiegeDot
+                {
+                    Type = e.StatusType,
+                    TickDamage = tick * p,
+                    RemainingTurns = Math.Max(1, e.Duration),
+                    SourceName = ally.Source.Character.Name,
+                    Probability = p,
+                });
             }
         }
 
@@ -3393,6 +3442,8 @@ namespace GameDamageCalculator.Services.BattleEngine
                     TotalDamage = ally.TotalDamageDealt,
                     DamageShare = state.TotalScore > 0 ? ally.TotalDamageDealt / state.TotalScore * 100 : 0,
                     Died = ally.IsDead,
+                    MinHpPct = ally.MinHpPctAfterHit,
+                    LethalSaves = ally.LethalSaves,
                 });
             }
             return result;

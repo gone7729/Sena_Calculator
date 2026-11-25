@@ -59,6 +59,8 @@ namespace GameDamageCalculator.Services.BattleEngine
         public DamageNullType NullifyType { get; set; } = DamageNullType.All; // 무효화 대상 피해 타입
         public bool AuthorityUsed { get; set; }             // 권능(현재HP 이상 피해 생존) 전투당 1회 소비
         public bool RevivalUsed { get; set; }               // 부활/불사/불굴 전투당 1회 소비
+        public double MinHpPctAfterHit { get; set; } = 100; // [생존 여유] 피격 직후 최저 HP% (치사 피해를 넘긴 타격은 제외 — LethalSaves로 센다)
+        public int LethalSaves { get; set; }                // [생존 여유] 치사 피해를 권능·부활·불사로 넘긴 횟수
         public int ImmortalHitsRemaining { get; set; }      // 부활 후 사망무효 잔여 피격 (불굴)
         public int ImmortalTurnsRemaining { get; set; }     // 부활 후 사망무효 잔여 턴 (불사)
         public int TauntTurnsRemaining { get; set; }        // 도발 잔여 턴 — 활성 중 적 공격 타겟이 이 아군으로 유도됨 (라이언 강자사냥)

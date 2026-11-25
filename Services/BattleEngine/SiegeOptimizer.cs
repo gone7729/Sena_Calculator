@@ -151,6 +151,31 @@ namespace GameDamageCalculator.Services.BattleEngine
         public int EditSurvivalCandidates { get; set; } = 3;
         public int EditSurvivalRounds { get; set; } = 3;
 
+        // 탱커형 지원 전환(후처리). 기본 OFF. 2026-11-25 토요일 유저 빌드에서 나온 수:
+        //   유저의 비스킷은 딜을 버리고(주술사·방어력% 무기·막기/받피감 방어구) 생존 수단 없이 끝까지 버틴다. 탐색은 지원 영웅에게도
+        //   공격 장비(복수자·치확)를 입히고 죽으면 권능 반지로 한 번 넘기게 했다 — 기여 0.2%를 위해 생존 여유를 판 셈이다.
+        //   이 트랙은 딜 기여가 TankSupportMaxSharePct 이하인 비딜러(지원형·방어형, 요일 감쇄로 딜이 막힌 딜러 포함)에게
+        //   탱커 장비(수문장·수호자·성기사 4세트·2+2, 무기 방어력%/생명력%, 방어구 막기확률%/받피감%/방어력%/생명력%,
+        //   부옵 막기·방어·생명, 장신구 막기/생명/방어 조합·권능 반지·기존 장신구)를 "그 영웅의 생존 여유"가 최대가 되게 맞춰 보고,
+        //   (가) 랭크 점수가 오르거나 (나) 랭크 점수 손실이 그 영웅의 딜 기여분 이내(상한 TankSupportMaxLossPct%)이면서
+        //   그 영웅의 여유가 나아지고(사망 → 치명 넘김 → 최저 HP +TankSupportMinMarginGain%p 순) 다른 영웅의 사망·치명 넘김이
+        //   늘지 않을 때 채택한다. (나)는 점수를 조금 내주는 유일한 단계다 — 시뮬은 기댓값 한 판이라 얇은 여유의 위험을 점수로 못 본다.
+        //   채택하면 로테를 다시 탐색한다(무회귀). 주술사 세트·효과 적중·상태이상 반지도 후보다(SearchStatusRing 설명) —
+        //   장비는 (탱커 장신구 기준 × 탱커 세트 전부) + (상태이상 반지 기준 × 주술사가 낀 세트)로 맞추고 장신구는 양쪽 후보를 다 대 본다.
+        public bool SearchTankSupport { get; set; }
+        public double TankSupportMaxSharePct { get; set; } = 3;
+        public double TankSupportMaxLossPct { get; set; } = 1;
+        public double TankSupportMinMarginGain { get; set; } = 10;
+
+        // 상태이상 반지(후처리). 기본 OFF. 2026-11-25 유저 빌드의 비스킷 = 가시 반지(기본 공격 시 15% 2턴 출혈) + 세공 화상 + 주술사 4세트.
+        //   주술사 4세트의 효과 적용 확률 +10은 상태이상 확률을 1.1배로 올린다(유저 확인, 곱연산) → 15% 반지가 16.5%.
+        //   시뮬에서 반지 상태이상의 값 = 지속 피해(착용자 공격력 비례) + 「대상이 ○○ 상태」 조건·디버프 개수 비례 피증의 충족.
+        //   후보 = 출혈(가시)·화상(샐러맨더)·중독(독사) 반지 둘 조합(본 반지 + 세공), 반지 하나 + 기존 옵션, 기존 반지 + 세공만 상태이상.
+        //   이 단계는 장비는 그대로 두고 장신구만 바꿔 본다(전 영웅) — 랭크 점수가 오르고, 어느 영웅의 사망·치명 넘김도 늘지 않고,
+        //   착용자의 최저 HP가 StatusRingMaxHpDrop%p 넘게 줄지 않을 때 채택. 장비까지 맞추는 것(주술사·효과 적중 부옵)은 탱커 전환 단계가 한다.
+        public bool SearchStatusRing { get; set; }
+        public double StatusRingMaxHpDrop { get; set; } = 3;
+
         // 공격력 순위 탐색(후처리). 기본 OFF. InGameBuffTargeting 전용.
         //   "공격력이 가장 높은 아군" 효과(비스킷 장비 강화·라이언 평타 쿨감 등)는 공격력 순위로 수령자가 갈린다.
         //   누가 1·2순위여야 하는지는 버프 가치·쿨감 누수·행동 순서가 얽혀 장비 그리디가 스스로 찾지 못한다
@@ -172,6 +197,8 @@ namespace GameDamageCalculator.Services.BattleEngine
             PolishRotation = true;
             SearchAggressiveSurvival = true;
             SearchEditSurvival = true;
+            SearchTankSupport = true;
+            SearchStatusRing = true;
             SearchAtkRank = peak;
             SearchActionOrder = peak;
             SearchSpeedLead = peak;
@@ -327,6 +354,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                 }
             }
             if (config.PolishRotation && config.OptimizeRotation) Stage("로테 다듬기");
+            if (config.SearchTankSupport && config.AutoEquip && hasRes)
+            {
+                _trialPhase = "탱커 전환";
+                ApplyTankSupport(config, res, autoEquipped);   // 생존 보강 단계들보다 먼저 — 버티는 지원 영웅을 깔고 공격 로테를 찾게 한다
+                Stage("탱커 전환");
+            }
+            if (config.SearchStatusRing && config.AutoEquip && hasRes)
+            {
+                _trialPhase = "상태이상 반지";
+                ApplyStatusRings(config, res, autoEquipped);
+                Stage("상태이상 반지");
+            }
             if (config.SearchAggressiveSurvival && config.AutoEquip && config.OptimizeRotation && hasRes)
             {
                 _trialPhase = "공격 로테+생존 보강";
@@ -370,6 +409,18 @@ namespace GameDamageCalculator.Services.BattleEngine
                 ApplyEditSurvival(config, res, autoEquipped);           // 고점 단계가 장비·순서를 바꿨으면 편집 지형도 달라진다
                 Stage("순서 편집+생존 보강(고점)");
             }
+            if (changed && config.SearchTankSupport && config.AutoEquip)
+            {
+                _trialPhase = "탱커 전환(고점)";
+                ApplyTankSupport(config, res, autoEquipped);            // 순서·장비가 바뀌면 지원 영웅의 여유도 달라진다
+                Stage("탱커 전환(고점)");
+            }
+            if (changed && config.SearchStatusRing && config.AutoEquip)
+            {
+                _trialPhase = "상태이상 반지(고점)";
+                ApplyStatusRings(config, res, autoEquipped);
+                Stage("상태이상 반지(고점)");
+            }
             return res;
         }
 
@@ -389,6 +440,286 @@ namespace GameDamageCalculator.Services.BattleEngine
             _trialPhase = "순서 편집+생존 보강";
             ApplyEditSurvival(config, best, party.ToHashSet());
             return (best.BestResult, best.BestRotationPlan, best.GearLog);
+        }
+
+        /// <summary>[도구용] 이미 완성된 빌드에 탱커형 지원 전환 단계만 돌린다(다시 탐색하지 않음). party의 장비를 직접 고친다.
+        ///   반환 = (결과, 플랜, 로그, 채택 여부). 채택이 없으면 입력 그대로.</summary>
+        public (SiegeBattleResult R, List<RotationDecision> Plan, List<string> Log, bool Adopted) RunTankSupport(SiegeOptimizerConfig config,
+            List<BattleCharacter> party, string formation, List<RotationDecision> plan)
+        {
+            int mask = 0;
+            for (int i = 0; i < party.Count; i++) if (party[i].IsBackPosition) mask |= 1 << i;
+            var start = ScoreOnPlan(config, party, formation, plan);
+            var best = new SiegeOptimizerResult
+            {
+                BestParty = party, BestFormation = formation, BestMask = mask, BestRotationPlan = plan,
+                BestScore = start.TotalScore, BestRankScore = start.RankScore, BestResult = start,
+            };
+            _trialPhase = "탱커 전환";
+            bool any = config.SearchTankSupport && ApplyTankSupport(config, best, party.ToHashSet());
+            if (config.SearchStatusRing)
+            {
+                _trialPhase = "상태이상 반지";
+                any |= ApplyStatusRings(config, best, party.ToHashSet());
+            }
+            return (best.BestResult, best.BestRotationPlan, best.GearLog, any);
+        }
+
+        private static readonly string[] TankSets = { "수문장", "수호자", "성기사", "주술사" };
+        // 지속 피해형 상태이상 반지(6성: 기본 공격 시 15% 2턴). 행동불가·즉사 반지는 공성 적(보스 취급)에 무효라 후보가 아니다.
+        private static readonly string[] StatusRings = { "가시 반지", "샐러맨더의 반지", "독사 반지" };
+
+        /// <summary>상태이상 반지 장신구 후보 — 둘 조합(본 반지 + 세공, 6성은 값이 같아 순서 무관), 반지 하나 + 스탯 세공(statSubs),
+        ///   keepRing(권능 등 지켜야 할 본 반지)이 있으면 그 반지 + 세공만 상태이상.</summary>
+        private static IEnumerable<Accessory> StatusRingAccessories(IEnumerable<string> statSubs, string keepRing = null)
+        {
+            for (int i = 0; i < StatusRings.Length; i++)
+                for (int j = i + 1; j < StatusRings.Length; j++)
+                    yield return new Accessory { Grade = 6, RingName = StatusRings[i], SubOption = StatusRings[j] };
+            foreach (var ring in StatusRings)
+                foreach (var o in statSubs.Where(o => !string.IsNullOrEmpty(o) && o != "없음").Distinct())
+                    yield return new Accessory { Grade = 6, RingName = ring, SubOption = o };
+            if (!string.IsNullOrEmpty(keepRing))
+                foreach (var ring in StatusRings)
+                    yield return new Accessory { Grade = 6, RingName = keepRing, SubOption = ring };
+        }
+
+        private static string AccText(Accessory a) => a == null ? "없음"
+            : $"{(string.IsNullOrEmpty(a.RingName) ? a.MainOption : a.RingName)} / {(string.IsNullOrEmpty(a.SubOption) ? "-" : a.SubOption)}";
+
+        /// <summary>
+        /// 상태이상 반지 트랙 — SiegeOptimizerConfig.SearchStatusRing 설명 참조. 장비는 그대로, 장신구만 바꿔 본다.
+        /// </summary>
+        private bool ApplyStatusRings(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            if (best?.BestParty == null || autoEquipped == null || autoEquipped.Count == 0) return false;
+            var party = best.BestParty;
+            string formation = best.BestFormation;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            SiegeBattleResult Sim() => ScoreOnPlan(config, party, formation, best.BestRotationPlan);
+            static SiegeCharacterResult Of(SiegeBattleResult r, BattleCharacter b) =>
+                r.CharacterResults.FirstOrDefault(c => c.CharacterName == b.Character.Name);
+            (int Died, int Saves, double MinHp) Margin(SiegeBattleResult r, BattleCharacter b)
+            {
+                var c = Of(r, b);
+                return (DeathSeeds(r, b.Character.Name) > 0 ? 1 : 0, c?.LethalSaves ?? 0, c?.MinHpPct ?? 100);
+            }
+
+            bool any = false;
+            foreach (var bc in party.Where(p => p.Character != null && p.Equipment?.Accessory != null && autoEquipped.Contains(p)).ToList())
+            {
+                var cur = Sim();
+                var orig = bc.Equipment.Accessory;
+                var m0 = Margin(cur, bc);
+                // 스탯 세공 후보 = 지금 장신구가 갖고 있는 옵션(메인·부). 지금 반지가 본 반지(권능·토벌 등)면 그 반지 + 세공 상태이상도 본다.
+                var statSubs = new[] { orig.SubOption, string.IsNullOrEmpty(orig.RingName) ? orig.MainOption : null }
+                    .Where(o => !string.IsNullOrEmpty(o) && !AccessoryDb.Effects.ContainsKey(o)).ToList();
+                Accessory pick = null; SiegeBattleResult pickR = null; int tried = 0;
+                foreach (var acc in StatusRingAccessories(statSubs, StatusRings.Contains(orig.RingName) ? null : orig.RingName))
+                {
+                    bc.Equipment.Accessory = acc;
+                    var r = Sim(); tried++;
+                    var refR = pickR ?? cur;
+                    if (!IsBetterPick(r.TotalScore, r.RankScore, refR.TotalScore, refR.RankScore)) continue;
+                    var m = Margin(r, bc);
+                    if (m.MinHp < m0.MinHp - config.StatusRingMaxHpDrop) continue;
+                    bool othersOk = party.Where(p => p.Character != null).All(p =>
+                    {
+                        var a = Margin(cur, p); var b = Margin(r, p);
+                        return b.Died <= a.Died && b.Saves <= a.Saves;
+                    });
+                    if (!othersOk) continue;
+                    pick = acc; pickR = r;
+                }
+                if (pick == null) { bc.Equipment.Accessory = orig; continue; }
+                bc.Equipment.Accessory = pick;
+                Trial(config, party, formation, best.BestRotationPlan, pickR);
+                any = true;
+                var m1 = Margin(pickR, bc);
+                best.GearLog.Add($"[{bc.Character.Name}] 상태이상 반지 채택: {AccText(orig)} → {AccText(pick)} · 팀점수 {cur.TotalScore:N0} → {pickR.TotalScore:N0} ({pickR.TotalScore - cur.TotalScore:+#,0;-#,0})"
+                    + $" · 최저 HP {m0.MinHp:F0}% → {m1.MinHp:F0}% · 후보 {tried}개");
+                best.BestScore = pickR.TotalScore; best.BestRankScore = pickR.RankScore; best.BestResult = pickR;
+            }
+            if (any) best.RingedAcc = party.Select(b => b.Equipment?.Accessory).ToList();
+            else best.GearLog.Add("[상태이상 반지] 채택 없음 — 장신구만 바꿔서는 점수가 오르는 영웅이 없습니다.");
+            return any;
+        }
+
+        /// <summary>탱커 장신구 후보 — 막기·생명력·방어력 두 개 조합(6성, 메인·부 값이 같아 순서 무관), 권능 반지 + 그 셋 중 하나, 기존 장신구.
+        ///   withStatus면 상태이상 반지 후보(둘 조합 / 반지 + 막기·생명력·방어력·효과적중 / 권능 + 세공 상태이상)도 낸다.</summary>
+        private static IEnumerable<Accessory> TankAccessories(Accessory orig, bool withStatus)
+        {
+            var opts = new[] { "막기%", "생명력%", "방어력%" };
+            for (int i = 0; i < opts.Length; i++)
+                for (int j = i + 1; j < opts.Length; j++)
+                    yield return new Accessory { Grade = 6, MainOption = opts[i], SubOption = opts[j] };
+            foreach (var o in opts)
+                yield return new Accessory { Grade = 6, SubOption = o, RingName = "권능의 반지" };
+            if (withStatus)
+                foreach (var a in StatusRingAccessories(opts.Append("효과적중%"), "권능의 반지")) yield return a;
+            if (orig != null) yield return orig;
+        }
+
+        /// <summary>
+        /// 탱커형 지원 전환 트랙 — SiegeOptimizerConfig.SearchTankSupport 설명 참조.
+        /// </summary>
+        private bool ApplyTankSupport(SiegeOptimizerConfig config, SiegeOptimizerResult best, HashSet<BattleCharacter> autoEquipped)
+        {
+            var boss = ResolveBoss(config.SiegeStage);
+            if (boss == null || best?.BestParty == null || autoEquipped == null || autoEquipped.Count == 0) return false;
+            var party = best.BestParty;
+            string formation = best.BestFormation;
+            for (int i = 0; i < party.Count; i++)
+                party[i].IsBackPosition = (best.BestMask & (1 << i)) != 0;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+
+            SiegeBattleResult Sim() => ScoreOnPlan(config, party, formation, best.BestRotationPlan);
+            static SiegeCharacterResult Of(SiegeBattleResult r, BattleCharacter b) =>
+                r.CharacterResults.FirstOrDefault(c => c.CharacterName == b.Character.Name);
+            // 생존 여유 = (사망 여부, 치명 넘김 횟수, 피격 직후 최저 HP%) — 앞의 것부터 비교
+            (int Died, int Saves, double MinHp) Margin(SiegeBattleResult r, BattleCharacter b)
+            {
+                var c = Of(r, b);
+                return (DeathSeeds(r, b.Character.Name) > 0 ? 1 : 0, c?.LethalSaves ?? 0, c?.MinHpPct ?? 100);
+            }
+            static string M((int Died, int Saves, double MinHp) m) =>
+                m.Died > 0 ? "사망" : $"최저 HP {m.MinHp:F0}%" + (m.Saves > 0 ? $"·치명 넘김 {m.Saves}회" : "");
+
+            var start = Sim();
+            var targets = party.Where(p => p.Character != null && p.Equipment != null && autoEquipped.Contains(p)
+                    && (!IsDealer(p) || !IsEffectiveDealer(p, config.SiegeStage))
+                    && (Of(start, p)?.DamageShare ?? 100) <= config.TankSupportMaxSharePct).ToList();
+            if (targets.Count == 0)
+            {
+                best.GearLog.Add($"[탱커 전환] 대상 없음 — 딜 기여 {config.TankSupportMaxSharePct:0.#}% 이하인 지원형·방어형 영웅이 없습니다.");
+                return false;
+            }
+
+            var optimizer = new EquipmentOptimizer();
+            var gc = new GearConstraints
+            {
+                WeaponMains = new[] { "방어력%", "생명력%" },
+                ArmorMains = new[] { "막기확률%", "받피감%", "방어력%", "생명력%" },
+                SubOptions = new[] { "막기확률%", "방어력%", "생명력%", "방어력", "생명력" },
+            };
+            // 상태이상 반지를 낄 때의 장비 제약 — 효과 적중(무기 메인·부옵)이 반지 확률을 올린다.
+            var gcStatus = new GearConstraints
+            {
+                WeaponMains = new[] { "방어력%", "생명력%", "효과적중%" },
+                ArmorMains = gc.ArmorMains,
+                SubOptions = new[] { "막기확률%", "방어력%", "생명력%", "방어력", "생명력", "효과적중%" },
+            };
+            bool any = false;
+            foreach (var bc in targets)
+            {
+                var cur = Sim();
+                var me = Of(cur, bc);
+                if (me == null) continue;
+                var m0 = Margin(cur, bc);
+                var origEq = bc.Equipment;
+                double rank0 = System.Math.Max(1, cur.RankScore);
+                int evals = 0;
+                // 장비 맞춤 점수 = 그 영웅의 생존 여유(사망 > 치명 넘김 > 최저 HP%) + 팀 랭크 점수 변화(1% = 최저 HP 10%p).
+                //   팀 점수 항은 탱커 장비가 다른 곳을 건드리는 경우를 잡는다 — 공격력 순위(「공격력 최고 아군」 버프 수령자)·방어력 비례 딜 등.
+                double Score(EquipmentLoadout lo)
+                {
+                    evals++;
+                    bc.Equipment = lo;
+                    var r = Sim();
+                    var m = Margin(r, bc);
+                    return System.Math.Max(0, 10000 - 3000 * m.Died - 1000 * System.Math.Min(m.Saves, 3) + 10 * m.MinHp
+                        + 10000 * (r.RankScore / rank0 - 1));
+                }
+
+                var solo = SoloConfig(config, boss, bc);
+                var baseAcc = new Accessory { Grade = 6, MainOption = "막기%", SubOption = "생명력%" };
+                EquipmentLoadout pick = null; double pickS = -1; string pickSet = null;
+                // 상태이상 반지 기준 장신구 = 지금 장비에서 가장 점수가 높은 반지 둘 조합
+                Accessory statusBase = null;
+                if (config.SearchStatusRing)
+                {
+                    double sbS = -1;
+                    var keepAcc = origEq.Accessory;
+                    for (int i = 0; i < StatusRings.Length; i++)
+                        for (int j = i + 1; j < StatusRings.Length; j++)
+                        {
+                            var a = new Accessory { Grade = 6, RingName = StatusRings[i], SubOption = StatusRings[j] };
+                            origEq.Accessory = a;
+                            double sc = Score(origEq);
+                            if (sc > sbS) { sbS = sc; statusBase = a; }
+                        }
+                    origEq.Accessory = keepAcc;
+                }
+                foreach (var set in EquipmentOptimizer.BuildSetCombos(TankSets))
+                {
+                    bool shaman = set.Description != null && set.Description.Contains("주술사");
+                    // 주술사가 낀 세트는 상태이상 반지를 낀 채로도 맞춰 본다(효과 적중·효과 적용 확률은 반지가 있어야 값이 있다)
+                    var bases = new List<(Accessory Acc, GearConstraints Gc)> { (baseAcc, gc) };
+                    if (shaman && statusBase != null) bases.Add((statusBase, gcStatus));
+                    foreach (var (bAcc, bGc) in bases)
+                    {
+                        var lo = optimizer.OptimizeMainsSubsFixedAccessory(bc, solo, 0, set, bGc, Score, bAcc);
+                        if (lo == null) continue;
+                        var bestAcc = lo.Accessory; double bestS = Score(lo);
+                        foreach (var acc in TankAccessories(origEq.Accessory, config.SearchStatusRing))
+                        {
+                            lo.Accessory = acc;
+                            double sc = Score(lo);
+                            if (sc > bestS) { bestS = sc; bestAcc = acc; }
+                        }
+                        lo.Accessory = bestAcc;
+                        if (bestS > pickS) { pickS = bestS; pick = lo; pickSet = set.Description; }
+                    }
+                }
+                if (pick == null) { bc.Equipment = origEq; continue; }
+
+                bc.Equipment = pick;
+                var r1 = Sim();
+                var m1 = Margin(r1, bc);
+                Trial(config, party, formation, best.BestRotationPlan, r1);
+                double allow = System.Math.Min(me.TotalDamage, cur.TotalScore * config.TankSupportMaxLossPct / 100.0) + 1;
+                bool better = IsBetterPick(r1.TotalScore, r1.RankScore, cur.TotalScore, cur.RankScore);
+                bool safer = m1.Died < m0.Died
+                    || (m1.Died == m0.Died && (m1.Saves < m0.Saves
+                        || (m1.Saves == m0.Saves && m1.MinHp >= m0.MinHp + config.TankSupportMinMarginGain)));
+                bool othersOk = party.Where(p => p != bc && p.Character != null).All(p =>
+                {
+                    var a = Margin(cur, p); var b = Margin(r1, p);
+                    return b.Died <= a.Died && b.Saves <= a.Saves;
+                });
+                string desc = $"{pickSet} · {M(m0)} → {M(m1)} · 팀점수 {cur.TotalScore:N0} → {r1.TotalScore:N0} ({r1.TotalScore - cur.TotalScore:+#,0;-#,0})"
+                    + $" · 그 영웅 딜 {me.TotalDamage:N0}({me.DamageShare:F1}%) · 평가 {evals:N0}회";
+                if (!(better || (safer && othersOk && r1.RankScore >= cur.RankScore - allow)))
+                {
+                    bc.Equipment = origEq;
+                    string why = !safer ? "생존 여유가 나아지지 않음"
+                        : !othersOk ? "다른 영웅의 사망·치명 넘김이 늘어남"
+                        : $"점수 손실이 허용 폭({allow:N0})을 넘음";
+                    best.GearLog.Add($"[{bc.Character.Name}] 탱커 전환 미채택({why}): {desc}");
+                    continue;
+                }
+                any = true;
+                best.BestScore = r1.TotalScore; best.BestRankScore = r1.RankScore; best.BestResult = r1;
+                best.GearLog.Add($"[{bc.Character.Name}] 탱커 전환 채택{(better ? "" : "(점수를 내주고 여유를 삼)")}: {desc} — 아래가 최종 장비");
+                best.GearLog.Add(FormatGear(bc));
+            }
+
+            if (!any) return false;
+            best.RingedAcc = party.Select(b => b.Equipment?.Accessory).ToList();
+            // 버티는 지원 영웅을 깔고 로테를 다시 탐색(무회귀) — 자기 플랜도 후보라 퇴보 없음.
+            if (config.OptimizeRotation && best.BestRotationPlan != null && best.BestRotationPlan.Count > 0)
+            {
+                double before = best.BestScore;
+                var (fr, fp) = SearchRotationFor(config, party, formation, config.RotationBeamWidth, new[] { best.BestRotationPlan });
+                if (fr != null && IsBetterPick(fr.TotalScore, fr.RankScore, best.BestScore, best.BestRankScore))
+                {
+                    best.BestScore = fr.TotalScore; best.BestRankScore = fr.RankScore; best.BestResult = fr; best.BestRotationPlan = fp;
+                    best.GearLog.Add($"[탱커 전환] 로테 재탐색: {before:N0} → {fr.TotalScore:N0}");
+                }
+            }
+            best.GearLog.Add($"[탱커 전환] 합계: {start.TotalScore:N0} → {best.BestScore:N0} (랭크 {best.BestRankScore:N0}) ({clock.Elapsed.TotalMinutes:F1}분)");
+            return true;
         }
 
         /// <summary>
@@ -2292,6 +2623,14 @@ namespace GameDamageCalculator.Services.BattleEngine
                 sumT += r.TotalScore; sumR += r.RankScore;
                 foreach (var c in r.CharacterResults)
                     if (c.Died) deathSeeds[c.CharacterName] = deathSeeds.GetValueOrDefault(c.CharacterName) + 1;
+                if (first != null)   // 생존 여유는 시드 중 가장 나쁜 값으로
+                    foreach (var c in r.CharacterResults)
+                    {
+                        var f = first.CharacterResults.FirstOrDefault(x => x.PartyIndex == c.PartyIndex);
+                        if (f == null) continue;
+                        f.MinHpPct = System.Math.Min(f.MinHpPct, c.MinHpPct);
+                        f.LethalSaves = System.Math.Max(f.LethalSaves, c.LethalSaves);
+                    }
                 first ??= r;
             }
             first.TotalScore = sumT / n;

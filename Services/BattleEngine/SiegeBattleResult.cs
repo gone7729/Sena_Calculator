@@ -100,5 +100,10 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double TotalDamage { get; set; }
         public double DamageShare { get; set; }
         public bool Died { get; set; }   // 전투 종료 시 사망(부활 못 함) 여부 — 생존반지 탐색 게이팅용
+        // 생존 여유 — 탱커형 지원 전환(SiegeOptimizer.ApplyTankSupport)의 채택 판단용.
+        //   MinHpPct = 피격 직후 최저 HP%(한 번도 안 맞으면 100), LethalSaves = 치사 피해를 권능·부활·불사로 넘긴 횟수.
+        //   N시드 평가(ScoreOnPlan)에서는 시드 중 가장 나쁜 값.
+        public double MinHpPct { get; set; } = 100;
+        public int LethalSaves { get; set; }
     }
 }

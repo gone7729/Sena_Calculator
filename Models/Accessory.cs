@@ -21,6 +21,20 @@ namespace GameDamageCalculator.Models
                 ? new System.Collections.Generic.List<Effects.PersistentEffect>()
                 : AccessoryDb.GetEffects(RingName, Grade);
 
+        /// <summary>기본 공격 시 적에게 상태이상을 거는 반지 효과 — 본 반지(RingName)와 세공 칸 둘 다.
+        ///   세공 칸(6성)에는 다른 반지의 효과가 들어간다: 스탯형(치확 10 = 행운의 반지 등)은 SubOption의 옵션 이름으로,
+        ///   상태이상형은 SubOption에 반지 이름("샐러맨더의 반지" 등)을 그대로 넣는다. 본 반지와 같은 효과는 중복 불가.
+        ///   (2026-11-25 유저 영상: 비스킷 6성 가시 반지 = 기본 공격 시 15% 2턴 출혈 + 세공 = 기본 공격 시 15% 2턴 화상)</summary>
+        public System.Collections.Generic.IEnumerable<Effects.PersistentEffect> GetNormalAttackStatusEffects()
+        {
+            if (Grade <= 0) yield break;
+            foreach (var e in GetEffects())
+                if (e.Type == Effects.PersistentEffectType.StatusAilment && e.TriggerCondition == Effects.TriggerCondition.NormalOnly) yield return e;
+            if (Grade == 6 && !string.IsNullOrEmpty(SubOption) && SubOption != RingName && AccessoryDb.Effects.ContainsKey(SubOption))
+                foreach (var e in AccessoryDb.GetEffects(SubOption, Grade))
+                    if (e.Type == Effects.PersistentEffectType.StatusAilment && e.TriggerCondition == Effects.TriggerCondition.NormalOnly) yield return e;
+        }
+
         /// <summary>
         /// 장신구 전체 스탯 계산
         /// </summary>

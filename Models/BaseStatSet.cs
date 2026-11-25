@@ -30,7 +30,7 @@ namespace GameDamageCalculator.Models
         // ===== 효과 관련 =====
         public double Eff_Hit { get; set; }     // 효과 적중 (%)
         public double Eff_Res { get; set; }     // 효과 저항 (%)
-        public double Eff_Acc { get; set; }     // 효과 적중 확률 (%)
+        public double Eff_Acc { get; set; }     // 효과 적용 확률 (%) — 스킬의 n% 상태이상 확률에 곱해진다(주술사 4세트 +10 = ×1.1). 효과 적중(Eff_Hit)과 다른 옵션
 
         // ===== 피해량 관련 =====
         public double Arm_Pen { get; set; }     // 방어 무시 (%)

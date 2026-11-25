@@ -943,6 +943,44 @@ if (args.Contains("보강"))
     return;
 }
 
+// ── 탱커: 다시 탐색하지 않고, 저장된 빌드에 "탱커형 지원 전환" 단계만 돌린다 (SiegeOptimizer.RunTankSupport) ──
+//   딜 기여가 거의 없는 지원 영웅을 탱커 장비로 바꿔 생존 여유를 산다(점수를 조금 내줄 수 있음 — SearchTankSupport 설명).
+//   결과는 `_탱커` 프로필 파일에 따로 저장한다(저장된 빌드는 그대로). 확인: `프로필=<태그>_탱커 불러오기 턴로그`.
+if (args.Contains("탱커"))
+{
+    var sbK = SiegeBuildStore.Load(PathFor(route));
+    if (sbK == null) { Console.WriteLine($"저장된 빌드 없음 ({PathFor(route)})"); return; }
+    var ptK = SiegeBuildStore.ToParty(sbK); var plK = SiegeBuildStore.ToPlan(sbK, ptK);
+    var cfgK = MakeCfg(ptK, null);
+    string MK(SiegeBattleResult r) => string.Join(" / ", r.CharacterResults.Select(c => $"{c.CharacterName} {(c.Died ? "사망" : $"{c.MinHpPct:F0}%")}{(c.LethalSaves > 0 ? $"(넘김 {c.LethalSaves})" : "")}"));
+    var beforeK = SiegeOptimizer.EvaluateBuild(cfgK, ptK, sbK.Formation, plK);
+    Console.WriteLine($"═══ 탱커 전환 {day} [{teamKey}] {profile} · {RouteName(route)}");
+    Console.WriteLine($"  시작 {beforeK.TotalScore:N0} (랭크 {beforeK.RankScore:N0}, 사망 {beforeK.Deaths?.Count ?? 0}) · 최저 HP: {MK(beforeK)}");
+    var swK = System.Diagnostics.Stopwatch.StartNew();
+    var (rK, pK, logK, adoptedK) = new SiegeOptimizer().RunTankSupport(cfgK, ptK, sbK.Formation, plK);
+    foreach (var l in logK) Console.WriteLine("  " + l);
+    if (!adoptedK) { Console.WriteLine($"  채택 없음 — 저장하지 않습니다. ({swK.Elapsed.TotalMinutes:F1}분)"); return; }
+    var chkK = SiegeOptimizer.EvaluateBuild(cfgK, ptK, sbK.Formation, pK);
+    Console.WriteLine($"  결과 {chkK.TotalScore:N0} (랭크 {chkK.RankScore:N0}, 사망 {chkK.Deaths?.Count ?? 0}) · 최저 HP: {MK(chkK)} · {swK.Elapsed.TotalMinutes:F1}분");
+    Console.WriteLine("    기여: " + string.Join(" / ", chkK.CharacterResults.OrderByDescending(x => x.TotalDamage).Select(x => $"{x.CharacterName} {x.TotalDamage:N0}")));
+    var backK = ptK.Where(x => x.IsBackPosition).Select(x => x.Character.Name).ToList();
+    var nbK = SiegeBuildStore.Capture(ptK, sbK.Formation, backK, pK);
+    nbK.Day = day; nbK.Profile = profile + "_탱커"; nbK.Route = RouteName(route);
+    nbK.Score = Math.Round(chkK.TotalScore); nbK.RankScore = Math.Round(chkK.RankScore); nbK.Deaths = chkK.Deaths?.Count ?? 0;
+    nbK.InGameBuffTargeting = ingame; nbK.EngineHash = engineHash; nbK.GitCommit = gitHead; nbK.SavedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+    nbK.StartOrder = sbK.StartOrder; nbK.SearchMinutes = Math.Round(sbK.SearchMinutes + swK.Elapsed.TotalMinutes, 1);
+    nbK.Pet = sbK.Pet ?? new SiegeSavedBuild.PetDto { Name = petName, Star = 6, Enhance = 3, PotentialAtkRate = PETPOT };
+    nbK.TargetScore = sbK.TargetScore;
+    nbK.Stages = (sbK.Stages ?? new()).ToList();
+    nbK.Stages.Add(new SiegeSavedBuild.StageDto { Name = "탱커 전환(단계)", Score = nbK.Score, RankScore = nbK.RankScore, Deaths = nbK.Deaths, Order = string.Join(",", ptK.Select(x => x.Character.Name)) });
+    nbK.Log = (sbK.Log ?? new()).Concat(logK).ToList();
+    foreach (var l in DiffLines(sbK, nbK)) Console.WriteLine("    바뀐 것: " + l);
+    string kpath = System.IO.Path.Combine(outDir, $"build_{day}_{profile}_탱커{(route == SiegeSearchRoute.Standard ? "_정석" : "")}_{teamKey}.json");
+    SiegeBuildStore.Save(kpath, nbK);
+    Console.WriteLine($"  [저장] {kpath}");
+    return;
+}
+
 // ── 생존조합: 불사탐색으로 찾은 빌드(프로필 `_불사`)에서 출발해 실제 조건의 빌드로 내려온다 (RelaxImmortality) ──
 //   먼저 `불사탐색`으로 딜 천장 빌드를 저장해 둬야 한다. 결과는 `_생존조합` 프로필에 저장하고,
 //   저장된 고점 빌드보다 높으면 고점 빌드도 갱신한다(최고 빌드만 유지).
