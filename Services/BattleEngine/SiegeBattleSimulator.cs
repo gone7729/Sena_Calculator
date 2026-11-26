@@ -427,7 +427,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                         // 전원 풀피 시 회복 스킬은 발동 불가 → 플랜 무시하고 자동(다음 스킬)으로 폴백(예약 다음 순번 발동).
                         //   (빔은 풀피 회복을 후보에서 제외하므로 보통 비발동; 시드/HP변동 대비 방어 게이트.)
                         bool healGated = sk != null && IsHealSkill(sk, a.Source.IsSkillEnhanced) && AllAlliesFullHp(state);
-                        if (!healGated && !a.IsDead && !a.Effects.HasActionBlockingCC() && ready)
+                        if (!healGated && !a.IsDead && !a.Effects.HasSkillBlockingCC() && ready)
                         {
                             if (_recordFeasibility)
                             {
@@ -457,6 +457,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                             double cdRem = sk != null ? a.SkillCooldowns.GetValueOrDefault(dec.Skill) : 0;
                             string reason = a.IsDead ? "시전자 사망"
                                 : a.Effects.HasActionBlockingCC() ? "행동불가 CC"
+                                : a.Effects.HasSkillBlockingCC() ? "침묵"
                                 : sk == null ? "스킬 없음"
                                 : $"쿨 {cdRem:0.#}초 남음";
                             RecordFeasStep(state, stIdx, dec, a, sk, false, reason, cdRem, 0);
@@ -477,7 +478,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                     {
                         int idx = (state.AllyRotationCursor + k) % bn;
                         var a = state.AllyStates[idx];
-                        if (a.IsDead || a.Effects.HasActionBlockingCC()) continue;
+                        if (a.IsDead || a.Effects.HasSkillBlockingCC()) continue;
                         foreach (var s in a.Source.Character.Skills ?? Enumerable.Empty<Skill>())
                         {
                             if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2 || (s.IsAwakenOnly && !a.Source.IsAwakened)) continue;
@@ -496,7 +497,7 @@ namespace GameDamageCalculator.Services.BattleEngine
                 {
                     int idx = (state.AllyRotationCursor + k) % n;
                     var ally = state.AllyStates[idx];
-                    if (ally.IsDead || ally.Effects.HasActionBlockingCC()) continue;
+                    if (ally.IsDead || ally.Effects.HasSkillBlockingCC()) continue;   // 침묵 = 액티브 스킬 불가(2026-11-26 유저 지적: 목요일 돼오 필수)
                     var skill = PickAllySkill(ally, state);
                     if (skill == null) continue;
                     ExecuteAllySkill(state, idx, skill);
@@ -2647,7 +2648,7 @@ namespace GameDamageCalculator.Services.BattleEngine
             for (int ai = 0; ai < state.AllyStates.Count; ai++)
             {
                 var a = state.AllyStates[ai];
-                if (a.IsDead || a.Effects.HasActionBlockingCC()) continue;
+                if (a.IsDead || a.Effects.HasSkillBlockingCC()) continue;
                 foreach (var s in a.Source.Character.Skills ?? Enumerable.Empty<Skill>())
                 {
                     if (s.SkillType == SkillType.Normal || s.SkillType == SkillType.Normal2) continue;

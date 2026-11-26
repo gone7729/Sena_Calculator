@@ -1518,6 +1518,10 @@ List<string> DiffLines(SiegeSavedBuild a, SiegeSavedBuild b)
     foreach (var c in rep.CharacterResults.OrderByDescending(c => c.TotalDamage))
         sb.AppendLine($"  {c.CharacterName}: {c.TotalDamage:N0} ({c.DamageShare:F1}%)");
     sb.AppendLine();
+    sb.AppendLine("──── 생존 여유 (피격 직후 최저 HP% · 치명 넘김 = 부활/불사/권능으로 넘긴 횟수) ────");
+    foreach (var c in rep.CharacterResults)
+        sb.AppendLine($"  {c.CharacterName}: {(c.Died ? "사망" : $"최저 HP {c.MinHpPct:F0}%")}{(c.LethalSaves > 0 ? $" · 치명 넘김 {c.LethalSaves}" : "")}");
+    sb.AppendLine();
     sb.AppendLine("──── 공격력 · 속공 · 치명/약점 (전투 시작 시점 — 상시 패시브 포함, 턴제 버프 제외) ────");
     for (int i = 0; i < fin.Party.Count; i++)
     {

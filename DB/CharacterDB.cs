@@ -3220,7 +3220,9 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 // 7첩 반상: 모든 공격 1회 발동 시 1중첩 [최대 7중첩], 중첩당 받는 물리 피해 4% 감소
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Phys_Dmg_Rdc = 28 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Phys_Dmg_Rdc = 28 } },
+                                // 모든 아군 침묵 면역[2턴] (자신의 기본 공격 1회 발동 시 재부여)
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Silence }, Duration = 2 } }
                             },
                             Effect = "[상시] 침묵 면역[2턴], 기본 공격 1회 발동 시 침묵 면역[2턴]. 7첩 반상: 모든 공격 1회 발동 시 1중첩(최대 7), 중첩당 받는 물리 피해량 4% 감소(최대 7×4=28%)"
                         }},
@@ -3228,7 +3230,9 @@ namespace GameDamageCalculator.Database
                             Effects = new List<PersistentEffect>
                             {
                                 // 7첩 반상 강화: 중첩당 받는 물리 피해 5% 감소
-                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Phys_Dmg_Rdc = 35 } }
+                                new PersistentEffect { Target = EffectTarget.Self, Type = PersistentEffectType.Buff, Buff = new BuffSet { Phys_Dmg_Rdc = 35 } },
+                                // 모든 아군 침묵 면역[2턴] (자신의 기본 공격 1회 발동 시 재부여)
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Silence }, Duration = 2 } }
                             },
                             Effect = "[상시] 침묵 면역[2턴], 기본 공격 1회 발동 시 침묵 면역[2턴]. 7첩 반상: 모든 공격 1회 발동 시 1중첩(최대 7), 중첩당 받는 물리 피해량 5% 감소(최대 7×5=35%)"
                         }}
@@ -13720,14 +13724,16 @@ namespace GameDamageCalculator.Database
                             Effect="모든 아군 감전 면역 2턴(기본공격 1회 시 갱신). 아군 후열 물리피증 20% 2턴(모든 공격 2회 시 갱신)",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Shock }, Duration = 2 } }
                             }
                         }},
                         { 1, new PassiveLevelData {
                             Effect="모든 아군 감전 면역 2턴(기본공격 1회 시 갱신). 아군 후열 물리피증 20% 3턴(모든 공격 2회 시 갱신)",
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Dmg_Dealt_Type = 20 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Shock }, Duration = 2 } }
                             }
                         }}
                     },
@@ -15015,9 +15021,17 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } }
+                            },
                             Effect = "모든 아군 마비 면역[2턴]+기본공격 시 마비 면역[2턴]"
                         }},
                         { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Paralysis }, Duration = 2 } }
+                            },
                             Effect = "모든 아군 마비 면역[2턴], 스킬 1회 발동 시 마법공 90% 회복"
                         }}
                     },
@@ -19302,9 +19316,17 @@ namespace GameDamageCalculator.Database
                     LevelData = new Dictionary<int, PassiveLevelData>
                     {
                         { 0, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Freeze }, Duration = 2 } }
+                            },
                             Effect = "[모든 아군] 빙결 면역[2턴], 자신 기본공격 1회 발동 시 빙결 면역[2턴]"
                         }},
                         { 1, new PassiveLevelData {
+                            Effects = new List<PersistentEffect>
+                            {
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Freeze }, Duration = 2 } }
+                            },
                             Effect = "[모든 아군] 빙결 면역[2턴], 자신 기본공격 1회 발동 시 빙결 면역[2턴]. 강화: [자신] 효과 적중 증가 46%[3턴]"
                         }}
                     }
@@ -19842,14 +19864,16 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 13 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 13 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Stun }, Duration = 2 } }
                             },
                             Effect = "[모든 아군] 방어력 증가 13%[상시] + 기절 면역[2턴], 자신 기본공격 1회 발동 시 기절 면역[2턴]"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 18 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 18 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Stun }, Duration = 2 } }
                             },
                             Effect = "[모든 아군] 방어력 증가 18%[상시] + 기절 면역[2턴], 자신 기본공격 1회 발동 시 기절 면역[2턴]"
                         }}
@@ -19962,14 +19986,16 @@ namespace GameDamageCalculator.Database
                         { 0, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 13 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 13 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Silence }, Duration = 2 } }
                             },
                             Effect = "[모든 아군] 방어력 증가 13%[상시] + 침묵 면역[2턴], 자신 기본공격 1회 발동 시 침묵 면역[2턴]"
                         }},
                         { 1, new PassiveLevelData {
                             Effects = new List<PersistentEffect>
                             {
-                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 18 } }
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Buff, Buff = new BuffSet { Def_Rate = 18 } },
+                                new PersistentEffect { Target = EffectTarget.Party, Type = PersistentEffectType.Immunity, StatusImmunity = new StatusImmunity { Types = new[] { StatusEffectType.Silence }, Duration = 2 } }
                             },
                             Effect = "[모든 아군] 방어력 증가 18%[상시] + 침묵 면역[2턴], 자신 기본공격 1회 발동 시 침묵 면역[2턴]"
                         }}

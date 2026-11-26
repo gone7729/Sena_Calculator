@@ -166,6 +166,11 @@ namespace GameDamageCalculator.Services.BattleEngine
         public double TankSupportMaxSharePct { get; set; } = 3;
         public double TankSupportMaxLossPct { get; set; } = 1;
         public double TankSupportMinMarginGain { get; set; } = 10;
+        // 점수를 내주는 채택은 여유가 실제로 얇을 때만(사망·치명 넘김이 있거나 최저 HP가 이 값 미만) —
+        //   그 영웅 자신이 얇고 자신의 여유가 나아지거나, 팀(가장 얇은 영웅)이 얇고 팀의 여유가 나아질 때.
+        //   2026-11-25 월요일: 리나(최저 HP 66%)의 탱커 장비는 리나 자신이 아니라 나타(27% → 87%)를 살린다(회복이 리나 스탯 비례).
+        //   자기 여유만 보면 낭비로 보이고, 팀 여유를 안 보면 메인 딜러가 얇아진다.
+        public double TankSupportThinHpPct { get; set; } = 50;
 
         // 상태이상 반지(후처리). 기본 OFF. 2026-11-25 유저 빌드의 비스킷 = 가시 반지(기본 공격 시 15% 2턴 출혈) + 세공 화상 + 주술사 4세트.
         //   주술사 4세트의 효과 적용 확률 +10은 상태이상 확률을 1.1배로 올린다(유저 확인, 곱연산) → 15% 반지가 16.5%.
@@ -585,6 +590,12 @@ namespace GameDamageCalculator.Services.BattleEngine
             }
             static string M((int Died, int Saves, double MinHp) m) =>
                 m.Died > 0 ? "사망" : $"최저 HP {m.MinHp:F0}%" + (m.Saves > 0 ? $"·치명 넘김 {m.Saves}회" : "");
+            // 팀 여유 = (사망 영웅 수, 치명 넘김 합, 가장 낮은 최저 HP%)
+            (int Died, int Saves, double MinHp) TeamMargin(SiegeBattleResult r)
+            {
+                var ms = party.Where(p => p.Character != null).Select(p => Margin(r, p)).ToList();
+                return (ms.Sum(m => m.Died), ms.Sum(m => m.Saves), ms.Min(m => m.MinHp));
+            }
 
             var start = Sim();
             var targets = party.Where(p => p.Character != null && p.Equipment != null && autoEquipped.Contains(p)
@@ -683,17 +694,26 @@ namespace GameDamageCalculator.Services.BattleEngine
                 bool safer = m1.Died < m0.Died
                     || (m1.Died == m0.Died && (m1.Saves < m0.Saves
                         || (m1.Saves == m0.Saves && m1.MinHp >= m0.MinHp + config.TankSupportMinMarginGain)));
+                bool heroThin = m0.Died > 0 || m0.Saves > 0 || m0.MinHp < config.TankSupportThinHpPct;
+                var t0 = TeamMargin(cur); var t1 = TeamMargin(r1);
+                bool teamThin = t0.Died > 0 || t0.Saves > 0 || t0.MinHp < config.TankSupportThinHpPct;
+                bool teamSafer = t1.Died < t0.Died
+                    || (t1.Died == t0.Died && (t1.Saves < t0.Saves
+                        || (t1.Saves == t0.Saves && t1.MinHp >= t0.MinHp + config.TankSupportMinMarginGain)));
+                bool thin = heroThin || teamThin;
+                safer = (heroThin && safer) || (teamThin && teamSafer);
                 bool othersOk = party.Where(p => p != bc && p.Character != null).All(p =>
                 {
                     var a = Margin(cur, p); var b = Margin(r1, p);
                     return b.Died <= a.Died && b.Saves <= a.Saves;
                 });
-                string desc = $"{pickSet} · {M(m0)} → {M(m1)} · 팀점수 {cur.TotalScore:N0} → {r1.TotalScore:N0} ({r1.TotalScore - cur.TotalScore:+#,0;-#,0})"
+                string desc = $"{pickSet} · {M(m0)} → {M(m1)} · 팀 최저 {M(t0)} → {M(t1)} · 팀점수 {cur.TotalScore:N0} → {r1.TotalScore:N0} ({r1.TotalScore - cur.TotalScore:+#,0;-#,0})"
                     + $" · 그 영웅 딜 {me.TotalDamage:N0}({me.DamageShare:F1}%) · 평가 {evals:N0}회";
-                if (!(better || (safer && othersOk && r1.RankScore >= cur.RankScore - allow)))
+                if (!(better || (thin && safer && othersOk && r1.RankScore >= cur.RankScore - allow)))
                 {
                     bc.Equipment = origEq;
-                    string why = !safer ? "생존 여유가 나아지지 않음"
+                    string why = !thin ? $"그 영웅도 팀도 여유가 넉넉함(최저 HP {config.TankSupportThinHpPct:0.#}% 이상) — 점수를 내주지 않음"
+                        : !safer ? "생존 여유가 나아지지 않음"
                         : !othersOk ? "다른 영웅의 사망·치명 넘김이 늘어남"
                         : $"점수 손실이 허용 폭({allow:N0})을 넘음";
                     best.GearLog.Add($"[{bc.Character.Name}] 탱커 전환 미채택({why}): {desc}");

@@ -295,6 +295,15 @@ namespace GameDamageCalculator.Services
                 && e.StatusData != null && e.StatusData.BlocksAction);
         }
 
+        /// <summary>액티브 스킬을 쓸 수 없는 상태인지 — 행동 불가 CC 또는 침묵(액티브 스킬 사용 불가).
+        ///   침묵 중에도 기본 공격·패시브 발동은 한다(스킬턴 시전만 막힘).</summary>
+        public bool HasSkillBlockingCC()
+        {
+            return _effects.Any(e =>
+                e.IsStatusEffect && !e.IsExpired
+                && e.StatusData != null && (e.StatusData.BlocksAction || e.StatusData.BlocksActiveSkill));
+        }
+
         #endregion
     }
 }
